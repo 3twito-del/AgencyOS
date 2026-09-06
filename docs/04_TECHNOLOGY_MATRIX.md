@@ -10,7 +10,7 @@ This file is a snapshot, not a permanent ceiling. The policy is frontier-trackin
 | ASP.NET Core | 11 preview/daily | 10.0.11 |
 | EF Core | 11 preview/daily | 10.x compatible |
 | Windows App SDK | 2.4.1-experimental | 2.4.0 |
-| Windows SDK | 10.0.28000.2705 | newest validated compatible Windows SDK |
+| Windows SDK | 10.0.28000.2705 (frontier target; enable when provisioned) | 10.0.26100.0 (currently validated) |
 | PostgreSQL | git HEAD/development snapshot; 19 Beta 3 | 18.6 |
 | pgvector | master only in FORGE; public 0.8.6 | 0.8.6 when introduced |
 | Python | CPython main; 3.15.0rc2 official prerelease | supported stable Python |
@@ -19,6 +19,22 @@ This file is a snapshot, not a permanent ceiling. The policy is frontier-trackin
 | Node.js | 26.8.1 Current for LAB tooling | supported LTS where preferable |
 | Visual Studio | 2026 Insiders 18.10 branch | 2026 18.9.2 stable side-by-side |
 | Temporal .NET SDK | latest tested; snapshot reference 1.18.0 | only when M12+/workflow need exists |
+
+## Windows SDK rings
+
+The Windows SDK is tracked as two distinct targets, not one pinned number.
+
+- **FORGE/LAB frontier target: 10.0.28000.2705.** This is the SDK the project
+  intends to build against on the edge rings. It is enabled once that SDK is
+  provisioned on a build machine; until then the frontier target is aspirational
+  and no ring builds against it.
+- **ALPHA validated target: 10.0.26100.0.** This is the SDK actually installed
+  and verified to build `AgencyOS.Windows` against Windows App SDK 2.4.0. ALPHA
+  is a real-data ring, so it targets a validated SDK only.
+
+ALPHA is never retargeted to an SDK that is not installed and validated.
+Provisioning the frontier SDK does not by itself promote it: promotion follows
+the gates below, the same as any other toolchain component.
 
 ## Update rule
 

@@ -54,16 +54,33 @@ data is permitted. Defaulting to the most restricted ring fails safe.
 Swap `global.json` for `config/global.lab.json` to move the repository to LAB.
 No data or contract implications; the pin governs compilation only.
 
-## Known deviation from the pinned baseline
+## Windows SDK: two targets, one per ring band
 
-`CLAUDE.md` section 4 and `docs/04_TECHNOLOGY_MATRIX.md` name Windows SDK
-10.0.28000.2705 as the frontier SDK, but only 10.0.26100.0 is installed on this
-machine, so that is what `AgencyOS.Windows` targets. This is a machine
-provisioning gap, not a decision to diverge. Either install the pinned SDK and
-retarget, or amend the matrix - the two should not stay out of step.
+The Windows SDK is not a single pinned number. It is tracked as two targets:
+
+- **FORGE/LAB frontier target: 10.0.28000.2705.** Enabled when that SDK is
+  provisioned on a build machine. Until then no ring builds against it.
+- **ALPHA validated target: 10.0.26100.0.** Installed here and verified to build
+  `AgencyOS.Windows` against Windows App SDK 2.4.0.
+
+`AgencyOS.Windows` therefore targets `net10.0-windows10.0.26100.0`.
+
+This is a policy, not a deviation. ALPHA is a real-data ring, and
+`docs/04_TECHNOLOGY_MATRIX.md` already states that "newest" is not equivalent to
+"best for canonical data". Retargeting ALPHA to an SDK that is not installed
+would make the real-data ring depend on an unvalidated, absent toolchain
+component - the precise outcome the ring model exists to prevent.
+
+Provisioning the frontier SDK does not by itself promote it. Promotion follows
+the gates in `config/version-policy.yaml`, the same as any other component.
+
+Recorded in `CLAUDE.md` section 4, `docs/04_TECHNOLOGY_MATRIX.md` and
+`config/version-policy.yaml`.
 
 ## Evidence / metrics that would cause reconsideration
 
 - Windows App SDK requiring a newer .NET than the ALPHA baseline provides.
 - A promotion of .NET 11 through the gates in `config/version-policy.yaml`.
-- A capability needed before M1 that exists only in the preview toolchain.
+- A capability needed by the Windows client that exists only in the frontier
+  Windows SDK, which would justify provisioning it for FORGE/LAB.
+- A capability needed that exists only in the preview .NET toolchain.

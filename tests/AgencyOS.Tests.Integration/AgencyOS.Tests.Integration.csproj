@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    M0 integration tests host the API in-process. They deliberately do not start
-    PostgreSQL: there is no schema until M1, and prompt 001 excludes Docker
-    orchestration from this milestone. Container-backed database tests
-    (docs/11_TESTING_AND_FORMAL_METHODS.md, level 3) arrive with M1.
+    Integration tests run against a real PostgreSQL server, per
+    docs/11_TESTING_AND_FORMAL_METHODS.md. There is no in-memory substitute:
+    the append-only trigger, jsonb and text[] columns and the migration itself
+    are database behavior, and a fake would verify none of them.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
@@ -21,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/AgencyOS.Api/AgencyOS.Api.csproj" />
     <ProjectReference Include="../../src/AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
+    <ProjectReference Include="../../src/AgencyOS.Infrastructure/AgencyOS.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

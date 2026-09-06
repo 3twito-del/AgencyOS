@@ -43,7 +43,11 @@ toolchains:
     lab: "2.4.1-experimental"
     alpha: "2.4.0"
   windows_sdk:
+    # Frontier target for FORGE/LAB, enabled when provisioned on a build machine.
     frontier: "10.0.28000.2705"
+    # SDK installed and validated for the ALPHA real-data ring. ALPHA is never
+    # retargeted to an SDK that is not installed and validated.
+    alpha_validated: "10.0.26100.0"
   postgresql:
     forge: "development snapshot / git HEAD"
     lab: "19 Beta 3"

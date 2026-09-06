@@ -4,9 +4,9 @@
     Genuinely native Windows client (CLAUDE.md principle 2, docs/12_WINDOWS_NATIVE.md).
     WinUI 3 on Windows App SDK 2.4.0 - the ALPHA baseline in config/version-policy.yaml.
 
-    Windows SDK note: config pins 10.0.28000.2705 as the frontier SDK, but only
-    10.0.26100.0 is installed on this machine, so that is what this project targets.
-    See ADR-0002.
+    Windows SDK: 10.0.26100.0 is the ALPHA validated target. 10.0.28000.2705 is the
+    FORGE/LAB frontier target, enabled when that SDK is provisioned. ALPHA is never
+    retargeted to an SDK that is not installed and validated. See ADR-0002.
 
     This project references AgencyOS.Contracts and nothing else. That keeps
     "the Windows client never depends on the DB schema" (docs/02_ARCHITECTURE.md

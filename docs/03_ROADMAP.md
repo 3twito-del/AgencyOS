@@ -31,7 +31,26 @@ Exit criteria:
 - version metadata generated; **met**
 - Nightly artifact can be produced. **met**
 
-## M1 — Identity, Organization & Audit
+## M1 — Identity, Organization & Audit — **Done** (2026-09-07)
+
+Implemented: Organization, User, Membership and the role/permission model;
+development identity provider behind a replaceable seam, fenced to rings that
+forbid real data; two-layer server-side authorization with the authoritative,
+organization-scoped check in the command handlers; append-only AuditEvent
+enforced by the domain type, a save interceptor and database triggers;
+release-policy model with NONE/AVAILABLE/RECOMMENDED/MANDATORY/REVOKED; the
+client handshake endpoint and unconditional server-side enforcement of it;
+PostgreSQL persistence with migrations; integration tests against real
+PostgreSQL.
+
+Decisions recorded: `docs/adr/ADR-0005-release-handshake-contract.md`,
+`ADR-0006-audit-append-only-enforcement.md`,
+`ADR-0007-identity-and-authorization-model.md`.
+
+Deferred: first-run bootstrap of the initial organization and owner; OpenAPI
+document generation; database readiness probe. See the M1 limitations in the
+implementation report.
+
 Deliver:
 - Organization, User, Membership, Role/Permission foundations;
 - authentication placeholder suitable for later Entra/OIDC;
@@ -40,8 +59,8 @@ Deliver:
 - client/server version handshake.
 
 Exit criteria:
-- privileged mutations are authorized and audited;
-- unsupported client version can be rejected.
+- privileged mutations are authorized and audited; **met**
+- unsupported client version can be rejected. **met**
 
 ## M2 — People Vertical Slice
 Deliver:

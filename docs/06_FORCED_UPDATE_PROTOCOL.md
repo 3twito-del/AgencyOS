@@ -32,7 +32,11 @@ Server returns:
 
 ```json
 {
+  "platform": "windows-x64",
+  "channel": "alpha",
   "policy": "MANDATORY",
+  "reason": "Version 0.4.0-alpha.12 is below the minimum supported version 0.4.0-alpha.13.",
+  "blocksProtectedMutations": true,
   "latestVersion": "0.4.0-alpha.14",
   "minimumSupportedVersion": "0.4.0-alpha.13",
   "apiContract": {
@@ -42,9 +46,51 @@ Server returns:
   "securityEpoch": 4,
   "mandatoryAfterUtc": null,
   "killSwitch": false,
-  "rollbackTarget": null
+  "rollbackTarget": null,
+  "artifact": {
+    "sha256": null,
+    "signature": null
+  }
 }
 ```
+
+`blocksProtectedMutations` states the operative outcome so a client does not have
+to reimplement the severity table. It is informational only: the server recomputes
+the same decision on every protected request, so a client that ignores it, never
+performs a handshake, or has been modified is refused identically.
+
+This shape reconciles the earlier narrower response with
+`config/release-policy.example.json`. See
+`docs/adr/ADR-0005-release-handshake-contract.md`.
+
+## Enforcement
+
+The handshake informs. Enforcement is separate and unconditional.
+
+Every request carries client identity headers:
+
+```
+X-AgencyOS-Platform        windows-x64
+X-AgencyOS-Channel         alpha
+X-AgencyOS-Client-Version  0.4.0-alpha.14
+X-AgencyOS-Api-Contract    9
+X-AgencyOS-Build-Id        20260907.1842
+```
+
+Mutating requests under `/api` are evaluated against the release policy before
+authentication. A blocked client receives problem details:
+
+- `REVOKED` -> 403 Forbidden
+- `MANDATORY` -> 426 Upgrade Required
+
+Reads are not blocked, and the handshake route itself is always reachable, so a
+revoked build can still explain itself and fetch its update. A client that
+presents no usable identity headers cannot be evaluated, and is therefore refused
+for mutations.
+
+Severity order, most severe first: kill switch or revoked version; API contract
+outside the supported range; below minimum supported version; past an update
+deadline; behind but supported; current.
 
 ## Policies
 

@@ -77,8 +77,39 @@ function Get-Configuration([string]$Default) {
 
 function Test-GitRepository {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return $false }
+
+    # A non-zero exit here is an answer, not an error. PowerShell 7.4+ would
+    # otherwise turn it into a terminating error under ErrorActionPreference Stop.
+    $PSNativeCommandUseErrorActionPreference = $false
     git rev-parse --is-inside-work-tree *> $null
     return ($LASTEXITCODE -eq 0)
+}
+
+# Integration tests require a real PostgreSQL server
+# (docs/11_TESTING_AND_FORMAL_METHODS.md). They fail rather than skip when none
+# is reachable, so the doctor reports the situation before a run does.
+function Test-DockerRunning {
+    if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { return $false }
+
+    $PSNativeCommandUseErrorActionPreference = $false
+    docker info *> $null
+    return ($LASTEXITCODE -eq 0)
+}
+
+function Write-PostgresStatus {
+    if ($env:AGENCYOS_TEST_POSTGRES) {
+        Write-Host "[OK] AGENCYOS_TEST_POSTGRES is set; integration tests will use it"
+        return
+    }
+
+    if (Test-DockerRunning) {
+        Write-Host "[OK] Docker is running; integration tests will use Testcontainers"
+        return
+    }
+
+    Write-Host "[WARN] No PostgreSQL test target. Integration tests will FAIL, not skip."
+    Write-Host "       Set AGENCYOS_TEST_POSTGRES to a server the suite may create databases on,"
+    Write-Host "       or start Docker so a container can be used."
 }
 
 function Invoke-Doctor {
@@ -109,11 +140,15 @@ function Invoke-Doctor {
     if (Test-Path ".claude/settings.json")    { Write-Host "[OK] .claude/settings.json" }
     if (Test-Path "CLAUDE.md")                { Write-Host "[OK] CLAUDE.md" }
 
+    if (Test-Path ".config/dotnet-tools.json")  { Write-Host "[OK] .config/dotnet-tools.json (pinned dotnet-ef)" }
+
     if (Test-GitRepository) {
         Write-Host "[OK] git repository initialized"
     } else {
         Write-Host "[WARN] Not a git repository. Build metadata will report an unknown commit."
     }
+
+    Write-PostgresStatus
 }
 
 function Invoke-Version {

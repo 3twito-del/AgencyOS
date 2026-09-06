@@ -1,24 +1,25 @@
 using System.Net;
 using System.Net.Http.Json;
 using AgencyOS.Contracts;
-using Microsoft.AspNetCore.Mvc.Testing;
+using AgencyOS.Tests.Integration.Infrastructure;
 using Xunit;
 
 namespace AgencyOS.Tests.Integration;
 
 /// <summary>
-/// End-to-end tests over the M0 API host, exercised through the real HTTP pipeline.
+/// Tests over the API host itself, exercised through the real HTTP pipeline.
 /// </summary>
-public sealed class ApiHostTests : IClassFixture<WebApplicationFactory<Program>>
+[Collection(AgencyOsCollection.Name)]
+public sealed class ApiHostTests
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly AgencyOsTestFixture _fixture;
 
-    public ApiHostTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public ApiHostTests(AgencyOsTestFixture fixture) => _fixture = fixture;
 
     [Fact]
     public async Task Health_ReportsHealthy()
     {
-        using HttpClient client = _factory.CreateClient();
+        using HttpClient client = _fixture.Factory.CreateClient();
 
         using HttpResponseMessage response = await client.GetAsync("/health");
 
@@ -33,7 +34,7 @@ public sealed class ApiHostTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task Version_ReportsBuildIdentity()
     {
-        using HttpClient client = _factory.CreateClient();
+        using HttpClient client = _fixture.Factory.CreateClient();
 
         VersionResponse? payload = await client.GetFromJsonAsync<VersionResponse>("/version");
 
@@ -45,17 +46,31 @@ public sealed class ApiHostTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.False(string.IsNullOrWhiteSpace(payload.GitCommit));
     }
 
-    /// <summary>
-    /// M0 exposes liveness and identity only. A business endpoint appearing before
-    /// M1 would mean an unauthenticated, unaudited surface (docs/07_SECURITY_AND_AUDIT.md).
-    /// </summary>
     [Fact]
     public async Task UnknownRoute_IsNotFound()
     {
-        using HttpClient client = _factory.CreateClient();
+        using HttpClient client = _fixture.Factory.CreateClient();
 
-        using HttpResponseMessage response = await client.GetAsync("/people");
+        using HttpResponseMessage response = await client.GetAsync("/no-such-route");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    /// <summary>
+    /// The API host must be running on a ring that forbids real data, because the
+    /// development authentication scheme trusts a header. Program.cs refuses to
+    /// start otherwise; this asserts the suite is in fact exercising that posture.
+    /// </summary>
+    [Fact]
+    public async Task Host_RunsOnARingThatForbidsRealData()
+    {
+        using HttpClient client = _fixture.Factory.CreateClient();
+
+        VersionResponse payload = (await client.GetFromJsonAsync<VersionResponse>("/version"))!;
+
+        Assert.Contains(
+            payload.Channel,
+            new[] { "forge", "lab", "nightly" },
+            StringComparer.Ordinal);
     }
 }

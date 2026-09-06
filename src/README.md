@@ -35,8 +35,35 @@ Modules named in `docs/02_ARCHITECTURE.md` are folders and namespaces within the
 layer projects, not separate assemblies. See `docs/adr/ADR-0001-repository-structure.md`
 for the reasoning and the promotion path.
 
-## What M0 deliberately does not contain
+Modules present after M1:
 
-No business entities, no persistence, no authentication, no authorization, no
-audit, no AI, no message broker, no container orchestration. Those begin at M1
-(Identity, Organization, Audit) and M2 (People vertical slice).
+| Module | Domain | Application | Infrastructure |
+|---|---|---|---|
+| Identity | `Identity/` | `Abstractions/` | `Persistence/`, `Authorization/` |
+| Organization | `Organizations/` | `Organizations/` | `Persistence/` |
+| Membership | `Memberships/` | `Memberships/` | `Persistence/` |
+| Authorization | `Authorization/` | `Authorization/` | `Authorization/` |
+| Audit | `Audit/` | `Audit/` | `Persistence/` |
+| ReleasePolicy | `Releases/` | `Releases/` | `Persistence/` |
+
+## Where enforcement lives
+
+Three properties are enforced in more than one place on purpose. Removing any
+single layer leaves the system still correct, which is the test of whether the
+duplication was worth it.
+
+| Property | Layers |
+|---|---|
+| Audit immutability | domain type with no mutator; save interceptor; database triggers (`ADR-0006`) |
+| Authorization | endpoint policy as an early gate; scoped check inside the command handler, which is authoritative (`ADR-0007`) |
+| Client compatibility | handshake response tells the client; middleware refuses the mutation regardless (`ADR-0005`) |
+
+## What is deliberately absent
+
+No business verticals yet: no talent, projects, opportunities, deals, contracts
+or finance. No AI, message broker, cache, search index or container
+orchestration. Those arrive at the milestones that need them, and not before -
+`CLAUDE.md` section 5.
+
+Identity is a development scheme that trusts a header. The host refuses to start
+if it is configured on a ring that permits real data.

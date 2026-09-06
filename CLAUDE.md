@@ -58,7 +58,7 @@ Do not assume these remain current forever. `config/version-policy.yaml` defines
 - .NET 11 public edge: SDK 11.0.100-preview.7 / runtime 11.0.0-preview.7; C# 15; F# 10.
 - .NET real-data baseline: .NET 10.0.11 LTS, SDK 10.0.400, C# 14, F# 10.
 - Windows App SDK: 2.4.1-experimental (LAB); 2.4.0 stable (ALPHA baseline).
-- Windows SDK: 10.0.28000.2705 (frontier SDK).
+- Windows SDK: 10.0.28000.2705 (FORGE/LAB frontier target, enabled when provisioned); 10.0.26100.0 (ALPHA validated target).
 - PostgreSQL: development snapshot/HEAD (FORGE), 19 Beta 3 (LAB), 18.6 (ALPHA).
 - Python: CPython main (FORGE), 3.15.0rc2 (LAB), latest supported stable for ALPHA.
 - Rust: nightly for FORGE/LAB; stable for promoted real-data components unless a nightly-only capability is explicitly justified.

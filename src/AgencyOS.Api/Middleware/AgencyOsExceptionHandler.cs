@@ -1,0 +1,81 @@
+using AgencyOS.Application.Authorization;
+using AgencyOS.Domain.Common;
+using AgencyOS.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AgencyOS.Api.Middleware;
+
+/// <summary>
+/// Maps application and domain failures to problem details.
+/// </summary>
+/// <remarks>
+/// Mapping lives at the edge so handlers can fail by throwing a meaningful
+/// exception rather than by threading a result type through every call site.
+/// An unrecognized exception is deliberately not translated: it becomes a 500
+/// with no detail, because leaking internals is worse than being unhelpful.
+/// </remarks>
+internal sealed class AgencyOsExceptionHandler : IExceptionHandler
+{
+    private readonly ILogger<AgencyOsExceptionHandler> _logger;
+
+    public AgencyOsExceptionHandler(ILogger<AgencyOsExceptionHandler> logger) => _logger = logger;
+
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext);
+
+        (int status, string title) = exception switch
+        {
+            NotAuthenticatedException => (StatusCodes.Status401Unauthorized, "Authentication required"),
+            PermissionDeniedException => (StatusCodes.Status403Forbidden, "Permission denied"),
+            EntityNotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            DomainException => (StatusCodes.Status400BadRequest, "Invalid request"),
+
+            // Reaching this means a defense-in-depth layer fired. It is a defect,
+            // not a user error, and it is logged as one.
+            AuditTrailImmutableException => (StatusCodes.Status500InternalServerError, "Audit trail violation"),
+
+            _ => (0, string.Empty),
+        };
+
+        if (status == 0)
+        {
+            return false;
+        }
+
+        if (status >= StatusCodes.Status500InternalServerError)
+        {
+            _logger.LogError(exception, "Unhandled integrity failure on {Path}.", httpContext.Request.Path.Value);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Request refused on {Path}: {Title} ({Message})",
+                httpContext.Request.Path.Value,
+                title,
+                exception.Message);
+        }
+
+        ProblemDetails problem = new()
+        {
+            Status = status,
+            Title = title,
+            Detail = status >= StatusCodes.Status500InternalServerError ? null : exception.Message,
+        };
+
+        if (exception is PermissionDeniedException denied)
+        {
+            problem.Extensions["requiredPermission"] = denied.Permission;
+        }
+
+        httpContext.Response.StatusCode = status;
+        httpContext.Response.ContentType = "application/problem+json; charset=utf-8";
+
+        await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken).ConfigureAwait(false);
+        return true;
+    }
+}

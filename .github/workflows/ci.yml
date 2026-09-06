@@ -33,6 +33,30 @@ jobs:
         with:
           global-json-file: global.json
 
+      # Integration tests run against a real PostgreSQL server and fail rather
+      # than skip without one (docs/11_TESTING_AND_FORMAL_METHODS.md). Linux
+      # service containers are not available to a Windows runner, so this uses the
+      # PostgreSQL that ships stopped on the GitHub Windows image.
+      #
+      # NOTE: unverified locally - this repository has no remote yet, so this step
+      # has never executed. Confirm the service name and credentials against
+      # actions/runner-images on the first CI run.
+      - name: Start PostgreSQL
+        id: postgres
+        shell: pwsh
+        run: |
+          $service = Get-Service -Name 'postgresql*' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $service) {
+              throw 'No PostgreSQL service found on this runner. Integration tests require one.'
+          }
+
+          Set-Service -Name $service.Name -StartupType Manual
+          Start-Service -Name $service.Name
+          Write-Host "Started $($service.Name)."
+
+          "AGENCYOS_TEST_POSTGRES=Host=localhost;Port=5432;Username=postgres;Password=root;Database=postgres" |
+              Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Verify
         shell: pwsh
         env:
