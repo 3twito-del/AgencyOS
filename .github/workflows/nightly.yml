@@ -1,0 +1,57 @@
+# AgencyOS NIGHTLY ring build.
+#
+# Governing documents: docs/05_RELEASE_ENGINEERING.md (ring definitions) and
+# config/release-channels.yaml (NIGHTLY permits non-canonical data only).
+#
+# The channel is stamped into the artifact's build metadata, so a nightly build
+# can never present itself to the release authority as an ALPHA or STABLE client.
+
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    name: Nightly artifact
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Compute build id
+        id: buildid
+        shell: pwsh
+        run: |
+          $buildId = '{0}.{1}' -f (Get-Date -Format 'yyyyMMdd'), $env:GITHUB_RUN_NUMBER
+          "value=$buildId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Produce nightly artifact
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: >
+          pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 nightly
+          -Channel nightly
+          -BuildId ${{ steps.buildid.outputs.value }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agencyos-nightly-${{ steps.buildid.outputs.value }}
+          path: artifacts/nightly/**
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,48 @@
+# AgencyOS editor configuration.
+# Encodes docs/10_ENGINEERING_STANDARDS.md. Severities are deliberately advisory
+# in M0; they tighten progressively alongside AgencyOSStrict (see ADR-0001).
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{json,yml,yaml,xml,csproj,props,targets,slnf}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.ps1]
+indent_size = 4
+
+[*.cs]
+# Language conventions
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_prefer_braces = true:suggestion
+csharp_style_prefer_primary_constructors = true:suggestion
+dotnet_style_readonly_field = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+
+# Naming
+dotnet_naming_rule.private_fields_underscore.severity = suggestion
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+
+# docs/10: async cancellation must be propagated.
+dotnet_diagnostic.CA2016.severity = warning
+# docs/10: no fire-and-forget side effects.
+dotnet_diagnostic.CA2007.severity = none

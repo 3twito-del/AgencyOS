@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(dotnet --info)",
+      "Bash(dotnet --version)",
+      "Bash(pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 *)"
+    ],
+    "ask": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(dotnet ef database update *)",
+      "Bash(docker *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/*.pfx)",
+      "Read(./**/*.p12)",
+      "Read(./**/*.key)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -fd *)",
+      "Bash(git clean -fdx *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)"
+    ]
+  },
+  "hooks": {
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$env:CLAUDE_PROJECT_DIR\\.claude\\hooks\\audit-config-change.ps1\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

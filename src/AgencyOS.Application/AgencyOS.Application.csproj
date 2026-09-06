@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AgencyOSStrict>true</AgencyOSStrict>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../AgencyOS.Domain/AgencyOS.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

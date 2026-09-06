@@ -1,0 +1,89 @@
+<Project>
+
+  <!--
+    Emits build metadata into the assembly that opts in with
+    <AgencyOSEmitBuildMetadata>true</AgencyOSEmitBuildMetadata>.
+
+    Only AgencyOS.Contracts opts in: build metadata is part of the client/server
+    contract (docs/06_FORCED_UPDATE_PROTOCOL.md), and keeping it in one assembly
+    means one git invocation per build instead of one per project.
+
+    Every input can be overridden from the command line, so CI supplies exact
+    values and a clean clone without git still builds.
+  -->
+  <Target Name="AgencyOSResolveBuildMetadata"
+          BeforeTargets="GetAssemblyAttributes"
+          Condition="'$(AgencyOSEmitBuildMetadata)' == 'true'">
+
+    <Exec Command="git rev-parse -q --verify --short=12 HEAD"
+          ConsoleToMsBuild="true"
+          StandardOutputImportance="low"
+          ContinueOnError="true"
+          IgnoreExitCode="true"
+          Condition="'$(AgencyOSGitCommit)' == ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_AgencyOSGitCommitRaw" />
+      <Output TaskParameter="ExitCode" PropertyName="_AgencyOSGitExitCode" />
+    </Exec>
+
+    <PropertyGroup>
+      <AgencyOSGitCommit Condition="'$(AgencyOSGitCommit)' == '' And '$(_AgencyOSGitExitCode)' == '0'">$(_AgencyOSGitCommitRaw.Trim())</AgencyOSGitCommit>
+      <AgencyOSGitCommit Condition="'$(AgencyOSGitCommit)' == ''">unknown</AgencyOSGitCommit>
+      <AgencyOSBuildId Condition="'$(AgencyOSBuildId)' == ''">$([System.DateTime]::UtcNow.ToString('yyyyMMdd.HHmm'))</AgencyOSBuildId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>AgencyOS.Channel</_Parameter1>
+        <_Parameter2>$(AgencyOSChannel)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>AgencyOS.BuildId</_Parameter1>
+        <_Parameter2>$(AgencyOSBuildId)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>AgencyOS.GitCommit</_Parameter1>
+        <_Parameter2>$(AgencyOSGitCommit)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>AgencyOS.ApiContractVersion</_Parameter1>
+        <_Parameter2>$(AgencyOSApiContractVersion)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+
+    <Message Importance="normal"
+             Text="AgencyOS build metadata: version=$(VersionPrefix) channel=$(AgencyOSChannel) buildId=$(AgencyOSBuildId) commit=$(AgencyOSGitCommit) apiContract=$(AgencyOSApiContractVersion)" />
+  </Target>
+
+  <!--
+    Writes the resolved build metadata to a JSON file so release tooling and the
+    NIGHTLY artifact carry the same identity the assembly was stamped with.
+    MSBuild stays the single source of truth; nothing recomputes these values.
+  -->
+  <Target Name="AgencyOSWriteBuildMetadata"
+          DependsOnTargets="AgencyOSResolveBuildMetadata"
+          Condition="'$(AgencyOSEmitBuildMetadata)' == 'true'">
+
+    <PropertyGroup>
+      <AgencyOSBuildMetadataPath Condition="'$(AgencyOSBuildMetadataPath)' == ''">$(MSBuildThisFileDirectory)artifacts/build-metadata.json</AgencyOSBuildMetadataPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <AgencyOSBuildMetadataLine Include="{" />
+      <AgencyOSBuildMetadataLine Include="  &quot;version&quot;: &quot;$(VersionPrefix)&quot;," />
+      <AgencyOSBuildMetadataLine Include="  &quot;channel&quot;: &quot;$(AgencyOSChannel)&quot;," />
+      <AgencyOSBuildMetadataLine Include="  &quot;buildId&quot;: &quot;$(AgencyOSBuildId)&quot;," />
+      <AgencyOSBuildMetadataLine Include="  &quot;gitCommit&quot;: &quot;$(AgencyOSGitCommit)&quot;," />
+      <AgencyOSBuildMetadataLine Include="  &quot;apiContractVersion&quot;: $(AgencyOSApiContractVersion)" />
+      <AgencyOSBuildMetadataLine Include="}" />
+    </ItemGroup>
+
+    <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(AgencyOSBuildMetadataPath)'))" />
+
+    <WriteLinesToFile File="$(AgencyOSBuildMetadataPath)"
+                      Lines="@(AgencyOSBuildMetadataLine)"
+                      Overwrite="true" />
+
+    <Message Importance="high" Text="AgencyOS build metadata written to $(AgencyOSBuildMetadataPath)" />
+  </Target>
+
+</Project>

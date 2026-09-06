@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AgencyOSStrict>true</AgencyOSStrict>
+
+    <!--
+      Contracts is the single assembly carrying build metadata. Version identity is
+      part of the client/server contract (docs/06_FORCED_UPDATE_PROTOCOL.md), and
+      both the API host and the Windows client reference this assembly.
+    -->
+    <AgencyOSEmitBuildMetadata>true</AgencyOSEmitBuildMetadata>
+  </PropertyGroup>
+
+</Project>

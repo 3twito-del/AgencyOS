@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    M0 integration tests host the API in-process. They deliberately do not start
+    PostgreSQL: there is no schema until M1, and prompt 001 excludes Docker
+    orchestration from this milestone. Container-backed database tests
+    (docs/11_TESTING_AND_FORMAL_METHODS.md, level 3) arrive with M1.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/AgencyOS.Api/AgencyOS.Api.csproj" />
+    <ProjectReference Include="../../src/AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

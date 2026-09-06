@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Genuinely native Windows client (CLAUDE.md principle 2, docs/12_WINDOWS_NATIVE.md).
+    WinUI 3 on Windows App SDK 2.4.0 - the ALPHA baseline in config/version-policy.yaml.
+
+    Windows SDK note: config pins 10.0.28000.2705 as the frontier SDK, but only
+    10.0.26100.0 is installed on this machine, so that is what this project targets.
+    See ADR-0002.
+
+    This project references AgencyOS.Contracts and nothing else. That keeps
+    "the Windows client never depends on the DB schema" (docs/02_ARCHITECTURE.md
+    section 4) a compile-time fact rather than a convention.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>AgencyOS.Windows</RootNamespace>
+    <ApplicationIcon />
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

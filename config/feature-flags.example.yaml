@@ -1,0 +1,24 @@
+flags:
+  relationship_graph:
+    forge: true
+    lab: true
+    nightly: true
+    alpha: false
+    beta: false
+    stable: false
+
+  ai_briefings:
+    forge: true
+    lab: true
+    nightly: false
+    alpha: false
+    beta: false
+    stable: false
+
+  local_ai:
+    forge: true
+    lab: true
+    nightly: false
+    alpha: false
+    beta: false
+    stable: false

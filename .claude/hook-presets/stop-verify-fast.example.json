@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$env:CLAUDE_PROJECT_DIR\\scripts\\Invoke-AgencyOS.ps1\" verify-fast",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+# Claude local personal settings
+.claude/settings.local.json
+
+# AgencyOS local generated state/logs
+.agencyos/
+
+# Secrets
+.env
+.env.*
+*.pfx
+*.p12
+*.key
+
+# .NET
+bin/
+obj/
+
+# VS / VS Code user-local
+.vs/
+*.user
+*.suo
+
+# AgencyOS build artifacts
+artifacts/

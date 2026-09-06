@@ -1,0 +1,81 @@
+snapshot_date: 2026-09-06
+
+policy:
+  philosophy: "frontier-tracking with promotion gates"
+  forge_tracks_upstream: true
+  canonical_data_allowed_from: alpha
+
+rings:
+  forge:
+    data: synthetic_only
+    update: always_latest
+  lab:
+    data: isolated_only
+    update: always_latest
+  nightly:
+    data: noncanonical
+    update: always_latest
+  alpha:
+    data: real_private_allowed
+    update: aggressive
+  beta:
+    data: production_like
+    update: staged
+  rc:
+    data: production_like
+    update: controlled
+  stable:
+    data: canonical
+    update: staged_and_signed
+
+toolchains:
+  dotnet:
+    forge: "latest official daily/main build"
+    lab_public: "11.0.100-preview.7"
+    lab_full_build: "11.0.100-preview.7.26381.103"
+    alpha_sdk: "10.0.400"
+    alpha_runtime: "10.0.11"
+    languages:
+      lab_csharp: "15"
+      alpha_csharp: "14"
+      fsharp: "10"
+  windows_app_sdk:
+    lab: "2.4.1-experimental"
+    alpha: "2.4.0"
+  windows_sdk:
+    frontier: "10.0.28000.2705"
+  postgresql:
+    forge: "development snapshot / git HEAD"
+    lab: "19 Beta 3"
+    alpha: "18.6"
+  pgvector:
+    introduced_version: "0.8.6"
+  python:
+    forge: "CPython main"
+    lab: "3.15.0rc2"
+    alpha: "latest supported stable; pin during bootstrap"
+  rust:
+    forge: "nightly"
+    alpha: "latest stable; pin during bootstrap"
+  typescript:
+    current: "6.0"
+  node:
+    lab_current: "26.8.1"
+    production_tooling: "supported LTS; pin during bootstrap"
+  visual_studio:
+    edge: "Visual Studio 2026 Insiders 18.10 branch"
+    stable: "Visual Studio 2026 18.9.2"
+  temporal_dotnet:
+    snapshot: "1.18.0"
+    introduce_only_when_required: true
+
+promotion_gates:
+  - compile
+  - unit_tests
+  - integration_tests
+  - migration_tests
+  - windows_smoke_tests
+  - data_integrity_checks
+  - security_checks
+  - performance_regression_check
+  - rollback_or_recovery_verification

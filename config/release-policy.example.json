@@ -1,0 +1,19 @@
+{
+  "platform": "windows-x64",
+  "channel": "alpha",
+  "latestVersion": "0.1.0-alpha.14",
+  "minimumSupportedVersion": "0.1.0-alpha.13",
+  "policy": "MANDATORY",
+  "apiContract": {
+    "minimum": 1,
+    "maximum": 2
+  },
+  "securityEpoch": 1,
+  "mandatoryAfterUtc": null,
+  "killSwitch": false,
+  "rollbackTarget": null,
+  "artifact": {
+    "sha256": "REPLACE_AT_RELEASE",
+    "signature": "REPLACE_AT_RELEASE"
+  }
+}

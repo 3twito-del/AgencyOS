@@ -1,0 +1,18 @@
+<Project>
+
+  <!--
+    AgencyOS version metadata.
+    Governed by docs/05_RELEASE_ENGINEERING.md and docs/06_FORCED_UPDATE_PROTOCOL.md.
+
+    AgencyOSChannel defaults to 'forge' deliberately: forge is the only ring that
+    forbids real data outright (config/release-channels.yaml), so an unconfigured
+    local build can never present itself as a real-data client. CI and release
+    pipelines set the channel explicitly.
+  -->
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <AgencyOSChannel Condition="'$(AgencyOSChannel)' == ''">forge</AgencyOSChannel>
+    <AgencyOSApiContractVersion>1</AgencyOSApiContractVersion>
+  </PropertyGroup>
+
+</Project>

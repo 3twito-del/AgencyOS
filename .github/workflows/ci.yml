@@ -1,0 +1,40 @@
+# AgencyOS continuous integration.
+#
+# Runs on windows-latest because AgencyOS.Windows is a WinUI 3 client and cannot
+# build on a non-Windows agent (docs/12_WINDOWS_NATIVE.md). All steps go through
+# scripts/Invoke-AgencyOS.ps1 so CI and local engineering share one entrypoint
+# (CLAUDE.md section 8).
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so build metadata can resolve a real commit.
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Verify
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 ci

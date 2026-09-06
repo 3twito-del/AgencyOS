@@ -1,0 +1,28 @@
+<Project>
+
+  <Import Project="build/Version.props" />
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>14.0</LangVersion>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Company>AgencyOS</Company>
+    <Product>AgencyOS</Product>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!--
+    Progressive warnings-as-errors, per docs/10_ENGINEERING_STANDARDS.md
+    ("warnings-as-errors progressively for owned projects").
+    Projects opt in with <AgencyOSStrict>true</AgencyOSStrict>; see ADR-0001.
+  -->
+  <PropertyGroup Condition="'$(AgencyOSStrict)' == 'true'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>

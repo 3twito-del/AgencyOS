@@ -1,0 +1,81 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "AgencyOS: Doctor",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-File",
+        "${workspaceFolder}/scripts/Invoke-AgencyOS.ps1",
+        "doctor"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "AgencyOS: Build",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-File",
+        "${workspaceFolder}/scripts/Invoke-AgencyOS.ps1",
+        "build"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "AgencyOS: Test",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-File",
+        "${workspaceFolder}/scripts/Invoke-AgencyOS.ps1",
+        "test"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "AgencyOS: Verify",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-File",
+        "${workspaceFolder}/scripts/Invoke-AgencyOS.ps1",
+        "verify"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "AgencyOS: Verify Fast",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-File",
+        "${workspaceFolder}/scripts/Invoke-AgencyOS.ps1",
+        "verify-fast"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "AgencyOS: Git Status",
+      "type": "shell",
+      "command": "git",
+      "args": [
+        "status",
+        "--short",
+        "--branch"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

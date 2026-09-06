@@ -1,0 +1,13 @@
+<Window
+    x:Class="AgencyOS.Windows.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="AgencyOS">
+
+    <StackPanel Padding="32" Spacing="8" VerticalAlignment="Center">
+        <TextBlock Text="AgencyOS" Style="{StaticResource TitleTextBlockStyle}" />
+        <TextBlock Text="{x:Bind ViewModel.BuildLine}" Style="{StaticResource BodyTextBlockStyle}" />
+        <TextBlock Text="{x:Bind ViewModel.ContractLine}" Style="{StaticResource CaptionTextBlockStyle}" />
+    </StackPanel>
+
+</Window>

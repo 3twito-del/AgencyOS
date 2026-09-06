@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>AgencyOS.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../AgencyOS.Application/AgencyOS.Application.csproj" />
+    <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
+    <ProjectReference Include="../AgencyOS.Infrastructure/AgencyOS.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AgencyOS.Tests.Integration" />
+  </ItemGroup>
+
+</Project>

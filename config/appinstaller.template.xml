@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppInstaller
+    Uri="https://REPLACE/AgencyOS.Alpha.appinstaller"
+    Version="0.1.0.0"
+    xmlns="http://schemas.microsoft.com/appx/appinstaller/2021">
+  <MainPackage
+      Name="AgencyOS.Alpha"
+      Publisher="CN=REPLACE"
+      Version="0.1.0.0"
+      Uri="https://REPLACE/AgencyOS.Alpha.msix" />
+  <UpdateSettings>
+    <OnLaunch
+        HoursBetweenUpdateChecks="0"
+        ShowPrompt="true"
+        UpdateBlocksActivation="true" />
+    <AutomaticBackgroundTask />
+    <ForceUpdateFromAnyVersion>true</ForceUpdateFromAnyVersion>
+  </UpdateSettings>
+</AppInstaller>

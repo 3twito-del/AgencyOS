@@ -1,0 +1,26 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <!-- Windows client. Windows App SDK 2.4.0 is the ALPHA baseline (config/version-policy.yaml). -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+  </ItemGroup>
+
+  <!-- Runtime/infrastructure. Aligned to the .NET 10.0.11 ALPHA runtime baseline. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
+  </ItemGroup>
+
+  <!-- Test stack. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.11" />
+  </ItemGroup>
+
+</Project>

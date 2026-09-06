@@ -1,0 +1,42 @@
+channels:
+  forge:
+    package_identity: AgencyOS.Forge
+    endpoint_environment: forge
+    database_environment: forge
+    min_supported_policy: latest_only
+    real_data: forbidden
+
+  lab:
+    package_identity: AgencyOS.Lab
+    endpoint_environment: lab
+    database_environment: lab
+    min_supported_policy: latest_only
+    real_data: forbidden
+
+  nightly:
+    package_identity: AgencyOS.Nightly
+    endpoint_environment: nightly
+    database_environment: nightly
+    min_supported_policy: latest_only
+    real_data: noncanonical_only
+
+  alpha:
+    package_identity: AgencyOS.Alpha
+    endpoint_environment: alpha
+    database_environment: alpha
+    min_supported_policy: latest_or_previous_unless_breaking
+    real_data: allowed
+
+  beta:
+    package_identity: AgencyOS.Beta
+    endpoint_environment: beta
+    database_environment: beta
+    min_supported_policy: compatibility_window
+    real_data: production_like
+
+  stable:
+    package_identity: AgencyOS
+    endpoint_environment: production
+    database_environment: production
+    min_supported_policy: server_policy
+    real_data: canonical

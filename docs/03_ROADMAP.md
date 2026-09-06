@@ -1,0 +1,191 @@
+# Roadmap
+
+Status legend: **Done** · **In progress** · **Not started**.
+Milestones with no status marker are Not started.
+
+## M0 — Repository & Engineering Kernel — **Done** (2026-09-06)
+
+Implemented: eight-project solution, pinned ALPHA SDK, central build properties
+and central package management, build metadata pipeline, structured JSON
+logging, `/health` and `/version` endpoints, unit and integration test harness,
+GitHub Actions CI and nightly workflows, ADR-0001 through ADR-0004.
+
+Decisions recorded: `docs/adr/ADR-0001-repository-structure.md`,
+`ADR-0002-sdk-pinning-and-ring-defaults.md`, `ADR-0003-ci-and-nightly-artifact.md`,
+`ADR-0004-structured-logging-without-telemetry-export.md`.
+
+Deliver:
+- monorepo/repository structure;
+- pinned toolchains and version policy;
+- build scripts;
+- CI;
+- logging;
+- test foundations;
+- ADR process;
+- release-channel model;
+- no business UI yet.
+
+Exit criteria:
+- clean clone builds; **met**
+- tests run; **met**
+- version metadata generated; **met**
+- Nightly artifact can be produced. **met**
+
+## M1 — Identity, Organization & Audit
+Deliver:
+- Organization, User, Membership, Role/Permission foundations;
+- authentication placeholder suitable for later Entra/OIDC;
+- immutable audit model;
+- server-side policy authorization;
+- client/server version handshake.
+
+Exit criteria:
+- privileged mutations are authorized and audited;
+- unsupported client version can be rejected.
+
+## M2 — People Vertical Slice
+Deliver:
+Person -> Organization -> Relationship -> Interaction -> Task -> Command Center.
+
+Windows:
+- native shell;
+- command palette;
+- entity navigation;
+- dense list/detail views;
+- unified timeline;
+- quick capture.
+
+Exit criteria:
+- create/edit/search people;
+- connect organizations;
+- record interaction;
+- create next task;
+- see task on Command Center;
+- full audit trail.
+
+## M3 — Search, Views & Local Cache
+Deliver:
+- PostgreSQL full-text/trigram;
+- saved views;
+- local SQLite cache;
+- offline read;
+- queued safe writes;
+- conflict handling design.
+
+## M4 — Talent & Representation
+Deliver:
+- Client/Prospect;
+- Representation;
+- Credit;
+- Material;
+- team/representation history.
+
+## M5 — Projects & Packaging
+Deliver:
+- Project/IP;
+- Role;
+- Attachment;
+- Package;
+- buyer/seller/company relationships.
+
+## M6 — Opportunities & Submissions
+Deliver:
+- Opportunity;
+- Pitch;
+- Meeting;
+- Submission;
+- outcomes;
+- follow-up workflows.
+
+## M7 — Deal Engine
+Deliver:
+- Offer;
+- CounterOffer;
+- Negotiation;
+- Deal;
+- term model;
+- state-machine invariants;
+- F# pilot where advantageous.
+
+## M8 — Contracts, Rights & Obligations
+Deliver:
+- Contract;
+- clauses/terms;
+- options;
+- rights;
+- expirations;
+- reminders/approvals;
+- document versioning.
+
+## M9 — Finance
+Deliver:
+- Invoice;
+- Receivable;
+- Payment;
+- Commission;
+- allocations;
+- immutable journal / double-entry ledger;
+- reconciliation and forecasts.
+
+## M10 — Documents & Communications
+Deliver:
+- object storage;
+- document metadata/versioning;
+- Outlook/Office integration;
+- attachment ingestion;
+- previews;
+- relationship-linked correspondence.
+
+## M11 — Intelligence
+Deliver:
+- Signal;
+- Source;
+- Thesis;
+- Prediction;
+- Watchlist;
+- relationship intelligence;
+- talent radar;
+- research workflows.
+
+## M12 — AI Runtime
+Deliver:
+- ModelGateway;
+- tool registry;
+- retrieval;
+- provenance;
+- eval harness;
+- approval levels;
+- local/cloud model routing.
+
+## M13 — Advanced Native Windows
+Deliver:
+- multi-window;
+- global capture hotkey;
+- Explorer integration;
+- Jump Lists;
+- notifications/actions;
+- deep links;
+- Windows Search;
+- Windows Hello/passkeys;
+- local AI/NPU experiments.
+
+## M14 — Scale & Specialized Services
+Only when justified:
+- service extraction;
+- Temporal;
+- event broker;
+- OpenSearch;
+- graph projection;
+- Redis;
+- Rust/C++ specialized services.
+
+## M15 — Production Hardening
+Deliver:
+- BETA/RC/STABLE pipeline;
+- staged rollout;
+- SBOM/provenance/signing;
+- recovery/read-only/forensic builds;
+- disaster recovery;
+- backup/restore drills;
+- chaos tests;
+- security review.
