@@ -89,7 +89,7 @@ the Virtual Machine Platform feature and firmware virtualization
 use PostgreSQL 19 Beta 3, which remains LAB evidence only. Authoritative
 PostgreSQL 18.6 verification happens in CI.
 
-## M2 — People Vertical Slice — **Done** (2026-09-07)
+## M2 — People Vertical Slice — **Done** (2026-09-07) · promoted to ALPHA
 
 Implemented: Person, Company, ProfessionalRelationship, Interaction with
 participants, and Task; command-oriented API under
@@ -109,6 +109,23 @@ supported range 1-2 and a contract-1 client is still served.
 Decisions recorded: `docs/adr/ADR-0010-tenant-organization-versus-company.md`,
 `ADR-0011-relationship-endpoints-and-tenant-integrity.md`,
 `ADR-0012-timeline-projection.md`.
+
+ALPHA promotion evidence (authoritative, remote CI):
+
+Workflow **CI**, run
+[34100134241](https://github.com/3twito-del/AgencyOS/actions/runs/34100134241),
+commit `c900555`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `docker.io/library/postgres:18.6`, reported healthy by `pg_isready`; server
+  banner `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 110 passed,
+  0 failed, 0 skipped - including migrations from a clean database through
+  M0 + M1 + M2 and the arc and tenant-containment constraints.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including
+  the WinUI 3 client, 0 warnings / 0 errors; 178 unit tests passed; OpenAPI 3.1.1
+  generated and verified (21 paths, 16 schemas).
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
 
 Deliver:
 Person -> Organization -> Relationship -> Interaction -> Task -> Command Center.
