@@ -25,13 +25,17 @@ public static class ApiContract
     /// synchronization, and the optimistic concurrency token on existing records.
     /// </para>
     /// <para>
-    /// Both steps are additive, so the supported range stays open at 1. The
+    /// Version 4 adds the M4 representation model: talent profiles, prospects,
+    /// representations with effective-dated scope and team, credits and materials.
+    /// </para>
+    /// <para>
+    /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 3;
+    public const int Current = 4;
 
     /// <summary>
     /// The lowest contract version this build still serves.

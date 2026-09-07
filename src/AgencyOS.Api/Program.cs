@@ -25,6 +25,7 @@ using AgencyOS.Application.Idempotency;
 using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
+using AgencyOS.Application.Representations;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Application.Search;
 using AgencyOS.Application.Sync;
@@ -145,6 +146,28 @@ builder.Services.AddScoped<SyncService>();
 // The server half of the offline write queue. A key the client alone checks is a
 // client that can be wrong twice (ADR-0014).
 builder.Services.AddScoped<IdempotencyCoordinator>();
+
+// Talent and representation (M4). SensitiveNotes holds the one implementation of
+// note redaction; every read path that can return positioning or strategy notes
+// goes through it, including saved views (ADR-0017).
+builder.Services.AddScoped<SensitiveNotes>();
+builder.Services.AddScoped<RepresentationQueryService>();
+builder.Services.AddScoped<CreateTalentProfileHandler>();
+builder.Services.AddScoped<UpdateTalentProfileHandler>();
+builder.Services.AddScoped<ChangeTalentDisciplineHandler>();
+builder.Services.AddScoped<CreateProspectHandler>();
+builder.Services.AddScoped<AdvanceProspectHandler>();
+builder.Services.AddScoped<ConvertProspectHandler>();
+builder.Services.AddScoped<CreateRepresentationHandler>();
+builder.Services.AddScoped<TransitionRepresentationHandler>();
+builder.Services.AddScoped<ChangeRepresentationScopeHandler>();
+builder.Services.AddScoped<AssignRepresentationTeamMemberHandler>();
+builder.Services.AddScoped<RemoveRepresentationTeamMemberHandler>();
+builder.Services.AddScoped<AddCreditHandler>();
+builder.Services.AddScoped<UpdateCreditHandler>();
+builder.Services.AddScoped<AddMaterialHandler>();
+builder.Services.AddScoped<UpdateMaterialHandler>();
+builder.Services.AddSingleton<AgencyOS.Api.Endpoints.IClockAccessor, AgencyOS.Api.Http.SystemClockAccessor>();
 
 // ---------------------------------------------------------------------------
 // Authentication and authorization

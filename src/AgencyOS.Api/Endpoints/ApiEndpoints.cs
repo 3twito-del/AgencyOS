@@ -53,6 +53,7 @@ internal static class ApiEndpoints
         // The M2 people slice, routed beneath the tenant that owns the records.
         PeopleSliceEndpoints.MapPeopleSlice(api);
         M3Endpoints.MapSearchSavedViewsAndSync(api);
+        M4Endpoints.MapRepresentation(api);
 
         // Idempotency is applied to the whole versioned surface and skipped for
         // reads. Opting in per endpoint would mean a mutation added later is

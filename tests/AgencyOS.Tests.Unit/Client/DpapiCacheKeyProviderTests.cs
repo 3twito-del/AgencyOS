@@ -21,6 +21,7 @@ namespace AgencyOS.Tests.Unit.Client;
 /// the API does not exist to be tested.
 /// </para>
 /// </remarks>
+[Collection(LocalCacheCollection.Name)]
 public sealed class DpapiCacheKeyProviderTests : IDisposable
 {
     private readonly string _directory =

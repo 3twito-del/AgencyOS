@@ -2,7 +2,9 @@ using AgencyOS.Application.Abstractions;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
+using AgencyOS.Domain.Representations;
 using AgencyOS.Domain.Sync;
+using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -74,7 +76,38 @@ internal static class ChangeFeedRecorder
             Add(pending, entry.State, entry.Entity.OrganizationId, nameof(TaskItem), entry.Entity.Id.ToString());
         }
 
-        return pending;
+        // Talent entries are keyed by person, not by profile. The cached row is a
+        // summary that denormalizes representation status, lead and scopes, so a
+        // representation change has to invalidate it too - and the person is the
+        // only identifier both records share.
+        foreach (EntityEntry<TalentProfile> entry in tracker.Entries<TalentProfile>())
+        {
+            Add(
+                pending,
+                entry.State,
+                entry.Entity.OrganizationId,
+                nameof(TalentProfile),
+                entry.Entity.PersonId.ToString());
+        }
+
+        foreach (EntityEntry<Representation> entry in tracker.Entries<Representation>())
+        {
+            Add(
+                pending,
+                entry.State,
+                entry.Entity.OrganizationId,
+                nameof(TalentProfile),
+                entry.Entity.PersonId.ToString());
+        }
+
+        // One entry per person per commit. Changing a profile and its representation
+        // together is one thing happening, and the client only needs telling once.
+        return
+        [
+            .. pending
+                .GroupBy(x => (x.OrganizationId, x.EntityType, x.EntityId))
+                .Select(g => g.First()),
+        ];
     }
 
     /// <summary>

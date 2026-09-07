@@ -12,6 +12,7 @@ using Xunit;
 namespace AgencyOS.Tests.Unit.Client;
 
 /// <summary>Global search, and what it says when it could not reach the server.</summary>
+[Collection(LocalCacheCollection.Name)]
 public sealed class SearchViewModelTests : IDisposable
 {
     private readonly string _root =
@@ -266,6 +267,7 @@ public sealed class SavedViewsViewModelTests
 /// <summary>
 /// The offline surface: it must state where the client stands rather than imply it.
 /// </summary>
+[Collection(LocalCacheCollection.Name)]
 public sealed class SyncStatusViewModelTests : IDisposable
 {
     private readonly string _root =

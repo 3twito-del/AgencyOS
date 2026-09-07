@@ -1,4 +1,5 @@
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Contracts.Representation;
 
 namespace AgencyOS.Contracts.Sync;
 
@@ -41,10 +42,16 @@ public sealed record ChangeEntryResponse(
 /// <param name="People">Current state of people named in this page.</param>
 /// <param name="Companies">Current state of companies named in this page.</param>
 /// <param name="Tasks">Current state of tasks named in this page.</param>
+/// <param name="Talent">
+/// Current state of talent named in this page. A talent entry is keyed by person,
+/// because the cached summary denormalizes representation status and a
+/// representation change has to refresh it too.
+/// </param>
 public sealed record SyncChangesResponse(
     long Cursor,
     bool HasMore,
     IReadOnlyList<ChangeEntryResponse> Changes,
     IReadOnlyList<PersonSummaryResponse> People,
     IReadOnlyList<CompanySummaryResponse> Companies,
-    IReadOnlyList<TaskResponse> Tasks);
+    IReadOnlyList<TaskResponse> Tasks,
+    IReadOnlyList<TalentSummaryResponse> Talent);

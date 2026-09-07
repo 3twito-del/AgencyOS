@@ -1,0 +1,51 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddMaterialDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add material"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="380">
+        <TextBox x:Name="TitleBox" Header="Title" PlaceholderText="Meridian"
+                 TextChanged="OnRequiredChanged" />
+
+        <ComboBox x:Name="TypeBox" Header="Kind" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Screenplay" Tag="Screenplay" />
+            <ComboBoxItem Content="Pilot" Tag="Pilot" />
+            <ComboBoxItem Content="Treatment" Tag="Treatment" />
+            <ComboBoxItem Content="Pitch deck" Tag="PitchDeck" />
+            <ComboBoxItem Content="Reel" Tag="Reel" />
+            <ComboBoxItem Content="Headshot" Tag="Headshot" />
+            <ComboBoxItem Content="Resume" Tag="Resume" />
+            <ComboBoxItem Content="Bio" Tag="Bio" />
+            <ComboBoxItem Content="Sample" Tag="Sample" />
+            <ComboBoxItem Content="Lookbook" Tag="Lookbook" />
+            <ComboBoxItem Content="Other" Tag="Other" />
+        </ComboBox>
+
+        <ComboBox x:Name="StatusBox" Header="Status" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Draft" Tag="Draft" />
+            <ComboBoxItem Content="In review" Tag="InReview" />
+            <ComboBoxItem Content="Ready" Tag="Ready" />
+            <ComboBoxItem Content="Retired" Tag="Retired" />
+        </ComboBox>
+
+        <TextBox x:Name="VersionBox" Header="Version" PlaceholderText="Draft 4" />
+
+        <TextBox x:Name="UriBox" Header="Link" PlaceholderText="https://…" />
+
+        <!--
+            AgencyOS stores no file content in this milestone, and a local path
+            would resolve on exactly one machine. Saying so here prevents somebody
+            pasting one and believing it was filed.
+        -->
+        <TextBlock
+            Text="A link must be an http or https address. AgencyOS records where the document lives; it does not hold the file."
+            TextWrapping="Wrap"
+            Opacity="0.65"
+            Style="{StaticResource CaptionTextBlockStyle}" />
+    </StackPanel>
+</ContentDialog>

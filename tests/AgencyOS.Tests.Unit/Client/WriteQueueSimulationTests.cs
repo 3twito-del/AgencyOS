@@ -25,6 +25,7 @@ namespace AgencyOS.Tests.Unit.Client;
 /// implemented and an implementation nobody modelled are each half an argument.
 /// </para>
 /// </remarks>
+[Collection(LocalCacheCollection.Name)]
 public sealed class WriteQueueSimulationTests : IDisposable
 {
     /// <summary>How the server answers one submission.</summary>

@@ -24,13 +24,15 @@ public sealed record ChangeEntryModel(
 /// <param name="People">Current state of people named in this page.</param>
 /// <param name="Companies">Current state of companies named in this page.</param>
 /// <param name="Tasks">Current state of tasks named in this page.</param>
+/// <param name="Talent">Current state of talent named in this page, keyed by person.</param>
 public sealed record SyncPageModel(
     long Cursor,
     bool HasMore,
     IReadOnlyList<ChangeEntryModel> Changes,
     IReadOnlyList<PersonSummaryModel> People,
     IReadOnlyList<CompanySummaryModel> Companies,
-    IReadOnlyList<TaskModel> Tasks);
+    IReadOnlyList<TaskModel> Tasks,
+    IReadOnlyList<Representations.TalentSummaryModel> Talent);
 
 /// <summary>
 /// Reads a page of a tenant's change feed together with the current state of
@@ -141,5 +143,11 @@ public sealed class SyncService
         await _guard.AuthorizeAsync(Permission.PeopleRead, organizationId, cancellationToken).ConfigureAwait(false);
         await _guard.AuthorizeAsync(Permission.CompaniesRead, organizationId, cancellationToken).ConfigureAwait(false);
         await _guard.AuthorizeAsync(Permission.TasksRead, organizationId, cancellationToken).ConfigureAwait(false);
+
+        // The page now carries talent summaries too (M4), so reading the feed
+        // requires the permission that governs them. Without this a caller with
+        // people-but-not-talent access would receive representation status through
+        // the sync endpoint that the talent endpoint would have refused them.
+        await _guard.AuthorizeAsync(Permission.TalentRead, organizationId, cancellationToken).ConfigureAwait(false);
     }
 }

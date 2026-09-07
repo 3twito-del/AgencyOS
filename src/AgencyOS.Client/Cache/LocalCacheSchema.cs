@@ -23,7 +23,18 @@ namespace AgencyOS.Client.Cache;
 public static class LocalCacheSchema
 {
     /// <summary>Schema version this build writes and understands.</summary>
-    public const int Version = 1;
+    public const int Version = 2;
+
+    /// <summary>
+    /// The oldest schema this build can bring forward.
+    /// </summary>
+    /// <remarks>
+    /// A cache at a version between this and <see cref="Version"/> is migrated
+    /// rather than discarded, because the write queue holds commands the server has
+    /// never seen. Throwing those away to avoid writing a migration would lose a
+    /// user's work, which is the one thing this file must never do.
+    /// </remarks>
+    public const int MinimumUpgradableVersion = 1;
 
     /// <summary>Creates the schema at <see cref="Version"/>.</summary>
     public static void Create(SqliteConnection connection)
@@ -115,7 +126,89 @@ public static class LocalCacheSchema
             CREATE INDEX ix_write_queue_state ON write_queue (state, enqueued_at);
             """);
 
+        CreateTalent(connection);
+
         SetMeta(connection, "schema_version", Version.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>
+    /// Brings an older cache forward without discarding anything.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Version 2 adds the talent summary the client reads offline. It is purely
+    /// additive: no existing table changes, so every cached record and - critically
+    /// - every queued command survives untouched.
+    /// </para>
+    /// <para>
+    /// The cursor is deliberately left where it is. The talent table starts empty
+    /// and fills from the change feed on the next synchronization, which is the
+    /// same path a fresh cache takes. Resetting the cursor to refill it faster would
+    /// replay the tenant's whole history for no benefit.
+    /// </para>
+    /// </remarks>
+    public static void Upgrade(SqliteConnection connection, int fromVersion)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
+        using SqliteTransaction transaction = connection.BeginTransaction();
+
+        if (fromVersion < 2)
+        {
+            CreateTalent(connection, transaction);
+        }
+
+        using (SqliteCommand stamp = connection.CreateCommand())
+        {
+            stamp.Transaction = transaction;
+            stamp.CommandText = """
+                INSERT INTO cache_meta (key, value) VALUES ('schema_version', $version)
+                ON CONFLICT (key) DO UPDATE SET value = excluded.value;
+                """;
+            stamp.Parameters.AddWithValue(
+                "$version",
+                Version.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            stamp.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+    }
+
+    /// <summary>
+    /// The talent summary a client reads offline.
+    /// </summary>
+    /// <remarks>
+    /// Keyed by person rather than by profile, and denormalized on purpose:
+    /// representation status, lead and scopes are what an agent scanning a client
+    /// list needs, and joining three cached tables on a laptop to produce one line
+    /// of text is not worth the schema.
+    /// </remarks>
+    private static void CreateTalent(SqliteConnection connection, SqliteTransaction? transaction = null)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+
+        command.Transaction = transaction;
+        command.CommandText = """
+            CREATE TABLE cached_talent (
+                person_id             TEXT PRIMARY KEY,
+                talent_profile_id     TEXT NOT NULL,
+                display_name          TEXT NOT NULL,
+                career_stage          TEXT NOT NULL,
+                disciplines           TEXT NOT NULL,
+                representation_status TEXT NULL,
+                is_client             INTEGER NOT NULL,
+                lead_user_id          TEXT NULL,
+                lead_display_name     TEXT NULL,
+                scopes                TEXT NOT NULL,
+                updated_at            TEXT NOT NULL,
+                version               INTEGER NOT NULL
+            );
+
+            CREATE INDEX ix_cached_talent_display_name ON cached_talent (display_name);
+            CREATE INDEX ix_cached_talent_client ON cached_talent (is_client);
+            """;
+
+        command.ExecuteNonQuery();
     }
 
     /// <summary>Reads the schema version, or null when the database is not a cache.</summary>

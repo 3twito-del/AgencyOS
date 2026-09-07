@@ -20,7 +20,13 @@ public static class RolePermissions
         Permission.CompaniesRead,
         Permission.RelationshipsRead,
         Permission.InteractionsRead,
-        Permission.TasksRead);
+        Permission.TasksRead,
+
+        // An observer sees who the agency represents, but not what it privately
+        // thinks about them: talent.notes.read is deliberately absent.
+        Permission.TalentRead,
+        Permission.RepresentationRead,
+        Permission.ProspectsRead);
 
     /// <summary>
     /// The day-to-day operational role: everything needed to run the M2 workflow,
@@ -39,7 +45,14 @@ public static class RolePermissions
         Permission.InteractionsRead,
         Permission.InteractionsRecord,
         Permission.TasksRead,
-        Permission.TasksWrite);
+        Permission.TasksWrite,
+        Permission.TalentRead,
+        Permission.TalentWrite,
+        Permission.TalentNotesRead,
+        Permission.RepresentationRead,
+        Permission.RepresentationWrite,
+        Permission.ProspectsRead,
+        Permission.ProspectsWrite);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -58,7 +71,14 @@ public static class RolePermissions
         Permission.InteractionsRead,
         Permission.InteractionsRecord,
         Permission.TasksRead,
-        Permission.TasksWrite);
+        Permission.TasksWrite,
+        Permission.TalentRead,
+        Permission.TalentWrite,
+        Permission.TalentNotesRead,
+        Permission.RepresentationRead,
+        Permission.RepresentationWrite,
+        Permission.ProspectsRead,
+        Permission.ProspectsWrite);
 
     private static readonly IReadOnlySet<string> OwnerPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -79,7 +99,14 @@ public static class RolePermissions
         Permission.InteractionsRead,
         Permission.InteractionsRecord,
         Permission.TasksRead,
-        Permission.TasksWrite);
+        Permission.TasksWrite,
+        Permission.TalentRead,
+        Permission.TalentWrite,
+        Permission.TalentNotesRead,
+        Permission.RepresentationRead,
+        Permission.RepresentationWrite,
+        Permission.ProspectsRead,
+        Permission.ProspectsWrite);
 
     private static readonly IReadOnlySet<string> NoPermissions = Freeze();
 

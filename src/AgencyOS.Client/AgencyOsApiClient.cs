@@ -5,6 +5,7 @@ using System.Text.Json;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
+using AgencyOS.Contracts.Representation;
 using AgencyOS.Contracts.SavedViews;
 using AgencyOS.Contracts.Search;
 using AgencyOS.Contracts.Sync;
@@ -208,6 +209,92 @@ public interface IAgencyOsApi
     Task<SyncChangesResponse> ReadSyncChangesAsync(
         long cursor,
         int? take = null,
+        CancellationToken cancellationToken = default);
+
+    // ---- Talent and representation (M4) ----
+
+    /// <param name="clientsOnly">Only people with an active representation.</param>
+    /// <param name="formerClientsOnly">Only people whose representation has ended.</param>
+    /// <param name="discipline">Restrict to one discipline.</param>
+    /// <param name="scope">Restrict to one represented area.</param>
+    /// <param name="leadUserId">Restrict to one internal owner.</param>
+    /// <param name="search">Substring match on the person's name.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    Task<IReadOnlyList<TalentSummaryResponse>> ListTalentAsync(
+        bool clientsOnly = false,
+        bool formerClientsOnly = false,
+        string? discipline = null,
+        string? scope = null,
+        Guid? leadUserId = null,
+        string? search = null,
+        CancellationToken cancellationToken = default);
+
+    Task<TalentDetailResponse> GetTalentAsync(Guid personId, CancellationToken cancellationToken = default);
+
+    Task<TalentDetailResponse> CreateTalentProfileAsync(
+        CreateTalentProfileRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ClientOverviewResponse> GetClientOverviewAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<RepresentationHistoryEntryResponse>> GetRepresentationHistoryAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ProspectResponse>> ListProspectsAsync(
+        bool openOnly = true,
+        string? stage = null,
+        Guid? ownerUserId = null,
+        DateOnly? dueOnOrBefore = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ProspectResponse> GetProspectAsync(Guid prospectId, CancellationToken cancellationToken = default);
+
+    Task<ProspectResponse> CreateProspectAsync(
+        CreateProspectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task AdvanceProspectAsync(
+        Guid prospectId,
+        AdvanceProspectRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Converts a prospect. Safe to retry under an idempotency key.</summary>
+    Task<RepresentationResponse> ConvertProspectAsync(
+        Guid prospectId,
+        ConvertProspectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<RepresentationResponse> GetRepresentationAsync(
+        Guid representationId,
+        CancellationToken cancellationToken = default);
+
+    Task TransitionRepresentationAsync(
+        Guid representationId,
+        TransitionRepresentationRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CreditResponse>> ListCreditsAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid> AddCreditAsync(
+        AddCreditRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<MaterialResponse>> ListMaterialsAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid> AddMaterialAsync(
+        AddMaterialRequest request,
+        string? idempotencyKey = null,
         CancellationToken cancellationToken = default);
 }
 
@@ -505,6 +592,190 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
         }
 
         return GetAsync<SavedViewResultsResponse>(uri, cancellationToken);
+    }
+
+    // ---- Talent and representation (M4) ----
+
+    public Task<IReadOnlyList<TalentSummaryResponse>> ListTalentAsync(
+        bool clientsOnly = false,
+        bool formerClientsOnly = false,
+        string? discipline = null,
+        string? scope = null,
+        Guid? leadUserId = null,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        string uri = $"{TenantRoot}/talent"
+            + $"?clientsOnly={(clientsOnly ? "true" : "false")}"
+            + $"&formerClientsOnly={(formerClientsOnly ? "true" : "false")}";
+
+        if (!string.IsNullOrWhiteSpace(discipline))
+        {
+            uri += $"&discipline={Uri.EscapeDataString(discipline)}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(scope))
+        {
+            uri += $"&scope={Uri.EscapeDataString(scope)}";
+        }
+
+        if (leadUserId is { } lead)
+        {
+            uri += $"&leadUserId={lead}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            uri += $"&search={Uri.EscapeDataString(search.Trim())}";
+        }
+
+        return GetListAsync<TalentSummaryResponse>(uri, cancellationToken);
+    }
+
+    public Task<TalentDetailResponse> GetTalentAsync(Guid personId, CancellationToken cancellationToken = default) =>
+        GetAsync<TalentDetailResponse>($"{TenantRoot}/talent/{personId}", cancellationToken);
+
+    public Task<TalentDetailResponse> CreateTalentProfileAsync(
+        CreateTalentProfileRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateTalentProfileRequest, TalentDetailResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/talent",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ClientOverviewResponse> GetClientOverviewAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ClientOverviewResponse>($"{TenantRoot}/talent/{personId}/overview", cancellationToken);
+
+    public Task<IReadOnlyList<RepresentationHistoryEntryResponse>> GetRepresentationHistoryAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<RepresentationHistoryEntryResponse>(
+            $"{TenantRoot}/talent/{personId}/history",
+            cancellationToken);
+
+    public Task<IReadOnlyList<ProspectResponse>> ListProspectsAsync(
+        bool openOnly = true,
+        string? stage = null,
+        Guid? ownerUserId = null,
+        DateOnly? dueOnOrBefore = null,
+        CancellationToken cancellationToken = default)
+    {
+        string uri = $"{TenantRoot}/prospects?openOnly={(openOnly ? "true" : "false")}";
+
+        if (!string.IsNullOrWhiteSpace(stage))
+        {
+            uri += $"&stage={Uri.EscapeDataString(stage)}";
+        }
+
+        if (ownerUserId is { } owner)
+        {
+            uri += $"&ownerUserId={owner}";
+        }
+
+        if (dueOnOrBefore is { } due)
+        {
+            uri += $"&dueOnOrBefore={due:yyyy-MM-dd}";
+        }
+
+        return GetListAsync<ProspectResponse>(uri, cancellationToken);
+    }
+
+    public Task<ProspectResponse> GetProspectAsync(Guid prospectId, CancellationToken cancellationToken = default) =>
+        GetAsync<ProspectResponse>($"{TenantRoot}/prospects/{prospectId}", cancellationToken);
+
+    public Task<ProspectResponse> CreateProspectAsync(
+        CreateProspectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateProspectRequest, ProspectResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/prospects",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task AdvanceProspectAsync(
+        Guid prospectId,
+        AdvanceProspectRequest request,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/prospects/{prospectId}/advance",
+            request,
+            idempotencyKey: null,
+            cancellationToken);
+
+    public Task<RepresentationResponse> ConvertProspectAsync(
+        Guid prospectId,
+        ConvertProspectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<ConvertProspectRequest, RepresentationResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/prospects/{prospectId}/convert",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RepresentationResponse> GetRepresentationAsync(
+        Guid representationId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<RepresentationResponse>($"{TenantRoot}/representations/{representationId}", cancellationToken);
+
+    public Task TransitionRepresentationAsync(
+        Guid representationId,
+        TransitionRepresentationRequest request,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/representations/{representationId}/transition",
+            request,
+            idempotencyKey: null,
+            cancellationToken);
+
+    public Task<IReadOnlyList<CreditResponse>> ListCreditsAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<CreditResponse>($"{TenantRoot}/talent/{personId}/credits", cancellationToken);
+
+    public async Task<Guid> AddCreditAsync(
+        AddCreditRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        CreatedIdResponse created = await SendAsync<AddCreditRequest, CreatedIdResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/credits",
+            request,
+            idempotencyKey,
+            cancellationToken).ConfigureAwait(false);
+
+        return created.Id;
+    }
+
+    public Task<IReadOnlyList<MaterialResponse>> ListMaterialsAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<MaterialResponse>($"{TenantRoot}/talent/{personId}/materials", cancellationToken);
+
+    public async Task<Guid> AddMaterialAsync(
+        AddMaterialRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        CreatedIdResponse created = await SendAsync<AddMaterialRequest, CreatedIdResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/materials",
+            request,
+            idempotencyKey,
+            cancellationToken).ConfigureAwait(false);
+
+        return created.Id;
     }
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(

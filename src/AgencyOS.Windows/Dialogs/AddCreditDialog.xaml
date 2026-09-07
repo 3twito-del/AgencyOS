@@ -1,0 +1,39 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddCreditDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add credit"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="380">
+        <TextBox x:Name="TitleBox" Header="Title" PlaceholderText="The Long Field"
+                 TextChanged="OnRequiredChanged" />
+
+        <ComboBox x:Name="TypeBox" Header="Contribution" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Performance" Tag="Performance" />
+            <ComboBoxItem Content="Writing" Tag="Writing" />
+            <ComboBoxItem Content="Directing" Tag="Directing" />
+            <ComboBoxItem Content="Producing" Tag="Producing" />
+            <ComboBoxItem Content="Showrunning" Tag="Showrunning" />
+            <ComboBoxItem Content="Composing" Tag="Composing" />
+            <ComboBoxItem Content="Authorship" Tag="Authorship" />
+            <ComboBoxItem Content="Other" Tag="Other" />
+        </ComboBox>
+
+        <TextBox x:Name="RoleBox" Header="Role" PlaceholderText="Character name, or job title" />
+
+        <ComboBox x:Name="StatusBox" Header="Status" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Released" Tag="Released" />
+            <ComboBoxItem Content="Announced" Tag="Announced" />
+            <ComboBoxItem Content="In production" Tag="InProduction" />
+            <ComboBoxItem Content="Completed" Tag="Completed" />
+        </ComboBox>
+
+        <NumberBox x:Name="YearBox" Header="Year" SpinButtonPlacementMode="Compact" Minimum="1850" Maximum="2200" />
+
+        <TextBox x:Name="SourceBox" Header="Source" PlaceholderText="Where this came from" />
+    </StackPanel>
+</ContentDialog>

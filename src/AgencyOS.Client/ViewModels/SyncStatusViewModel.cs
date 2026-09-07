@@ -91,6 +91,7 @@ public sealed class SyncStatusViewModel : ViewModelBase
     private int _cachedPeople;
     private int _cachedCompanies;
     private int _cachedTasks;
+    private int _cachedTalent;
 
     /// <summary>
     /// Depends on the synchronization seam rather than a concrete engine.
@@ -193,6 +194,13 @@ public sealed class SyncStatusViewModel : ViewModelBase
     {
         get => _cachedTasks;
         private set => Set(ref _cachedTasks, value);
+    }
+
+    /// <summary>How many talent summaries are readable offline.</summary>
+    public int CachedTalent
+    {
+        get => _cachedTalent;
+        private set => Set(ref _cachedTalent, value);
     }
 
     public bool IsOffline => Connection == ConnectionState.Offline;
@@ -314,6 +322,7 @@ public sealed class SyncStatusViewModel : ViewModelBase
         CachedPeople = people;
         CachedCompanies = companies;
         CachedTasks = tasks;
+        CachedTalent = _cache.ReadTalentCount();
 
         OnPropertyChanged(nameof(IsEmpty));
         OnPropertyChanged(nameof(StatusLine));

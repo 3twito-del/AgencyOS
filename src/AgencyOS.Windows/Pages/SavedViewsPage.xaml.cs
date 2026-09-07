@@ -177,8 +177,8 @@ public sealed partial class SavedViewsPage : Page, IPaletteCommandTarget
 
     private SavedViewDefinitionModel BuildDefinition()
     {
-        string target = Tag(TargetBox) ?? "People";
-        string status = Tag(StatusBox) ?? string.Empty;
+        string target = SelectedTag(TargetBox) ?? "People";
+        string status = SelectedTag(StatusBox) ?? string.Empty;
 
         return new SavedViewDefinitionModel(
             SavedViewDefinitionVersion,
@@ -205,7 +205,7 @@ public sealed partial class SavedViewsPage : Page, IPaletteCommandTarget
 
     private static string? Empty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    private static string? Tag(ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag as string;
+    private static string? SelectedTag(ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag as string;
 
     private static void SelectByTag(ComboBox box, string tag)
     {

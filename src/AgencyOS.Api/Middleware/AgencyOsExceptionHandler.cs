@@ -1,6 +1,7 @@
 using AgencyOS.Api.Observability;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Application.Provisioning;
+using AgencyOS.Application.Representations;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Domain.Idempotency;
 using AgencyOS.Domain.Common;
@@ -54,6 +55,10 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             IdempotencyConflictException => (StatusCodes.Status422UnprocessableEntity, "Idempotency key reused"),
 
             SavedViewNameInUseException => (StatusCodes.Status409Conflict, "Name already used"),
+
+            // The record the caller wanted to create is already there. A conflict
+            // rather than a bad request: nothing about the request was malformed.
+            AlreadyExistsException => (StatusCodes.Status409Conflict, "Already exists"),
             DomainException => (StatusCodes.Status400BadRequest, "Invalid request"),
 
             // Reaching this means a defense-in-depth layer fired. It is a defect,
@@ -113,6 +118,7 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             IdempotencyInProgressException => "idempotency_in_progress",
             IdempotencyConflictException => "idempotency_key_reused",
             SavedViewNameInUseException => "saved_view_name_in_use",
+            AlreadyExistsException => "already_exists",
             _ => null,
         };
 

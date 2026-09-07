@@ -18,8 +18,10 @@
                 <muxc:NavigationViewItem Content="Command Center" Tag="command-center" AccessKey="1" />
                 <muxc:NavigationViewItem Content="People" Tag="people" AccessKey="2" />
                 <muxc:NavigationViewItem Content="Companies" Tag="companies" AccessKey="3" />
-                <muxc:NavigationViewItem Content="Saved Views" Tag="saved-views" AccessKey="4" />
-                <muxc:NavigationViewItem Content="Sync and Offline" Tag="sync" AccessKey="5" />
+                <muxc:NavigationViewItem Content="Talent" Tag="talent" AccessKey="4" />
+                <muxc:NavigationViewItem Content="Prospects" Tag="prospects" AccessKey="5" />
+                <muxc:NavigationViewItem Content="Saved Views" Tag="saved-views" AccessKey="6" />
+                <muxc:NavigationViewItem Content="Sync and Offline" Tag="sync" AccessKey="7" />
             </muxc:NavigationView.MenuItems>
 
             <muxc:NavigationView.PaneFooter>

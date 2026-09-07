@@ -1,9 +1,11 @@
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Representations;
 using AgencyOS.Application.Sync;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
 using AgencyOS.Domain.Sync;
+using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
 using static AgencyOS.Infrastructure.Persistence.Queries.PeopleSliceProjection;
@@ -31,8 +33,13 @@ namespace AgencyOS.Infrastructure.Persistence.Queries;
 internal sealed class SyncQueries : ISyncQueries
 {
     private readonly AgencyOsDbContext _context;
+    private readonly IRepresentationQueries _representation;
 
-    public SyncQueries(AgencyOsDbContext context) => _context = context;
+    public SyncQueries(AgencyOsDbContext context, IRepresentationQueries representation)
+    {
+        _context = context;
+        _representation = representation;
+    }
 
     public async Task<SyncPageModel> ReadChangesAsync(
         OrganizationId organizationId,
@@ -58,7 +65,7 @@ internal sealed class SyncQueries : ISyncQueries
 
         if (entries.Count == 0)
         {
-            return new SyncPageModel(afterSequence, HasMore: false, [], [], [], []);
+            return new SyncPageModel(afterSequence, HasMore: false, [], [], [], [], []);
         }
 
         List<ChangeEntryModel> changes =
@@ -84,7 +91,11 @@ internal sealed class SyncQueries : ISyncQueries
         IReadOnlyList<TaskModel> tasks =
             await LoadTasksAsync(organizationId, taskIds, cancellationToken).ConfigureAwait(false);
 
-        return new SyncPageModel(changes[^1].Sequence, hasMore, changes, people, companies, tasks);
+        IReadOnlyList<TalentSummaryModel> talent =
+            await LoadTalentAsync(organizationId, Identify(changes, nameof(TalentProfile)), cancellationToken)
+                .ConfigureAwait(false);
+
+        return new SyncPageModel(changes[^1].Sequence, hasMore, changes, people, companies, tasks, talent);
     }
 
     public async Task<long> GetHeadAsync(
@@ -190,6 +201,42 @@ internal sealed class SyncQueries : ISyncQueries
         PartyNameLookup names = await LoadPartyNamesAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         return [.. tasks.Select(task => ToModel(task, names))];
+    }
+
+    /// <summary>
+    /// Loads the talent summaries a page names.
+    /// </summary>
+    /// <remarks>
+    /// A representation change emits a talent entry even when the person has no
+    /// profile, because the recorder cannot know. Those simply resolve to nothing
+    /// and the client has no row to write, which is the correct outcome: there was
+    /// never a cached talent row to invalidate.
+    /// </remarks>
+    private async Task<IReadOnlyList<TalentSummaryModel>> LoadTalentAsync(
+        OrganizationId organizationId,
+        HashSet<Guid> personIds,
+        CancellationToken cancellationToken)
+    {
+        if (personIds.Count == 0)
+        {
+            return [];
+        }
+
+        List<TalentSummaryModel> talent = [];
+
+        foreach (Guid personId in personIds)
+        {
+            TalentDetailModel? detail = await _representation
+                .GetTalentAsync(organizationId, new PersonId(personId), cancellationToken)
+                .ConfigureAwait(false);
+
+            if (detail is not null)
+            {
+                talent.Add(detail.Summary);
+            }
+        }
+
+        return talent;
     }
 
     /// <summary>

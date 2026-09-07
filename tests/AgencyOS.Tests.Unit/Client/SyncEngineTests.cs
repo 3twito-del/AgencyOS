@@ -19,6 +19,7 @@ namespace AgencyOS.Tests.Unit.Client;
 /// model. A model that agrees with itself and disagrees with the code proves
 /// nothing.
 /// </remarks>
+[Collection(LocalCacheCollection.Name)]
 public sealed class SyncEngineTests : IDisposable
 {
     private readonly string _root =
@@ -379,7 +380,7 @@ public sealed class SyncEngineTests : IDisposable
         bool hasMore,
         IReadOnlyList<ChangeEntryResponse> changes,
         IReadOnlyList<PersonSummaryResponse>? people = null) =>
-        new(cursor, hasMore, changes, people ?? [], [], []);
+        new(cursor, hasMore, changes, people ?? [], [], [], []);
 
     private static PersonSummaryResponse Person(Guid id, string name, int version = 1) =>
         new(id, name, null, null, null, "Active", null, null, DateTimeOffset.UtcNow, version);

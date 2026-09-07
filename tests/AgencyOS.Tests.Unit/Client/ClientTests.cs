@@ -4,6 +4,7 @@ using AgencyOS.Client.Cache;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
+using AgencyOS.Contracts.Representation;
 using AgencyOS.Contracts.SavedViews;
 using AgencyOS.Contracts.Search;
 using AgencyOS.Contracts.Sync;
@@ -50,6 +51,26 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
 
     /// <summary>Mutating calls that actually reached the fake, by idempotency key.</summary>
     public Dictionary<string, int> Effects { get; } = [];
+
+    // ---- Talent and representation (M4) ----
+
+    public List<TalentSummaryResponse> Talent { get; } = [];
+
+    public List<ProspectResponse> Prospects { get; } = [];
+
+    public List<CreditResponse> Credits { get; } = [];
+
+    public List<MaterialResponse> Materials { get; } = [];
+
+    /// <summary>The overview the fake returns, when a test sets one.</summary>
+    public ClientOverviewResponse? Overview { get; set; }
+
+    /// <summary>Filters the last talent list call was made with, so a test can assert them.</summary>
+    public (bool ClientsOnly, bool FormerOnly, string? Discipline, string? Search) LastTalentFilter
+    { get; private set; }
+
+    /// <summary>Representations the fake has created, keyed by prospect.</summary>
+    public Dictionary<Guid, RepresentationResponse> Conversions { get; } = [];
 
     public Task<HandshakeResponse> HandshakeAsync(CancellationToken cancellationToken = default) =>
         throw new NotSupportedException();
@@ -345,7 +366,13 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
 
         SavedViewResponse view = SavedViews.Single(x => x.Id == savedViewId);
 
-        return Task.FromResult(new SavedViewResultsResponse(view.Target, [.. People], [.. Companies], []));
+        return Task.FromResult(new SavedViewResultsResponse(
+            view.Target,
+            [.. People],
+            [.. Companies],
+            [],
+            [.. Talent],
+            [.. Prospects]));
     }
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
@@ -357,7 +384,7 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
 
         if (SyncPages.Count == 0)
         {
-            return Task.FromResult(new SyncChangesResponse(cursor, false, [], [], [], []));
+            return Task.FromResult(new SyncChangesResponse(cursor, false, [], [], [], [], []));
         }
 
         return Task.FromResult(SyncPages.Dequeue());
@@ -386,6 +413,331 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
         {
             Effects[idempotencyKey] = Effects.GetValueOrDefault(idempotencyKey) + 1;
         }
+    }
+
+    // ---- Talent and representation (M4) ----
+
+    public Task<IReadOnlyList<TalentSummaryResponse>> ListTalentAsync(
+        bool clientsOnly = false,
+        bool formerClientsOnly = false,
+        string? discipline = null,
+        string? scope = null,
+        Guid? leadUserId = null,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        LastTalentFilter = (clientsOnly, formerClientsOnly, discipline, search);
+
+        IEnumerable<TalentSummaryResponse> matches = Talent;
+
+        if (clientsOnly)
+        {
+            matches = matches.Where(x => x.IsClient);
+        }
+
+        if (formerClientsOnly)
+        {
+            matches = matches.Where(x => !x.IsClient && x.RepresentationStatus is not null);
+        }
+
+        if (discipline is { Length: > 0 })
+        {
+            matches = matches.Where(x => x.Disciplines.Contains(discipline));
+        }
+
+        if (search is { Length: > 0 })
+        {
+            matches = matches.Where(x => x.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return Task.FromResult<IReadOnlyList<TalentSummaryResponse>>([.. matches]);
+    }
+
+    public Task<TalentDetailResponse> GetTalentAsync(Guid personId, CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        TalentSummaryResponse summary = Talent.First(x => x.PersonId == personId);
+
+        return Task.FromResult(new TalentDetailResponse(summary, null, null, null, null, DateTimeOffset.UtcNow));
+    }
+
+    public Task<TalentDetailResponse> CreateTalentProfileAsync(
+        CreateTalentProfileRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        TalentSummaryResponse summary = new(
+            Guid.NewGuid(),
+            request.PersonId,
+            "Created",
+            request.CareerStage ?? "Unknown",
+            request.Disciplines ?? [],
+            null,
+            IsClient: false,
+            null,
+            null,
+            [],
+            DateTimeOffset.UtcNow,
+            1);
+
+        Talent.Add(summary);
+
+        return Task.FromResult(new TalentDetailResponse(
+            summary,
+            request.Summary,
+            request.PositioningNotes,
+            request.BaseMarket,
+            request.Languages,
+            DateTimeOffset.UtcNow));
+    }
+
+    public Task<ClientOverviewResponse> GetClientOverviewAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        if (Overview is { } overview)
+        {
+            return Task.FromResult(overview);
+        }
+
+        TalentSummaryResponse summary = Talent.First(x => x.PersonId == personId);
+
+        return Task.FromResult(new ClientOverviewResponse(
+            new TalentDetailResponse(summary, null, null, null, null, DateTimeOffset.UtcNow),
+            null,
+            [],
+            [],
+            [.. Credits],
+            [.. Materials],
+            []));
+    }
+
+    public Task<IReadOnlyList<RepresentationHistoryEntryResponse>> GetRepresentationHistoryAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<RepresentationHistoryEntryResponse>>([]);
+    }
+
+    public Task<IReadOnlyList<ProspectResponse>> ListProspectsAsync(
+        bool openOnly = true,
+        string? stage = null,
+        Guid? ownerUserId = null,
+        DateOnly? dueOnOrBefore = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        IEnumerable<ProspectResponse> matches = Prospects;
+
+        if (openOnly)
+        {
+            matches = matches.Where(x => x.Stage is "Identified" or "Contacted" or "Courting");
+        }
+
+        if (stage is { Length: > 0 })
+        {
+            matches = matches.Where(x => x.Stage == stage);
+        }
+
+        return Task.FromResult<IReadOnlyList<ProspectResponse>>([.. matches]);
+    }
+
+    public Task<ProspectResponse> GetProspectAsync(Guid prospectId, CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult(Prospects.First(x => x.Id == prospectId));
+    }
+
+    public Task<ProspectResponse> CreateProspectAsync(
+        CreateProspectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        ProspectResponse prospect = new(
+            Guid.NewGuid(),
+            request.PersonId,
+            "Prospect",
+            "Identified",
+            request.OwnerUserId,
+            "Owner",
+            request.Source,
+            request.StrategyNotes,
+            request.IdentifiedOn ?? DateOnly.FromDateTime(DateTime.UtcNow),
+            request.NextFollowUpOn,
+            null,
+            DateTimeOffset.UtcNow,
+            1);
+
+        Prospects.Add(prospect);
+
+        return Task.FromResult(prospect);
+    }
+
+    public Task AdvanceProspectAsync(
+        Guid prospectId,
+        AdvanceProspectRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        int index = Prospects.FindIndex(x => x.Id == prospectId);
+        ProspectResponse existing = Prospects[index];
+
+        if (existing.Version != request.ExpectedVersion)
+        {
+            throw new AgencyOsApiException(
+                System.Net.HttpStatusCode.Conflict,
+                "Version conflict",
+                "The prospect changed.",
+                "version_conflict",
+                request.ExpectedVersion,
+                existing.Version);
+        }
+
+        Prospects[index] = existing with { Stage = request.Stage, Version = existing.Version + 1 };
+
+        return Task.CompletedTask;
+    }
+
+    public Task<RepresentationResponse> ConvertProspectAsync(
+        Guid prospectId,
+        ConvertProspectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        // Replays under a key that already converted, exactly as the server does.
+        if (idempotencyKey is not null
+            && Effects.ContainsKey(idempotencyKey)
+            && Conversions.TryGetValue(prospectId, out RepresentationResponse? replayed))
+        {
+            return Task.FromResult(replayed);
+        }
+
+        Submit(idempotencyKey);
+
+        int index = Prospects.FindIndex(x => x.Id == prospectId);
+        ProspectResponse existing = Prospects[index];
+
+        RepresentationResponse representation = new(
+            Guid.NewGuid(),
+            existing.PersonId,
+            existing.DisplayName,
+            "Active",
+            request.StartsOn,
+            null,
+            request.IsExclusive,
+            request.Territory,
+            request.Notes,
+            [.. request.Scopes.Select(x => new RepresentationScopeResponse(x, request.StartsOn, null))],
+            [new RepresentationTeamMemberResponse(request.LeadUserId, "Lead", "Lead", request.StartsOn, null)],
+            DateTimeOffset.UtcNow,
+            1);
+
+        Prospects[index] = existing with
+        {
+            Stage = "Converted",
+            ConvertedToRepresentationId = representation.Id,
+            Version = existing.Version + 1,
+        };
+
+        Conversions[prospectId] = representation;
+
+        return Task.FromResult(representation);
+    }
+
+    public Task<RepresentationResponse> GetRepresentationAsync(
+        Guid representationId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult(Conversions.Values.First(x => x.Id == representationId));
+    }
+
+    public Task TransitionRepresentationAsync(
+        Guid representationId,
+        TransitionRepresentationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<CreditResponse>> ListCreditsAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<CreditResponse>>([.. Credits]);
+    }
+
+    public Task<Guid> AddCreditAsync(
+        AddCreditRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Guid id = Guid.NewGuid();
+
+        Credits.Add(new CreditResponse(
+            id,
+            request.PersonId,
+            request.Title,
+            request.Role,
+            request.Type,
+            request.Status ?? "Released",
+            request.Year,
+            request.CompanyId,
+            null,
+            request.Source,
+            request.Notes,
+            1));
+
+        return Task.FromResult(id);
+    }
+
+    public Task<IReadOnlyList<MaterialResponse>> ListMaterialsAsync(
+        Guid personId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<MaterialResponse>>([.. Materials]);
+    }
+
+    public Task<Guid> AddMaterialAsync(
+        AddMaterialRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Guid id = Guid.NewGuid();
+
+        Materials.Add(new MaterialResponse(
+            id,
+            request.PersonId,
+            request.Title,
+            request.Type,
+            request.Status ?? "Draft",
+            request.VersionLabel,
+            request.ExternalUri,
+            request.ReceivedOn,
+            request.Source,
+            request.Notes,
+            1));
+
+        return Task.FromResult(id);
     }
 
     private void Throw()

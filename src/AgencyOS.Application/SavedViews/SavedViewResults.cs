@@ -1,4 +1,5 @@
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Representations;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.SavedViews;
 
@@ -15,16 +16,20 @@ namespace AgencyOS.Application.SavedViews;
 /// <param name="People">Matching people, when the target is People.</param>
 /// <param name="Companies">Matching companies, when the target is Companies.</param>
 /// <param name="Tasks">Matching tasks, when the target is Tasks.</param>
+/// <param name="Talent">Matching talent, when the target is Talent.</param>
+/// <param name="Prospects">Matching prospects, when the target is Prospects.</param>
 public sealed record SavedViewResultModel(
     SavedViewTarget Target,
     IReadOnlyList<PersonSummaryModel> People,
     IReadOnlyList<CompanySummaryModel> Companies,
-    IReadOnlyList<TaskModel> Tasks)
+    IReadOnlyList<TaskModel> Tasks,
+    IReadOnlyList<TalentSummaryModel> Talent,
+    IReadOnlyList<ProspectModel> Prospects)
 {
-    public static SavedViewResultModel Empty(SavedViewTarget target) => new(target, [], [], []);
+    public static SavedViewResultModel Empty(SavedViewTarget target) => new(target, [], [], [], [], []);
 
     /// <summary>Gets how many rows the view returned, whatever its target.</summary>
-    public int Count => People.Count + Companies.Count + Tasks.Count;
+    public int Count => People.Count + Companies.Count + Tasks.Count + Talent.Count + Prospects.Count;
 }
 
 /// <summary>

@@ -15,6 +15,14 @@ namespace AgencyOS.Contracts.SavedViews;
 /// <param name="TaskState">Open or Completed.</param>
 /// <param name="DueWithinDays">Tasks due within this many days.</param>
 /// <param name="OverdueOnly">Only tasks past their due date.</param>
+/// <param name="Discipline">Restricts talent to one professional discipline.</param>
+/// <param name="ScopeArea">Restricts talent to one represented area.</param>
+/// <param name="LeadUserId">Restricts talent to one internal owner.</param>
+/// <param name="ClientsOnly">Only people the agency currently represents.</param>
+/// <param name="FormerClientsOnly">Only people the agency used to represent.</param>
+/// <param name="ProspectStage">Restricts prospects to one stage.</param>
+/// <param name="OwnerUserId">Restricts prospects to one internal owner.</param>
+/// <param name="FollowUpWithinDays">Only prospects needing attention within this many days.</param>
 public sealed record SavedViewFiltersModel(
     string? Status = null,
     Guid? CompanyId = null,
@@ -22,7 +30,15 @@ public sealed record SavedViewFiltersModel(
     string? TextContains = null,
     string? TaskState = null,
     int? DueWithinDays = null,
-    bool OverdueOnly = false);
+    bool OverdueOnly = false,
+    string? Discipline = null,
+    string? ScopeArea = null,
+    Guid? LeadUserId = null,
+    bool ClientsOnly = false,
+    bool FormerClientsOnly = false,
+    string? ProspectStage = null,
+    Guid? OwnerUserId = null,
+    int? FollowUpWithinDays = null);
 
 /// <param name="Field">Field to order by. Must be sortable for the target.</param>
 /// <param name="Direction">Ascending or Descending.</param>
@@ -32,9 +48,10 @@ public sealed record SavedViewSortModel(string Field, string Direction);
 /// A saved view's query, as a versioned document.
 /// </summary>
 /// <param name="DefinitionVersion">
-/// Schema version of this document. A version the server does not understand is
-/// rejected rather than guessed at, so filter semantics can evolve without
-/// silently reinterpreting views saved months earlier.
+/// Schema version of this document. Version 2 is current; version 1 documents are
+/// still understood and read as they always meant, because version 2 only added
+/// targets and filters. A version the server genuinely does not understand is
+/// rejected rather than guessed at.
 /// </param>
 /// <param name="Target">People, Companies or Tasks.</param>
 /// <param name="Filters">Predicates to apply.</param>
@@ -65,15 +82,19 @@ public sealed record UpdateSavedViewRequest(
 /// people and tasks as tasks without inspecting a discriminator. Exactly one of
 /// the three collections is populated, named by <paramref name="Target"/>.
 /// </remarks>
-/// <param name="Target">Which list this is: People, Companies or Tasks.</param>
+/// <param name="Target">Which list this is: People, Companies, Tasks, Talent or Prospects.</param>
 /// <param name="People">Matching people.</param>
 /// <param name="Companies">Matching companies.</param>
 /// <param name="Tasks">Matching tasks.</param>
+/// <param name="Talent">Matching talent.</param>
+/// <param name="Prospects">Matching prospects.</param>
 public sealed record SavedViewResultsResponse(
     string Target,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.PersonSummaryResponse> People,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.CompanySummaryResponse> Companies,
-    IReadOnlyList<AgencyOS.Contracts.PeopleSlice.TaskResponse> Tasks);
+    IReadOnlyList<AgencyOS.Contracts.PeopleSlice.TaskResponse> Tasks,
+    IReadOnlyList<AgencyOS.Contracts.Representation.TalentSummaryResponse> Talent,
+    IReadOnlyList<AgencyOS.Contracts.Representation.ProspectResponse> Prospects);
 
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>

@@ -8,6 +8,11 @@ public enum SearchEntityType
     Person = 1,
     Company = 2,
     Task = 3,
+
+    // Added in M4. Credits and materials carry titles worth finding: "who was in
+    // that pilot" and "where is the latest draft" are real questions.
+    Credit = 4,
+    Material = 5,
 }
 
 /// <summary>Why a row matched, so a ranked list can explain itself.</summary>

@@ -39,6 +39,11 @@ public sealed class SearchService
             [SearchEntityType.Person] = Permission.PeopleRead,
             [SearchEntityType.Company] = Permission.CompaniesRead,
             [SearchEntityType.Task] = Permission.TasksRead,
+
+            // Credits and materials are facets of a talent record, so they are
+            // gated by the same permission that governs the record itself.
+            [SearchEntityType.Credit] = Permission.TalentRead,
+            [SearchEntityType.Material] = Permission.TalentRead,
         };
 
     private readonly ISearchQueries _queries;

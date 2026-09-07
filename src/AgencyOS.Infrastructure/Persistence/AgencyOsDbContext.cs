@@ -10,8 +10,10 @@ using AgencyOS.Domain.Provisioning;
 using AgencyOS.Domain.Relationships;
 using AgencyOS.Domain.Idempotency;
 using AgencyOS.Domain.Releases;
+using AgencyOS.Domain.Representations;
 using AgencyOS.Domain.SavedViews;
 using AgencyOS.Domain.Sync;
+using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -87,6 +89,31 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     /// (ADR-0014).
     /// </summary>
     public DbSet<IdempotencyRecord> IdempotencyKeys => Set<IdempotencyRecord>();
+
+    // ---- Talent and representation (M4) ----
+
+    /// <summary>The agency's representation metadata about a person (ADR-0017).</summary>
+    public DbSet<TalentProfile> TalentProfiles => Set<TalentProfile>();
+
+    public DbSet<TalentDiscipline> TalentDisciplines => Set<TalentDiscipline>();
+
+    /// <summary>People the agency is pursuing. A pursuit, not a relationship.</summary>
+    public DbSet<Prospect> Prospects => Set<Prospect>();
+
+    public DbSet<ProspectEvent> ProspectEvents => Set<ProspectEvent>();
+
+    /// <summary>Representation relationships. Being a client derives from these.</summary>
+    public DbSet<Representation> Representations => Set<Representation>();
+
+    public DbSet<RepresentationEvent> RepresentationEvents => Set<RepresentationEvent>();
+
+    public DbSet<RepresentationScope> RepresentationScopes => Set<RepresentationScope>();
+
+    public DbSet<RepresentationTeamMember> RepresentationTeamMembers => Set<RepresentationTeamMember>();
+
+    public DbSet<Credit> Credits => Set<Credit>();
+
+    public DbSet<Material> Materials => Set<Material>();
 
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.

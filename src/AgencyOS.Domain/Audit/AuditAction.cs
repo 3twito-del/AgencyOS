@@ -49,6 +49,32 @@ public static class AuditAction
     // deleting it is destructive, so the lifecycle is audited like any other
     // privileged operation.
 
+    // ---- Talent and representation (M4) ----
+
+    public const string TalentProfileCreated = "talentprofile.created";
+    public const string TalentProfileUpdated = "talentprofile.updated";
+    public const string TalentDisciplineAdded = "talentprofile.discipline.added";
+    public const string TalentDisciplineRemoved = "talentprofile.discipline.removed";
+
+    public const string ProspectCreated = "prospect.created";
+    public const string ProspectUpdated = "prospect.updated";
+    public const string ProspectStageChanged = "prospect.stage.changed";
+    public const string ProspectConverted = "prospect.converted";
+
+    public const string RepresentationCreated = "representation.created";
+    public const string RepresentationUpdated = "representation.updated";
+    public const string RepresentationStatusChanged = "representation.status.changed";
+    public const string RepresentationScopeAdded = "representation.scope.added";
+    public const string RepresentationScopeEnded = "representation.scope.ended";
+    public const string RepresentationTeamAssigned = "representation.team.assigned";
+    public const string RepresentationTeamRemoved = "representation.team.removed";
+
+    public const string CreditAdded = "credit.added";
+    public const string CreditUpdated = "credit.updated";
+
+    public const string MaterialAdded = "material.added";
+    public const string MaterialUpdated = "material.updated";
+
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";
     public const string SavedViewDeleted = "savedview.deleted";

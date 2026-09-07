@@ -4,6 +4,7 @@ using AgencyOS.Infrastructure.Authorization;
 using AgencyOS.Application.Directory;
 using AgencyOS.Application.Idempotency;
 using AgencyOS.Application.SavedViews;
+using AgencyOS.Application.Representations;
 using AgencyOS.Application.Search;
 using AgencyOS.Application.Sync;
 using AgencyOS.Infrastructure.Persistence;
@@ -69,6 +70,14 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ISavedViewRepository, SavedViewRepository>();
         services.AddScoped<ISavedViewResultQueries, SavedViewResultQueries>();
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
+
+        // Talent and representation (M4).
+        services.AddScoped<ITalentProfileRepository, TalentProfileRepository>();
+        services.AddScoped<IProspectRepository, ProspectRepository>();
+        services.AddScoped<IRepresentationRepository, RepresentationRepository>();
+        services.AddScoped<ICreditRepository, CreditRepository>();
+        services.AddScoped<IMaterialRepository, MaterialRepository>();
+        services.AddScoped<IRepresentationQueries, RepresentationQueries>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 

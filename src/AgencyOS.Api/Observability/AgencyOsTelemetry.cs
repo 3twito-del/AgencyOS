@@ -53,6 +53,25 @@ public static class AgencyOsTelemetry
             "agencyos.idempotency.replays",
             description: "Requests answered from a stored response instead of executing again.");
 
+    /// <summary>
+    /// Prospects turned into representations.
+    /// </summary>
+    /// <remarks>
+    /// The most consequential command in the representation model, and the one a
+    /// retry could most easily corrupt. Counting it makes an unexpected rate
+    /// visible without reading traces one at a time.
+    /// </remarks>
+    public static Counter<long> ProspectConversions { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.prospect.conversions",
+            description: "Prospects converted into representations.");
+
+    /// <summary>Representation status changes, by the status reached.</summary>
+    public static Counter<long> RepresentationTransitions { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.representation.transitions",
+            description: "Representation status changes.");
+
     /// <summary>Writes refused because the record had moved on.</summary>
     public static Counter<long> VersionConflicts { get; } =
         Meter.CreateCounter<long>(

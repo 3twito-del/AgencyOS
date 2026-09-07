@@ -14,6 +14,7 @@ namespace AgencyOS.Tests.Unit.Client;
 /// substitute would test the code and not the thing that matters - that the file
 /// on disk is encrypted and that a wrong key is refused.
 /// </remarks>
+[Collection(LocalCacheCollection.Name)]
 public sealed class LocalCacheTests : IDisposable
 {
     private readonly string _root = Path.Combine(Path.GetTempPath(), "agencyos-cache-tests", Guid.NewGuid().ToString("N"));

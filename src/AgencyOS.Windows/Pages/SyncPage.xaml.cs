@@ -174,6 +174,6 @@ public sealed partial class SyncPage : Page, IPaletteCommandTarget
 
         CacheText.Text = string.Create(
             CultureInfo.InvariantCulture,
-            $"Cached: {_viewModel.CachedPeople} people, {_viewModel.CachedCompanies} companies, {_viewModel.CachedTasks} tasks. Change-feed position {_viewModel.Cursor}. The cache is never canonical; the server is.");
+            $"Cached: {_viewModel.CachedPeople} people, {_viewModel.CachedCompanies} companies, {_viewModel.CachedTasks} tasks, {_viewModel.CachedTalent} talent. Change-feed position {_viewModel.Cursor}. The cache is never canonical; the server is.");
     }
 }

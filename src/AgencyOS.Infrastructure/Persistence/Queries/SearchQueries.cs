@@ -4,6 +4,7 @@ using AgencyOS.Application.Search;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
+using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -144,6 +145,39 @@ internal sealed class SearchQueries : ISearchQueries
                 archivedPredicate: includeArchived ? "TRUE" : $"t.state = {(int)TaskState.Open}"));
         }
 
+        if (types.Contains(SearchEntityType.Credit))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Credit,
+                table: "credits",
+                idColumn: "id",
+                titleColumn: "title",
+                subtitleExpression: "COALESCE(t.role, t.notes)",
+                statusColumn: "status",
+
+                // Credits are historical records rather than a working set, so
+                // there is nothing to exclude: every credit is always eligible.
+                archivedPredicate: "TRUE"));
+        }
+
+        if (types.Contains(SearchEntityType.Material))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Material,
+                table: "materials",
+                idColumn: "id",
+                titleColumn: "title",
+                subtitleExpression: "COALESCE(t.version_label, t.notes)",
+                statusColumn: "status",
+
+                // A retired material is the material equivalent of archived: kept,
+                // because knowing what was sent last year matters, but not part of
+                // what is ready to send now.
+                archivedPredicate: includeArchived
+                    ? "TRUE"
+                    : $"t.status <> {(int)MaterialStatus.Retired}"));
+        }
+
         if (branches.Count == 0)
         {
             return new SearchResultModel([], HasMore: false);
@@ -236,6 +270,8 @@ internal sealed class SearchQueries : ISearchQueries
         SearchEntityType.Person => ((PersonStatus)status).ToString(),
         SearchEntityType.Company => ((CompanyStatus)status).ToString(),
         SearchEntityType.Task => ((TaskState)status).ToString(),
+        SearchEntityType.Credit => ((CreditStatus)status).ToString(),
+        SearchEntityType.Material => ((MaterialStatus)status).ToString(),
         _ => status.ToString(CultureInfo.InvariantCulture),
     };
 }

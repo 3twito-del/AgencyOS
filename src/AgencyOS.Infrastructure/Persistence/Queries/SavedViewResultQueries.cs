@@ -1,9 +1,12 @@
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Representations;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
+using AgencyOS.Domain.Representations;
 using AgencyOS.Domain.SavedViews;
+using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
 using static AgencyOS.Infrastructure.Persistence.Queries.PeopleSliceProjection;
@@ -28,8 +31,13 @@ namespace AgencyOS.Infrastructure.Persistence.Queries;
 internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 {
     private readonly AgencyOsDbContext _context;
+    private readonly IRepresentationQueries _representation;
 
-    public SavedViewResultQueries(AgencyOsDbContext context) => _context = context;
+    public SavedViewResultQueries(AgencyOsDbContext context, IRepresentationQueries representation)
+    {
+        _context = context;
+        _representation = representation;
+    }
 
     public async Task<SavedViewResultModel> RunAsync(
         OrganizationId organizationId,
@@ -54,6 +62,13 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
             SavedViewTarget.Tasks =>
                 await RunTasksAsync(organizationId, definition, now, limit, cancellationToken).ConfigureAwait(false),
+
+            SavedViewTarget.Talent =>
+                await RunTalentAsync(organizationId, definition, limit, cancellationToken).ConfigureAwait(false),
+
+            SavedViewTarget.Prospects =>
+                await RunProspectsAsync(organizationId, definition, now, limit, cancellationToken)
+                    .ConfigureAwait(false),
 
             _ => SavedViewResultModel.Empty(definition.Target),
         };
@@ -121,6 +136,8 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             SavedViewTarget.People,
             [.. people.Select(person => ToSummary(person, companyNames))],
             [],
+            [],
+            [],
             []);
     }
 
@@ -165,7 +182,13 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return new SavedViewResultModel(SavedViewTarget.Companies, [], [.. companies.Select(ToSummary)], []);
+        return new SavedViewResultModel(
+            SavedViewTarget.Companies,
+            [],
+            [.. companies.Select(ToSummary)],
+            [],
+            [],
+            []);
     }
 
     private async Task<SavedViewResultModel> RunTasksAsync(
@@ -234,7 +257,71 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             SavedViewTarget.Tasks,
             [],
             [],
-            [.. tasks.Select(task => ToModel(task, names))]);
+            [.. tasks.Select(task => ToModel(task, names))],
+            [],
+            []);
+    }
+
+    /// <summary>
+    /// Runs a talent view by handing its filters to the representation projection.
+    /// </summary>
+    /// <remarks>
+    /// Reuses the query the talent list already uses rather than writing a second
+    /// one. Two implementations of "which clients match this" would eventually
+    /// disagree, and the saved view would quietly become the wrong answer.
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunTalentAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        TalentFilter filter = new(
+            filters.ClientsOnly,
+            filters.FormerClientsOnly,
+            Parse<ProfessionalDiscipline>(filters.Discipline),
+            Parse<RepresentationScopeArea>(filters.ScopeArea),
+            filters.LeadUserId,
+            filters.TextContains);
+
+        IReadOnlyList<TalentSummaryModel> talent = await _representation
+            .ListTalentAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return new SavedViewResultModel(SavedViewTarget.Talent, [], [], [], talent, []);
+    }
+
+    /// <summary>Runs a prospect view.</summary>
+    /// <remarks>
+    /// An explicit stage relaxes the open-only default: somebody asking for
+    /// declined prospects plainly wants the closed ones.
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunProspectsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        DateTimeOffset now,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        DateOnly? due = filters.FollowUpWithinDays is { } days
+            ? DateOnly.FromDateTime(now.UtcDateTime).AddDays(days)
+            : null;
+
+        ProspectFilter filter = new(
+            OpenOnly: filters.ProspectStage is null,
+            Parse<ProspectStage>(filters.ProspectStage),
+            filters.OwnerUserId,
+            due);
+
+        IReadOnlyList<ProspectModel> prospects = await _representation
+            .ListProspectsAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return new SavedViewResultModel(SavedViewTarget.Prospects, [], [], [], [], prospects);
     }
 
     private async Task<Dictionary<Guid, string>> LoadCompanyNamesAsync(

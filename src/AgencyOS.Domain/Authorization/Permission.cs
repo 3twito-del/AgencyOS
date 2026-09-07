@@ -54,6 +54,35 @@ public static class Permission
     public const string TasksRead = "tasks.read";
     public const string TasksWrite = "tasks.write";
 
+    // ---- Talent and representation (M4) ----
+    //
+    // Coarse read/write pairs per aggregate, matching M2's grant model, plus one
+    // deliberately finer permission. Representation-team membership is NOT an
+    // authorization dimension: being on a team says who works a relationship, not
+    // who may read it, and letting it grant access would make assignment a way to
+    // escalate (ADR-0017).
+
+    public const string TalentRead = "talent.read";
+    public const string TalentWrite = "talent.write";
+
+    /// <summary>
+    /// Reading internal judgment: talent positioning and prospect strategy.
+    /// </summary>
+    /// <remarks>
+    /// The one fine-grained permission M4 adds, because these two fields are
+    /// materially more sensitive than the records holding them. A caller without it
+    /// receives the record with those fields absent rather than a refusal, so an
+    /// observer can still see who a client is without reading what the agency
+    /// privately thinks about them.
+    /// </remarks>
+    public const string TalentNotesRead = "talent.notes.read";
+
+    public const string RepresentationRead = "representation.read";
+    public const string RepresentationWrite = "representation.write";
+
+    public const string ProspectsRead = "prospects.read";
+    public const string ProspectsWrite = "prospects.write";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -76,5 +105,12 @@ public static class Permission
         InteractionsRecord,
         TasksRead,
         TasksWrite,
+        TalentRead,
+        TalentWrite,
+        TalentNotesRead,
+        RepresentationRead,
+        RepresentationWrite,
+        ProspectsRead,
+        ProspectsWrite,
     };
 }

@@ -315,7 +315,8 @@ public sealed class SyncEngine : ISyncEngine
                 response.Companies,
                 response.Tasks,
                 removed,
-                _time.GetUtcNow());
+                _time.GetUtcNow(),
+                response.Talent);
 
             cursor = response.Cursor;
             applied += response.Changes.Count;

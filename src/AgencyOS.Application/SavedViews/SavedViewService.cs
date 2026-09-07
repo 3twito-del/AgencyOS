@@ -1,6 +1,7 @@
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Audit;
 using AgencyOS.Application.Authorization;
+using AgencyOS.Application.Representations;
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Identity;
@@ -78,6 +79,12 @@ public sealed class SavedViewService
             [SavedViewTarget.People] = Permission.PeopleRead,
             [SavedViewTarget.Companies] = Permission.CompaniesRead,
             [SavedViewTarget.Tasks] = Permission.TasksRead,
+
+            // The representation targets are gated by the permission that governs
+            // the records themselves, re-checked when the view runs rather than
+            // when it was saved.
+            [SavedViewTarget.Talent] = Permission.TalentRead,
+            [SavedViewTarget.Prospects] = Permission.ProspectsRead,
         };
 
     /// <summary>Largest page a saved view returns.</summary>
@@ -86,6 +93,7 @@ public sealed class SavedViewService
     private readonly ISavedViewRepository _views;
     private readonly ISavedViewResultQueries _results;
     private readonly TenantGuard _guard;
+    private readonly SensitiveNotes _notes;
     private readonly AuditRecorder _audit;
     private readonly IClock _clock;
     private readonly IUnitOfWork _unitOfWork;
@@ -94,6 +102,7 @@ public sealed class SavedViewService
         ISavedViewRepository views,
         ISavedViewResultQueries results,
         TenantGuard guard,
+        SensitiveNotes notes,
         AuditRecorder audit,
         IClock clock,
         IUnitOfWork unitOfWork)
@@ -101,6 +110,7 @@ public sealed class SavedViewService
         _views = views;
         _results = results;
         _guard = guard;
+        _notes = notes;
         _audit = audit;
         _clock = clock;
         _unitOfWork = unitOfWork;
@@ -157,7 +167,7 @@ public sealed class SavedViewService
             .AuthorizeAsync(RequiredPermissions[view.Target], organizationId, cancellationToken)
             .ConfigureAwait(false);
 
-        return await _results
+        SavedViewResultModel results = await _results
             .RunAsync(
                 organizationId,
                 view.Definition,
@@ -165,6 +175,22 @@ public sealed class SavedViewService
                 Math.Clamp(limit ?? 50, 1, MaximumResults),
                 cancellationToken)
             .ConfigureAwait(false);
+
+        // A saved view is a second route to the same records, and a prospect read
+        // through one must not reveal more than a prospect read through the other.
+        // The projection returns strategy notes in full; the same redaction the
+        // prospects endpoint applies is applied here, from the same place.
+        if (results.Prospects.Count > 0)
+        {
+            results = results with
+            {
+                Prospects = await _notes
+                    .ApplyAsync(organizationId, results.Prospects, cancellationToken)
+                    .ConfigureAwait(false),
+            };
+        }
+
+        return results;
     }
 
     public async Task<SavedViewId> CreateAsync(

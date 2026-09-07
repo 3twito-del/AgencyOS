@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AgencyOS.Tests.Integration.Infrastructure;
 using Xunit;
 
@@ -15,7 +16,7 @@ namespace AgencyOS.Tests.Integration;
 /// describes, not merely that it parses.
 /// </remarks>
 [Collection(AgencyOsCollection.Name)]
-public sealed class OpenApiContractTests
+public sealed partial class OpenApiContractTests
 {
     private readonly AgencyOsTestFixture _fixture;
 
@@ -58,8 +59,9 @@ public sealed class OpenApiContractTests
 
     /// <summary>
     /// The document must describe every implemented route: version identity and the
-    /// release handshake from M1, the people slice from M2, and search, saved views
-    /// and synchronization from M3.
+    /// release handshake from M1, the people slice from M2, search, saved views
+    /// and synchronization from M3, and talent, prospects, representation, credits
+    /// and materials from M4.
     /// </summary>
     /// <remarks>
     /// A contract that silently stopped describing a route would still be valid
@@ -93,6 +95,27 @@ public sealed class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/saved-views/{savedViewId}/results")]
     [InlineData("/api/v1/organizations/{organizationId}/sync/changes")]
     [InlineData("/api/v1/organizations/{organizationId}/sync/head")]
+    [InlineData("/api/v1/organizations/{organizationId}/talent")]
+    [InlineData("/api/v1/organizations/{organizationId}/talent/{personId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/talent/{personId}/overview")]
+    [InlineData("/api/v1/organizations/{organizationId}/talent/{personId}/history")]
+    [InlineData("/api/v1/organizations/{organizationId}/talent/{personId}/credits")]
+    [InlineData("/api/v1/organizations/{organizationId}/talent/{personId}/materials")]
+    [InlineData("/api/v1/organizations/{organizationId}/talent-profiles/{talentProfileId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/talent-profiles/{talentProfileId}/disciplines")]
+    [InlineData("/api/v1/organizations/{organizationId}/prospects")]
+    [InlineData("/api/v1/organizations/{organizationId}/prospects/{prospectId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/prospects/{prospectId}/advance")]
+    [InlineData("/api/v1/organizations/{organizationId}/prospects/{prospectId}/convert")]
+    [InlineData("/api/v1/organizations/{organizationId}/representations")]
+    [InlineData("/api/v1/organizations/{organizationId}/representations/{representationId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/representations/{representationId}/transition")]
+    [InlineData("/api/v1/organizations/{organizationId}/representations/{representationId}/scopes")]
+    [InlineData("/api/v1/organizations/{organizationId}/representations/{representationId}/team")]
+    [InlineData("/api/v1/organizations/{organizationId}/credits")]
+    [InlineData("/api/v1/organizations/{organizationId}/credits/{creditId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/materials")]
+    [InlineData("/api/v1/organizations/{organizationId}/materials/{materialId}")]
     public async Task Contract_DescribesTheImplementedSurface(string path)
     {
         using JsonDocument document = await GetContractAsync();
@@ -120,6 +143,52 @@ public sealed class OpenApiContractTests
         Assert.False(paths.TryGetProperty("/api/v1/system/bootstrap", out _));
     }
 
+    /// <summary>
+    /// No two paths may differ only in what their template parameters are called.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// OpenAPI 3.1 forbids it, and for a good reason: <c>/talent/{personId}</c> and
+    /// <c>/talent/{talentProfileId}</c> are the same path as far as a router or a
+    /// generated client is concerned, so a document containing both describes two
+    /// resources that a caller has no way to tell apart.
+    /// </para>
+    /// <para>
+    /// ASP.NET Core will happily route them, because it separates them by HTTP
+    /// method. The contract cannot. M4 introduced exactly this pair before the
+    /// talent-profile routes were moved to their own resource, and nothing in the
+    /// build noticed, which is why this test exists rather than a note in a review.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task Contract_HasNoPathsThatDifferOnlyByParameterName()
+    {
+        using JsonDocument document = await GetContractAsync();
+
+        Dictionary<string, List<string>> byShape = [];
+
+        foreach (JsonProperty path in document.RootElement.GetProperty("paths").EnumerateObject())
+        {
+            // Reduce every template parameter to a placeholder, so paths that a
+            // caller could not distinguish collapse onto the same key.
+            string shape = TemplateParameter().Replace(path.Name, "{}");
+
+            if (!byShape.TryGetValue(shape, out List<string>? paths))
+            {
+                byShape[shape] = paths = [];
+            }
+
+            paths.Add(path.Name);
+        }
+
+        KeyValuePair<string, List<string>>[] ambiguous = [.. byShape.Where(x => x.Value.Count > 1)];
+
+        Assert.True(
+            ambiguous.Length == 0,
+            "The contract contains paths that differ only by parameter name: "
+                + string.Join("; ", ambiguous.Select(x => string.Join(" and ", x.Value))));
+    }
+
     [Fact]
     public async Task Contract_DefinesResponseSchemas()
     {
@@ -140,4 +209,7 @@ public sealed class OpenApiContractTests
 
         return await JsonDocument.ParseAsync(stream);
     }
+
+    [GeneratedRegex(@"\{[^}]*\}")]
+    private static partial Regex TemplateParameter();
 }

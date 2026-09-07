@@ -146,7 +146,9 @@ internal static class M3Endpoints
                     results.Target.ToString(),
                     [.. results.People.Select(MapPerson)],
                     [.. results.Companies.Select(MapCompany)],
-                    [.. results.Tasks.Select(MapTask)]));
+                    [.. results.Tasks.Select(MapTask)],
+                    [.. results.Talent.Select(M4Endpoints.MapTalentSummary)],
+                    [.. results.Prospects.Select(M4Endpoints.MapProspect)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("RunSavedView");
@@ -251,7 +253,8 @@ internal static class M3Endpoints
                     [.. page.Changes.Select(Map)],
                     [.. page.People.Select(MapPerson)],
                     [.. page.Companies.Select(MapCompany)],
-                    [.. page.Tasks.Select(MapTask)]));
+                    [.. page.Tasks.Select(MapTask)],
+                    [.. page.Talent.Select(M4Endpoints.MapTalentSummary)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.PeopleRead))
             .WithName("ReadSyncChanges");
@@ -308,20 +311,60 @@ internal static class M3Endpoints
         return new SavedViewDefinition(
             model.DefinitionVersion,
             EndpointParsing.ParseEnum<SavedViewTarget>(model.Target, nameof(model.Target)),
-            new SavedViewFilters(
-                filters.Status,
-                filters.CompanyId,
-                filters.TitleContains,
-                filters.TextContains,
-                filters.TaskState,
-                filters.DueWithinDays,
-                filters.OverdueOnly),
+            ToFilters(filters),
             model.Sort is null
                 ? null
                 : new SavedViewSort(
                     model.Sort.Field,
                     EndpointParsing.ParseEnum<SavedViewSortDirection>(model.Sort.Direction, "Sort.Direction")));
     }
+
+    /// <summary>
+    /// Maps the wire filters onto the domain filters, field by field, by name.
+    /// </summary>
+    /// <remarks>
+    /// Named arguments rather than positional ones, deliberately. These two records
+    /// have the same shape, so a positional call compiles perfectly while quietly
+    /// defaulting every field the caller forgot - which is exactly what happened
+    /// when M4 added eight filters: the domain validated them, the query layer
+    /// applied them, and the API never carried them, so every talent and prospect
+    /// view silently returned everything. Naming each field turns that omission
+    /// into a compiler error.
+    /// </remarks>
+    private static SavedViewFilters ToFilters(SavedViewFiltersModel filters) => new(
+        Status: filters.Status,
+        CompanyId: filters.CompanyId,
+        TitleContains: filters.TitleContains,
+        TextContains: filters.TextContains,
+        TaskState: filters.TaskState,
+        DueWithinDays: filters.DueWithinDays,
+        OverdueOnly: filters.OverdueOnly,
+        Discipline: filters.Discipline,
+        ScopeArea: filters.ScopeArea,
+        LeadUserId: filters.LeadUserId,
+        ClientsOnly: filters.ClientsOnly,
+        FormerClientsOnly: filters.FormerClientsOnly,
+        ProspectStage: filters.ProspectStage,
+        OwnerUserId: filters.OwnerUserId,
+        FollowUpWithinDays: filters.FollowUpWithinDays);
+
+    /// <inheritdoc cref="ToFilters"/>
+    private static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
+        Status: filters.Status,
+        CompanyId: filters.CompanyId,
+        TitleContains: filters.TitleContains,
+        TextContains: filters.TextContains,
+        TaskState: filters.TaskState,
+        DueWithinDays: filters.DueWithinDays,
+        OverdueOnly: filters.OverdueOnly,
+        Discipline: filters.Discipline,
+        ScopeArea: filters.ScopeArea,
+        LeadUserId: filters.LeadUserId,
+        ClientsOnly: filters.ClientsOnly,
+        FormerClientsOnly: filters.FormerClientsOnly,
+        ProspectStage: filters.ProspectStage,
+        OwnerUserId: filters.OwnerUserId,
+        FollowUpWithinDays: filters.FollowUpWithinDays);
 
     // --------------------------------------------------------------- mapping
 
@@ -341,14 +384,7 @@ internal static class M3Endpoints
         new SavedViewDefinitionModel(
             view.Definition.DefinitionVersion,
             view.Definition.Target.ToString(),
-            new SavedViewFiltersModel(
-                view.Definition.Filters.Status,
-                view.Definition.Filters.CompanyId,
-                view.Definition.Filters.TitleContains,
-                view.Definition.Filters.TextContains,
-                view.Definition.Filters.TaskState,
-                view.Definition.Filters.DueWithinDays,
-                view.Definition.Filters.OverdueOnly),
+            ToModel(view.Definition.Filters),
             view.Definition.Sort is null
                 ? null
                 : new SavedViewSortModel(

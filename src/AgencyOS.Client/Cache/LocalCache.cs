@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Contracts.Representation;
 using Microsoft.Data.Sqlite;
 
 namespace AgencyOS.Client.Cache;
@@ -154,7 +155,8 @@ public sealed class LocalCache : AgencyOS.Client.Sync.IWriteQueue, IDisposable
         IReadOnlyList<CompanySummaryResponse> companies,
         IReadOnlyList<TaskResponse> tasks,
         IReadOnlyList<(string EntityType, Guid EntityId)> removed,
-        DateTimeOffset syncedAt)
+        DateTimeOffset syncedAt,
+        IReadOnlyList<TalentSummaryResponse>? talent = null)
     {
         ArgumentNullException.ThrowIfNull(people);
         ArgumentNullException.ThrowIfNull(companies);
@@ -176,6 +178,11 @@ public sealed class LocalCache : AgencyOS.Client.Sync.IWriteQueue, IDisposable
         foreach (TaskResponse task in tasks)
         {
             UpsertTask(transaction, task);
+        }
+
+        foreach (TalentSummaryResponse entry in talent ?? [])
+        {
+            UpsertTalent(transaction, entry);
         }
 
         foreach ((string entityType, Guid entityId) in removed)
@@ -319,6 +326,50 @@ public sealed class LocalCache : AgencyOS.Client.Sync.IWriteQueue, IDisposable
     public (int People, int Companies, int Tasks) ReadCounts()
     {
         return (Count("cached_people"), Count("cached_companies"), Count("cached_tasks"));
+    }
+
+    /// <summary>Gets how many talent summaries are cached for offline reading.</summary>
+    public int ReadTalentCount() => Count("cached_talent");
+
+    /// <summary>
+    /// Reads cached talent, for the client list when the server is unreachable.
+    /// </summary>
+    /// <remarks>
+    /// A read of a copy, never a source of truth. The client prefers the server
+    /// whenever it can reach it, and the surface says which it used.
+    /// </remarks>
+    public IReadOnlyList<TalentSummaryResponse> ReadTalent(bool clientsOnly = false, int limit = 200)
+    {
+        using SqliteCommand command = _connection.CreateCommand();
+
+        command.CommandText = clientsOnly
+            ? "SELECT * FROM cached_talent WHERE is_client = 1 ORDER BY display_name LIMIT $limit;"
+            : "SELECT * FROM cached_talent ORDER BY display_name LIMIT $limit;";
+
+        command.Parameters.AddWithValue("$limit", limit);
+
+        List<TalentSummaryResponse> talent = [];
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            talent.Add(new TalentSummaryResponse(
+                Guid.Parse(reader.GetString(reader.GetOrdinal("talent_profile_id"))),
+                Guid.Parse(reader.GetString(reader.GetOrdinal("person_id"))),
+                reader.GetString(reader.GetOrdinal("display_name")),
+                reader.GetString(reader.GetOrdinal("career_stage")),
+                Split(reader.GetString(reader.GetOrdinal("disciplines"))),
+                GetNullableString(reader, "representation_status"),
+                reader.GetInt32(reader.GetOrdinal("is_client")) == 1,
+                GetNullableGuid(reader, "lead_user_id"),
+                GetNullableString(reader, "lead_display_name"),
+                Split(reader.GetString(reader.GetOrdinal("scopes"))),
+                ReadInstant(reader, "updated_at"),
+                reader.GetInt32(reader.GetOrdinal("version"))));
+        }
+
+        return talent;
     }
 
     // ----------------------------------------------------------- write queue
@@ -555,9 +606,15 @@ public sealed class LocalCache : AgencyOS.Client.Sync.IWriteQueue, IDisposable
                     $"The local cache is at schema version {version}; this build understands {LocalCacheSchema.Version}. It was written by a newer version of AgencyOS. Reset the cache to continue."));
         }
 
-        // Version 1 is the first schema, so no upgrade path exists yet. When one
-        // is added it belongs here, and it must preserve write_queue: those rows
-        // are the only thing in this file the server has never seen.
+        if (version >= LocalCacheSchema.MinimumUpgradableVersion)
+        {
+            // Brought forward rather than discarded. The write queue holds commands
+            // the server has never seen, so throwing the file away to avoid writing
+            // a migration would lose a user's work.
+            LocalCacheSchema.Upgrade(connection, version.Value);
+            return;
+        }
+
         throw new LocalCacheUnusableException(
             string.Create(
                 CultureInfo.InvariantCulture,
@@ -722,6 +779,59 @@ public sealed class LocalCache : AgencyOS.Client.Sync.IWriteQueue, IDisposable
         command.ExecuteNonQuery();
     }
 
+    private void UpsertTalent(SqliteTransaction transaction, TalentSummaryResponse talent)
+    {
+        using SqliteCommand command = _connection.CreateCommand();
+        command.Transaction = transaction;
+
+        command.CommandText = """
+            INSERT INTO cached_talent
+                (person_id, talent_profile_id, display_name, career_stage, disciplines,
+                 representation_status, is_client, lead_user_id, lead_display_name, scopes,
+                 updated_at, version)
+            VALUES ($personId, $profileId, $displayName, $careerStage, $disciplines,
+                    $status, $isClient, $leadId, $leadName, $scopes, $updatedAt, $version)
+            ON CONFLICT (person_id) DO UPDATE SET
+                talent_profile_id = excluded.talent_profile_id,
+                display_name = excluded.display_name,
+                career_stage = excluded.career_stage,
+                disciplines = excluded.disciplines,
+                representation_status = excluded.representation_status,
+                is_client = excluded.is_client,
+                lead_user_id = excluded.lead_user_id,
+                lead_display_name = excluded.lead_display_name,
+                scopes = excluded.scopes,
+                updated_at = excluded.updated_at,
+                version = excluded.version;
+            """;
+
+        command.Parameters.AddWithValue("$personId", talent.PersonId.ToString("D", CultureInfo.InvariantCulture));
+        command.Parameters.AddWithValue("$profileId", talent.Id.ToString("D", CultureInfo.InvariantCulture));
+        command.Parameters.AddWithValue("$displayName", talent.DisplayName);
+        command.Parameters.AddWithValue("$careerStage", talent.CareerStage);
+        command.Parameters.AddWithValue("$disciplines", string.Join('\u001f', talent.Disciplines));
+        command.Parameters.AddWithValue("$status", (object?)talent.RepresentationStatus ?? DBNull.Value);
+        command.Parameters.AddWithValue("$isClient", talent.IsClient ? 1 : 0);
+        command.Parameters.AddWithValue(
+            "$leadId",
+            (object?)talent.LeadUserId?.ToString("D", CultureInfo.InvariantCulture) ?? DBNull.Value);
+        command.Parameters.AddWithValue("$leadName", (object?)talent.LeadDisplayName ?? DBNull.Value);
+        command.Parameters.AddWithValue("$scopes", string.Join('\u001f', talent.Scopes));
+        command.Parameters.AddWithValue("$updatedAt", talent.UpdatedAt.ToString("O", CultureInfo.InvariantCulture));
+        command.Parameters.AddWithValue("$version", talent.Version);
+
+        command.ExecuteNonQuery();
+    }
+
+    /// <summary>Splits a stored list back into its parts.</summary>
+    /// <remarks>
+    /// Joined on a unit separator rather than a comma, because a discipline or
+    /// scope could in principle contain one and a split on commas would invent
+    /// entries that were never there.
+    /// </remarks>
+    private static IReadOnlyList<string> Split(string value) =>
+        value.Length == 0 ? [] : value.Split('\u001f');
+
     private void Remove(SqliteTransaction transaction, string entityType, Guid entityId)
     {
         string? table = entityType switch
@@ -729,6 +839,10 @@ public sealed class LocalCache : AgencyOS.Client.Sync.IWriteQueue, IDisposable
             "Person" => "cached_people",
             "Company" => "cached_companies",
             "TaskItem" => "cached_tasks",
+
+            // A talent feed entry is keyed by person, which is exactly this table's
+            // primary key, so a removal needs no special case.
+            "TalentProfile" => "cached_talent",
 
             // A type this build does not cache. Ignoring it is correct: the feed
             // is allowed to carry more than this client stores, and refusing

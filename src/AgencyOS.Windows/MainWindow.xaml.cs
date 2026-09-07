@@ -100,6 +100,18 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
         });
 
+        AddAccelerator(VirtualKey.Number6, VirtualKeyModifiers.Control, (_, args) =>
+        {
+            SelectMenu(5);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.Number7, VirtualKeyModifiers.Control, (_, args) =>
+        {
+            SelectMenu(6);
+            args.Handled = true;
+        });
+
         AddAccelerator(VirtualKey.K, VirtualKeyModifiers.Control, (_, args) =>
         {
             ToggleSearch();
@@ -146,6 +158,8 @@ public sealed partial class MainWindow : Window
         {
             "people" => typeof(PeoplePage),
             "companies" => typeof(CompaniesPage),
+            "talent" => typeof(TalentPage),
+            "prospects" => typeof(ProspectsPage),
             "saved-views" => typeof(SavedViewsPage),
             "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
@@ -245,12 +259,20 @@ public sealed partial class MainWindow : Window
                 SelectMenu(2);
                 return;
 
-            case "go.saved-views":
+            case "go.talent":
                 SelectMenu(3);
                 return;
 
-            case "go.sync":
+            case "go.prospects":
                 SelectMenu(4);
+                return;
+
+            case "go.saved-views":
+                SelectMenu(5);
+                return;
+
+            case "go.sync":
+                SelectMenu(6);
                 return;
 
             case "search.open":
@@ -415,7 +437,15 @@ public sealed partial class MainWindow : Window
         switch (hit.Type)
         {
             case "Person":
-                SelectMenu(1);
+                // The talent workspace, not the directory: a search hit on a person
+                // is almost always the start of working on them.
+                SelectMenu(3);
+
+                if (ContentFrame.Content is TalentPage talent)
+                {
+                    _ = talent.OpenAsync(hit.Id);
+                }
+
                 break;
 
             case "Company":
