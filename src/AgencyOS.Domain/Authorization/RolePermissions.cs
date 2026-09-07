@@ -36,7 +36,14 @@ public static class RolePermissions
         // An observer sees the pipeline and what has gone out, but not the agency's
         // private strategy: opportunities.strategy.read is deliberately absent.
         Permission.OpportunitiesRead,
-        Permission.SubmissionsRead);
+        Permission.SubmissionsRead,
+
+        // An observer sees that a negotiation exists and how it stands, and its
+        // structural terms - dates, episode counts, billing. Neither
+        // deals.economics.read nor deals.strategy.read is granted, so what a deal
+        // pays and what the agency privately intends stay out of reach.
+        Permission.DealsRead,
+        Permission.OffersRead);
 
     /// <summary>
     /// The day-to-day operational role: everything needed to run the M2 workflow,
@@ -72,7 +79,13 @@ public static class RolePermissions
         Permission.OpportunitiesWrite,
         Permission.SubmissionsRead,
         Permission.SubmissionsWrite,
-        Permission.OpportunityStrategyRead);
+        Permission.OpportunityStrategyRead,
+        Permission.DealsRead,
+        Permission.DealsWrite,
+        Permission.OffersRead,
+        Permission.OffersWrite,
+        Permission.DealEconomicsRead,
+        Permission.DealStrategyRead);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,

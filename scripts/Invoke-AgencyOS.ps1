@@ -297,7 +297,24 @@ function Invoke-Contract {
         "/api/v1/organizations/{organizationId}/submissions/{submissionId}",
         "/api/v1/organizations/{organizationId}/pitches",
         "/api/v1/organizations/{organizationId}/pipeline",
-        "/api/v1/organizations/{organizationId}/opportunity-command-center"
+        "/api/v1/organizations/{organizationId}/opportunity-command-center",
+        "/api/v1/deal-terms",
+        "/api/v1/organizations/{organizationId}/deals",
+        "/api/v1/organizations/{organizationId}/deals/{dealId}",
+        "/api/v1/organizations/{organizationId}/deals/{dealId}/history",
+        "/api/v1/organizations/{organizationId}/deals/{dealId}/close",
+        "/api/v1/organizations/{organizationId}/deals/{dealId}/reopen",
+        "/api/v1/organizations/{organizationId}/deals/{dealId}/offers",
+        "/api/v1/organizations/{organizationId}/deals/{dealId}/draft-offers",
+        "/api/v1/organizations/{organizationId}/deals/{dealId}/current-offer",
+        "/api/v1/organizations/{organizationId}/deals/{dealId}/comparison",
+        "/api/v1/organizations/{organizationId}/offers",
+        "/api/v1/organizations/{organizationId}/offers/{offerId}",
+        "/api/v1/organizations/{organizationId}/offers/{offerId}/terms",
+        "/api/v1/organizations/{organizationId}/offers/{offerId}/record",
+        "/api/v1/organizations/{organizationId}/offers/{offerId}/answer",
+        "/api/v1/organizations/{organizationId}/deal-pipeline",
+        "/api/v1/organizations/{organizationId}/deal-command-center"
     )
 
     $paths = @($contract.paths.PSObject.Properties.Name)

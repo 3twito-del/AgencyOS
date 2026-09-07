@@ -62,8 +62,8 @@ public sealed partial class OpenApiContractTests
     /// release handshake from M1, the people slice from M2, search, saved views
     /// and synchronization from M3, talent, prospects, representation, credits and
     /// materials from M4, projects, source properties, roles, attachments and
-    /// packages from M5, and opportunities, targets, submissions and pitches from
-    /// M6.
+    /// packages from M5, opportunities, targets, submissions and pitches from M6,
+    /// and deals, offers and the term catalog from M7.
     /// </summary>
     /// <remarks>
     /// A contract that silently stopped describing a route would still be valid
@@ -156,6 +156,23 @@ public sealed partial class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/pitches")]
     [InlineData("/api/v1/organizations/{organizationId}/pipeline")]
     [InlineData("/api/v1/organizations/{organizationId}/opportunity-command-center")]
+    [InlineData("/api/v1/deal-terms")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals/{dealId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals/{dealId}/history")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals/{dealId}/close")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals/{dealId}/reopen")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals/{dealId}/offers")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals/{dealId}/draft-offers")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals/{dealId}/current-offer")]
+    [InlineData("/api/v1/organizations/{organizationId}/deals/{dealId}/comparison")]
+    [InlineData("/api/v1/organizations/{organizationId}/offers")]
+    [InlineData("/api/v1/organizations/{organizationId}/offers/{offerId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/offers/{offerId}/terms")]
+    [InlineData("/api/v1/organizations/{organizationId}/offers/{offerId}/record")]
+    [InlineData("/api/v1/organizations/{organizationId}/offers/{offerId}/answer")]
+    [InlineData("/api/v1/organizations/{organizationId}/deal-pipeline")]
+    [InlineData("/api/v1/organizations/{organizationId}/deal-command-center")]
     public async Task Contract_DescribesTheImplementedSurface(string path)
     {
         using JsonDocument document = await GetContractAsync();

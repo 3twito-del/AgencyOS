@@ -1,0 +1,51 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreateDealDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Open a negotiation"
+    PrimaryButtonText="Open"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="460">
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                       Text="A negotiation comes out of a market conversation. The target must already be interested or advanced: opening one is an explicit act, never a consequence of a pipeline stage changing." />
+
+            <TextBox x:Name="OpportunityIdBox" Header="Opportunity" PlaceholderText="Opportunity identifier"
+                     TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="TargetIdBox" Header="Target" PlaceholderText="Opportunity target identifier"
+                     TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="NameBox" Header="Name" PlaceholderText="The Undertow - Northgate Pictures"
+                     TextChanged="OnRequiredChanged" />
+
+            <ComboBox x:Name="KindBox" Header="Kind" HorizontalAlignment="Stretch">
+                <ComboBoxItem Content="Talent employment" Tag="TalentEmployment" IsSelected="True" />
+                <ComboBoxItem Content="Writing" Tag="Writing" />
+                <ComboBoxItem Content="Directing" Tag="Directing" />
+                <ComboBoxItem Content="Producing" Tag="Producing" />
+                <ComboBoxItem Content="Project sale" Tag="ProjectSale" />
+                <ComboBoxItem Content="Project licence" Tag="ProjectLicense" />
+                <ComboBoxItem Content="Package" Tag="Package" />
+                <ComboBoxItem Content="Services" Tag="Services" />
+                <ComboBoxItem Content="Partnership" Tag="Partnership" />
+                <ComboBoxItem Content="Other" Tag="Other" />
+            </ComboBox>
+
+            <TextBox x:Name="OwnerIdBox" Header="Owner" PlaceholderText="Internal owner identifier"
+                     TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="ReferenceBox" Header="Reference" PlaceholderText="Internal handle, optional" />
+
+            <TextBox x:Name="SummaryBox" Header="Summary" TextWrapping="Wrap" AcceptsReturn="True"
+                     Height="70" PlaceholderText="What is being negotiated" />
+
+            <TextBox x:Name="StrategyBox" Header="Strategy" TextWrapping="Wrap" AcceptsReturn="True"
+                     Height="70"
+                     PlaceholderText="What we think they will pay and what we will trade. Requires deals.strategy.read to read back." />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

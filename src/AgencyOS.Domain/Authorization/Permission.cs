@@ -126,6 +126,47 @@ public static class Permission
     /// </remarks>
     public const string OpportunityStrategyRead = "opportunities.strategy.read";
 
+    // ---- Deals and offers (M7) ----
+    //
+    // Four grants rather than two, because the populations genuinely differ.
+    // Knowing a negotiation exists is what a coordinator needs to schedule around
+    // it; knowing what it pays is not, and an agency that had to choose between
+    // showing an assistant everything and showing them nothing would end up
+    // showing them everything (ADR-0021).
+
+    public const string DealsRead = "deals.read";
+    public const string DealsWrite = "deals.write";
+
+    /// <summary>Recording offers and answering them.</summary>
+    /// <remarks>
+    /// Separated from <see cref="DealsWrite"/> on the M6 precedent for
+    /// submissions: recording an offer asserts that a commercial proposal passed
+    /// between the parties, and accepting one asserts the terms are agreed. Who
+    /// may make those assertions is worth controlling apart from who may rename a
+    /// deal.
+    /// </remarks>
+    public const string OffersRead = "offers.read";
+    public const string OffersWrite = "offers.write";
+
+    /// <summary>Reading what a deal actually pays.</summary>
+    /// <remarks>
+    /// Gates every money and percentage term, everywhere: detail, offers,
+    /// comparison, search, saved views, overview, command centre and counts.
+    /// Structural terms - dates, episode counts, billing - stay visible with
+    /// <see cref="DealsRead"/>, and the catalog guarantees no structural term
+    /// carries a figure.
+    /// </remarks>
+    public const string DealEconomicsRead = "deals.economics.read";
+
+    /// <summary>Reading the agency's own negotiating strategy.</summary>
+    /// <remarks>
+    /// Judgment rather than fact. "They offered 500,000" is a term; "we think they
+    /// can reach 750,000 and should trade backend for guarantee" is this, and the
+    /// two must not share a field. Absent rather than refused, as
+    /// <see cref="TalentNotesRead"/> works, and kept out of the search vector.
+    /// </remarks>
+    public const string DealStrategyRead = "deals.strategy.read";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -165,5 +206,11 @@ public static class Permission
         SubmissionsRead,
         SubmissionsWrite,
         OpportunityStrategyRead,
+        DealsRead,
+        DealsWrite,
+        OffersRead,
+        OffersWrite,
+        DealEconomicsRead,
+        DealStrategyRead,
     };
 }

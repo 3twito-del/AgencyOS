@@ -642,15 +642,126 @@ Deliver:
 - outcomes; **met** (restrained; stops before the deal boundary)
 - follow-up workflows. **met** (linked M2 tasks, created with the activity)
 
-## M7 — Deal Engine
+## M7 — Deal Engine: Offers, Negotiation & Agreed Terms — **Implemented** (2026-09-07)
+
+Implemented: the deal as a negotiation container anchored to an M6 target; offers
+as immutable commercial snapshots; counters as offers rather than edits; structured
+commercial terms with a controlled vocabulary; deterministic offer comparison; a
+pure F# rules kernel; agreed terms that say nothing about a contract.
+
+**A counter is another offer, never an edit.** `RespondsToOfferId` links it to what
+it answers, and the earlier offer is superseded rather than rewritten. What the
+other side put on the table stays exactly what they put on the table, through any
+number of rounds and through a reopening. A correction to a mis-recorded number is
+also another offer, so both the mistake and the fix survive.
+
+**Immutability is enforced twice, and it is not the audit trail.** The audit log
+answers who did what; this stops a recorded commercial snapshot being rewritten at
+all. The domain refuses term changes unless the offer is a draft, and PostgreSQL
+refuses independently through triggers on `offer_terms` and on the frozen `offers`
+columns. Those triggers are deliberately dumb - the rule lives in the domain, the
+guardrail lives in the database - which is how the milestone brief's two competing
+instructions on that point were reconciled.
+
+There is consequently no factory producing an already-frozen offer: every offer
+starts as a draft and is recorded, because terms may only be added while it is
+editable and a second entry point would duplicate the term rules or bypass them.
+
+**`TermsAgreed` is a commercial fact and says nothing about a contract.** There is
+no Signed, Executed, Paid or Commissioned status, and the Windows surface states
+plainly that no contract has been drafted, signed or executed. Two transitions are
+not requestable at all: a deal reaches `Negotiating` because an offer was recorded
+and `TermsAgreed` because one was accepted, so it cannot claim agreed terms with
+nothing behind it. That is the invariant the milestone exists to protect, and it is
+enforced in the domain, in the rules kernel and by a partial unique index.
+
+**The accepted offer is derived, not stored.** So is the counterparty, read through
+the M6 target, and the subject, read through the opportunity. A column for any of
+them would be the same fact written twice.
+
+**Money is an amount and a currency, in `decimal`.** No binary floating point
+anywhere - a test walks `Money`'s public surface to prove it. Amounts are held to
+each currency's own minor units, so JPY is not rounded to two places and KWD is not
+rounded to two either. Currencies validate against a curated ISO 4217 table; an
+unknown code is refused rather than stored. Cross-currency amounts are never
+converted and never compared for direction, because M7 holds no exchange rates.
+
+**The rules are an F# kernel** (`src/AgencyOS.Deals.Rules`): pure, no package
+references but FSharp.Core, no EF, HTTP, logging, clock or filesystem. It owns
+transition legality, chain validation, term-value parsing and comparison.
+Discriminated unions remove states rather than describing them - a money value
+without a currency cannot be constructed - and incomplete-match warnings are errors,
+so an added state breaks the build. The boundary is one class over primitives and
+flat records, with fifteen tests walking every state, trigger, direction and value
+kind in both directions.
+
+**Comparison answers "what changed", never "is this good."** Added, removed,
+changed or unchanged per term, with a direction only where the values are
+comparable. No better, worse or score, asserted by test.
+
+**Economics is its own grant.** Without `deals.economics.read`, every money and
+percentage term is removed from every read; structural terms survive, so an
+assistant can schedule around a start date without seeing the fee. The catalog
+makes that safe by classifying every money-bearing term as economic, enforced by
+test. Comparison is the one deliberate refusal rather than redaction: an empty diff
+would say nothing changed when the guarantee doubled, and a false answer is worse
+than an absence. Nothing economic is indexed, filterable or sortable, and telemetry
+carries counts and identifiers but never an amount.
+
+**Quote is deferred explicitly.** No M7 workflow consumes one, and a
+provenance-carrying quote ledger with no reader is the speculative infrastructure
+`CLAUDE.md` section 5 forbids.
+
+Everything in M7 is **online-only**. Nothing cached, nothing queued, cache schema
+still version 2. A queued offer replays against a negotiation that may have closed;
+a queued acceptance agrees terms the agency may no longer be offering.
+
+Decisions recorded:
+`docs/adr/ADR-0021-deal-rules-kernel-offer-immutability-and-agreed-terms.md`.
+
+Defects found by tests written for this milestone:
+
+- **The SDK's implicit FSharp.Core reference compiles and then fails at run time.**
+  It resolves to the compiler's own copy inside the SDK directory, which is never
+  copied to a consuming project's output. Every call into the kernel threw
+  `FileNotFoundException`. Fixed with `DisableImplicitFSharpCoreReference` and an
+  ordinary pinned package reference.
+- **The saved-view target/permission map had no completeness test**, unlike the
+  two tables beside it. Adding the Deals target surfaced it as a 500 from the
+  create endpoint. The entry is added and the table now has the same structural
+  test the others do - it was the last parallel shape depending on somebody
+  remembering every entry.
+- **`Offer.Record` produced an already-frozen offer** that terms could then not be
+  added to, so the first recorded offer was refused by its own immutability rule.
+  Removed; every offer now goes through the draft path.
+- **Two navigation shortcuts collided** on Ctrl+9. The palette uniqueness tests
+  written in M4 and M5 caught it.
+
+Known limitations, recorded rather than implied:
+
+- The immutability triggers are the first business-adjacent logic in the database
+  outside the audit guards. They are narrow and tested, and they are the thing to
+  watch as the schema evolves.
+- Term codes are unique per offer, so two bonuses need two codes or a labelled
+  `OtherTerm`. If that proves restrictive, the diff's join key is what changes.
+- The currency table is curated rather than the whole of ISO 4217. An agency
+  transacting outside it is refused until a row is added; refusing is the safe
+  direction.
+- No exchange rates, so cross-currency offers are never compared numerically.
+- One canonical negotiation thread per deal. Genuinely parallel proposals to one
+  counterparty are not supported and are refused rather than silently tolerated.
+- Nothing about contracts, rights, options, obligations, invoices, payments or
+  commissions, and no `DealId` on any M6 row.
+
 Deliver:
-- Offer;
-- CounterOffer;
-- Negotiation;
-- Deal;
-- term model;
-- state-machine invariants;
-- F# pilot where advantageous.
+- Offer; **met** (immutable once recorded; frozen in domain and database)
+- CounterOffer; **met** (an offer answering another, not a separate aggregate)
+- Negotiation; **met** (one canonical ordered thread per deal)
+- Deal; **met** (anchored to an M6 opportunity and target by composite key)
+- term model; **met** (controlled vocabulary, typed values, decimal money)
+- state-machine invariants; **met** (25 and 49 pairs enumerated; TermsAgreed
+  reachable only by accepting an offer)
+- F# pilot where advantageous. **met** (adopted; pure kernel behind one boundary)
 
 ## M8 — Contracts, Rights & Obligations
 Deliver:

@@ -17,7 +17,7 @@ must be **defined and proven**, not merely plausible. See
 `docs/adr/ADR-0013-synchronization-architecture.md`,
 `ADR-0014-concurrency-and-idempotency.md` and `specs/OfflineWriteQueue.tla`.
 
-## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5 and M6)
+## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5, M6 and M7)
 
 | Command | Why it is safe |
 |---|---|
@@ -120,6 +120,32 @@ hold in a queue at all: a submission the user believes went out, held on a lapto
 for four hours, is worse than a submission refused with an explanation, because
 the user has already acted on the belief.
 
+## ONLINE_ONLY (all M7 mutations)
+
+| Command | Why it is not queued |
+|---|---|
+| CreateDeal | **One live negotiation per target per kind.** Two agents opening one offline would both believe they succeeded. |
+| UpdateDealMetadata | Version-guarded, and the kind may not change once offers exist. |
+| CloseDeal / ReopenNegotiation | Reopening unwinds an acceptance. Replaying that against a deal somebody else already reopened is not a conflict to merge. |
+| DraftOffer / UpdateDraftOffer | Could be made safe; see below. |
+| ChangeDraftOfferTerm | Legality depends on the offer still being a draft, which a stale client cannot know. |
+| RecordOffer / RecordDraftOffer | **The one that matters most.** A queued offer replays against a negotiation that may have been accepted or closed in the meantime - and the user has already told somebody the number went across. |
+| AnswerOffer (accept) | **The most consequential act in the milestone.** A queued acceptance would agree terms the agency may no longer be offering, hours after the fact. |
+| AnswerOffer (reject, withdraw, expire) | Each describes something a specific party did. Recording it against an offer that has since been superseded is a false statement, not a merge conflict. |
+
+### Why even the additive M7 commands are ONLINE_ONLY
+
+`CreateDeal` and `DraftOffer` would qualify on the reasoning M4, M5 and M6 used:
+additive, idempotency-keyed, no uniqueness two offline clients could both violate.
+
+They are excluded, and the reason is stronger here than it was there. Market
+activity was the wrong class of work to hold in a queue; commercial terms are
+worse. An offer the user believes went across, held on a laptop for four hours, is
+a number somebody has already repeated on a call. An acceptance held the same way
+is an agreement the agency believes it has and the counterparty does not. Neither
+is a conflict later synchronization can repair, because the damage happened outside
+the system.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |
@@ -129,7 +155,7 @@ the user has already acted on the belief.
 | Tasks list | M3 |
 | Talent and client list, with representation status, lead and scopes | M4 |
 
-M5 and M6 add nothing to this table. See below.
+M5, M6 and M7 add nothing to this table. See below.
 
 M4 extends the change feed with a talent entry keyed by **person**, because the
 cached talent row denormalizes representation status and a representation change
@@ -184,6 +210,26 @@ impossible to miss.
 
 The cache schema therefore stays at **version 2**. M6 adds no migration.
 
+### Deliberately not cached: negotiations
+
+**M7 caches nothing either, and here the case is the strongest of the three.**
+
+A stale pipeline misleads. A stale negotiation misleads about money. An agent whose
+cached copy shows the offer at 500,000 when it was countered to 650,000 an hour ago
+will quote the wrong figure, and the person they quoted it to will remember it.
+
+Economics makes it worse still. Term values are gated by
+`deals.economics.read`, and a cached copy would outlive the permission that
+justified reading it - a device that still holds compensation figures after the
+grant is revoked is a leak with no server-side remedy.
+
+The condition for revisiting is the same as for the slate and the pipeline: a
+stated rule about which negotiations a user needs away from a connection, a bounded
+set, and a surface that makes staleness impossible to miss. Economic terms would
+need a further answer about revocation before they could be cached at all.
+
+The cache schema therefore stays at **version 2**. M7 adds no migration.
+
 ### Also deliberately not cached
 
 - **Client overview** — composes tasks, interactions, credits, materials and
@@ -203,6 +249,13 @@ The cache schema therefore stays at **version 2**. M6 adds no migration.
   could not inspect.
 - **Opportunity strategy notes** — permission-dependent. A cached copy would
   outlive the permission that justified reading it.
+- **Deals, offers, terms, comparisons, the deal board and the deal command
+  centre** — every figure on them is money, derived, permission-gated, or all
+  three.
+- **Deal strategy notes** — as above, and more sensitive: they routinely state
+  what the agency will settle for.
+- **Offer comparison** — computed by the rules kernel from two offers. A cached
+  diff would be a stale answer about money presented as a current one.
 
 ## How the client behaves offline
 

@@ -73,7 +73,18 @@ public sealed class SavedViewNameInUseException : Exception
 /// </remarks>
 public sealed class SavedViewService
 {
-    private static readonly IReadOnlyDictionary<SavedViewTarget, string> RequiredPermissions =
+    /// <summary>
+    /// The permission each target's records are gated by.
+    /// </summary>
+    /// <remarks>
+    /// Every target must appear. A missing entry is not a permissive default -
+    /// the lookup throws when a view of that target is saved - but it is a runtime
+    /// failure for something knowable at build time, so
+    /// <c>SavedViewVersionTests</c> asserts the table is complete. M7 added a
+    /// target and found this table was the one parallel shape with no such test
+    /// (ADR-0021).
+    /// </remarks>
+    public static IReadOnlyDictionary<SavedViewTarget, string> RequiredPermissions { get; } =
         new Dictionary<SavedViewTarget, string>
         {
             [SavedViewTarget.People] = Permission.PeopleRead,
@@ -92,6 +103,11 @@ public sealed class SavedViewService
             [SavedViewTarget.Projects] = Permission.ProjectsRead,
             [SavedViewTarget.Packages] = Permission.PackagesRead,
             [SavedViewTarget.Opportunities] = Permission.OpportunitiesRead,
+
+            // Reading a negotiation exists is deals.read. What it pays is a
+            // separate grant applied when the results are projected, so a saved
+            // view cannot widen what its owner may see.
+            [SavedViewTarget.Deals] = Permission.DealsRead,
         };
 
     /// <summary>Largest page a saved view returns.</summary>

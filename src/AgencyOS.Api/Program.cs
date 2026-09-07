@@ -25,6 +25,7 @@ using AgencyOS.Application.Idempotency;
 using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
+using AgencyOS.Application.Deals;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
@@ -173,6 +174,14 @@ builder.Services.AddScoped<OpportunityHandler>();
 builder.Services.AddScoped<OpportunityTargetHandler>();
 builder.Services.AddScoped<RecordSubmissionHandler>();
 builder.Services.AddScoped<RecordPitchHandler>();
+
+// Deals and offers (M7). DealRedaction holds the one implementation of what a
+// caller may see of a negotiation - the strategy and the economics - so every
+// read path applies the identical rule (ADR-0021).
+builder.Services.AddScoped<DealRedaction>();
+builder.Services.AddScoped<DealQueryService>();
+builder.Services.AddScoped<DealHandler>();
+builder.Services.AddScoped<OfferHandler>();
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();
 builder.Services.AddScoped<ChangeTalentDisciplineHandler>();

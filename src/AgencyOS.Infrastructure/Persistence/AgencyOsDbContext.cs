@@ -1,6 +1,7 @@
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Companies;
+using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Interactions;
 using AgencyOS.Domain.Memberships;
@@ -165,6 +166,20 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     public DbSet<PitchMaterial> PitchMaterials => Set<PitchMaterial>();
 
     public DbSet<OpportunityTaskLink> OpportunityTaskLinks => Set<OpportunityTaskLink>();
+
+    // ---- Deals and offers (M7) ----
+
+    public DbSet<Deal> Deals => Set<Deal>();
+
+    public DbSet<DealEvent> DealEvents => Set<DealEvent>();
+
+    public DbSet<Offer> Offers => Set<Offer>();
+
+    public DbSet<OfferTerm> OfferTerms => Set<OfferTerm>();
+
+    public DbSet<OfferEvent> OfferEvents => Set<OfferEvent>();
+
+    public DbSet<DealTaskLink> DealTaskLinks => Set<DealTaskLink>();
 
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.

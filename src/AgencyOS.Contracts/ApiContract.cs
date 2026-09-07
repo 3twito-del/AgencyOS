@@ -45,7 +45,7 @@ public static class ApiContract
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 6;
+    public const int Current = 7;
 
     /// <summary>
     /// The lowest contract version this build still serves.

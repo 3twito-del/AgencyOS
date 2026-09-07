@@ -1,4 +1,5 @@
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Deals;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
@@ -23,6 +24,7 @@ namespace AgencyOS.Application.SavedViews;
 /// <param name="Projects">Matching projects, when the target is Projects.</param>
 /// <param name="Packages">Matching packages, when the target is Packages.</param>
 /// <param name="Opportunities">Matching pursuits, when the target is Opportunities.</param>
+/// <param name="Deals">Matching negotiations, when the target is Deals.</param>
 public sealed record SavedViewResultModel(
     SavedViewTarget Target,
     IReadOnlyList<PersonSummaryModel> People,
@@ -32,10 +34,11 @@ public sealed record SavedViewResultModel(
     IReadOnlyList<ProspectModel> Prospects,
     IReadOnlyList<ProjectSummaryModel> Projects,
     IReadOnlyList<PackageSummaryModel> Packages,
-    IReadOnlyList<OpportunitySummaryModel> Opportunities)
+    IReadOnlyList<OpportunitySummaryModel> Opportunities,
+    IReadOnlyList<DealSummaryModel> Deals)
 {
     public static SavedViewResultModel Empty(SavedViewTarget target) =>
-        new(target, [], [], [], [], [], [], [], []);
+        new(target, [], [], [], [], [], [], [], [], []);
 
     // One factory per target, so a query names only the list it filled. Building
     // these positionally meant every target's call site had to grow by an empty
@@ -67,6 +70,9 @@ public sealed record SavedViewResultModel(
         IReadOnlyList<OpportunitySummaryModel> opportunities) =>
         Empty(SavedViewTarget.Opportunities) with { Opportunities = opportunities };
 
+    public static SavedViewResultModel OfDeals(IReadOnlyList<DealSummaryModel> deals) =>
+        Empty(SavedViewTarget.Deals) with { Deals = deals };
+
     /// <summary>Gets how many rows the view returned, whatever its target.</summary>
     public int Count =>
         People.Count
@@ -76,7 +82,8 @@ public sealed record SavedViewResultModel(
         + Prospects.Count
         + Projects.Count
         + Packages.Count
-        + Opportunities.Count;
+        + Opportunities.Count
+        + Deals.Count;
 }
 
 /// <summary>

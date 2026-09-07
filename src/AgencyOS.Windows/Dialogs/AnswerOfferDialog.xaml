@@ -1,0 +1,58 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AnswerOfferDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record a response"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="480">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBlock x:Name="OfferText" Opacity="0.75" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <ComboBox x:Name="AnswerBox" Header="What happened" HorizontalAlignment="Stretch"
+                      SelectionChanged="OnAnswerChanged">
+                <ComboBoxItem Content="They accepted it" Tag="Accept" />
+                <ComboBoxItem Content="They rejected it" Tag="Reject" IsSelected="True" />
+                <ComboBoxItem Content="We withdrew it" Tag="Withdraw" />
+                <ComboBoxItem Content="Its stated expiry passed" Tag="Expire" />
+            </ComboBox>
+
+            <!--
+                Acceptance is the most consequential act in the milestone, and the
+                warning says exactly what it does and does not mean. It records
+                that commercial terms are agreed; no contract is drafted, signed or
+                executed, and AgencyOS does not track that yet (ADR-0021).
+            -->
+            <InfoBar x:Name="AcceptanceBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                     Title="This records Terms Agreed, not a signed contract"
+                     Message="Accepting fixes this offer as the agreed commercial snapshot. It does not mean a contract has been drafted, signed or executed, and it cannot be changed afterwards without explicitly reopening the negotiation." />
+
+            <TextBlock x:Name="TermsCaption" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" />
+
+            <ListView x:Name="TermList" MaxHeight="200" SelectionMode="None">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="4,4" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayValue}" Opacity="0.75" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <TextBox x:Name="ReasonBox" Header="What they said" PlaceholderText="For the history"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
+
+            <CheckBox x:Name="FollowUpBox" Content="Create a follow-up task" />
+            <TextBox x:Name="FollowUpTitleBox" PlaceholderText="Follow-up title" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

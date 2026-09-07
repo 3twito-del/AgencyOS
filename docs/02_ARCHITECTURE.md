@@ -68,6 +68,30 @@ Use only where algebraic modeling materially reduces illegal states:
 - contract/rights windows;
 - validation engines.
 
+**Adopted in M7** as `src/AgencyOS.Deals.Rules`: the deal and offer state machines,
+negotiation-chain validation, term-value parsing and offer comparison. Pure - no
+package references but FSharp.Core, and no EF Core, HTTP, logging, clock or
+filesystem. C# owns the domain, application, API and client; F# owns rules, not
+architecture.
+
+The boundary is one class (`DealRules`). Everything crossing it is a primitive, a
+plain array or a `[<CLIMutable>]` record; discriminated unions, options and F# lists
+stay inside, and states cross as their persisted integers so C# keeps its own
+enums. Tests walk every state, trigger, direction and value kind in both
+directions, because the two vocabularies agree by convention rather than by
+compilation.
+
+Two integration facts worth knowing before adding another F# project:
+
+- `LangVersion` must be scoped to `.csproj` in `Directory.Build.props`; FSC rejects
+  a langversion of 14.0 outright.
+- The SDK's implicit FSharp.Core reference resolves to the compiler's own copy
+  inside the SDK directory. It compiles and then fails at run time in every
+  consuming project, because the file is never copied. Set
+  `DisableImplicitFSharpCoreReference` and reference the package.
+
+See `docs/adr/ADR-0021-deal-rules-kernel-offer-immutability-and-agreed-terms.md`.
+
 ### Rust
 Candidate owner of:
 - local sync engine;

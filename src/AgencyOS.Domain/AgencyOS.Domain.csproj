@@ -5,4 +5,14 @@
     <AgencyOSStrict>true</AgencyOSStrict>
   </PropertyGroup>
 
+  <!--
+    The M7 deal-rules kernel (ADR-0021). The domain depends on it, never the
+    reverse: the kernel is pure computation with no idea what a repository or a
+    tenant is, and keeping the arrow pointing this way is what stops it acquiring
+    one.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\AgencyOS.Deals.Rules\AgencyOS.Deals.Rules.fsproj" />
+  </ItemGroup>
+
 </Project>

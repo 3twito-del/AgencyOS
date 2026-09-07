@@ -24,6 +24,11 @@ public enum SearchEntityType
     // Added in M6. "What are we doing about that studio" is asked constantly, and
     // without this the only way to find a pursuit is to remember whose it is.
     Opportunity = 9,
+
+    // Added in M7. "What are we negotiating with them" is asked as often as
+    // anything else, and a deal that could only be reached through its pursuit
+    // would be one nobody finds.
+    Deal = 10,
 }
 
 /// <summary>Why a row matched, so a ranked list can explain itself.</summary>

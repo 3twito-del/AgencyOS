@@ -151,7 +151,8 @@ internal static class M3Endpoints
                     [.. results.Prospects.Select(M4Endpoints.MapProspect)],
                     [.. results.Projects.Select(M5Endpoints.MapProjectSummary)],
                     [.. results.Packages.Select(M5Endpoints.MapPackageSummary)],
-                    [.. results.Opportunities.Select(M6Endpoints.MapOpportunitySummary)]));
+                    [.. results.Opportunities.Select(M6Endpoints.MapOpportunitySummary)],
+                    [.. results.Deals.Select(M7Endpoints.MapDealSummary)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("RunSavedView");
@@ -371,7 +372,17 @@ internal static class M3Endpoints
         TargetStage: filters.TargetStage,
         HasSubmission: filters.HasSubmission,
         AwaitingResponse: filters.AwaitingResponse,
-        FollowUpDueWithinDays: filters.FollowUpDueWithinDays);
+        FollowUpDueWithinDays: filters.FollowUpDueWithinDays,
+        DealKind: filters.DealKind,
+        DealStatus: filters.DealStatus,
+        OpportunityId: filters.OpportunityId,
+        OpportunityTargetId: filters.OpportunityTargetId,
+        CounterpartyCompanyId: filters.CounterpartyCompanyId,
+        CounterpartyPersonId: filters.CounterpartyPersonId,
+        HasOpenOffer: filters.HasOpenOffer,
+        TermsAgreedOnly: filters.TermsAgreedOnly,
+        OpenedAfter: filters.OpenedAfter,
+        OpenedBefore: filters.OpenedBefore);
 
     /// <inheritdoc cref="ToFilters"/>
     internal static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
@@ -406,7 +417,17 @@ internal static class M3Endpoints
         TargetStage: filters.TargetStage,
         HasSubmission: filters.HasSubmission,
         AwaitingResponse: filters.AwaitingResponse,
-        FollowUpDueWithinDays: filters.FollowUpDueWithinDays);
+        FollowUpDueWithinDays: filters.FollowUpDueWithinDays,
+        DealKind: filters.DealKind,
+        DealStatus: filters.DealStatus,
+        OpportunityId: filters.OpportunityId,
+        OpportunityTargetId: filters.OpportunityTargetId,
+        CounterpartyCompanyId: filters.CounterpartyCompanyId,
+        CounterpartyPersonId: filters.CounterpartyPersonId,
+        HasOpenOffer: filters.HasOpenOffer,
+        TermsAgreedOnly: filters.TermsAgreedOnly,
+        OpenedAfter: filters.OpenedAfter,
+        OpenedBefore: filters.OpenedBefore);
 
     // --------------------------------------------------------------- mapping
 

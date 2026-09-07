@@ -3,16 +3,35 @@
   <Import Project="build/Version.props" />
 
   <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Company>AgencyOS</Company>
+    <Product>AgencyOS</Product>
+  </PropertyGroup>
+
+  <!--
+    C#-only settings. Scoped rather than global because M7 introduces an F#
+    project (ADR-0021): FSC rejects a langversion of 14.0 outright, and the
+    nullable/implicit-using/analyzer switches describe a language F# does not
+    have. Keeping them here means the F# kernel inherits determinism, strictness
+    and company metadata without inheriting settings that do not apply to it.
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14.0</LangVersion>
     <AnalysisLevel>latest</AnalysisLevel>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <Company>AgencyOS</Company>
-    <Product>AgencyOS</Product>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!--
+    F# 10 is the pinned baseline (CLAUDE.md section 4). Stated explicitly so the
+    kernel's language version is a decision in the repository rather than
+    whatever the SDK happens to default to.
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.fsproj'">
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
 
   <!--

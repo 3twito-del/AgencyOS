@@ -129,6 +129,27 @@ public static class AuditAction
     public const string PitchRecorded = "pitch.recorded";
     public const string PitchAmended = "pitch.amended";
 
+    // ---- Deals and offers (M7) ----
+
+    public const string DealOpened = "deal.opened";
+    public const string DealUpdated = "deal.updated";
+    public const string DealStatusChanged = "deal.status.changed";
+    public const string DealReopened = "deal.reopened";
+
+    public const string OfferDrafted = "offer.drafted";
+    public const string OfferRecorded = "offer.recorded";
+    public const string OfferTermChanged = "offer.term.changed";
+
+    /// <summary>
+    /// The most consequential act in the milestone: this is the moment the agency
+    /// asserts commercial terms are agreed.
+    /// </summary>
+    public const string OfferAccepted = "offer.accepted";
+
+    public const string OfferRejected = "offer.rejected";
+    public const string OfferWithdrawn = "offer.withdrawn";
+    public const string OfferExpired = "offer.expired";
+
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";
     public const string SavedViewDeleted = "savedview.deleted";

@@ -1,4 +1,7 @@
 using AgencyOS.Application.Directory;
+using AgencyOS.Domain.Identity;
+using AgencyOS.Domain.Deals;
+using AgencyOS.Application.Deals;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
@@ -38,17 +41,20 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
     private readonly IRepresentationQueries _representation;
     private readonly IProjectQueries _projects;
     private readonly IOpportunityQueries _opportunities;
+    private readonly IDealQueries _deals;
 
     public SavedViewResultQueries(
         AgencyOsDbContext context,
         IRepresentationQueries representation,
         IProjectQueries projects,
-        IOpportunityQueries opportunities)
+        IOpportunityQueries opportunities,
+        IDealQueries deals)
     {
         _context = context;
         _representation = representation;
         _projects = projects;
         _opportunities = opportunities;
+        _deals = deals;
     }
 
     public async Task<SavedViewResultModel> RunAsync(
@@ -92,6 +98,10 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
             SavedViewTarget.Opportunities =>
                 await RunOpportunitiesAsync(organizationId, definition, now, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Deals =>
+                await RunDealsAsync(organizationId, definition, limit, cancellationToken)
                     .ConfigureAwait(false),
 
             _ => SavedViewResultModel.Empty(definition.Target),
@@ -422,6 +432,48 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ConfigureAwait(false);
 
         return SavedViewResultModel.OfOpportunities(opportunities);
+    }
+
+    /// <summary>
+    /// Runs a deals view.
+    /// </summary>
+    /// <remarks>
+    /// There is deliberately nothing economic to map. A saved view is a query
+    /// somebody else may later run, and one that narrowed by a compensation figure
+    /// would tell its reader that figure whether or not they hold
+    /// <c>deals.economics.read</c>. The summaries this returns carry counts and
+    /// dates only, so they are safe for any caller who may read the deal at all
+    /// (ADR-0021).
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunDealsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        DealFilter filter = new(
+            Parse<DealStatus>(filters.DealStatus),
+            Parse<DealKind>(filters.DealKind),
+            filters.OwnerUserId is { } owner ? new UserId(owner) : null,
+            filters.OpportunityId is { } opportunity ? new OpportunityId(opportunity) : null,
+            filters.OpportunityTargetId is { } target ? new OpportunityTargetId(target) : null,
+            filters.CounterpartyCompanyId,
+            filters.CounterpartyPersonId,
+            filters.TalentProfileId,
+            filters.ProjectId,
+            filters.HasOpenOffer,
+            filters.TermsAgreedOnly,
+            filters.OpenedAfter,
+            filters.OpenedBefore,
+            filters.TextContains);
+
+        IReadOnlyList<DealSummaryModel> deals = await _deals
+            .ListDealsAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfDeals(deals);
     }
 
     private async Task<Dictionary<Guid, string>> LoadCompanyNamesAsync(

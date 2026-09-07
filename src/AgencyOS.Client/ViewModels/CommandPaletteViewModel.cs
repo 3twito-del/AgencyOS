@@ -157,6 +157,20 @@ public sealed class CommandPaletteViewModel : ViewModelBase
         new("pitch.record", "Record pitch", "Market", "Ctrl+Shift+P"),
         new("target.response.record", "Record target response", "Market"),
         new("go.overdue", "Open overdue follow-ups", "Market"),
+
+        // Deals (M7). The wording says "record" throughout, because AgencyOS
+        // records that an offer passed between the parties and sends nothing.
+        new("go.deals", "Go to Deals", "Navigate", "Ctrl+0"),
+        new("deal.create", "Create deal", "Deals"),
+        new("deal.open", "Open deal", "Deals"),
+        new("offer.record.inbound", "Record inbound offer", "Deals", "Ctrl+Shift+I"),
+        new("offer.record.counter", "Record counter", "Deals", "Ctrl+Shift+C"),
+        new("offer.compare", "Compare offers", "Deals"),
+        new("offer.accept", "Accept offer", "Deals"),
+        new("offer.answer", "Record offer response", "Deals"),
+        new("go.negotiations", "Open negotiations", "Deals"),
+        new("go.terms.agreed", "Open terms agreed", "Deals"),
+        new("go.deals.awaiting", "Open deals awaiting a response", "Deals"),
         new("view.save", "Save current view", "View"),
         new("view.run", "Run selected view", "View"),
         new("sync.now", "Synchronize now", "Sync", "F9"),

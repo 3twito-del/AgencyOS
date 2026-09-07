@@ -186,6 +186,411 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     b.ToTable("companies", (string)null);
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Deals.Deal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly?>("ClosedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("closed_on");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
+
+                    b.Property<DateOnly>("OpenedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("opened_on");
+
+                    b.Property<Guid>("OpportunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_id");
+
+                    b.Property<Guid>("OpportunityTargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_target_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("reference");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StrategyNotes")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("strategy_notes");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("summary");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OpportunityTargetId")
+                        .HasDatabaseName("ix_deals_opportunity_target");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("OrganizationId", "OwnerUserId")
+                        .HasDatabaseName("ix_deals_organization_owner");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_deals_organization_status");
+
+                    b.HasIndex("OrganizationId", "UpdatedAt")
+                        .HasDatabaseName("ix_deals_organization_updated");
+
+                    b.HasIndex("OrganizationId", "OpportunityId", "OpportunityTargetId");
+
+                    b.ToTable("deals", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.DealEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("DealId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deal_id");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.Property<int?>("Transition")
+                        .HasColumnType("integer")
+                        .HasColumnName("transition");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DealId", "RecordedAt")
+                        .HasDatabaseName("ix_deal_events_deal_recorded");
+
+                    b.ToTable("deal_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.DealTaskLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("DealId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deal_id");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("linked_at");
+
+                    b.Property<Guid?>("OfferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("offer_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("TaskItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("task_item_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DealId")
+                        .HasDatabaseName("ix_deal_task_links_deal");
+
+                    b.HasIndex("TaskItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_deal_task_links_task");
+
+                    b.HasIndex("OrganizationId", "DealId");
+
+                    b.HasIndex("OrganizationId", "OfferId");
+
+                    b.HasIndex("OrganizationId", "TaskItemId");
+
+                    b.ToTable("deal_task_links", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.Offer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CommunicatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("communicated_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DealId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deal_id");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer")
+                        .HasColumnName("direction");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by_user_id");
+
+                    b.Property<Guid?>("RespondsToOfferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("responds_to_offer_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("summary");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("DealId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_offers_deal_sequence");
+
+                    b.HasIndex("OrganizationId", "DealId");
+
+                    b.HasIndex("OrganizationId", "ExpiresAt")
+                        .HasDatabaseName("ix_offers_organization_expires");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_offers_organization_status");
+
+                    b.ToTable("offers", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.OfferEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<Guid>("OfferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("offer_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.Property<int>("Transition")
+                        .HasColumnType("integer")
+                        .HasColumnName("transition");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfferId", "RecordedAt")
+                        .HasDatabaseName("ix_offer_events_offer_recorded");
+
+                    b.ToTable("offer_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.OfferTerm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<bool?>("BooleanValue")
+                        .HasColumnType("boolean")
+                        .HasColumnName("boolean_value");
+
+                    b.Property<int>("Code")
+                        .HasColumnType("integer")
+                        .HasColumnName("code");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<DateOnly?>("DateValue")
+                        .HasColumnType("date")
+                        .HasColumnName("date_value");
+
+                    b.Property<long?>("IntegerValue")
+                        .HasColumnType("bigint")
+                        .HasColumnName("integer_value");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("label");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<decimal?>("NumericValue")
+                        .HasColumnType("numeric(19,6)")
+                        .HasColumnName("numeric_value");
+
+                    b.Property<Guid>("OfferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("offer_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("TextValue")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("text_value");
+
+                    b.Property<int?>("Unit")
+                        .HasColumnType("integer")
+                        .HasColumnName("unit");
+
+                    b.Property<int>("ValueKind")
+                        .HasColumnType("integer")
+                        .HasColumnName("value_kind");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfferId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("ux_offer_terms_offer_code");
+
+                    b.ToTable("offer_terms", (string)null);
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Idempotency.IdempotencyRecord", b =>
                 {
                     b.Property<Guid>("OrganizationId")
@@ -762,8 +1167,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OrganizationId", "NextActionOn")
                         .HasDatabaseName("ix_opportunity_targets_organization_next_action");
-
-                    b.HasIndex("OrganizationId", "OpportunityId");
 
                     b.HasIndex("OrganizationId", "PersonId");
 
@@ -2866,6 +3269,101 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Deals.Deal", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Opportunities.Opportunity", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "OpportunityId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Opportunities.OpportunityTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "OpportunityId", "OpportunityTargetId")
+                        .HasPrincipalKey("OrganizationId", "OpportunityId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.DealEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Deals.Deal", null)
+                        .WithMany("Events")
+                        .HasForeignKey("DealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.DealTaskLink", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Deals.Deal", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "DealId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Deals.Offer", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "OfferId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AgencyOS.Domain.Tasks.TaskItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "TaskItemId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.Offer", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Deals.Deal", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "DealId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.OfferEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Deals.Offer", null)
+                        .WithMany("Events")
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.OfferTerm", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Deals.Offer", null)
+                        .WithMany("Terms")
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Idempotency.IdempotencyRecord", b =>
                 {
                     b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
@@ -3426,6 +3924,18 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.Deal", b =>
+                {
+                    b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Deals.Offer", b =>
+                {
+                    b.Navigation("Events");
+
+                    b.Navigation("Terms");
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Interactions.Interaction", b =>

@@ -259,6 +259,10 @@ public sealed class SearchTests
     }
 
     /// <summary>A type name the server does not know is refused, not quietly dropped.</summary>
+    /// <remarks>
+    /// The placeholder used to be "Deal", which M7 made a real searchable type.
+    /// This one is deliberately not a noun any milestone would claim.
+    /// </remarks>
     [Fact]
     public async Task UnknownTypeFilter_IsRefused()
     {
@@ -266,7 +270,7 @@ public sealed class SearchTests
         using HttpClient client = _fixture.CreateClient(actor.Subject);
 
         using HttpResponseMessage response = await client.GetAsync(
-            $"/api/v1/organizations/{actor.Organization.Id.Value}/search?q=x&types=Deal");
+            $"/api/v1/organizations/{actor.Organization.Id.Value}/search?q=x&types=NotAnEntityType");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

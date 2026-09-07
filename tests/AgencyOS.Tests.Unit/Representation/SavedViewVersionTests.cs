@@ -1,4 +1,6 @@
 using AgencyOS.Domain.Common;
+using AgencyOS.Application.SavedViews;
+using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.SavedViews;
 using Xunit;
 
@@ -44,7 +46,7 @@ public sealed class SavedViewVersionTests
     /// <summary>A version from the future is refused rather than guessed at.</summary>
     [Theory]
     [InlineData(0)]
-    [InlineData(5)]
+    [InlineData(6)]
     [InlineData(99)]
     public void AnUnknownVersion_IsRefused(int version)
     {
@@ -68,7 +70,28 @@ public sealed class SavedViewVersionTests
     public void TheUnderstoodRange_CoversEveryVersionEverShipped()
     {
         Assert.Equal(1, SavedViewDefinition.MinimumUnderstoodVersion);
-        Assert.Equal(4, SavedViewDefinition.CurrentDefinitionVersion);
+        Assert.Equal(5, SavedViewDefinition.CurrentDefinitionVersion);
+    }
+
+    /// <summary>
+    /// A deals view is a version 5 document, and claiming an earlier version while
+    /// naming it is refused.
+    /// </summary>
+    [Fact]
+    public void ADealsView_ArrivedInVersionFive()
+    {
+        new SavedViewDefinition(
+                5,
+                SavedViewTarget.Deals,
+                new SavedViewFilters(DealStatus: "Negotiating"))
+            .Validate();
+
+        SavedViewDefinition backdated = new(
+            4,
+            SavedViewTarget.Deals,
+            new SavedViewFilters(DealStatus: "Negotiating"));
+
+        Assert.Throws<DomainException>(backdated.Validate);
     }
 
     /// <summary>
@@ -136,6 +159,31 @@ public sealed class SavedViewVersionTests
     /// A missing entry would throw at validation time for any view that sorts,
     /// which is a runtime failure for something knowable at compile time.
     /// </remarks>
+    /// <summary>
+    /// Every target names the permission its records are gated by.
+    /// </summary>
+    /// <remarks>
+    /// The table this checks had no test until M7 added a target and discovered
+    /// the omission as a 500 from the create endpoint. It is exactly the shape the
+    /// saved-view filters were: a parallel map that depends on somebody
+    /// remembering every entry (ADR-0021).
+    /// </remarks>
+    [Fact]
+    public void EveryTarget_NamesThePermissionItRequires()
+    {
+        foreach (SavedViewTarget target in Enum.GetValues<SavedViewTarget>())
+        {
+            Assert.True(
+                SavedViewService.RequiredPermissions.ContainsKey(target),
+                $"{target} does not say which permission it requires.");
+        }
+
+        foreach (string permission in SavedViewService.RequiredPermissions.Values)
+        {
+            Assert.Contains(permission, Permission.All);
+        }
+    }
+
     [Fact]
     public void EveryTarget_HasSortableFields()
     {

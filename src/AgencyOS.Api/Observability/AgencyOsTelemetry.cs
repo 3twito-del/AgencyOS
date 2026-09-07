@@ -143,6 +143,73 @@ public static class AgencyOsTelemetry
             "agencyos.pitch.recorded",
             description: "Pitches recorded, each carried by one interaction.");
 
+    // ---- Deals and offers (M7) ----
+    //
+    // Every counter here carries identifiers, operation types and counts. None
+    // carries a compensation figure, a currency amount or a term value: telemetry
+    // is exported to places that have none of the permissions guarding the
+    // economics, and a counter tagged with the number would be the leak
+    // (ADR-0021).
+
+    /// <summary>Negotiations opened.</summary>
+    public static Counter<long> DealsOpened { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.deal.opened",
+            description: "Negotiations opened from an opportunity target.");
+
+    /// <summary>Deal status changes a caller requested.</summary>
+    /// <remarks>
+    /// Closures and cancellations only. Reaching Negotiating or TermsAgreed is a
+    /// consequence of an offer act, and is counted by the offer counters instead.
+    /// </remarks>
+    public static Counter<long> DealStatusChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.deal.status.changes",
+            description: "Negotiations closed without agreement or cancelled.");
+
+    /// <summary>Negotiations reopened.</summary>
+    /// <remarks>
+    /// Worth watching on its own: a reopen unwinds an agreement, which is the one
+    /// routine operation that changes what the agency previously recorded as
+    /// settled.
+    /// </remarks>
+    public static Counter<long> NegotiationsReopened { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.deal.reopened",
+            description: "Negotiations reopened, unwinding an acceptance or a closure.");
+
+    /// <summary>Offers recorded.</summary>
+    /// <remarks>
+    /// Counts what the agency says passed between the parties. AgencyOS transmits
+    /// nothing, so this counts assertions rather than deliveries.
+    /// </remarks>
+    public static Counter<long> OffersRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.offer.recorded",
+            description: "Offers recorded as made or received.");
+
+    /// <summary>Answers recorded against standing offers.</summary>
+    public static Counter<long> OfferAnswers { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.offer.answered",
+            description: "Offers accepted, rejected, withdrawn or expired.");
+
+    /// <summary>Offers accepted.</summary>
+    /// <remarks>
+    /// The most consequential act in the milestone, counted separately from the
+    /// other answers because it is the only one that agrees a deal's terms.
+    /// </remarks>
+    public static Counter<long> OffersAccepted { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.offer.accepted",
+            description: "Offers accepted, agreeing a negotiation's commercial terms.");
+
+    /// <summary>Offer comparisons computed.</summary>
+    public static Counter<long> OfferComparisons { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.offer.comparisons",
+            description: "Offer comparisons computed by the deal rules kernel.");
+
     /// <summary>Writes refused because the record had moved on.</summary>
     public static Counter<long> VersionConflicts { get; } =
         Meter.CreateCounter<long>(

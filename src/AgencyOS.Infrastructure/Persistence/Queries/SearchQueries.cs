@@ -3,6 +3,7 @@ using System.Globalization;
 using AgencyOS.Application.Search;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Opportunities;
 using AgencyOS.Domain.People;
 using AgencyOS.Domain.Projects;
@@ -253,6 +254,29 @@ internal sealed class SearchQueries : ISearchQueries
                     : $"t.status NOT IN ({(int)OpportunityStatus.Closed}, {(int)OpportunityStatus.Cancelled})"));
         }
 
+        if (types.Contains(SearchEntityType.Deal))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Deal,
+                table: "deals",
+                idColumn: "id",
+                titleColumn: "name",
+
+                // The factual summary and nothing else. strategy_notes is absent
+                // here and from the search vector, and no term value is indexed
+                // anywhere: a caller without deals.economics.read must not be able
+                // to confirm a compensation figure by searching for it and
+                // watching a deal surface (ADR-0021).
+                subtitleExpression: "t.summary",
+                statusColumn: "status",
+
+                // A cancelled negotiation or one closed without agreement is
+                // history rather than part of the working set.
+                archivedPredicate: includeArchived
+                    ? "TRUE"
+                    : $"t.status NOT IN ({(int)DealStatus.NoDeal}, {(int)DealStatus.Cancelled})"));
+        }
+
         if (branches.Count == 0)
         {
             return new SearchResultModel([], HasMore: false);
@@ -351,6 +375,7 @@ internal sealed class SearchQueries : ISearchQueries
         SearchEntityType.SourceProperty => ((SourcePropertyType)status).ToString(),
         SearchEntityType.Package => ((PackageStatus)status).ToString(),
         SearchEntityType.Opportunity => ((OpportunityStatus)status).ToString(),
+        SearchEntityType.Deal => ((DealStatus)status).ToString(),
         _ => status.ToString(CultureInfo.InvariantCulture),
     };
 }

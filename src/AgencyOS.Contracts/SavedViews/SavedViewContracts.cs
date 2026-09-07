@@ -55,7 +55,21 @@ public sealed record SavedViewFiltersModel(
     string? TargetStage = null,
     bool HasSubmission = false,
     bool AwaitingResponse = false,
-    int? FollowUpDueWithinDays = null);
+    int? FollowUpDueWithinDays = null,
+
+    // M7. Deliberately nothing economic: a saved view is a query somebody else may
+    // run, and one narrowing by a compensation figure would tell its reader that
+    // figure whether or not they may read it.
+    string? DealKind = null,
+    string? DealStatus = null,
+    Guid? OpportunityId = null,
+    Guid? OpportunityTargetId = null,
+    Guid? CounterpartyCompanyId = null,
+    Guid? CounterpartyPersonId = null,
+    bool HasOpenOffer = false,
+    bool TermsAgreedOnly = false,
+    DateOnly? OpenedAfter = null,
+    DateOnly? OpenedBefore = null);
 
 /// <param name="Field">Field to order by. Must be sortable for the target.</param>
 /// <param name="Direction">Ascending or Descending.</param>
@@ -101,7 +115,7 @@ public sealed record UpdateSavedViewRequest(
 /// </remarks>
 /// <param name="Target">
 /// Which list this is: People, Companies, Tasks, Talent, Prospects, Projects,
-/// Packages or Opportunities.
+/// Packages, Opportunities or Deals.
 /// </param>
 /// <param name="People">Matching people.</param>
 /// <param name="Companies">Matching companies.</param>
@@ -111,6 +125,7 @@ public sealed record UpdateSavedViewRequest(
 /// <param name="Projects">Matching projects.</param>
 /// <param name="Packages">Matching packages.</param>
 /// <param name="Opportunities">Matching opportunities.</param>
+/// <param name="Deals">Matching negotiations.</param>
 public sealed record SavedViewResultsResponse(
     string Target,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.PersonSummaryResponse> People,
@@ -120,7 +135,8 @@ public sealed record SavedViewResultsResponse(
     IReadOnlyList<AgencyOS.Contracts.Representation.ProspectResponse> Prospects,
     IReadOnlyList<AgencyOS.Contracts.Projects.ProjectSummaryResponse> Projects,
     IReadOnlyList<AgencyOS.Contracts.Projects.PackageSummaryResponse> Packages,
-    IReadOnlyList<AgencyOS.Contracts.Opportunities.OpportunitySummaryResponse> Opportunities);
+    IReadOnlyList<AgencyOS.Contracts.Opportunities.OpportunitySummaryResponse> Opportunities,
+    IReadOnlyList<AgencyOS.Contracts.Deals.DealSummaryResponse> Deals);
 
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>

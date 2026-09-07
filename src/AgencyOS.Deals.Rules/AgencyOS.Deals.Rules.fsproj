@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The M7 deal-rules kernel: pure, deterministic, and deliberately incapable of
+    reaching anything (ADR-0021).
+
+    There are no package references and there will be none. No EF Core, no
+    Npgsql, no HTTP, no logging, no filesystem, no clock. Everything here is a
+    total function from values to values, which is what lets the rules be
+    enumerated exhaustively rather than sampled.
+
+    Warnings are errors here for a specific reason: FS0025 (incomplete pattern
+    match) is the compiler telling us a state has been added and a rule has not
+    been updated for it. That must break the build, not ship.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AgencyOSStrict>true</AgencyOSStrict>
+    <AssemblyName>AgencyOS.Deals.Rules</AssemblyName>
+    <RootNamespace>AgencyOS.Deals.Rules</RootNamespace>
+
+    <!--
+      The SDK's implicit FSharp.Core reference points at the compiler's own copy
+      inside the SDK directory. That compiles, and then fails at run time in every
+      consuming project because the file is never copied anywhere. Turning it off
+      and referencing the package makes it an ordinary dependency that flows.
+    -->
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="States.fs" />
+    <Compile Include="Terms.fs" />
+    <Compile Include="Negotiation.fs" />
+    <Compile Include="Comparison.fs" />
+    <Compile Include="Rules.fs" />
+  </ItemGroup>
+
+</Project>

@@ -261,6 +261,13 @@ public sealed class OpportunityTargetConfiguration : IEntityTypeConfiguration<Op
 
         builder.HasAlternateKey(x => new { x.OrganizationId, x.Id });
 
+        // Added in M7. A deal anchors to (organization, opportunity, target) as one
+        // composite foreign key, so "this target belongs to that pursuit" is a
+        // database fact rather than a check somebody has to remember to write.
+        // Purely additive: it constrains nothing M6 did not already guarantee,
+        // because a target's opportunity never changes (ADR-0021).
+        builder.HasAlternateKey(x => new { x.OrganizationId, x.OpportunityId, x.Id });
+
         builder.Property(x => x.CompanyId)
             .HasColumnName("company_id")
             .HasConversion(

@@ -23,6 +23,10 @@ public enum SavedViewTarget
     // Added in definition version 4. The pipeline is the list an agency lives in
     // once it has a slate: what is out, with whom, and what is overdue.
     Opportunities = 8,
+
+    // Added in definition version 5. What is actually being negotiated, and where
+    // each negotiation stands.
+    Deals = 9,
 }
 
 /// <summary>Sort direction for a saved view.</summary>
@@ -88,6 +92,16 @@ public sealed record SavedViewSort(string Field, SavedViewSortDirection Directio
 /// and the absence of anything recorded since; silence is never stored.
 /// </param>
 /// <param name="FollowUpDueWithinDays">Only pursuits with a target action due within this many days.</param>
+/// <param name="DealKind">Restricts negotiations to one kind of transaction.</param>
+/// <param name="DealStatus">Restricts negotiations to one status.</param>
+/// <param name="OpportunityId">Only negotiations that came out of this pursuit.</param>
+/// <param name="OpportunityTargetId">Only negotiations with this market conversation.</param>
+/// <param name="CounterpartyCompanyId">Only negotiations with this company.</param>
+/// <param name="CounterpartyPersonId">Only negotiations with this person.</param>
+/// <param name="HasOpenOffer">Only negotiations with an offer awaiting an answer.</param>
+/// <param name="TermsAgreedOnly">Only negotiations whose commercial terms are settled.</param>
+/// <param name="OpenedAfter">Only negotiations opened on or after this date.</param>
+/// <param name="OpenedBefore">Only negotiations opened on or before this date.</param>
 public sealed record SavedViewFilters(
     string? Status = null,
     Guid? CompanyId = null,
@@ -120,7 +134,22 @@ public sealed record SavedViewFilters(
     string? TargetStage = null,
     bool HasSubmission = false,
     bool AwaitingResponse = false,
-    int? FollowUpDueWithinDays = null);
+    int? FollowUpDueWithinDays = null,
+
+    // M7. There are deliberately no economic filters here - no "compensation
+    // above X", no "backend over Y". A filter is a query somebody else may later
+    // run from a shared view, and one that narrows by a figure tells its reader
+    // the figure whether or not they hold deals.economics.read (ADR-0021).
+    string? DealKind = null,
+    string? DealStatus = null,
+    Guid? OpportunityId = null,
+    Guid? OpportunityTargetId = null,
+    Guid? CounterpartyCompanyId = null,
+    Guid? CounterpartyPersonId = null,
+    bool HasOpenOffer = false,
+    bool TermsAgreedOnly = false,
+    DateOnly? OpenedAfter = null,
+    DateOnly? OpenedBefore = null);
 
 /// <summary>
 /// A saved view's query, as a versioned, validated document.
@@ -149,7 +178,7 @@ public sealed record SavedViewDefinition(
 {
     /// <summary>The definition schema version this build writes and understands.</summary>
     /// <summary>Definition schema this build writes.</summary>
-    public const int CurrentDefinitionVersion = 4;
+    public const int CurrentDefinitionVersion = 5;
 
     /// <summary>
     /// The oldest definition schema this build still understands.
@@ -184,6 +213,7 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Projects] = 3,
             [SavedViewTarget.Packages] = 3,
             [SavedViewTarget.Opportunities] = 4,
+            [SavedViewTarget.Deals] = 5,
         };
 
     /// <summary>Fields a view may sort by, per target.</summary>
@@ -203,6 +233,11 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Packages] = Freeze("Name", "UpdatedAt", "Status"),
             [SavedViewTarget.Opportunities] =
                 Freeze("Name", "UpdatedAt", "OpenedOn", "Status", "Priority"),
+
+            // Nothing economic is sortable either, for the reason the filters give:
+            // ordering by compensation reveals the ordering of the compensation.
+            [SavedViewTarget.Deals] =
+                Freeze("Name", "UpdatedAt", "OpenedOn", "Status", "Kind"),
         };
 
     /// <summary>Validates the document, failing with a message that says what is wrong.</summary>
@@ -346,6 +381,22 @@ public sealed record SavedViewDefinition(
             nameof(SavedViewFilters.HasSubmission),
             nameof(SavedViewFilters.AwaitingResponse),
             nameof(SavedViewFilters.FollowUpDueWithinDays)),
+
+        [SavedViewTarget.Deals] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.OwnerUserId),
+            nameof(SavedViewFilters.TalentProfileId),
+            nameof(SavedViewFilters.ProjectId),
+            nameof(SavedViewFilters.DealKind),
+            nameof(SavedViewFilters.DealStatus),
+            nameof(SavedViewFilters.OpportunityId),
+            nameof(SavedViewFilters.OpportunityTargetId),
+            nameof(SavedViewFilters.CounterpartyCompanyId),
+            nameof(SavedViewFilters.CounterpartyPersonId),
+            nameof(SavedViewFilters.HasOpenOffer),
+            nameof(SavedViewFilters.TermsAgreedOnly),
+            nameof(SavedViewFilters.OpenedAfter),
+            nameof(SavedViewFilters.OpenedBefore)),
     };
 
     /// <summary>Every filter the document could carry, by name.</summary>

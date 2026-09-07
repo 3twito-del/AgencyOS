@@ -1,0 +1,87 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordOfferDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record offer"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="620">
+        <StackPanel Spacing="10" MinWidth="520">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+            <!--
+                Says plainly what this does. AgencyOS records that an offer passed
+                between the parties; it has no outbound transport and cannot
+                confirm that anything reached anybody.
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Recorded, not sent"
+                     Message="This records that an offer was made or received. AgencyOS does not send it." />
+
+            <InfoBar x:Name="CounterBar" Severity="Informational" IsOpen="False" IsClosable="False"
+                     Title="This answers the offer on the table"
+                     Message="A counter is a new offer. The earlier one is kept exactly as it was recorded and marked superseded." />
+
+            <CalendarDatePicker x:Name="CommunicatedPicker" Header="When it happened"
+                                HorizontalAlignment="Stretch" />
+
+            <TextBox x:Name="SummaryBox" Header="Summary" PlaceholderText="What was proposed, in a line"
+                     TextChanged="OnRequiredChanged" />
+
+            <TextBlock Text="Terms" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                       Text="At least one term. Money always carries its currency; nothing here accepts a bare number." />
+
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="130" />
+                    <ColumnDefinition Width="90" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox x:Name="TermBox" Grid.Column="0" Header="Term" HorizontalAlignment="Stretch"
+                          SelectionChanged="OnTermChanged" />
+                <TextBox x:Name="ValueBox" Grid.Column="1" Header="Value" />
+                <TextBox x:Name="CurrencyBox" Grid.Column="2" Header="Currency" Text="USD" MaxLength="3" />
+                <Button x:Name="AddTermButton" Grid.Column="3" Content="Add" VerticalAlignment="Bottom"
+                        Click="OnAddTermClick" />
+            </Grid>
+
+            <TextBlock x:Name="TermHintText" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75"
+                       TextWrapping="Wrap" />
+
+            <ListView x:Name="TermList" MaxHeight="180" SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="4,4" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayValue}" Opacity="0.75" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <Button x:Name="RemoveTermButton" Content="Remove selected term" Click="OnRemoveTermClick" />
+
+            <TextBox x:Name="NotesBox" Header="Notes" TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                     PlaceholderText="Anything the structured terms do not carry" />
+
+            <CheckBox x:Name="ExpiryBox" Content="They gave it an expiry" Click="OnExpiryToggled" />
+            <CalendarDatePicker x:Name="ExpiryPicker" Header="Expires" HorizontalAlignment="Stretch"
+                                IsEnabled="False" />
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                       Text="Only set this when they actually stated one. Nothing expires because time passed; an expiry has to be recorded when it arrives." />
+
+            <CheckBox x:Name="FollowUpBox" Content="Create a follow-up task" />
+            <TextBox x:Name="FollowUpTitleBox" PlaceholderText="Follow-up title" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

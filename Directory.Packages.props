@@ -64,6 +64,18 @@
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.18.0" />
   </ItemGroup>
 
+  <!--
+    F# 10 core library for the M7 deal-rules kernel (ADR-0021). Referenced
+    explicitly rather than left to the SDK's implicit reference: the implicit one
+    resolves to the compiler's own copy inside the SDK directory, which compiles
+    but is never copied to a consuming project's output, so anything calling the
+    kernel fails at run time with a missing assembly. Version 10.0.100 is the
+    released F# 10 library, matching the pinned F# baseline in CLAUDE.md.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="FSharp.Core" Version="10.0.100" />
+  </ItemGroup>
+
   <!-- Test stack. -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

@@ -92,6 +92,7 @@ public sealed class SavedViewFilterMappingTests
         _ when type == typeof(bool) => true,
         _ when type == typeof(int?) => seed + 1,
         _ when type == typeof(Guid?) => Deterministic(seed),
+        _ when type == typeof(DateOnly?) => new DateOnly(2026, 1, 1).AddDays(seed),
         _ => throw new NotSupportedException(
             $"A saved-view filter of type {type} has no sample value. Add one here so the "
                 + "round-trip stays total."),

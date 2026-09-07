@@ -1,4 +1,5 @@
 using AgencyOS.Application.Abstractions;
+using AgencyOS.Application.Deals;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Authorization;
@@ -95,6 +96,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IOpportunityPitchRepository, OpportunityPitchRepository>();
         services.AddScoped<IOpportunitySubjectTargets, OpportunitySubjectTargets>();
         services.AddScoped<IOpportunityQueries, OpportunityQueries>();
+
+        // Deals and offers (M7).
+        services.AddScoped<IDealRepository, DealRepository>();
+        services.AddScoped<IOfferRepository, OfferRepository>();
+        services.AddScoped<IDealTaskLinkRepository, DealTaskLinkRepository>();
+        services.AddScoped<IDealQueries, DealQueries>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 

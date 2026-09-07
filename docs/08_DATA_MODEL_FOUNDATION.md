@@ -345,6 +345,88 @@ A join table rather than another nullable id column on `TaskItem`: every milesto
 that adds a linkable thing would otherwise add another nullable column and another
 combination nothing validates.
 
+## M7 entities — deals, offers and commercial terms
+
+Implemented in M7.
+`docs/adr/ADR-0021-deal-rules-kernel-offer-immutability-and-agreed-terms.md`
+records why the shape is this one.
+
+### Deal
+One commercial negotiation, anchored to the market conversation that produced it.
+- Id, Name, Reference?, Kind (TalentEmployment | Writing | Directing | Producing |
+  ProjectSale | ProjectLicense | Package | Services | Partnership | Other)
+- Status (Draft → Negotiating → TermsAgreed | NoDeal | Cancelled, with reopening
+  from the last two). **No Signed, Executed, Paid or Commissioned**: M7 cannot
+  substantiate any of them.
+- OpportunityId + OpportunityTargetId — **required**, as one composite foreign key
+  over (organization, opportunity, target), so a deal cannot anchor to a target
+  from another pursuit or another tenant
+- OwnerUserId, OpenedOn, ClosedOn?
+- Summary?, StrategyNotes? — strategy behind `deals.strategy.read`, excluded from
+  the search vector
+- Version, CreatedAt, UpdatedAt, CreatedBy
+
+The counterparty is **not** a column: it is whoever the target names, read by join.
+Neither is the accepted offer: it is the offer that says it is the agreement,
+unique by partial index. Both would be the same fact written twice.
+
+One live deal per (target, kind), by partial unique index. One buyer can genuinely
+negotiate a project sale and a producing deal at once; two of the same kind means
+two colleagues working the same thing.
+
+### DealEvent
+Append-only. One row per status change, naming the transition that caused it -
+`OfferRecorded`, `OfferAccepted`, `NegotiationReopened`, `ClosedNoDeal`,
+`Cancelled`. The first two are consequences of offer acts and are not requestable.
+
+### Offer
+One concrete proposal of commercial terms, at one moment.
+- Id, DealId, Direction (Inbound | Outbound)
+- Status (Draft → Open → Accepted | Rejected | Withdrawn | Expired | Superseded)
+- RespondsToOfferId? — the offer this answers. A foreign key over
+  (organization, deal, answered offer), so an offer can only answer one in the same
+  negotiation.
+- Sequence — the canonical order, never inferred from identifiers
+- RecordedAt, CommunicatedAt? (freely backdated), RecordedByUserId
+- Summary?, Notes?, ExpiresAt?
+- Version, CreatedAt, UpdatedAt
+
+At most one `Open` and at most one `Accepted` per deal, both by partial unique
+index. A counter is another offer, never an edit. Nothing expires because time
+passed: `ExpiresAt` must have been stated and must have arrived.
+
+### OfferTerm
+One negotiated term. Structured so offers can be compared and later reconciled
+against a contract.
+- Id, OfferId, Code (controlled `DealTermCode`), ValueKind
+- An exclusive arc of typed columns — `amount_value numeric(19,4)` +
+  `currency_code`, `numeric_value numeric(19,6)`, `integer_value`, `text_value`,
+  `boolean_value`, `date_value` — with a CHECK asserting the shape matches the kind
+  and that money carries a currency
+- Unit? (Day | Week | Month | Year | Episode | Season | Draft | Step)
+- Sequence, Label?, Notes?
+- Unique per (offer, code), so comparison joins unambiguously.
+
+**No binary floating point anywhere.** Money is an amount and a currency, held to
+that currency's own minor units.
+
+Terms are immutable once the offer leaves draft: the aggregate refuses to change
+them, and a PostgreSQL trigger refuses independently.
+
+### OfferEvent
+Append-only. One row per offer status change, with its transition and cause.
+
+### DealTaskLink
+Joins an ordinary M2 task to a negotiation, and optionally to an offer. Unique on
+the task. A join table rather than another nullable column on `TaskItem`, on the M6
+precedent.
+
+### Deliberately absent
+No Contract, signature status, executed date, document, rights grant, territory,
+option exercise, obligation or notice period — those are M8. No invoice,
+receivable, payment, commission or ledger row — those are M9. And no `DealId` on
+any M6 row: the link runs the other way.
+
 ## Temporal modeling
 
 Effective-date history rather than destructive overwrite, applied from M4 onward.
@@ -375,6 +457,14 @@ date, because it records a specific reported act — and it is freely backdated,
 the submission timeline says when things happened rather than when they were
 typed. That makes it a business record and not an audit trail; the audit log
 remains the record of when each row was actually written.
+
+M7 continues both patterns and adds a third. `DealEvent` and `OfferEvent` are
+append-only beside the current status, and `Offer.CommunicatedAt` is freely
+backdated for the same reason `Submission.SentAt` is. The new pattern is
+**historical immutability**, which is not the same thing as append-only audit: a
+recorded offer's commercial snapshot cannot be changed at all, enforced by the
+aggregate and independently by a PostgreSQL trigger. A correction is another offer
+superseding it, so both readings survive.
 
 Rights and contractual relationships follow the same pattern when their milestones
 arrive.

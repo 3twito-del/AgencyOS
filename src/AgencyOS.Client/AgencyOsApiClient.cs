@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using AgencyOS.Contracts;
+using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
@@ -524,6 +525,107 @@ public interface IAgencyOsApi
         CancellationToken cancellationToken = default);
 
     Task<OpportunityCommandCenterResponse> GetOpportunityCommandCenterAsync(
+        CancellationToken cancellationToken = default);
+
+    // ---- Deals and offers (M7) ----
+    //
+    // Every write here is online-only. None of it is queued, because a stale
+    // offer or acceptance replayed hours later causes commercial harm in the world
+    // that no later synchronization repairs (ADR-0021).
+
+    /// <param name="status">Restrict to one status.</param>
+    /// <param name="kind">Restrict to one kind of transaction.</param>
+    /// <param name="ownerUserId">Restrict to one internal owner.</param>
+    /// <param name="hasOpenOffer">Only negotiations with an offer awaiting an answer.</param>
+    /// <param name="termsAgreed">Only negotiations whose commercial terms are settled.</param>
+    /// <param name="search">Substring match on name, reference and summary.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    Task<IReadOnlyList<DealSummaryResponse>> ListDealsAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? ownerUserId = null,
+        bool hasOpenOffer = false,
+        bool termsAgreed = false,
+        string? search = null,
+        CancellationToken cancellationToken = default);
+
+    Task<DealDetailResponse> GetDealAsync(
+        Guid dealId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<DealHistoryEntryResponse>> GetDealHistoryAsync(
+        Guid dealId,
+        CancellationToken cancellationToken = default);
+
+    Task<DealDetailResponse> CreateDealAsync(
+        CreateDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task UpdateDealAsync(
+        Guid dealId,
+        UpdateDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task CloseDealAsync(
+        Guid dealId,
+        CloseDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ReopenNegotiationAsync(
+        Guid dealId,
+        ReopenNegotiationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<OfferResponse>> ListOffersAsync(
+        Guid? dealId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<OfferResponse> GetOfferAsync(
+        Guid offerId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records an offer as made or received. AgencyOS does not send it.
+    /// </summary>
+    Task<RecordOfferResponse> RecordOfferAsync(
+        Guid dealId,
+        RecordOfferRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<AnswerOfferResponse> AnswerOfferAsync(
+        Guid offerId,
+        AnswerOfferRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Compares two offers in the same negotiation.
+    /// </summary>
+    /// <remarks>
+    /// Requires <c>deals.economics.read</c> and is refused without it, unlike every
+    /// other read, which redacts. A diff with the economic rows removed would say
+    /// nothing changed when the number moved.
+    /// </remarks>
+    Task<OfferComparisonResponse> CompareOffersAsync(
+        Guid dealId,
+        Guid previousOfferId,
+        Guid currentOfferId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<DealPipelineColumnResponse>> GetDealPipelineAsync(
+        Guid? ownerUserId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<DealCommandCenterResponse> GetDealCommandCenterAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>The supported commercial terms, so a term editor need not hard-code them.</summary>
+    Task<IReadOnlyList<DealTermDefinitionResponse>> ListDealTermsAsync(
         CancellationToken cancellationToken = default);
 }
 
@@ -1541,6 +1643,189 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
         CancellationToken cancellationToken = default) =>
         GetAsync<OpportunityCommandCenterResponse>(
             $"{TenantRoot}/opportunity-command-center", cancellationToken);
+
+    // ---- Deals and offers (M7) ----
+
+    public Task<IReadOnlyList<DealSummaryResponse>> ListDealsAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? ownerUserId = null,
+        bool hasOpenOffer = false,
+        bool termsAgreed = false,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query.Add($"status={Uri.EscapeDataString(status)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(kind))
+        {
+            query.Add($"kind={Uri.EscapeDataString(kind)}");
+        }
+
+        if (ownerUserId is { } owner)
+        {
+            query.Add($"ownerUserId={owner}");
+        }
+
+        if (hasOpenOffer)
+        {
+            query.Add("hasOpenOffer=true");
+        }
+
+        if (termsAgreed)
+        {
+            query.Add("termsAgreed=true");
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query.Add($"search={Uri.EscapeDataString(search)}");
+        }
+
+        string uri = $"{TenantRoot}/deals";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<DealSummaryResponse>(uri, cancellationToken);
+    }
+
+    public Task<DealDetailResponse> GetDealAsync(
+        Guid dealId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<DealDetailResponse>($"{TenantRoot}/deals/{dealId}", cancellationToken);
+
+    public Task<IReadOnlyList<DealHistoryEntryResponse>> GetDealHistoryAsync(
+        Guid dealId,
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<DealHistoryEntryResponse>(
+            $"{TenantRoot}/deals/{dealId}/history", cancellationToken);
+
+    public Task<DealDetailResponse> CreateDealAsync(
+        CreateDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateDealRequest, DealDetailResponse>(
+            HttpMethod.Post, $"{TenantRoot}/deals", request, idempotencyKey, cancellationToken);
+
+    public Task UpdateDealAsync(
+        Guid dealId,
+        UpdateDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Put,
+            $"{TenantRoot}/deals/{dealId}",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task CloseDealAsync(
+        Guid dealId,
+        CloseDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/deals/{dealId}/close",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ReopenNegotiationAsync(
+        Guid dealId,
+        ReopenNegotiationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/deals/{dealId}/reopen",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<OfferResponse>> ListOffersAsync(
+        Guid? dealId = null,
+        CancellationToken cancellationToken = default)
+    {
+        string uri = $"{TenantRoot}/offers";
+
+        if (dealId is { } deal)
+        {
+            uri += $"?dealId={deal}";
+        }
+
+        return GetListAsync<OfferResponse>(uri, cancellationToken);
+    }
+
+    public Task<OfferResponse> GetOfferAsync(
+        Guid offerId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<OfferResponse>($"{TenantRoot}/offers/{offerId}", cancellationToken);
+
+    public Task<RecordOfferResponse> RecordOfferAsync(
+        Guid dealId,
+        RecordOfferRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordOfferRequest, RecordOfferResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/deals/{dealId}/offers",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<AnswerOfferResponse> AnswerOfferAsync(
+        Guid offerId,
+        AnswerOfferRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<AnswerOfferRequest, AnswerOfferResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/offers/{offerId}/answer",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<OfferComparisonResponse> CompareOffersAsync(
+        Guid dealId,
+        Guid previousOfferId,
+        Guid currentOfferId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<OfferComparisonResponse>(
+            $"{TenantRoot}/deals/{dealId}/comparison"
+                + $"?previousOfferId={previousOfferId}&currentOfferId={currentOfferId}",
+            cancellationToken);
+
+    public Task<IReadOnlyList<DealPipelineColumnResponse>> GetDealPipelineAsync(
+        Guid? ownerUserId = null,
+        CancellationToken cancellationToken = default)
+    {
+        string uri = $"{TenantRoot}/deal-pipeline";
+
+        if (ownerUserId is { } owner)
+        {
+            uri += $"?ownerUserId={owner}";
+        }
+
+        return GetListAsync<DealPipelineColumnResponse>(uri, cancellationToken);
+    }
+
+    public Task<DealCommandCenterResponse> GetDealCommandCenterAsync(
+        CancellationToken cancellationToken = default) =>
+        GetAsync<DealCommandCenterResponse>(
+            $"{TenantRoot}/deal-command-center", cancellationToken);
+
+    public Task<IReadOnlyList<DealTermDefinitionResponse>> ListDealTermsAsync(
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<DealTermDefinitionResponse>("/api/v1/deal-terms", cancellationToken);
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
         long cursor,

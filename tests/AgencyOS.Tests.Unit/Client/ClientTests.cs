@@ -2,6 +2,7 @@ using System.Reflection;
 using AgencyOS.Client;
 using AgencyOS.Client.Cache;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Projects;
@@ -377,7 +378,8 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             [.. Prospects],
             [],
             [],
-            []));
+            [],
+            [.. Deals]));
     }
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
@@ -1574,6 +1576,481 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             awaitingSince,
             DateTimeOffset.UtcNow,
             1);
+
+    // ---- Deals and offers (M7) ----
+
+    public List<DealSummaryResponse> Deals { get; } = [];
+
+    public Dictionary<Guid, List<OfferResponse>> Offers { get; } = [];
+
+    public List<DealPipelineColumnResponse> DealPipeline { get; } = [];
+
+    public List<DealHistoryEntryResponse> DealHistory { get; } = [];
+
+    /// <summary>Strategy the fake hands back, so redaction can be simulated.</summary>
+    public string? DealStrategy { get; set; }
+
+    /// <summary>The filter the last deal list call actually sent.</summary>
+    public (string? Status, string? Kind, bool Awaiting, bool Agreed, string? Search) LastDealFilter
+    { get; private set; }
+
+    public DealCommandCenterResponse DealCommandCenter { get; set; } =
+        new([], [], [], [], [], [], [], [], 0, 0);
+
+    /// <summary>
+    /// The catalog the fake publishes. Empty by default so a test that needs one
+    /// says so.
+    /// </summary>
+    public List<DealTermDefinitionResponse> DealTerms { get; } = [];
+
+    public Task<IReadOnlyList<DealSummaryResponse>> ListDealsAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? ownerUserId = null,
+        bool hasOpenOffer = false,
+        bool termsAgreed = false,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        LastDealFilter = (status, kind, hasOpenOffer, termsAgreed, search);
+
+        IEnumerable<DealSummaryResponse> matches = Deals;
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            matches = matches.Where(x => x.Status == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(kind))
+        {
+            matches = matches.Where(x => x.Kind == kind);
+        }
+
+        if (hasOpenOffer)
+        {
+            matches = matches.Where(x => x.HasOpenOffer);
+        }
+
+        if (termsAgreed)
+        {
+            matches = matches.Where(x => x.Status == "TermsAgreed");
+        }
+
+        return Task.FromResult<IReadOnlyList<DealSummaryResponse>>([.. matches]);
+    }
+
+    public Task<DealDetailResponse> GetDealAsync(
+        Guid dealId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        DealSummaryResponse summary = Deals.First(x => x.Id == dealId);
+        List<OfferResponse> offers = OffersOf(dealId);
+
+        return Task.FromResult(new DealDetailResponse(
+            summary,
+            "A negotiation.",
+            DealStrategy,
+            offers,
+            offers.FirstOrDefault(x => x.Status == "Accepted"),
+            offers.FirstOrDefault(x => x.Status == "Open"),
+            [],
+            DateTimeOffset.UtcNow));
+    }
+
+    public Task<IReadOnlyList<DealHistoryEntryResponse>> GetDealHistoryAsync(
+        Guid dealId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<DealHistoryEntryResponse>>([.. DealHistory]);
+    }
+
+    public Task<DealDetailResponse> CreateDealAsync(
+        CreateDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        DealSummaryResponse summary = Deal(request.Name, request.Kind, "Draft");
+
+        Deals.Add(summary);
+
+        return Task.FromResult(new DealDetailResponse(
+            summary,
+            request.Summary,
+            request.StrategyNotes,
+            [],
+            null,
+            null,
+            [],
+            DateTimeOffset.UtcNow));
+    }
+
+    public Task UpdateDealAsync(
+        Guid dealId,
+        UpdateDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Deals.FindIndex(x => x.Id == dealId);
+
+        if (index >= 0)
+        {
+            Deals[index] = Deals[index] with
+            {
+                Name = request.Name,
+                Kind = request.Kind,
+                Version = Deals[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task CloseDealAsync(
+        Guid dealId,
+        CloseDealRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Deals.FindIndex(x => x.Id == dealId);
+
+        if (index >= 0)
+        {
+            Deals[index] = Deals[index] with
+            {
+                Status = request.Status,
+                Version = Deals[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task ReopenNegotiationAsync(
+        Guid dealId,
+        ReopenNegotiationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Deals.FindIndex(x => x.Id == dealId);
+
+        if (index >= 0)
+        {
+            Deals[index] = Deals[index] with
+            {
+                Status = "Negotiating",
+                AcceptedOfferId = null,
+                Version = Deals[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<OfferResponse>> ListOffersAsync(
+        Guid? dealId = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        IEnumerable<OfferResponse> matches = dealId is { } deal
+            ? OffersOf(deal)
+            : Offers.Values.SelectMany(x => x);
+
+        return Task.FromResult<IReadOnlyList<OfferResponse>>([.. matches]);
+    }
+
+    public Task<OfferResponse> GetOfferAsync(
+        Guid offerId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult(Offers.Values.SelectMany(x => x).First(x => x.Id == offerId));
+    }
+
+    public Task<RecordOfferResponse> RecordOfferAsync(
+        Guid dealId,
+        RecordOfferRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        List<OfferResponse> thread = OffersOf(dealId);
+
+        // The standing offer is superseded, exactly as the server does it: a
+        // negotiation holds one canonical thread.
+        Guid? superseded = null;
+
+        for (int index = 0; index < thread.Count; index++)
+        {
+            if (thread[index].Status == "Open")
+            {
+                superseded = thread[index].Id;
+                thread[index] = thread[index] with { Status = "Superseded" };
+            }
+        }
+
+        Guid id = Guid.NewGuid();
+
+        thread.Add(Offer(
+            id,
+            dealId,
+            request.Direction,
+            "Open",
+            thread.Count + 1,
+            request.RespondsToOfferId ?? superseded,
+            [.. request.Terms.Select(Term)],
+            request.ExpiresAt,
+            request.Summary));
+
+        Offers[dealId] = thread;
+
+        MarkOpenOffer(dealId, id, request.ExpiresAt);
+
+        return Task.FromResult(new RecordOfferResponse(
+            id, dealId, superseded, request.FollowUp is null ? null : Guid.NewGuid()));
+    }
+
+    public Task<AnswerOfferResponse> AnswerOfferAsync(
+        Guid offerId,
+        AnswerOfferRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        string status = request.Answer switch
+        {
+            "Accept" => "Accepted",
+            "Reject" => "Rejected",
+            "Withdraw" => "Withdrawn",
+            _ => "Expired",
+        };
+
+        Guid dealId = Guid.Empty;
+
+        foreach ((Guid deal, List<OfferResponse> thread) in Offers)
+        {
+            int index = thread.FindIndex(x => x.Id == offerId);
+
+            if (index >= 0)
+            {
+                dealId = deal;
+                thread[index] = thread[index] with { Status = status, Version = thread[index].Version + 1 };
+            }
+        }
+
+        string dealStatus = request.Answer == "Accept" ? "TermsAgreed" : "Negotiating";
+
+        int position = Deals.FindIndex(x => x.Id == dealId);
+
+        if (position >= 0)
+        {
+            Deals[position] = Deals[position] with
+            {
+                Status = dealStatus,
+                HasOpenOffer = false,
+                AcceptedOfferId = request.Answer == "Accept" ? offerId : null,
+                Version = Deals[position].Version + 1,
+            };
+        }
+
+        return Task.FromResult(new AnswerOfferResponse(
+            offerId, dealStatus, request.FollowUp is null ? null : Guid.NewGuid()));
+    }
+
+    public Task<OfferComparisonResponse> CompareOffersAsync(
+        Guid dealId,
+        Guid previousOfferId,
+        Guid currentOfferId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        List<OfferResponse> thread = OffersOf(dealId);
+
+        OfferResponse previous = thread.First(x => x.Id == previousOfferId);
+        OfferResponse current = thread.First(x => x.Id == currentOfferId);
+
+        List<TermDifferenceResponse> differences = [];
+
+        foreach (OfferTermResponse term in current.Terms)
+        {
+            OfferTermResponse? before = previous.Terms.FirstOrDefault(x => x.Code == term.Code);
+
+            differences.Add(new TermDifferenceResponse(
+                term.Code,
+                term.DisplayName,
+                before is null ? "Added" : before.Amount == term.Amount ? "Unchanged" : "Changed",
+                before?.Amount is { } was && term.Amount is { } now
+                    ? now > was ? "Increased" : now < was ? "Decreased" : "Level"
+                    : "NotComparable",
+                before,
+                term));
+        }
+
+        foreach (OfferTermResponse term in previous.Terms
+            .Where(x => current.Terms.All(y => y.Code != x.Code)))
+        {
+            differences.Add(new TermDifferenceResponse(
+                term.Code, term.DisplayName, "Removed", "NotComparable", term, null));
+        }
+
+        return Task.FromResult(new OfferComparisonResponse(
+            dealId, previousOfferId, currentOfferId, differences));
+    }
+
+    public Task<IReadOnlyList<DealPipelineColumnResponse>> GetDealPipelineAsync(
+        Guid? ownerUserId = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<DealPipelineColumnResponse>>([.. DealPipeline]);
+    }
+
+    public Task<DealCommandCenterResponse> GetDealCommandCenterAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult(DealCommandCenter);
+    }
+
+    public Task<IReadOnlyList<DealTermDefinitionResponse>> ListDealTermsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<DealTermDefinitionResponse>>([.. DealTerms]);
+    }
+
+    /// <summary>The offers recorded against one negotiation.</summary>
+    internal List<OfferResponse> OffersOf(Guid dealId) =>
+        Offers.TryGetValue(dealId, out List<OfferResponse>? thread) ? thread : [];
+
+    private void MarkOpenOffer(Guid dealId, Guid offerId, DateTimeOffset? expiresAt)
+    {
+        int index = Deals.FindIndex(x => x.Id == dealId);
+
+        if (index >= 0)
+        {
+            Deals[index] = Deals[index] with
+            {
+                Status = "Negotiating",
+                HasOpenOffer = true,
+                LatestOfferId = offerId,
+                OpenOfferExpiresAt = expiresAt,
+                OfferCount = Deals[index].OfferCount + 1,
+                Version = Deals[index].Version + 1,
+            };
+        }
+    }
+
+    /// <summary>A negotiation the tests can assert against.</summary>
+    internal static DealSummaryResponse Deal(
+        string name,
+        string kind = "ProjectSale",
+        string status = "Negotiating",
+        bool hasOpenOffer = false,
+        DateTimeOffset? openOfferExpiresAt = null,
+        Guid? id = null,
+        string counterparty = "Northgate Pictures") =>
+        new(
+            id ?? Guid.NewGuid(),
+            name,
+            null,
+            kind,
+            status,
+            Guid.NewGuid(),
+            "The Undertow - take out",
+            Guid.NewGuid(),
+            counterparty,
+            Guid.NewGuid(),
+            null,
+            "The Undertow",
+            Guid.NewGuid(),
+            null,
+            new DateOnly(2026, 2, 3),
+            null,
+            0,
+            null,
+            null,
+            null,
+            hasOpenOffer,
+            openOfferExpiresAt,
+            null,
+            0,
+            null,
+            DateTimeOffset.UtcNow,
+            1);
+
+    /// <summary>An offer the tests can assert against.</summary>
+    internal static OfferResponse Offer(
+        Guid id,
+        Guid dealId,
+        string direction,
+        string status,
+        int sequence,
+        Guid? respondsTo = null,
+        IReadOnlyList<OfferTermResponse>? terms = null,
+        DateTimeOffset? expiresAt = null,
+        string? summary = null) =>
+        new(
+            id,
+            dealId,
+            direction,
+            status,
+            sequence,
+            respondsTo,
+            respondsTo is null ? null : "Counter",
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow,
+            Guid.NewGuid(),
+            null,
+            summary,
+            null,
+            expiresAt,
+            terms ?? [],
+            1);
+
+    /// <summary>A money term the tests can assert against.</summary>
+    internal static OfferTermResponse MoneyTerm(string code, decimal amount, string currency = "USD") =>
+        new(
+            code,
+            code,
+            "Money",
+            true,
+            amount,
+            currency,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $"{amount} {currency}",
+            1,
+            null);
+
+    /// <summary>A structural term, which survives economics redaction.</summary>
+    internal static OfferTermResponse StructuralTerm(string code, string value) =>
+        new(code, code, "Text", false, null, null, null, null, value, null, null, null, value, 2, null);
+
+    private static OfferTermResponse Term(OfferTermRequest request) =>
+        request.Value.Kind == "Money"
+            ? MoneyTerm(request.Code, request.Value.Amount ?? 0m, request.Value.Currency ?? "USD")
+            : StructuralTerm(request.Code, request.Value.Text ?? string.Empty);
 
     private void Throw()
     {
