@@ -49,6 +49,9 @@ internal static class ApiEndpoints
         MapOrganizations(api);
         MapAudit(api);
 
+        // The M2 people slice, routed beneath the tenant that owns the records.
+        PeopleSliceEndpoints.MapPeopleSlice(api);
+
         return app;
     }
 

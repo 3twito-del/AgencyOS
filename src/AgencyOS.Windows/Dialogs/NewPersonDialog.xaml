@@ -1,0 +1,18 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.NewPersonDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="New person"
+    PrimaryButtonText="Create"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="8" Width="380">
+        <TextBox x:Name="FirstNameBox" Header="First name" />
+        <TextBox x:Name="LastNameBox" Header="Last name" />
+        <TextBox x:Name="TitleBox" Header="Title" PlaceholderText="Literary Agent" />
+        <TextBox x:Name="EmailBox" Header="Email" />
+        <TextBox x:Name="PhoneBox" Header="Phone" />
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>

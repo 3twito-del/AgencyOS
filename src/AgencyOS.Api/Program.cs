@@ -17,6 +17,13 @@ using AgencyOS.Api.Middleware;
 using AgencyOS.Api.Provisioning;
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Audit;
+using AgencyOS.Application.Authorization;
+using AgencyOS.Application.Companies;
+using AgencyOS.Application.Directory;
+using AgencyOS.Application.Interactions;
+using AgencyOS.Application.People;
+using AgencyOS.Application.Relationships;
+using AgencyOS.Application.Tasks;
 using AgencyOS.Application.Memberships;
 using AgencyOS.Application.Organizations;
 using AgencyOS.Application.Provisioning;
@@ -103,6 +110,22 @@ builder.Services.AddScoped<GrantMembershipHandler>();
 builder.Services.AddSingleton<IApiContractPolicy, ServerApiContractPolicy>();
 builder.Services.AddScoped<BootstrapSystemHandler>();
 builder.Services.AddScoped<ClientCompatibilityService>();
+
+// People vertical slice (M2). TenantGuard is the one place a command establishes
+// who is acting and whether they may; the query service applies the same check to
+// reads so an endpoint cannot forget it.
+builder.Services.AddScoped<TenantGuard>();
+builder.Services.AddScoped<PeopleSliceQueryService>();
+builder.Services.AddScoped<CreatePersonHandler>();
+builder.Services.AddScoped<UpdatePersonHandler>();
+builder.Services.AddScoped<CreateCompanyHandler>();
+builder.Services.AddScoped<UpdateCompanyHandler>();
+builder.Services.AddScoped<CreateRelationshipHandler>();
+builder.Services.AddScoped<EndRelationshipHandler>();
+builder.Services.AddScoped<RecordInteractionHandler>();
+builder.Services.AddScoped<CreateTaskHandler>();
+builder.Services.AddScoped<CompleteTaskHandler>();
+builder.Services.AddScoped<ReopenTaskHandler>();
 
 // ---------------------------------------------------------------------------
 // Authentication and authorization

@@ -11,15 +11,35 @@ namespace AgencyOS.Domain.Authorization;
 /// </remarks>
 public static class RolePermissions
 {
+    /// <summary>Read-only access to the working record set.</summary>
     private static readonly IReadOnlySet<string> ObserverPermissions = Freeze(
         Permission.OrganizationsRead,
         Permission.MembershipsRead,
-        Permission.ReleasePolicyRead);
+        Permission.ReleasePolicyRead,
+        Permission.PeopleRead,
+        Permission.CompaniesRead,
+        Permission.RelationshipsRead,
+        Permission.InteractionsRead,
+        Permission.TasksRead);
 
+    /// <summary>
+    /// The day-to-day operational role: everything needed to run the M2 workflow,
+    /// and nothing that changes who can do what.
+    /// </summary>
     private static readonly IReadOnlySet<string> MemberPermissions = Freeze(
         Permission.OrganizationsRead,
         Permission.MembershipsRead,
-        Permission.ReleasePolicyRead);
+        Permission.ReleasePolicyRead,
+        Permission.PeopleRead,
+        Permission.PeopleWrite,
+        Permission.CompaniesRead,
+        Permission.CompaniesWrite,
+        Permission.RelationshipsRead,
+        Permission.RelationshipsWrite,
+        Permission.InteractionsRead,
+        Permission.InteractionsRecord,
+        Permission.TasksRead,
+        Permission.TasksWrite);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -28,7 +48,17 @@ public static class RolePermissions
         Permission.MembershipsGrant,
         Permission.MembershipsRevoke,
         Permission.AuditRead,
-        Permission.ReleasePolicyRead);
+        Permission.ReleasePolicyRead,
+        Permission.PeopleRead,
+        Permission.PeopleWrite,
+        Permission.CompaniesRead,
+        Permission.CompaniesWrite,
+        Permission.RelationshipsRead,
+        Permission.RelationshipsWrite,
+        Permission.InteractionsRead,
+        Permission.InteractionsRecord,
+        Permission.TasksRead,
+        Permission.TasksWrite);
 
     private static readonly IReadOnlySet<string> OwnerPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -39,7 +69,17 @@ public static class RolePermissions
         Permission.MembershipsRevoke,
         Permission.AuditRead,
         Permission.ReleasePolicyRead,
-        Permission.ReleasePolicyManage);
+        Permission.ReleasePolicyManage,
+        Permission.PeopleRead,
+        Permission.PeopleWrite,
+        Permission.CompaniesRead,
+        Permission.CompaniesWrite,
+        Permission.RelationshipsRead,
+        Permission.RelationshipsWrite,
+        Permission.InteractionsRead,
+        Permission.InteractionsRecord,
+        Permission.TasksRead,
+        Permission.TasksWrite);
 
     private static readonly IReadOnlySet<string> NoPermissions = Freeze();
 

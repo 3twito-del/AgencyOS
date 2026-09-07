@@ -48,6 +48,12 @@ public sealed class MigrationTests
             "audit_events",
             "release_policies",
             "system_initialization",
+            "people",
+            "companies",
+            "professional_relationships",
+            "interactions",
+            "interaction_participants",
+            "tasks",
         ];
 
         foreach (string table in tables)
@@ -96,6 +102,44 @@ public sealed class MigrationTests
             "SELECT conname FROM pg_constraint WHERE conname = 'ck_system_initialization_singleton'");
 
         Assert.Equal("ck_system_initialization_singleton", constraint);
+    }
+
+    /// <summary>
+    /// The exclusive-arc and tenant-containment constraints are what make a
+    /// cross-tenant or half-formed relationship impossible to write, so their
+    /// presence is asserted rather than assumed (ADR-0011).
+    /// </summary>
+    [Fact]
+    public async Task Migrations_InstallTheArcAndTenantConstraints()
+    {
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
+
+        await clean.MigrateAsync();
+
+        string[] expected =
+        [
+            "ck_relationships_from_exactly_one_endpoint",
+            "ck_relationships_to_exactly_one_endpoint",
+            "ck_relationships_ended_after_started",
+            "ck_relationships_no_self_reference",
+            "ck_interaction_participants_exactly_one_party",
+            "ck_tasks_at_most_one_subject",
+            "ck_tasks_completion_consistent",
+            "fk_people_primary_company_same_tenant",
+            "fk_relationships_from_person_same_tenant",
+            "fk_relationships_to_company_same_tenant",
+            "fk_interaction_participants_person_same_tenant",
+            "fk_tasks_source_interaction_same_tenant",
+        ];
+
+        foreach (string constraint in expected)
+        {
+            object? found = await clean.ScalarAsync(
+                $"SELECT conname FROM pg_constraint WHERE conname = '{constraint}'");
+
+            Assert.Equal(constraint, found);
+        }
     }
 
     /// <summary>Re-running migrations must be a no-op, not an error.</summary>

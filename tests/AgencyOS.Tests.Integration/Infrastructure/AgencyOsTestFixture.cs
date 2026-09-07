@@ -150,6 +150,27 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
         return membership;
     }
 
+    /// <summary>
+    /// Seeds a user, an organization and a membership binding them, and returns the
+    /// subject that authenticates as that user.
+    /// </summary>
+    /// <remarks>
+    /// Every M2 test needs an actor holding a role inside a tenant, and each needs a
+    /// distinct one so tests stay independent on a shared database.
+    /// </remarks>
+    public async Task<SeededActor> SeedActorAsync(AgencyRole role, string? label = null)
+    {
+        string subject = $"{label ?? "actor"}-{Guid.NewGuid():N}";
+
+        User user = await SeedUserAsync(subject, $"{label ?? "Actor"} {role}").ConfigureAwait(false);
+        Organization organization = await SeedOrganizationAsync($"Tenant {Guid.NewGuid():N}", user.Id)
+            .ConfigureAwait(false);
+
+        await SeedMembershipAsync(organization.Id, user.Id, role, user.Id).ConfigureAwait(false);
+
+        return new SeededActor(subject, user, organization);
+    }
+
     private async Task SeedReleasePolicyAsync()
     {
         await using AgencyOsDbContext context = CreateDbContext();
@@ -159,7 +180,9 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
             ring: ReleaseRing.Alpha,
             latestVersion: LatestVersion,
             minimumSupportedVersion: MinimumSupportedVersion,
-            apiContractMinimum: ApiContract.Current,
+            // Mirrors what the server actually declares: contract 2 added the M2
+            // slice additively, so contract 1 is still served.
+            apiContractMinimum: ApiContract.MinimumSupported,
             apiContractMaximum: ApiContract.Current,
             now: DateTimeOffset.UtcNow,
             behindPolicy: UpdatePolicy.Recommended,
@@ -202,6 +225,12 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
         return client;
     }
 }
+
+/// <summary>A seeded user holding a role inside a seeded tenant.</summary>
+/// <param name="Subject">Development identity subject for this user.</param>
+/// <param name="User">The user record.</param>
+/// <param name="Organization">The tenant they hold a membership in.</param>
+public sealed record SeededActor(string Subject, User User, Organization Organization);
 
 /// <summary>Hosts the API against a given database.</summary>
 public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>

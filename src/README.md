@@ -11,23 +11,30 @@ an ADR in `docs/adr/` records a deliberate change.
 | `AgencyOS.Contracts` | Versioned API contracts, build identity | `docs/06_FORCED_UPDATE_PROTOCOL.md`, `docs/05_RELEASE_ENGINEERING.md` |
 | `AgencyOS.Infrastructure` | Persistence, adapters, logging foundation | `docs/02_ARCHITECTURE.md`, `docs/10_ENGINEERING_STANDARDS.md` |
 | `AgencyOS.Api` | ASP.NET Core host, server-side enforcement | `docs/02_ARCHITECTURE.md`, `docs/07_SECURITY_AND_AUDIT.md` |
-| `AgencyOS.Windows` | WinUI 3 native client | `docs/12_WINDOWS_NATIVE.md`, `CLAUDE.md` principle 2 |
+| `AgencyOS.Client` | Typed API client and view models | `docs/12_WINDOWS_NATIVE.md`, `docs/06_FORCED_UPDATE_PROTOCOL.md` |
+| `AgencyOS.Windows` | WinUI 3 native client (views only) | `docs/12_WINDOWS_NATIVE.md`, `CLAUDE.md` principle 2 |
 | `AgencyOS.Tests.Unit` | Unit and invariant tests | `docs/11_TESTING_AND_FORMAL_METHODS.md` |
 | `AgencyOS.Tests.Integration` | API contract and host tests | `docs/11_TESTING_AND_FORMAL_METHODS.md` |
 
 ## Reference direction
 
 ```
-Windows  ->  Contracts
+Windows  ->  Client, Contracts
+Client   ->  Contracts
 Api      ->  Application, Contracts, Infrastructure
 Infrastructure -> Application, Domain
 Application    -> Domain
 Domain         -> (nothing)
 ```
 
-`AgencyOS.Windows` referencing only `AgencyOS.Contracts` is what makes
+`AgencyOS.Client` referencing only `AgencyOS.Contracts` is what makes
 "the Windows client never depends on the DB schema"
-(`docs/02_ARCHITECTURE.md` section 4) a compile-time fact.
+(`docs/02_ARCHITECTURE.md` section 4) a compile-time fact. A unit test asserts it,
+so a stray reference fails the build rather than being discovered later.
+
+The client layer is split from the WinUI assembly for a second reason: the unit
+test project targets `net10.0` and cannot reference a Windows-TFM assembly, so
+view models are only testable if they live outside it.
 
 ## Modules inside layers
 
@@ -46,6 +53,12 @@ Modules present after M1:
 | Audit | `Audit/` | `Audit/` | `Persistence/` |
 | ReleasePolicy | `Releases/` | `Releases/` | `Persistence/` |
 | Provisioning | `Provisioning/` | `Provisioning/` | `Persistence/` |
+| People | `People/` | `People/` | `Persistence/` |
+| Companies | `Companies/` | `Companies/` | `Persistence/` |
+| Relationships | `Relationships/` | `Relationships/` | `Persistence/` |
+| Interactions | `Interactions/` | `Interactions/` | `Persistence/` |
+| Tasks | `Tasks/` | `Tasks/` | `Persistence/` |
+| Directory (reads) | - | `Directory/` | `Persistence/Queries/` |
 
 ## Where enforcement lives
 
@@ -59,6 +72,8 @@ duplication was worth it.
 | Authorization | endpoint policy as an early gate; scoped check inside the command handler, which is authoritative (`ADR-0007`) |
 | Client compatibility | handshake response tells the client; middleware refuses the mutation regardless (`ADR-0005`) |
 | First-run bootstrap | out-of-band token; uninitialized-system check; database singleton with a CHECK constraint (`ADR-0009`) |
+| Tenant containment | route-scoped permission check; `TenantGuard` in every command and query; composite foreign keys carrying `organization_id` (`ADR-0011`) |
+| Relationship endpoints | domain type rules for pairing and self-reference; exclusive-arc CHECK constraints in the database (`ADR-0011`) |
 
 ## Operational surface
 
@@ -73,12 +88,24 @@ duplication was worth it.
 `artifacts/openapi/` and fails if it is not OpenAPI 3.1 or does not describe the
 expected surface.
 
+## Tenant Organization versus Company
+
+`Organization` is the **tenant**: the security boundary that owns records and
+grants authority. `Company` is an **external body** the agency holds records
+about - a studio, network, management company or law firm. A company owns nothing
+and grants no authority. `OrganizationId` always means tenant; `CompanyId` always
+means external body. See `docs/adr/ADR-0010-tenant-organization-versus-company.md`.
+
 ## What is deliberately absent
 
-No business verticals yet: no talent, projects, opportunities, deals, contracts
-or finance. No AI, message broker, cache, search index or container
-orchestration. Those arrive at the milestones that need them, and not before -
-`CLAUDE.md` section 5.
+No talent, representation, projects, opportunities, deals, contracts or finance -
+M2 models people, companies and how they relate, and nothing further. No AI,
+message broker, cache, search index, offline cache or container orchestration.
+Those arrive at the milestones that need them, and not before - `CLAUDE.md`
+section 5.
+
+Search is basic name and email filtering. Full-text, trigram and saved views are
+M3.
 
 Identity is a development scheme that trusts a header. The host refuses to start
 if it is configured on a ring that permits real data.

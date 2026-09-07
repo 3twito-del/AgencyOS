@@ -40,7 +40,8 @@ public sealed class ReleaseEnforcementTests
         Assert.False(answer.BlocksProtectedMutations);
         Assert.Equal(AgencyOsTestFixture.LatestVersion, answer.LatestVersion);
         Assert.Equal(AgencyOsTestFixture.MinimumSupportedVersion, answer.MinimumSupportedVersion);
-        Assert.Equal(ApiContract.Current, answer.ApiContract.Minimum);
+        Assert.Equal(ApiContract.MinimumSupported, answer.ApiContract.Minimum);
+        Assert.Equal(ApiContract.Current, answer.ApiContract.Maximum);
     }
 
     [Fact]

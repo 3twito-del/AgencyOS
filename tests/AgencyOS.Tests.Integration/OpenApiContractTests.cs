@@ -68,6 +68,19 @@ public sealed class OpenApiContractTests
     [InlineData("/api/v1/organizations/{id}")]
     [InlineData("/api/v1/organizations/{id}/memberships")]
     [InlineData("/api/v1/audit")]
+    [InlineData("/api/v1/organizations/{organizationId}/people")]
+    [InlineData("/api/v1/organizations/{organizationId}/people/{personId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/people/{personId}/timeline")]
+    [InlineData("/api/v1/organizations/{organizationId}/companies")]
+    [InlineData("/api/v1/organizations/{organizationId}/companies/{companyId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/companies/{companyId}/timeline")]
+    [InlineData("/api/v1/organizations/{organizationId}/relationships")]
+    [InlineData("/api/v1/organizations/{organizationId}/relationships/{relationshipId}/end")]
+    [InlineData("/api/v1/organizations/{organizationId}/interactions")]
+    [InlineData("/api/v1/organizations/{organizationId}/tasks")]
+    [InlineData("/api/v1/organizations/{organizationId}/tasks/{taskId}/complete")]
+    [InlineData("/api/v1/organizations/{organizationId}/tasks/{taskId}/reopen")]
+    [InlineData("/api/v1/organizations/{organizationId}/command-center")]
     public async Task Contract_DescribesTheM1Surface(string path)
     {
         using JsonDocument document = await GetContractAsync();

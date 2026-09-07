@@ -17,6 +17,8 @@ namespace AgencyOS.Domain.Authorization;
 /// </remarks>
 public static class Permission
 {
+    // ---- Tenant administration (M1) ----
+
     public const string OrganizationsRead = "organizations.read";
     public const string OrganizationsCreate = "organizations.create";
     public const string OrganizationsArchive = "organizations.archive";
@@ -30,6 +32,28 @@ public static class Permission
     public const string ReleasePolicyRead = "release.policy.read";
     public const string ReleasePolicyManage = "release.policy.manage";
 
+    // ---- People and companies (M2) ----
+    //
+    // Read/write pairs per aggregate rather than one permission per command.
+    // Commands stay explicit at the API; the grant model stays reviewable.
+
+    public const string PeopleRead = "people.read";
+    public const string PeopleWrite = "people.write";
+
+    public const string CompaniesRead = "companies.read";
+    public const string CompaniesWrite = "companies.write";
+
+    public const string RelationshipsRead = "relationships.read";
+    public const string RelationshipsWrite = "relationships.write";
+
+    public const string InteractionsRead = "interactions.read";
+
+    /// <summary>Recording an interaction. Named for the act, because it is append-like.</summary>
+    public const string InteractionsRecord = "interactions.record";
+
+    public const string TasksRead = "tasks.read";
+    public const string TasksWrite = "tasks.write";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -42,5 +66,15 @@ public static class Permission
         AuditRead,
         ReleasePolicyRead,
         ReleasePolicyManage,
+        PeopleRead,
+        PeopleWrite,
+        CompaniesRead,
+        CompaniesWrite,
+        RelationshipsRead,
+        RelationshipsWrite,
+        InteractionsRead,
+        InteractionsRecord,
+        TasksRead,
+        TasksWrite,
     };
 }

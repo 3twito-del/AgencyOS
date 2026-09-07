@@ -7,6 +7,111 @@
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!--
+                Dense list rows. A professional workstation shows more rows, not
+                bigger ones: docs/12_WINDOWS_NATIVE.md asks for dense tables over
+                consumer card layouts.
+            -->
+            <DataTemplate x:Key="TaskTemplate">
+                <Grid Padding="4,3" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Opacity="0.6"
+                            Text="{Binding Subject.Name}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.7"
+                        Text="{Binding Priority}" />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="PersonRowTemplate">
+                <Grid Padding="4,3" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Opacity="0.6"
+                            Text="{Binding Title}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.6"
+                        Text="{Binding PrimaryCompanyName}" />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="CompanyRowTemplate">
+                <Grid Padding="4,3" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.6"
+                        Text="{Binding Type}" />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="TimelineEntryTemplate">
+                <Grid Padding="4,4" ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        Grid.Column="0"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.6"
+                        Width="150"
+                        Text="{Binding OccurredAt}" />
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Opacity="0.6"
+                            Text="{Binding Detail}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="RelationshipRowTemplate">
+                <StackPanel Padding="4,3">
+                    <TextBlock Text="{Binding Type}" />
+                    <TextBlock
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.6"
+                        Text="{Binding To.Name}" />
+                </StackPanel>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,0 +1,88 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.CompaniesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="16" ColumnSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="340" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Companies" Style="{StaticResource TitleTextBlockStyle}" />
+                <Button Grid.Column="1" Content="New" Click="OnNewCompanyClick" />
+            </Grid>
+
+            <TextBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="Search companies…" KeyDown="OnSearchKeyDown" />
+
+            <StackPanel Grid.Row="2" Spacing="6">
+                <ProgressBar x:Name="ListBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False" Title="Could not load companies" />
+                <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
+                         Title="No companies yet" Message="Create the first company to begin." />
+            </StackPanel>
+
+            <ListView
+                x:Name="CompanyList"
+                Grid.Row="3"
+                SelectionMode="Single"
+                ItemTemplate="{StaticResource CompanyRowTemplate}"
+                SelectionChanged="OnCompanySelected" />
+        </Grid>
+
+        <Grid Grid.Column="1" RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <TextBlock x:Name="CompanyName" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <TextBlock x:Name="CompanySubtitle" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" />
+            </StackPanel>
+
+            <InfoBar Grid.Row="1" x:Name="DetailEmpty" Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Select a company" Message="Choose a company to see who works there and what has happened." />
+
+            <TextBlock Grid.Row="2" Text="People" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+            <ListView
+                Grid.Row="3"
+                x:Name="StaffList"
+                MaxHeight="180"
+                SelectionMode="None"
+                ItemTemplate="{StaticResource PersonRowTemplate}" />
+
+            <Grid Grid.Row="4" RowSpacing="6">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Timeline" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                <ListView
+                    Grid.Row="1"
+                    x:Name="TimelineList"
+                    SelectionMode="None"
+                    ItemTemplate="{StaticResource TimelineEntryTemplate}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

@@ -146,7 +146,9 @@ public sealed class BootstrapTests : IAsyncLifetime
         Assert.Equal(BootstrapClientVersion, policy.LatestVersion);
         Assert.Equal(BootstrapClientVersion, policy.MinimumSupportedVersion);
 
-        Assert.Equal(ApiContract.Current, policy.ApiContractMinimum);
+        // The version is pinned to the bootstrapping build; the contract range is
+        // the server's own, which spans every contract it still serves.
+        Assert.Equal(ApiContract.MinimumSupported, policy.ApiContractMinimum);
         Assert.Equal(ApiContract.Current, policy.ApiContractMaximum);
 
         // Conservative posture: nothing revoked yet, no kill switch, no deadline.

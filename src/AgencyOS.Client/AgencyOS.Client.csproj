@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Transport and presentation logic for the Windows client, kept out of the WinUI
+    assembly for two reasons.
+
+    First, the unit test project targets net10.0 and cannot reference a
+    Windows-TFM assembly, so view models living here are the only ones that can be
+    tested at all.
+
+    Second, it preserves the M0 compile-time rule: this project references
+    AgencyOS.Contracts and nothing else, so the client cannot reach persistence,
+    application or domain code. A unit test asserts that.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AgencyOSStrict>true</AgencyOSStrict>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

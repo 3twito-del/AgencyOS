@@ -1,7 +1,9 @@
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Infrastructure.Authorization;
+using AgencyOS.Application.Directory;
 using AgencyOS.Infrastructure.Persistence;
+using AgencyOS.Infrastructure.Persistence.Queries;
 using AgencyOS.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +50,14 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped<IReleasePolicyRepository, ReleasePolicyRepository>();
         services.AddScoped<ISystemInitializationRepository, SystemInitializationRepository>();
+
+        // People vertical slice (M2).
+        services.AddScoped<IPersonRepository, PersonRepository>();
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddScoped<IRelationshipRepository, RelationshipRepository>();
+        services.AddScoped<IInteractionRepository, InteractionRepository>();
+        services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<IPeopleSliceQueries, PeopleSliceQueries>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 

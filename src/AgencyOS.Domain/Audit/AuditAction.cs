@@ -23,4 +23,23 @@ public static class AuditAction
 
     /// <summary>A release policy was published for a platform and ring.</summary>
     public const string ReleasePolicyPublished = "release.policy.published";
+
+    // ---- People vertical slice (M2) ----
+
+    public const string PersonCreated = "person.created";
+    public const string PersonUpdated = "person.updated";
+    public const string PersonArchived = "person.archived";
+
+    public const string CompanyCreated = "company.created";
+    public const string CompanyUpdated = "company.updated";
+    public const string CompanyArchived = "company.archived";
+
+    public const string RelationshipCreated = "relationship.created";
+    public const string RelationshipEnded = "relationship.ended";
+
+    public const string InteractionRecorded = "interaction.recorded";
+
+    public const string TaskCreated = "task.created";
+    public const string TaskCompleted = "task.completed";
+    public const string TaskReopened = "task.reopened";
 }

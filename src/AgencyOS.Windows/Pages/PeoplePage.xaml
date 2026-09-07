@@ -1,0 +1,118 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.PeoplePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="16" ColumnSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="340" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Directory -->
+        <Grid Grid.Column="0" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="People" Style="{StaticResource TitleTextBlockStyle}" />
+                <Button Grid.Column="1" Content="New" Click="OnNewPersonClick" />
+            </Grid>
+
+            <TextBox
+                x:Name="SearchBox"
+                Grid.Row="1"
+                PlaceholderText="Search name, email or title…"
+                KeyDown="OnSearchKeyDown" />
+
+            <StackPanel Grid.Row="2" Spacing="6">
+                <ProgressBar x:Name="ListBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False" Title="Could not load people" />
+                <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
+                         Title="No people yet" Message="Create the first person to begin." />
+            </StackPanel>
+
+            <ListView
+                x:Name="PeopleList"
+                Grid.Row="3"
+                SelectionMode="Single"
+                ItemTemplate="{StaticResource PersonRowTemplate}"
+                SelectionChanged="OnPersonSelected" />
+        </Grid>
+
+        <!-- Detail -->
+        <Grid Grid.Column="1" RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock x:Name="PersonName" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <TextBlock x:Name="PersonSubtitle" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" />
+                </StackPanel>
+
+                <Button Grid.Column="1" x:Name="ConnectButton" Content="Connect to company" Click="OnConnectClick" IsEnabled="False" />
+                <Button Grid.Column="2" x:Name="RecordButton" Content="Record interaction" Click="OnRecordClick" IsEnabled="False" />
+            </Grid>
+
+            <StackPanel Grid.Row="1" Spacing="6">
+                <ProgressBar x:Name="DetailBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <InfoBar x:Name="DetailError" Severity="Error" IsOpen="False" IsClosable="False" Title="Could not load this person" />
+                <InfoBar x:Name="DetailEmpty" Severity="Informational" IsOpen="True" IsClosable="False"
+                         Title="Select a person" Message="Choose someone from the directory to see their record." />
+            </StackPanel>
+
+            <TextBlock Grid.Row="2" Text="Relationships" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+            <Grid Grid.Row="3" RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <ListView
+                        Grid.Column="0"
+                        x:Name="RelationshipList"
+                        MaxHeight="160"
+                        SelectionMode="Single"
+                        ItemTemplate="{StaticResource RelationshipRowTemplate}" />
+
+                    <Button Grid.Column="1" Content="End" VerticalAlignment="Top" Click="OnEndRelationshipClick" />
+                </Grid>
+
+                <TextBlock Grid.Row="1" Text="Timeline" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                <ListView
+                    Grid.Row="2"
+                    x:Name="TimelineList"
+                    SelectionMode="None"
+                    ItemTemplate="{StaticResource TimelineEntryTemplate}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

@@ -1,0 +1,54 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordInteractionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record interaction"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="8" Width="440">
+        <TextBlock x:Name="WithText" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" />
+
+        <ComboBox x:Name="TypeBox" Header="Type" HorizontalAlignment="Stretch" SelectedIndex="0">
+            <x:String>Meeting</x:String>
+            <x:String>Call</x:String>
+            <x:String>Email</x:String>
+            <x:String>Message</x:String>
+            <x:String>Event</x:String>
+            <x:String>Note</x:String>
+            <x:String>Other</x:String>
+        </ComboBox>
+
+        <DatePicker x:Name="OccurredPicker" Header="When" HorizontalAlignment="Stretch" />
+
+        <TextBox x:Name="SummaryBox" Header="Summary" PlaceholderText="Met Sarah at dinner" />
+
+        <TextBox
+            x:Name="NotesBox"
+            Header="Notes"
+            AcceptsReturn="True"
+            Height="80"
+            TextWrapping="Wrap" />
+
+        <!--
+            The follow-up lives here rather than in a second step: recording what
+            happened and deciding what happens next is one thought, and the server
+            commits both in one transaction.
+        -->
+        <CheckBox x:Name="FollowUpCheck" Content="Create a follow-up task" Checked="OnFollowUpToggled" Unchecked="OnFollowUpToggled" />
+
+        <StackPanel x:Name="FollowUpPanel" Spacing="8" Visibility="Collapsed">
+            <TextBox x:Name="FollowUpTitleBox" Header="Task" PlaceholderText="Send Sarah the screenplay" />
+            <DatePicker x:Name="FollowUpDuePicker" Header="Due" HorizontalAlignment="Stretch" />
+            <ComboBox x:Name="FollowUpPriorityBox" Header="Priority" HorizontalAlignment="Stretch" SelectedIndex="1">
+                <x:String>Low</x:String>
+                <x:String>Normal</x:String>
+                <x:String>High</x:String>
+                <x:String>Urgent</x:String>
+            </ComboBox>
+        </StackPanel>
+
+        <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" IsClosable="False" Title="Could not record" />
+    </StackPanel>
+</ContentDialog>

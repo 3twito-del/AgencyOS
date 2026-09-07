@@ -89,7 +89,27 @@ the Virtual Machine Platform feature and firmware virtualization
 use PostgreSQL 19 Beta 3, which remains LAB evidence only. Authoritative
 PostgreSQL 18.6 verification happens in CI.
 
-## M2 — People Vertical Slice
+## M2 — People Vertical Slice — **Done** (2026-09-07)
+
+Implemented: Person, Company, ProfessionalRelationship, Interaction with
+participants, and Task; command-oriented API under
+`/api/v1/organizations/{organizationId}` so the tenant is structural; unified
+timeline projection for people and companies; the first Command Center; a WinUI 3
+client with People, Companies, Command Center, interaction capture with inline
+follow-up, and a keyboard-first command palette.
+
+Tenant `Organization` and external `Company` are separate concepts (ADR-0010).
+Relationship endpoints are an exclusive arc of real foreign keys, and tenant
+containment is enforced by composite foreign keys carrying `organization_id`
+(ADR-0011). The timeline is a curated projection, not the audit trail (ADR-0012).
+
+API contract version 1 -> 2. The change is additive, so the server declares the
+supported range 1-2 and a contract-1 client is still served.
+
+Decisions recorded: `docs/adr/ADR-0010-tenant-organization-versus-company.md`,
+`ADR-0011-relationship-endpoints-and-tenant-integrity.md`,
+`ADR-0012-timeline-projection.md`.
+
 Deliver:
 Person -> Organization -> Relationship -> Interaction -> Task -> Command Center.
 
@@ -102,12 +122,12 @@ Windows:
 - quick capture.
 
 Exit criteria:
-- create/edit/search people;
-- connect organizations;
-- record interaction;
-- create next task;
-- see task on Command Center;
-- full audit trail.
+- create/edit/search people; **met**
+- connect organizations; **met** (as external companies, per ADR-0010)
+- record interaction; **met**
+- create next task; **met** (in the same transaction as the interaction)
+- see task on Command Center; **met**
+- full audit trail. **met**
 
 ## M3 — Search, Views & Local Cache
 Deliver:

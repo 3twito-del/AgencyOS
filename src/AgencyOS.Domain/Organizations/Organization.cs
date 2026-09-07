@@ -4,12 +4,25 @@ using AgencyOS.Domain.Identity;
 namespace AgencyOS.Domain.Organizations;
 
 /// <summary>
-/// A company or other body AgencyOS holds records about, including the agency itself.
+/// An AgencyOS tenant: the security boundary that owns records and grants authority.
 /// </summary>
 /// <remarks>
+/// <para>
+/// Memberships are held within an organization, permissions are evaluated against
+/// one, and every business record names the organization that owns it. It is the
+/// answer to "whose data is this, and who may touch it".
+/// </para>
+/// <para>
+/// It is <em>not</em> an external studio, network or management company. Those are
+/// <c>Company</c> records, which the agency holds information about but which own
+/// nothing and grant no authority. See
+/// <c>docs/adr/ADR-0010-tenant-organization-versus-company.md</c>.
+/// </para>
+/// <para>
 /// Shape follows the Organization entity in <c>docs/08_DATA_MODEL_FOUNDATION.md</c>.
 /// Archival is a command rather than a status field edit, and it is not a delete:
 /// historical truth is preserved.
+/// </para>
 /// </remarks>
 public sealed class Organization
 {

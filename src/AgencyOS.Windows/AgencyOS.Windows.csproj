@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../AgencyOS.Client/AgencyOS.Client.csproj" />
     <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
   </ItemGroup>
 

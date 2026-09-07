@@ -1,10 +1,15 @@
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Domain.Audit;
+using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Identity;
+using AgencyOS.Domain.Interactions;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.People;
 using AgencyOS.Domain.Provisioning;
+using AgencyOS.Domain.Relationships;
 using AgencyOS.Domain.Releases;
+using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace AgencyOS.Infrastructure.Persistence;
@@ -43,6 +48,21 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     /// not by convention.
     /// </summary>
     public DbSet<SystemInitialization> SystemInitializations => Set<SystemInitialization>();
+
+    // ---- People vertical slice (M2) ----
+
+    public DbSet<Person> People => Set<Person>();
+
+    /// <summary>External bodies the agency holds records about, never tenants (ADR-0010).</summary>
+    public DbSet<Company> Companies => Set<Company>();
+
+    public DbSet<ProfessionalRelationship> Relationships => Set<ProfessionalRelationship>();
+
+    public DbSet<Interaction> Interactions => Set<Interaction>();
+
+    public DbSet<InteractionParticipant> InteractionParticipants => Set<InteractionParticipant>();
+
+    public DbSet<TaskItem> Tasks => Set<TaskItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
