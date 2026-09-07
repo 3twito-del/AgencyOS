@@ -241,7 +241,7 @@ Deliver:
 - queued safe writes; **met** (closed allow-list, server-enforced idempotency)
 - conflict handling design. **met** (a first-class user-visible state, not an error)
 
-## M4 — Talent & Representation — **Done** (2026-09-07)
+## M4 — Talent & Representation — **Done** (2026-09-07) · promoted to ALPHA
 
 Implemented: a talent profile distinct from the person it describes; prospecting
 as a pursuit with its own forward-only lifecycle; representation as an
@@ -322,10 +322,26 @@ visible to the compiler:
   `/talent-profiles/{talentProfileId}`, and the contract test now fails on any
   such collision.
 
-Local verification: whole solution builds with 0 warnings / 0 errors; 315 unit and
-214 integration tests pass; OpenAPI 3.1.1 generated and gated (51 paths, 37
-schemas). Local runs use PostgreSQL 19 Beta 3, which remains LAB evidence only -
-ALPHA promotion requires remote CI on `postgres:18.6`.
+ALPHA promotion evidence (authoritative, remote CI):
+
+Workflow **CI**, run
+[34123653516](https://github.com/3twito-del/AgencyOS/actions/runs/34123653516),
+commit `86b7d10`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `postgres:18.6`, server banner
+  `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 214 passed, 0 failed,
+  0 skipped - including migrations from a clean database through M0 + M1 + M2 +
+  M3 + M4, the one-live-representation index under eight concurrent conversions
+  of the same prospect, the partial unique indexes and period check constraints,
+  saved views over the new targets, and the note redaction agreeing across both
+  read routes.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including
+  the WinUI 3 client, 0 warnings / 0 errors; 315 unit tests passed - among them
+  the exhaustive lifecycle enumeration and the cache v1 -> v2 migration; OpenAPI
+  3.1.1 generated and verified (51 paths, 37 schemas).
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
 
 Known limitations, recorded rather than implied:
 
