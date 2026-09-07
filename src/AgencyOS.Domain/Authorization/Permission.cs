@@ -83,6 +83,27 @@ public static class Permission
     public const string ProspectsRead = "prospects.read";
     public const string ProspectsWrite = "prospects.write";
 
+    // ---- Projects and packaging (M5) ----
+    //
+    // Coarse read/write pairs again, plus one finer permission. A project's
+    // logline is a shared fact about a piece of work; a package's strategy is what
+    // the agency privately thinks its play is, and routinely names who it expects
+    // to pass. That is a materially different sensitivity (ADR-0019).
+
+    public const string ProjectsRead = "projects.read";
+    public const string ProjectsWrite = "projects.write";
+
+    public const string PackagesRead = "packages.read";
+    public const string PackagesWrite = "packages.write";
+
+    /// <summary>Reading a package's internal strategy.</summary>
+    /// <remarks>
+    /// Absent rather than refused, exactly as <see cref="TalentNotesRead"/> works:
+    /// an observer can see that a package exists and what is in it without reading
+    /// the agency's private reasoning about it.
+    /// </remarks>
+    public const string PackageStrategyRead = "packages.strategy.read";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -112,5 +133,10 @@ public static class Permission
         RepresentationWrite,
         ProspectsRead,
         ProspectsWrite,
+        ProjectsRead,
+        ProjectsWrite,
+        PackagesRead,
+        PackagesWrite,
+        PackageStrategyRead,
     };
 }

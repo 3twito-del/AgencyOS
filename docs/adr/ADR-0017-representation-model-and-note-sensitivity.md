@@ -166,8 +166,16 @@ compiled and silently defaulted every one of them. The domain validated the new
 filters, the query layer applied them, and the API passed none - so a saved view
 for "my television clients" quietly returned every talent record in the tenant. A
 returned superset is the worst failure mode available here, because it looks like
-a working feature. Both mappings now use named arguments, where the same omission
-is a compiler error.
+a working feature. Both mappings now use named arguments.
+
+**That fix was weaker than this ADR originally claimed, and M5 proved it.** Named
+arguments stop a value landing in the wrong field; they do nothing about a field
+left out, because every filter is optional and omitting one still compiles. M5
+added seven more filters and forgot all seven, in exactly the same way. Two
+identical record shapes mapped by hand cannot be made safe by care, so
+`SavedViewFilterMappingTests` now walks the property list by reflection and fails
+when anything does not survive the round trip. That is the guarantee this
+paragraph should have described the first time.
 
 **Two paths differed only by parameter name.** `/talent/{personId}` and
 `/talent/{talentProfileId}` route correctly in ASP.NET Core, which separates them

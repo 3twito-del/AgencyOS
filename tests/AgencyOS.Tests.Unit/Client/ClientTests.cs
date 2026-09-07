@@ -3,6 +3,7 @@ using AgencyOS.Client;
 using AgencyOS.Client.Cache;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Contracts.Projects;
 using AgencyOS.Contracts.Releases;
 using AgencyOS.Contracts.Representation;
 using AgencyOS.Contracts.SavedViews;
@@ -372,7 +373,9 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             [.. Companies],
             [],
             [.. Talent],
-            [.. Prospects]));
+            [.. Prospects],
+            [],
+            []));
     }
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
@@ -702,6 +705,7 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             null,
             request.Source,
             request.Notes,
+            null,
             1));
 
         return Task.FromResult(id);
@@ -738,6 +742,469 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             1));
 
         return Task.FromResult(id);
+    }
+
+    // ---- Projects and packaging (M5) ----
+
+    public List<ProjectSummaryResponse> Projects { get; } = [];
+
+    public List<PackageSummaryResponse> Packages { get; } = [];
+
+    public List<SourcePropertyResponse> SourceProperties { get; } = [];
+
+    /// <summary>Roles the fake has created, by project.</summary>
+    public Dictionary<Guid, List<ProjectRoleResponse>> Roles { get; } = [];
+
+    /// <summary>Attachments the fake has recorded, by project.</summary>
+    public Dictionary<Guid, List<AttachmentResponse>> Attachments { get; } = [];
+
+    /// <summary>Elements the fake holds, by package.</summary>
+    public Dictionary<Guid, List<PackageElementResponse>> Elements { get; } = [];
+
+    /// <summary>Filters the last project list call was made with, so a test can assert them.</summary>
+    public (string? Status, string? Stage, string? Type, string? MissingRole, string? Search) LastProjectFilter
+    { get; private set; }
+
+    public ProjectCommandCenterResponse ProjectCommandCenter { get; set; } =
+        new([], [], [], 0, 0);
+
+    public Task<IReadOnlyList<ProjectSummaryResponse>> ListProjectsAsync(
+        string? status = null,
+        string? stage = null,
+        string? type = null,
+        Guid? leadUserId = null,
+        string? missingRole = null,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        LastProjectFilter = (status, stage, type, missingRole, search);
+
+        IEnumerable<ProjectSummaryResponse> matches = Projects;
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            matches = matches.Where(x => x.Status == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            matches = matches.Where(
+                x => x.Title.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return Task.FromResult<IReadOnlyList<ProjectSummaryResponse>>([.. matches]);
+    }
+
+    public Task<ProjectDetailResponse> GetProjectAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        ProjectSummaryResponse summary = Projects.First(x => x.Id == projectId);
+
+        return Task.FromResult(new ProjectDetailResponse(
+            summary,
+            null,
+            null,
+            null,
+            Roles.TryGetValue(projectId, out List<ProjectRoleResponse>? roles) ? roles : [],
+            [],
+            [],
+            [],
+            [.. Packages.Where(x => x.ProjectId == projectId)],
+            DateTimeOffset.UtcNow));
+    }
+
+    public Task<ProjectDetailResponse> CreateProjectAsync(
+        CreateProjectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        ProjectSummaryResponse summary = new(
+            Guid.NewGuid(),
+            request.Title,
+            request.WorkingTitle,
+            request.Type,
+            "Active",
+            request.Stage ?? "Concept",
+            request.Year,
+            request.PrimaryCompanyId,
+            null,
+            request.LeadUserId,
+            null,
+            0,
+            0,
+            0,
+            DateTimeOffset.UtcNow,
+            1);
+
+        Projects.Add(summary);
+
+        return Task.FromResult(new ProjectDetailResponse(
+            summary, request.Logline, request.Synopsis, request.Notes, [], [], [], [], [], DateTimeOffset.UtcNow));
+    }
+
+    public Task UpdateProjectAsync(
+        Guid projectId,
+        UpdateProjectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.CompletedTask;
+    }
+
+    public Task ChangeProjectStatusAsync(
+        Guid projectId,
+        ChangeProjectStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Projects.FindIndex(x => x.Id == projectId);
+
+        if (index >= 0)
+        {
+            Projects[index] = Projects[index] with
+            {
+                Status = request.Status,
+                Version = Projects[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task ChangeProjectStageAsync(
+        Guid projectId,
+        ChangeProjectStageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Projects.FindIndex(x => x.Id == projectId);
+
+        if (index >= 0)
+        {
+            Projects[index] = Projects[index] with
+            {
+                Stage = request.Stage,
+                Version = Projects[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<ProjectHistoryEntryResponse>> GetProjectHistoryAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ProjectHistoryEntryResponse>>([]);
+
+    public Task<Guid> CreateProjectRoleAsync(
+        Guid projectId,
+        CreateProjectRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Guid id = Guid.NewGuid();
+
+        if (!Roles.TryGetValue(projectId, out List<ProjectRoleResponse>? roles))
+        {
+            Roles[projectId] = roles = [];
+        }
+
+        roles.Add(new ProjectRoleResponse(
+            id, request.Type, request.Label, "Open", request.IsExclusive, request.Notes, []));
+
+        return Task.FromResult(id);
+    }
+
+    public Task ChangeProjectRoleAsync(
+        Guid projectId,
+        Guid roleId,
+        ChangeProjectRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.CompletedTask;
+    }
+
+    public Task<Guid> AttachToRoleAsync(
+        Guid projectId,
+        Guid roleId,
+        AttachToRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Guid id = Guid.NewGuid();
+
+        if (!Attachments.TryGetValue(projectId, out List<AttachmentResponse>? attachments))
+        {
+            Attachments[projectId] = attachments = [];
+        }
+
+        attachments.Add(new AttachmentResponse(
+            id,
+            roleId,
+            "Director",
+            null,
+            request.PersonId,
+            request.CompanyId,
+            "Attached party",
+            request.Status,
+            request.StartsOn,
+            request.EndsOn,
+            request.Status is "Attached" or "Conditional",
+            request.Source,
+            request.Notes,
+            DateTimeOffset.UtcNow,
+            1));
+
+        return Task.FromResult(id);
+    }
+
+    public Task ChangeAttachmentAsync(
+        Guid projectId,
+        Guid attachmentId,
+        ChangeAttachmentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.CompletedTask;
+    }
+
+    public Task<Guid> AddProjectCompanyAsync(
+        Guid projectId,
+        AddProjectCompanyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.FromResult(Guid.NewGuid());
+    }
+
+    public Task EndProjectCompanyAsync(
+        Guid projectId,
+        Guid participationId,
+        EndProjectCompanyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<SourcePropertyResponse>> ListSourcePropertiesAsync(
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<SourcePropertyResponse>>([.. SourceProperties]);
+    }
+
+    public Task<SourcePropertyResponse> CreateSourcePropertyAsync(
+        CreateSourcePropertyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        SourcePropertyResponse created = new(
+            Guid.NewGuid(),
+            request.Title,
+            request.Type,
+            request.AttributedCreator,
+            request.CreatorPersonId,
+            request.SourceReference,
+            request.Provenance,
+            request.Year,
+            request.Notes,
+            0,
+            DateTimeOffset.UtcNow,
+            1);
+
+        SourceProperties.Add(created);
+
+        return Task.FromResult(created);
+    }
+
+    public Task LinkSourcePropertyAsync(
+        Guid projectId,
+        LinkSourcePropertyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.CompletedTask;
+    }
+
+    public Task LinkMaterialToProjectAsync(
+        Guid projectId,
+        LinkProjectMaterialRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<PackageSummaryResponse>> ListPackagesAsync(
+        string? status = null,
+        Guid? projectId = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        IEnumerable<PackageSummaryResponse> matches = Packages;
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            matches = matches.Where(x => x.Status == status);
+        }
+
+        if (projectId is { } project)
+        {
+            matches = matches.Where(x => x.ProjectId == project);
+        }
+
+        return Task.FromResult<IReadOnlyList<PackageSummaryResponse>>([.. matches]);
+    }
+
+    public Task<PackageDetailResponse> GetPackageAsync(
+        Guid packageId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        PackageSummaryResponse summary = Packages.First(x => x.Id == packageId);
+
+        return Task.FromResult(new PackageDetailResponse(
+            summary,
+            null,
+            PackageStrategy,
+            Elements.TryGetValue(packageId, out List<PackageElementResponse>? elements) ? elements : [],
+            PackageGaps,
+            DateTimeOffset.UtcNow));
+    }
+
+    /// <summary>Strategy the fake returns, so redaction can be simulated.</summary>
+    public string? PackageStrategy { get; set; }
+
+    /// <summary>Gaps the fake returns for a package.</summary>
+    public List<ProjectRoleResponse> PackageGaps { get; } = [];
+
+    public Task<PackageDetailResponse> CreatePackageAsync(
+        CreatePackageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        PackageSummaryResponse summary = new(
+            Guid.NewGuid(),
+            request.ProjectId,
+            Projects.FirstOrDefault(x => x.Id == request.ProjectId)?.Title ?? "(unknown)",
+            request.Name,
+            "Draft",
+            request.LeadUserId,
+            null,
+            0,
+            0,
+            DateTimeOffset.UtcNow,
+            1);
+
+        Packages.Add(summary);
+
+        return Task.FromResult(new PackageDetailResponse(
+            summary, request.Thesis, request.StrategyNotes, [], [], DateTimeOffset.UtcNow));
+    }
+
+    public Task ChangePackageStatusAsync(
+        Guid packageId,
+        ChangePackageStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Packages.FindIndex(x => x.Id == packageId);
+
+        if (index >= 0)
+        {
+            Packages[index] = Packages[index] with
+            {
+                Status = request.Status,
+                Version = Packages[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<Guid> AddPackageElementAsync(
+        Guid packageId,
+        AddPackageElementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Guid id = Guid.NewGuid();
+
+        if (!Elements.TryGetValue(packageId, out List<PackageElementResponse>? elements))
+        {
+            Elements[packageId] = elements = [];
+        }
+
+        elements.Add(new PackageElementResponse(
+            id,
+            request.Kind,
+            request.TargetId,
+            "Element",
+            null,
+            request.Kind == "AttachedParty",
+            request.Note,
+            elements.Count));
+
+        return Task.FromResult(id);
+    }
+
+    public Task RemovePackageElementAsync(
+        Guid packageId,
+        Guid elementId,
+        RemovePackageElementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        if (Elements.TryGetValue(packageId, out List<PackageElementResponse>? elements))
+        {
+            elements.RemoveAll(x => x.Id == elementId);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<ProjectCommandCenterResponse> GetProjectCommandCenterAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult(ProjectCommandCenter);
     }
 
     private void Throw()

@@ -827,6 +827,7 @@ internal static class M4Endpoints
         model.CompanyName,
         model.Source,
         model.Notes,
+        model.ProjectId,
         model.Version);
 
     private static MaterialResponse Map(MaterialModel model) => new(

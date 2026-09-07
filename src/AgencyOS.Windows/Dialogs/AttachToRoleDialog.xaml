@@ -1,0 +1,40 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AttachToRoleDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Attach to role"
+    PrimaryButtonText="Attach"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="420">
+        <TextBlock x:Name="RoleText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="This records what is true"
+                 Message="An attachment says somebody is in talks, attached, or attached subject to a condition. Wanting somebody for a role is not an attachment: add them to a package as a proposal instead." />
+
+        <ComboBox x:Name="PartyKindBox" Header="Party" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnPartyKindChanged">
+            <ComboBoxItem Content="Person" Tag="Person" />
+            <ComboBoxItem Content="Company" Tag="Company" />
+        </ComboBox>
+
+        <TextBox x:Name="PartyIdBox" Header="Identifier"
+                 PlaceholderText="Person or company identifier"
+                 TextChanged="OnRequiredChanged" />
+
+        <ComboBox x:Name="StatusBox" Header="Status" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="In discussion" Tag="InDiscussion" />
+            <ComboBoxItem Content="Attached" Tag="Attached" />
+            <ComboBoxItem Content="Conditional" Tag="Conditional" />
+        </ComboBox>
+
+        <DatePicker x:Name="StartsOnPicker" Header="Starts on" />
+
+        <TextBox x:Name="SourceBox" Header="Source" PlaceholderText="Where this came from" />
+
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>

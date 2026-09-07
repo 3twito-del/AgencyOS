@@ -6,6 +6,7 @@ using AgencyOS.Domain.Interactions;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
+using AgencyOS.Domain.Projects;
 using AgencyOS.Domain.Provisioning;
 using AgencyOS.Domain.Relationships;
 using AgencyOS.Domain.Idempotency;
@@ -114,6 +115,33 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     public DbSet<Credit> Credits => Set<Credit>();
 
     public DbSet<Material> Materials => Set<Material>();
+
+    // ---- Projects and packaging (M5) ----
+
+    public DbSet<Project> Projects => Set<Project>();
+
+    public DbSet<ProjectEvent> ProjectEvents => Set<ProjectEvent>();
+
+    public DbSet<ProjectRole> ProjectRoles => Set<ProjectRole>();
+
+    public DbSet<Attachment> Attachments => Set<Attachment>();
+
+    public DbSet<AttachmentEvent> AttachmentEvents => Set<AttachmentEvent>();
+
+    public DbSet<ProjectCompanyParticipation> ProjectCompanyParticipations =>
+        Set<ProjectCompanyParticipation>();
+
+    public DbSet<SourceProperty> SourceProperties => Set<SourceProperty>();
+
+    public DbSet<ProjectSourceProperty> ProjectSourceProperties => Set<ProjectSourceProperty>();
+
+    public DbSet<ProjectMaterialLink> ProjectMaterialLinks => Set<ProjectMaterialLink>();
+
+    public DbSet<Package> Packages => Set<Package>();
+
+    public DbSet<PackageEvent> PackageEvents => Set<PackageEvent>();
+
+    public DbSet<PackageElement> PackageElements => Set<PackageElement>();
 
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.

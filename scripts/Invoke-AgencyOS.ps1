@@ -271,7 +271,17 @@ function Invoke-Contract {
         "/api/v1/organizations/{organizationId}/representations/{representationId}",
         "/api/v1/organizations/{organizationId}/representations/{representationId}/transition",
         "/api/v1/organizations/{organizationId}/credits",
-        "/api/v1/organizations/{organizationId}/materials"
+        "/api/v1/organizations/{organizationId}/materials",
+        "/api/v1/organizations/{organizationId}/projects",
+        "/api/v1/organizations/{organizationId}/projects/{projectId}",
+        "/api/v1/organizations/{organizationId}/projects/{projectId}/status",
+        "/api/v1/organizations/{organizationId}/projects/{projectId}/stage",
+        "/api/v1/organizations/{organizationId}/projects/{projectId}/roles",
+        "/api/v1/organizations/{organizationId}/projects/{projectId}/history",
+        "/api/v1/organizations/{organizationId}/source-properties",
+        "/api/v1/organizations/{organizationId}/packages",
+        "/api/v1/organizations/{organizationId}/packages/{packageId}",
+        "/api/v1/organizations/{organizationId}/project-command-center"
     )
 
     $paths = @($contract.paths.PSObject.Properties.Name)

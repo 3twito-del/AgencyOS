@@ -1,0 +1,28 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ChangePackageStatusDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Change package status"
+    PrimaryButtonText="Change"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="10" MinWidth="400">
+        <TextBlock x:Name="CurrentText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                   Text="This is about how ready the package is internally. Taking it out to a buyer is a different thing, and arrives in a later milestone." />
+
+        <ComboBox x:Name="StatusBox" Header="New status" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Draft" Tag="Draft" />
+            <ComboBoxItem Content="Assembling" Tag="Assembling" />
+            <ComboBoxItem Content="Ready" Tag="Ready" />
+            <ComboBoxItem Content="Active" Tag="Active" />
+            <ComboBoxItem Content="Paused" Tag="Paused" />
+            <ComboBoxItem Content="Closed" Tag="Closed" />
+            <ComboBoxItem Content="Abandoned" Tag="Abandoned" />
+        </ComboBox>
+
+        <TextBox x:Name="ReasonBox" Header="Reason" PlaceholderText="For the history" />
+    </StackPanel>
+</ContentDialog>

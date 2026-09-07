@@ -1,9 +1,11 @@
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
+using AgencyOS.Domain.Projects;
 using AgencyOS.Domain.Representations;
 using AgencyOS.Domain.SavedViews;
 using AgencyOS.Domain.Talent;
@@ -32,11 +34,16 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 {
     private readonly AgencyOsDbContext _context;
     private readonly IRepresentationQueries _representation;
+    private readonly IProjectQueries _projects;
 
-    public SavedViewResultQueries(AgencyOsDbContext context, IRepresentationQueries representation)
+    public SavedViewResultQueries(
+        AgencyOsDbContext context,
+        IRepresentationQueries representation,
+        IProjectQueries projects)
     {
         _context = context;
         _representation = representation;
+        _projects = projects;
     }
 
     public async Task<SavedViewResultModel> RunAsync(
@@ -68,6 +75,14 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
             SavedViewTarget.Prospects =>
                 await RunProspectsAsync(organizationId, definition, now, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Projects =>
+                await RunProjectsAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Packages =>
+                await RunPackagesAsync(organizationId, definition, limit, cancellationToken)
                     .ConfigureAwait(false),
 
             _ => SavedViewResultModel.Empty(definition.Target),
@@ -138,6 +153,8 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             [],
             [],
             [],
+            [],
+            [],
             []);
     }
 
@@ -186,6 +203,8 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             SavedViewTarget.Companies,
             [],
             [.. companies.Select(ToSummary)],
+            [],
+            [],
             [],
             [],
             []);
@@ -259,6 +278,8 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             [],
             [.. tasks.Select(task => ToModel(task, names))],
             [],
+            [],
+            [],
             []);
     }
 
@@ -290,7 +311,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ListTalentAsync(organizationId, filter, limit, cancellationToken)
             .ConfigureAwait(false);
 
-        return new SavedViewResultModel(SavedViewTarget.Talent, [], [], [], talent, []);
+        return new SavedViewResultModel(SavedViewTarget.Talent, [], [], [], talent, [], [], []);
     }
 
     /// <summary>Runs a prospect view.</summary>
@@ -321,7 +342,61 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ListProspectsAsync(organizationId, filter, limit, cancellationToken)
             .ConfigureAwait(false);
 
-        return new SavedViewResultModel(SavedViewTarget.Prospects, [], [], [], [], prospects);
+        return new SavedViewResultModel(SavedViewTarget.Prospects, [], [], [], [], prospects, [], []);
+    }
+
+    /// <summary>
+    /// Runs a project view by handing its filters to the project projection.
+    /// </summary>
+    /// <remarks>
+    /// Reuses the query the project list already uses rather than writing a second
+    /// one. Two implementations of "which projects match this" would eventually
+    /// disagree, and the saved view would quietly become the wrong answer.
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunProjectsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        ProjectFilter filter = new(
+            Parse<ProjectStatus>(filters.ProjectStatus),
+            Parse<DevelopmentStage>(filters.DevelopmentStage),
+            Parse<ProjectType>(filters.ProjectType),
+            filters.LeadUserId,
+            filters.AttachedPersonId,
+            Parse<ProjectRoleType>(filters.MissingRoleType),
+            filters.TextContains);
+
+        IReadOnlyList<ProjectSummaryModel> projects = await _projects
+            .ListProjectsAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return new SavedViewResultModel(SavedViewTarget.Projects, [], [], [], [], [], projects, []);
+    }
+
+    /// <summary>Runs a package view.</summary>
+    private async Task<SavedViewResultModel> RunPackagesAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        PackageFilter filter = new(
+            Parse<PackageStatus>(filters.PackageStatus),
+            filters.ProjectId,
+            filters.LeadUserId,
+            filters.TextContains);
+
+        IReadOnlyList<PackageSummaryModel> packages = await _projects
+            .ListPackagesAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return new SavedViewResultModel(SavedViewTarget.Packages, [], [], [], [], [], [], packages);
     }
 
     private async Task<Dictionary<Guid, string>> LoadCompanyNamesAsync(

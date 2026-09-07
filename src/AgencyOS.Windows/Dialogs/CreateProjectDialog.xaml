@@ -1,0 +1,48 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreateProjectDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="New project"
+    PrimaryButtonText="Create"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="420">
+        <TextBox x:Name="TitleBox" Header="Title" PlaceholderText="The Undertow"
+                 TextChanged="OnRequiredChanged" />
+
+        <TextBox x:Name="WorkingTitleBox" Header="Working title"
+                 PlaceholderText="Only if it differs from the title in use" />
+
+        <ComboBox x:Name="TypeBox" Header="Type" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Feature film" Tag="FeatureFilm" />
+            <ComboBoxItem Content="Television series" Tag="TelevisionSeries" />
+            <ComboBoxItem Content="Limited series" Tag="LimitedSeries" />
+            <ComboBoxItem Content="Pilot" Tag="Pilot" />
+            <ComboBoxItem Content="Short film" Tag="ShortFilm" />
+            <ComboBoxItem Content="Documentary" Tag="Documentary" />
+            <ComboBoxItem Content="Book" Tag="Book" />
+            <ComboBoxItem Content="Podcast" Tag="Podcast" />
+            <ComboBoxItem Content="Stage" Tag="Stage" />
+            <ComboBoxItem Content="Digital" Tag="Digital" />
+            <ComboBoxItem Content="Brand entertainment" Tag="BrandEntertainment" />
+            <ComboBoxItem Content="Other" Tag="Other" />
+        </ComboBox>
+
+        <ComboBox x:Name="StageBox" Header="Stage" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Concept" Tag="Concept" />
+            <ComboBoxItem Content="Development" Tag="Development" />
+            <ComboBoxItem Content="Packaging" Tag="Packaging" />
+            <ComboBoxItem Content="Pre-production" Tag="PreProduction" />
+            <ComboBoxItem Content="Production" Tag="Production" />
+            <ComboBoxItem Content="Post-production" Tag="PostProduction" />
+            <ComboBoxItem Content="Released" Tag="Released" />
+        </ComboBox>
+
+        <TextBox x:Name="LoglineBox" Header="Logline" PlaceholderText="One line" />
+
+        <NumberBox x:Name="YearBox" Header="Year" SpinButtonPlacementMode="Compact"
+                   Minimum="1850" Maximum="2200" />
+    </StackPanel>
+</ContentDialog>

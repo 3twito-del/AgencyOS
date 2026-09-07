@@ -550,9 +550,15 @@ public sealed class CreditConfiguration : IEntityTypeConfiguration<Credit>
         builder.Property(x => x.Source).HasColumnName("source").HasMaxLength(512);
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(2000);
 
-        // The M5 seam. Deliberately no foreign key: there is nothing to point at
-        // yet, and linking later is then an additive migration.
-        builder.Property(x => x.ProjectId).HasColumnName("project_id");
+        // The seam M4 opened, closed by M5. Still nullable, because most
+        // historical credits describe work the agency had nothing to do with and
+        // will never have a project record; the foreign key is tenant-qualified,
+        // so a credit cannot point at another tenant's project.
+        builder.Property(x => x.ProjectId)
+            .HasColumnName("project_id")
+            .HasConversion(
+                id => id.HasValue ? id.Value.Value : (Guid?)null,
+                value => value.HasValue ? new Domain.Projects.ProjectId(value.Value) : null);
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
@@ -575,8 +581,17 @@ public sealed class CreditConfiguration : IEntityTypeConfiguration<Credit>
             .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne<Domain.Projects.Project>()
+            .WithMany()
+            .HasForeignKey(x => new { x.OrganizationId, x.ProjectId })
+            .HasPrincipalKey(x => new { x.OrganizationId, x.Id })
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(x => new { x.OrganizationId, x.PersonId })
             .HasDatabaseName("ix_credits_organization_person");
+
+        builder.HasIndex(x => new { x.OrganizationId, x.ProjectId })
+            .HasDatabaseName("ix_credits_organization_project");
     }
 }
 

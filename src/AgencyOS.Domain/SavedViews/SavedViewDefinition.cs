@@ -14,6 +14,11 @@ public enum SavedViewTarget
     // follow-up".
     Talent = 4,
     Prospects = 5,
+
+    // Added in definition version 3. The slate is the other list an agency works
+    // from daily: what am I developing, and what am I assembling.
+    Projects = 6,
+    Packages = 7,
 }
 
 /// <summary>Sort direction for a saved view.</summary>
@@ -54,6 +59,18 @@ public sealed record SavedViewSort(string Field, SavedViewSortDirection Directio
 /// <param name="ProspectStage">Restricts prospects to one stage.</param>
 /// <param name="OwnerUserId">Restricts prospects to one internal owner.</param>
 /// <param name="FollowUpWithinDays">Only prospects needing attention within this many days.</param>
+/// <param name="ProjectType">Restricts projects to one kind of work.</param>
+/// <param name="DevelopmentStage">Restricts projects to one development stage.</param>
+/// <param name="ProjectStatus">Restricts projects to one operational status.</param>
+/// <param name="AttachedPersonId">Only projects this person currently holds a role on.</param>
+/// <param name="MissingRoleType">
+/// Only projects with nobody currently holding a role of this type. The rule is
+/// stated rather than implied: a project counts as missing a director when no
+/// attachment to a directing role currently holds it, whether or not such a role
+/// row exists at all.
+/// </param>
+/// <param name="PackageStatus">Restricts packages to one status.</param>
+/// <param name="ProjectId">Restricts packages to one project.</param>
 public sealed record SavedViewFilters(
     string? Status = null,
     Guid? CompanyId = null,
@@ -69,7 +86,14 @@ public sealed record SavedViewFilters(
     bool FormerClientsOnly = false,
     string? ProspectStage = null,
     Guid? OwnerUserId = null,
-    int? FollowUpWithinDays = null);
+    int? FollowUpWithinDays = null,
+    string? ProjectType = null,
+    string? DevelopmentStage = null,
+    string? ProjectStatus = null,
+    Guid? AttachedPersonId = null,
+    string? MissingRoleType = null,
+    string? PackageStatus = null,
+    Guid? ProjectId = null);
 
 /// <summary>
 /// A saved view's query, as a versioned, validated document.
@@ -98,19 +122,41 @@ public sealed record SavedViewDefinition(
 {
     /// <summary>The definition schema version this build writes and understands.</summary>
     /// <summary>Definition schema this build writes.</summary>
-    public const int CurrentDefinitionVersion = 2;
+    public const int CurrentDefinitionVersion = 3;
 
     /// <summary>
     /// The oldest definition schema this build still understands.
     /// </summary>
     /// <remarks>
-    /// Version 1 is read and upgraded rather than refused. Version 2 only adds
-    /// targets and filters, so a version 1 document means exactly what it always
-    /// meant; refusing it would have broken every view saved before M4 for no
-    /// reason. A version this build genuinely does not understand is still
-    /// rejected, which is the point of versioning the document at all.
+    /// Versions 1 and 2 are read rather than refused. Each step so far has only
+    /// added targets and filters, so an older document means exactly what it always
+    /// meant; refusing one would have broken every view saved before the milestone
+    /// that widened the schema, for no reason at all. A version this build genuinely
+    /// does not understand is still rejected, which is the point of versioning the
+    /// document.
     /// </remarks>
     public const int MinimumUnderstoodVersion = 1;
+
+    /// <summary>
+    /// The definition version each target first existed in.
+    /// </summary>
+    /// <remarks>
+    /// A document claiming version 2 while naming a target that arrived in version
+    /// 3 is internally inconsistent, and accepting it would make the version number
+    /// describe nothing. Stated as data so adding a target forces the author to say
+    /// when it appeared.
+    /// </remarks>
+    public static IReadOnlyDictionary<SavedViewTarget, int> TargetIntroducedIn { get; } =
+        new Dictionary<SavedViewTarget, int>
+        {
+            [SavedViewTarget.People] = 1,
+            [SavedViewTarget.Companies] = 1,
+            [SavedViewTarget.Tasks] = 1,
+            [SavedViewTarget.Talent] = 2,
+            [SavedViewTarget.Prospects] = 2,
+            [SavedViewTarget.Projects] = 3,
+            [SavedViewTarget.Packages] = 3,
+        };
 
     /// <summary>Fields a view may sort by, per target.</summary>
     /// <remarks>
@@ -125,6 +171,8 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Tasks] = Freeze("DueAt", "Priority", "CreatedAt", "Title"),
             [SavedViewTarget.Talent] = Freeze("DisplayName", "UpdatedAt", "CareerStage"),
             [SavedViewTarget.Prospects] = Freeze("NextFollowUpOn", "IdentifiedOn", "Stage", "DisplayName"),
+            [SavedViewTarget.Projects] = Freeze("Title", "UpdatedAt", "Stage", "Status", "Year"),
+            [SavedViewTarget.Packages] = Freeze("Name", "UpdatedAt", "Status"),
         };
 
     /// <summary>Validates the document, failing with a message that says what is wrong.</summary>
@@ -140,6 +188,13 @@ public sealed record SavedViewDefinition(
         if (!Enum.IsDefined(Target))
         {
             throw new DomainException($"Unknown saved view target '{Target}'.");
+        }
+
+        if (TargetIntroducedIn[Target] > DefinitionVersion)
+        {
+            throw new DomainException(
+                $"A {Target} view did not exist at definition version {DefinitionVersion}; "
+                    + $"it arrived in version {TargetIntroducedIn[Target]}.");
         }
 
         ArgumentNullException.ThrowIfNull(Filters);
@@ -189,6 +244,8 @@ public sealed record SavedViewDefinition(
                 Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
                 RejectRepresentationFilters();
                 RejectProspectFilters();
+                RejectProjectFilters();
+                RejectPackageFilters();
                 break;
 
             case SavedViewTarget.Companies:
@@ -199,12 +256,16 @@ public sealed record SavedViewDefinition(
                 Reject(Filters.CompanyId is not null, "CompanyId", Target);
                 RejectRepresentationFilters();
                 RejectProspectFilters();
+                RejectProjectFilters();
+                RejectPackageFilters();
                 break;
 
             case SavedViewTarget.Tasks:
                 Reject(Filters.TitleContains is not null, "TitleContains", Target);
                 RejectRepresentationFilters();
                 RejectProspectFilters();
+                RejectProjectFilters();
+                RejectPackageFilters();
                 break;
 
             case SavedViewTarget.Talent:
@@ -212,6 +273,8 @@ public sealed record SavedViewDefinition(
                 Reject(Filters.OverdueOnly, "OverdueOnly", Target);
                 Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
                 RejectProspectFilters();
+                RejectProjectFilters();
+                RejectPackageFilters();
 
                 // Current and former are contradictory: a view asking for both
                 // returns nothing, which reads as a broken view rather than an
@@ -228,6 +291,36 @@ public sealed record SavedViewDefinition(
                 Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
                 Reject(Filters.TitleContains is not null, "TitleContains", Target);
                 RejectRepresentationFilters();
+                RejectProjectFilters();
+                RejectPackageFilters();
+                break;
+
+            case SavedViewTarget.Projects:
+                Reject(Filters.TaskState is not null, "TaskState", Target);
+                Reject(Filters.OverdueOnly, "OverdueOnly", Target);
+                Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
+                Reject(Filters.TitleContains is not null, "TitleContains", Target);
+                Reject(Filters.CompanyId is not null, "CompanyId", Target);
+
+                // Status is the people-and-companies lifecycle field. A project has
+                // its own, and accepting the wrong one would silently return
+                // everything rather than what was asked for.
+                Reject(Filters.Status is not null, "Status", Target);
+                RejectRepresentationFilters();
+                RejectProspectFilters();
+                RejectPackageFilters();
+                break;
+
+            case SavedViewTarget.Packages:
+                Reject(Filters.TaskState is not null, "TaskState", Target);
+                Reject(Filters.OverdueOnly, "OverdueOnly", Target);
+                Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
+                Reject(Filters.TitleContains is not null, "TitleContains", Target);
+                Reject(Filters.CompanyId is not null, "CompanyId", Target);
+                Reject(Filters.Status is not null, "Status", Target);
+                RejectRepresentationFilters();
+                RejectProspectFilters();
+                RejectProjectFilters();
                 break;
 
             default:
@@ -251,6 +344,23 @@ public sealed record SavedViewDefinition(
         Reject(Filters.ProspectStage is not null, "ProspectStage", Target);
         Reject(Filters.OwnerUserId is not null, "OwnerUserId", Target);
         Reject(Filters.FollowUpWithinDays is not null, "FollowUpWithinDays", Target);
+    }
+
+    /// <summary>Refuses project filters on a target that is not a project.</summary>
+    private void RejectProjectFilters()
+    {
+        Reject(Filters.ProjectType is not null, "ProjectType", Target);
+        Reject(Filters.DevelopmentStage is not null, "DevelopmentStage", Target);
+        Reject(Filters.ProjectStatus is not null, "ProjectStatus", Target);
+        Reject(Filters.AttachedPersonId is not null, "AttachedPersonId", Target);
+        Reject(Filters.MissingRoleType is not null, "MissingRoleType", Target);
+    }
+
+    /// <summary>Refuses package filters on a target that is not a package.</summary>
+    private void RejectPackageFilters()
+    {
+        Reject(Filters.PackageStatus is not null, "PackageStatus", Target);
+        Reject(Filters.ProjectId is not null, "ProjectId", Target);
     }
 
     private static void Reject(bool present, string filter, SavedViewTarget target)

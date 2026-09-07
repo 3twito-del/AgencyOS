@@ -453,6 +453,7 @@ internal sealed class RepresentationQueries : IRepresentationQueries
                 x.CompanyId is { } company && companies.TryGetValue(company.Value, out string? name) ? name : null,
                 x.Source,
                 x.Notes,
+                x.ProjectId?.Value,
                 x.Version)),
         ];
     }

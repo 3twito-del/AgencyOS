@@ -1,0 +1,28 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ChangeProjectStageDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Change development stage"
+    PrimaryButtonText="Change"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="10" MinWidth="400">
+        <TextBlock x:Name="CurrentText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                   Text="A project can move backwards as well as forwards. Falling out of pre-production back into development is an ordinary thing to record." />
+
+        <ComboBox x:Name="StageBox" Header="New stage" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Concept" Tag="Concept" />
+            <ComboBoxItem Content="Development" Tag="Development" />
+            <ComboBoxItem Content="Packaging" Tag="Packaging" />
+            <ComboBoxItem Content="Pre-production" Tag="PreProduction" />
+            <ComboBoxItem Content="Production" Tag="Production" />
+            <ComboBoxItem Content="Post-production" Tag="PostProduction" />
+            <ComboBoxItem Content="Released" Tag="Released" />
+        </ComboBox>
+
+        <TextBox x:Name="ReasonBox" Header="Reason" PlaceholderText="For the project history" />
+    </StackPanel>
+</ContentDialog>

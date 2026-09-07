@@ -75,6 +75,41 @@ public static class AuditAction
     public const string MaterialAdded = "material.added";
     public const string MaterialUpdated = "material.updated";
 
+    // ---- Projects and packaging (M5) ----
+
+    public const string ProjectCreated = "project.created";
+    public const string ProjectUpdated = "project.updated";
+    public const string ProjectStatusChanged = "project.status.changed";
+    public const string ProjectStageChanged = "project.stage.changed";
+
+    public const string SourcePropertyCreated = "sourceproperty.created";
+    public const string SourcePropertyUpdated = "sourceproperty.updated";
+    public const string SourcePropertyLinked = "project.sourceproperty.linked";
+    public const string SourcePropertyUnlinked = "project.sourceproperty.unlinked";
+
+    public const string ProjectRoleCreated = "project.role.created";
+    public const string ProjectRoleUpdated = "project.role.updated";
+    public const string ProjectRoleClosed = "project.role.closed";
+
+    public const string AttachmentCreated = "attachment.created";
+    public const string AttachmentUpdated = "attachment.updated";
+    public const string AttachmentStatusChanged = "attachment.status.changed";
+
+    public const string ProjectCompanyParticipationAdded = "project.company.added";
+    public const string ProjectCompanyParticipationEnded = "project.company.ended";
+
+    public const string PackageCreated = "package.created";
+    public const string PackageUpdated = "package.updated";
+    public const string PackageStatusChanged = "package.status.changed";
+    public const string PackageElementAdded = "package.element.added";
+    public const string PackageElementRemoved = "package.element.removed";
+
+    public const string CreditLinkedToProject = "credit.project.linked";
+    public const string CreditUnlinkedFromProject = "credit.project.unlinked";
+
+    public const string MaterialLinkedToProject = "project.material.linked";
+    public const string MaterialUnlinkedFromProject = "project.material.unlinked";
+
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";
     public const string SavedViewDeleted = "savedview.deleted";

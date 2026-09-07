@@ -148,7 +148,9 @@ internal static class M3Endpoints
                     [.. results.Companies.Select(MapCompany)],
                     [.. results.Tasks.Select(MapTask)],
                     [.. results.Talent.Select(M4Endpoints.MapTalentSummary)],
-                    [.. results.Prospects.Select(M4Endpoints.MapProspect)]));
+                    [.. results.Prospects.Select(M4Endpoints.MapProspect)],
+                    [.. results.Projects.Select(M5Endpoints.MapProjectSummary)],
+                    [.. results.Packages.Select(M5Endpoints.MapPackageSummary)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("RunSavedView");
@@ -323,15 +325,20 @@ internal static class M3Endpoints
     /// Maps the wire filters onto the domain filters, field by field, by name.
     /// </summary>
     /// <remarks>
-    /// Named arguments rather than positional ones, deliberately. These two records
-    /// have the same shape, so a positional call compiles perfectly while quietly
-    /// defaulting every field the caller forgot - which is exactly what happened
-    /// when M4 added eight filters: the domain validated them, the query layer
-    /// applied them, and the API never carried them, so every talent and prospect
-    /// view silently returned everything. Naming each field turns that omission
-    /// into a compiler error.
+    /// <para>
+    /// Named arguments rather than positional ones. These two records have the same
+    /// shape, so a positional call compiles perfectly while assigning values to the
+    /// wrong fields - which is how M4 shipped eight filters the API never carried.
+    /// </para>
+    /// <para>
+    /// Naming them stops misalignment but <em>not</em> omission: every filter is
+    /// optional, so forgetting one still compiles. M5 proved that by forgetting
+    /// seven. <c>SavedViewFilterMappingTests</c> closes the gap by reflection -
+    /// it round-trips every property on the contract and fails when one does not
+    /// survive the journey.
+    /// </para>
     /// </remarks>
-    private static SavedViewFilters ToFilters(SavedViewFiltersModel filters) => new(
+    internal static SavedViewFilters ToFilters(SavedViewFiltersModel filters) => new(
         Status: filters.Status,
         CompanyId: filters.CompanyId,
         TitleContains: filters.TitleContains,
@@ -346,10 +353,17 @@ internal static class M3Endpoints
         FormerClientsOnly: filters.FormerClientsOnly,
         ProspectStage: filters.ProspectStage,
         OwnerUserId: filters.OwnerUserId,
-        FollowUpWithinDays: filters.FollowUpWithinDays);
+        FollowUpWithinDays: filters.FollowUpWithinDays,
+        ProjectType: filters.ProjectType,
+        DevelopmentStage: filters.DevelopmentStage,
+        ProjectStatus: filters.ProjectStatus,
+        AttachedPersonId: filters.AttachedPersonId,
+        MissingRoleType: filters.MissingRoleType,
+        PackageStatus: filters.PackageStatus,
+        ProjectId: filters.ProjectId);
 
     /// <inheritdoc cref="ToFilters"/>
-    private static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
+    internal static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
         Status: filters.Status,
         CompanyId: filters.CompanyId,
         TitleContains: filters.TitleContains,
@@ -364,7 +378,14 @@ internal static class M3Endpoints
         FormerClientsOnly: filters.FormerClientsOnly,
         ProspectStage: filters.ProspectStage,
         OwnerUserId: filters.OwnerUserId,
-        FollowUpWithinDays: filters.FollowUpWithinDays);
+        FollowUpWithinDays: filters.FollowUpWithinDays,
+        ProjectType: filters.ProjectType,
+        DevelopmentStage: filters.DevelopmentStage,
+        ProjectStatus: filters.ProjectStatus,
+        AttachedPersonId: filters.AttachedPersonId,
+        MissingRoleType: filters.MissingRoleType,
+        PackageStatus: filters.PackageStatus,
+        ProjectId: filters.ProjectId);
 
     // --------------------------------------------------------------- mapping
 

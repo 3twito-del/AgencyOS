@@ -13,6 +13,13 @@ public enum SearchEntityType
     // that pilot" and "where is the latest draft" are real questions.
     Credit = 4,
     Material = 5,
+
+    // Added in M5. The slate is the other half of what an agency looks things up
+    // in: "what was that book we optioned" and "which package had the director
+    // attached" are asked as often as questions about people.
+    Project = 6,
+    SourceProperty = 7,
+    Package = 8,
 }
 
 /// <summary>Why a row matched, so a ranked list can explain itself.</summary>

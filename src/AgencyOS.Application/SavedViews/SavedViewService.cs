@@ -85,6 +85,12 @@ public sealed class SavedViewService
             // when it was saved.
             [SavedViewTarget.Talent] = Permission.TalentRead,
             [SavedViewTarget.Prospects] = Permission.ProspectsRead,
+
+            // Same rule for the slate: the view is gated by read access to the
+            // records it lists, re-checked when it runs rather than when it was
+            // saved.
+            [SavedViewTarget.Projects] = Permission.ProjectsRead,
+            [SavedViewTarget.Packages] = Permission.PackagesRead,
         };
 
     /// <summary>Largest page a saved view returns.</summary>

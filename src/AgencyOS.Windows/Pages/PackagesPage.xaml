@@ -1,0 +1,151 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.PackagesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="16" ColumnSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="380" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Packages" Style="{StaticResource TitleTextBlockStyle}" />
+
+            <ComboBox Grid.Row="1" x:Name="StatusBox" MinWidth="180" SelectionChanged="OnFilterChanged">
+                <ComboBoxItem Content="Any status" Tag="" IsSelected="True" />
+                <ComboBoxItem Content="Draft" Tag="Draft" />
+                <ComboBoxItem Content="Assembling" Tag="Assembling" />
+                <ComboBoxItem Content="Ready" Tag="Ready" />
+                <ComboBoxItem Content="Active" Tag="Active" />
+                <ComboBoxItem Content="Paused" Tag="Paused" />
+                <ComboBoxItem Content="Closed" Tag="Closed" />
+                <ComboBoxItem Content="Abandoned" Tag="Abandoned" />
+            </ComboBox>
+
+            <StackPanel Grid.Row="2" Spacing="6">
+                <ProgressBar x:Name="ListBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False"
+                         Title="Could not load packages" />
+                <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
+                         Title="No packages"
+                         Message="Nothing is being assembled under these filters." />
+            </StackPanel>
+
+            <ListView Grid.Row="3" x:Name="PackageList" SelectionMode="Single"
+                      SelectionChanged="OnPackageSelected">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Padding="4,6">
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Text="{Binding ProjectTitle}" Opacity="0.7"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+
+        <Grid Grid.Column="1" RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Spacing="4">
+                <TextBlock x:Name="DetailTitle" Style="{StaticResource SubtitleTextBlockStyle}"
+                           Text="Select a package" />
+                <TextBlock x:Name="DetailReadiness" Opacity="0.75"
+                           Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Spacing="8">
+                <InfoBar x:Name="DetailBar" Severity="Error" IsOpen="False" IsClosable="True" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="NewPackageButton" Content="New package" Click="OnNewPackageClick" />
+                    <Button x:Name="StatusButton" Content="Change status" Click="OnChangeStatusClick"
+                            IsEnabled="False" />
+                    <Button x:Name="AddElementButton" Content="Add element" Click="OnAddElementClick"
+                            IsEnabled="False" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Spacing="6">
+                <TextBlock x:Name="ThesisText" TextWrapping="Wrap" Opacity="0.85" />
+                <TextBlock x:Name="StrategyText" TextWrapping="Wrap" Opacity="0.85" Visibility="Collapsed" />
+            </StackPanel>
+
+            <Grid Grid.Row="3" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="6">
+                    <TextBlock Text="Attached" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"
+                               TextWrapping="Wrap"
+                               Text="Really attached to the project." />
+                    <ListView x:Name="AttachedList" SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Padding="4,6">
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                    <TextBlock Text="{Binding Detail}" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock Text="Proposed" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"
+                               TextWrapping="Wrap"
+                               Text="What we want. Nobody here is attached." />
+                    <ListView x:Name="ProposedList" SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Padding="4,6">
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                    <TextBlock Text="{Binding Detail}" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Spacing="6">
+                    <TextBlock Text="Gaps" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"
+                               TextWrapping="Wrap"
+                               Text="Roles on the project nothing currently holds." />
+                    <ListView x:Name="GapList" SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Padding="4,6">
+                                    <TextBlock Text="{Binding Type}" />
+                                    <TextBlock Text="{Binding Label}" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

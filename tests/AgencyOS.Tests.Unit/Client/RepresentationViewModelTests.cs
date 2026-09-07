@@ -189,7 +189,7 @@ public sealed class ClientOverviewViewModelTests
 
         api.Overview = Overview(personId, "Ada Reyes", isClient: true, "Active", "Marcus Reid") with
         {
-            Credits = [new CreditResponse(Guid.NewGuid(), personId, "The Long Field", null, "Writing", "Released", 2025, null, null, null, null, 1)],
+            Credits = [new CreditResponse(Guid.NewGuid(), personId, "The Long Field", null, "Writing", "Released", 2025, null, null, null, null, null, 1)],
             Materials = [new MaterialResponse(Guid.NewGuid(), personId, "Meridian", "Pilot", "Ready", "Draft 4", null, null, null, null, 1)],
             RecentHistory = [new RepresentationHistoryEntryResponse(new DateOnly(2026, 3, 1), "representation.status", "Signed", null)],
         };

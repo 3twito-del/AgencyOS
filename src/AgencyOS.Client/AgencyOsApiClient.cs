@@ -5,6 +5,7 @@ using System.Text.Json;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
+using AgencyOS.Contracts.Projects;
 using AgencyOS.Contracts.Representation;
 using AgencyOS.Contracts.SavedViews;
 using AgencyOS.Contracts.Search;
@@ -295,6 +296,152 @@ public interface IAgencyOsApi
     Task<Guid> AddMaterialAsync(
         AddMaterialRequest request,
         string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    // ---- Projects and packaging (M5) ----
+
+    /// <param name="status">Restrict to one operational status.</param>
+    /// <param name="stage">Restrict to one development stage.</param>
+    /// <param name="type">Restrict to one kind of work.</param>
+    /// <param name="leadUserId">Restrict to one internal owner.</param>
+    /// <param name="missingRole">Only projects nobody currently holds this role on.</param>
+    /// <param name="search">Substring match on title and working title.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    Task<IReadOnlyList<ProjectSummaryResponse>> ListProjectsAsync(
+        string? status = null,
+        string? stage = null,
+        string? type = null,
+        Guid? leadUserId = null,
+        string? missingRole = null,
+        string? search = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ProjectDetailResponse> GetProjectAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default);
+
+    Task<ProjectDetailResponse> CreateProjectAsync(
+        CreateProjectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task UpdateProjectAsync(
+        Guid projectId,
+        UpdateProjectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ChangeProjectStatusAsync(
+        Guid projectId,
+        ChangeProjectStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ChangeProjectStageAsync(
+        Guid projectId,
+        ChangeProjectStageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ProjectHistoryEntryResponse>> GetProjectHistoryAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid> CreateProjectRoleAsync(
+        Guid projectId,
+        CreateProjectRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ChangeProjectRoleAsync(
+        Guid projectId,
+        Guid roleId,
+        ChangeProjectRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid> AttachToRoleAsync(
+        Guid projectId,
+        Guid roleId,
+        AttachToRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ChangeAttachmentAsync(
+        Guid projectId,
+        Guid attachmentId,
+        ChangeAttachmentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid> AddProjectCompanyAsync(
+        Guid projectId,
+        AddProjectCompanyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task EndProjectCompanyAsync(
+        Guid projectId,
+        Guid participationId,
+        EndProjectCompanyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<SourcePropertyResponse>> ListSourcePropertiesAsync(
+        string? search = null,
+        CancellationToken cancellationToken = default);
+
+    Task<SourcePropertyResponse> CreateSourcePropertyAsync(
+        CreateSourcePropertyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task LinkSourcePropertyAsync(
+        Guid projectId,
+        LinkSourcePropertyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task LinkMaterialToProjectAsync(
+        Guid projectId,
+        LinkProjectMaterialRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<PackageSummaryResponse>> ListPackagesAsync(
+        string? status = null,
+        Guid? projectId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<PackageDetailResponse> GetPackageAsync(
+        Guid packageId,
+        CancellationToken cancellationToken = default);
+
+    Task<PackageDetailResponse> CreatePackageAsync(
+        CreatePackageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ChangePackageStatusAsync(
+        Guid packageId,
+        ChangePackageStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid> AddPackageElementAsync(
+        Guid packageId,
+        AddPackageElementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task RemovePackageElementAsync(
+        Guid packageId,
+        Guid elementId,
+        RemovePackageElementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ProjectCommandCenterResponse> GetProjectCommandCenterAsync(
         CancellationToken cancellationToken = default);
 }
 
@@ -777,6 +924,343 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
 
         return created.Id;
     }
+
+    // ---- Projects and packaging (M5) ----
+
+    public Task<IReadOnlyList<ProjectSummaryResponse>> ListProjectsAsync(
+        string? status = null,
+        string? stage = null,
+        string? type = null,
+        Guid? leadUserId = null,
+        string? missingRole = null,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query.Add($"status={Uri.EscapeDataString(status)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(stage))
+        {
+            query.Add($"stage={Uri.EscapeDataString(stage)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            query.Add($"type={Uri.EscapeDataString(type)}");
+        }
+
+        if (leadUserId is { } lead)
+        {
+            query.Add($"leadUserId={lead}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(missingRole))
+        {
+            query.Add($"missingRole={Uri.EscapeDataString(missingRole)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query.Add($"search={Uri.EscapeDataString(search)}");
+        }
+
+        string uri = $"{TenantRoot}/projects";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<ProjectSummaryResponse>(uri, cancellationToken);
+    }
+
+    public Task<ProjectDetailResponse> GetProjectAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ProjectDetailResponse>($"{TenantRoot}/projects/{projectId}", cancellationToken);
+
+    public Task<ProjectDetailResponse> CreateProjectAsync(
+        CreateProjectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateProjectRequest, ProjectDetailResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task UpdateProjectAsync(
+        Guid projectId,
+        UpdateProjectRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Put,
+            $"{TenantRoot}/projects/{projectId}",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ChangeProjectStatusAsync(
+        Guid projectId,
+        ChangeProjectStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/status",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ChangeProjectStageAsync(
+        Guid projectId,
+        ChangeProjectStageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/stage",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<ProjectHistoryEntryResponse>> GetProjectHistoryAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<ProjectHistoryEntryResponse>(
+            $"{TenantRoot}/projects/{projectId}/history", cancellationToken);
+
+    public async Task<Guid> CreateProjectRoleAsync(
+        Guid projectId,
+        CreateProjectRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        CreatedIdResponse created = await SendAsync<CreateProjectRoleRequest, CreatedIdResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/roles",
+            request,
+            idempotencyKey,
+            cancellationToken).ConfigureAwait(false);
+
+        return created.Id;
+    }
+
+    public Task ChangeProjectRoleAsync(
+        Guid projectId,
+        Guid roleId,
+        ChangeProjectRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/roles/{roleId}/change",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public async Task<Guid> AttachToRoleAsync(
+        Guid projectId,
+        Guid roleId,
+        AttachToRoleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        CreatedIdResponse created = await SendAsync<AttachToRoleRequest, CreatedIdResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/roles/{roleId}/attachments",
+            request,
+            idempotencyKey,
+            cancellationToken).ConfigureAwait(false);
+
+        return created.Id;
+    }
+
+    public Task ChangeAttachmentAsync(
+        Guid projectId,
+        Guid attachmentId,
+        ChangeAttachmentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/attachments/{attachmentId}/status",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public async Task<Guid> AddProjectCompanyAsync(
+        Guid projectId,
+        AddProjectCompanyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        CreatedIdResponse created = await SendAsync<AddProjectCompanyRequest, CreatedIdResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/companies",
+            request,
+            idempotencyKey,
+            cancellationToken).ConfigureAwait(false);
+
+        return created.Id;
+    }
+
+    public Task EndProjectCompanyAsync(
+        Guid projectId,
+        Guid participationId,
+        EndProjectCompanyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/companies/{participationId}/end",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<SourcePropertyResponse>> ListSourcePropertiesAsync(
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        string uri = $"{TenantRoot}/source-properties";
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            uri += $"?search={Uri.EscapeDataString(search)}";
+        }
+
+        return GetListAsync<SourcePropertyResponse>(uri, cancellationToken);
+    }
+
+    public Task<SourcePropertyResponse> CreateSourcePropertyAsync(
+        CreateSourcePropertyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateSourcePropertyRequest, SourcePropertyResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/source-properties",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task LinkSourcePropertyAsync(
+        Guid projectId,
+        LinkSourcePropertyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/source-properties",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task LinkMaterialToProjectAsync(
+        Guid projectId,
+        LinkProjectMaterialRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/projects/{projectId}/materials",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<PackageSummaryResponse>> ListPackagesAsync(
+        string? status = null,
+        Guid? projectId = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query.Add($"status={Uri.EscapeDataString(status)}");
+        }
+
+        if (projectId is { } project)
+        {
+            query.Add($"projectId={project}");
+        }
+
+        string uri = $"{TenantRoot}/packages";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<PackageSummaryResponse>(uri, cancellationToken);
+    }
+
+    public Task<PackageDetailResponse> GetPackageAsync(
+        Guid packageId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<PackageDetailResponse>($"{TenantRoot}/packages/{packageId}", cancellationToken);
+
+    public Task<PackageDetailResponse> CreatePackageAsync(
+        CreatePackageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreatePackageRequest, PackageDetailResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/packages",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ChangePackageStatusAsync(
+        Guid packageId,
+        ChangePackageStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/packages/{packageId}/status",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public async Task<Guid> AddPackageElementAsync(
+        Guid packageId,
+        AddPackageElementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        CreatedIdResponse created = await SendAsync<AddPackageElementRequest, CreatedIdResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/packages/{packageId}/elements",
+            request,
+            idempotencyKey,
+            cancellationToken).ConfigureAwait(false);
+
+        return created.Id;
+    }
+
+    public Task RemovePackageElementAsync(
+        Guid packageId,
+        Guid elementId,
+        RemovePackageElementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/packages/{packageId}/elements/{elementId}/remove",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ProjectCommandCenterResponse> GetProjectCommandCenterAsync(
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ProjectCommandCenterResponse>(
+            $"{TenantRoot}/project-command-center", cancellationToken);
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
         long cursor,

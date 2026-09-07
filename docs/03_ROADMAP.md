@@ -364,13 +364,127 @@ Deliver:
 - Material; **met** (metadata only; local paths refused)
 - team/representation history. **met** (append-only events; team is the lead)
 
-## M5 — Projects & Packaging
+## M5 — Projects & Packaging — **Done** (2026-09-07)
+
+Implemented: the canonical project, with operational status and creative stage
+modelled separately; source properties; roles that exist independently of whoever
+fills them; attachments; company participation; packages; and the closing of M4's
+credit seam.
+
+A project's **status** says whether anybody is working it; its **stage** says where
+the work has got to. Merging them would make "cancelled" and "in pre-production"
+mutually exclusive, when the useful fact is usually that a project was cancelled
+*during* pre-production. Stage moves in both directions, because projects genuinely
+fall out of pre-production back into development and a forward-only ladder would
+only teach people to lie to the system. The rule that does bite is that stage
+freezes once the status is terminal, so the record still says how far the work got.
+
+**A role is not the person in it,** and that separation is structural. It is what
+lets a project say "we need a director" - a sentence with no person in it - and
+what lets one role record survive one director leaving and another arriving. Role
+occupancy is *derived* from the attachments that actually hold it, never set by
+hand.
+
+**Attachment records claims about the world and has no `Targeted` state.** Wanting
+somebody for a role is the agency's intention, not a fact about the project;
+recording it as an attachment would make a roster a mixture of fact and hope that
+nothing downstream could separate. Wanting somebody lives as a proposed package
+element and becomes an opportunity in M6. `InDiscussion` is included because it is
+reported fact - and deliberately does not occupy a role, since several directors
+can be in talks for one job at once.
+
+One holder of an exclusive role is enforced by a partial unique index, and an
+integration test races eight clients at a single showrunner job and asserts exactly
+one wins. That required copying the role's exclusivity onto the attachment row -
+the only denormalization in M5 - because PostgreSQL forbids a subquery in an index
+predicate.
+
+**Company participation is a distinct model, not an attachment.** A studio is not a
+position anybody fills, and one company can be the producer *and* the studio on the
+same project; a single table would collapse those into a nullable-role shape.
+
+**A package holds facts and hopes side by side, and keeps them apart.** Elements
+carry an explicit kind, `IsAttached` is computed from whether the referenced
+attachment currently holds its role, and the Windows surface renders attached and
+proposed in separate columns rather than one list with a badge. Package lifecycle
+is about internal readiness only - there is no submitted or pitched state, because
+the moment a package goes to a buyer that is M6.
+
+`packages.strategy.read` is the one fine-grained permission added, separate from
+`talent.notes.read` because the populations differ. Strategy is excluded from the
+package search vector too: otherwise a caller could confirm what a note says by
+searching a phrase and watching the package surface.
+
+**Source properties describe and assert nothing legal.** The name is chosen so
+nobody mistakes the record for a rights position; chain of title and options are
+M8. `Credit.ProjectId` becomes a real tenant-qualified foreign key, still nullable,
+and linking is always explicit - a credit is never matched to a project because the
+titles look alike.
+
+API contract 4 -> 5, additive. Saved view definitions 2 -> 3, adding the Projects
+and Packages targets; versions 1 and 2 are still read. Each target now records
+which definition version introduced it, so a document claiming version 2 cannot
+name a target that arrived in version 3.
+
+**No project caching, and that is a policy answer rather than an omission.**
+Talent was cacheable because "the client list" is a bounded set; "all projects" is
+not, and the obvious candidate rules are three different answers to a question
+nobody has asked. The cache schema therefore stays at version 2 and M5 adds no
+migration. `docs/13_OFFLINE_CLASSIFICATION.md` records the reasoning and classifies
+every M5 command.
+
+No TLA+. Nothing here is a distributed protocol; the concurrency hazards are
+exclusive-role filling and duplicate package elements, both answered by database
+constraints and demonstrated against PostgreSQL.
+
+Decisions recorded:
+`docs/adr/ADR-0018-project-status-stage-and-vocabularies.md`,
+`ADR-0019-attachment-participation-and-packages.md`.
+
+Three defects found by tests written for this milestone:
+
+- **The saved-view filter mapping dropped seven fields** - the same defect M4 had,
+  in the same place. M4's fix was named arguments, which stop a value landing in
+  the wrong field and do nothing about one left out, since every filter is
+  optional. Two identical record shapes mapped by hand cannot be made safe by
+  care, so `SavedViewFilterMappingTests` now walks the properties by reflection.
+  ADR-0017 has been corrected, because its claim about that fix was wrong.
+- **Attaching somebody in discussion marked the role filled.** The create path
+  asserted occupancy instead of deriving it, which would have made every "missing a
+  director" view wrong. Occupancy is now computed in one place.
+- **EF took three computed collection properties for navigations**, silently adding
+  stray `ProjectId1` foreign keys to the first generated migration. Caught before
+  the migration was committed.
+
+Local verification: whole solution builds with 0 warnings / 0 errors; 376 unit and
+255 integration tests pass; OpenAPI 3.1.1 generated and gated (76 paths, 56
+schemas), with no two paths differing only by parameter name. Local runs use
+PostgreSQL 19 Beta 3, which remains LAB evidence only - ALPHA promotion requires
+remote CI on `postgres:18.6`.
+
+Known limitations, recorded rather than implied:
+
+- No offline projections at all for the slate, by the policy above. Project and
+  package reads are refused offline and say so.
+- The additive M5 commands (create project, source property, package) would
+  qualify as offline-safe but have no offline capture surface, so admitting them
+  would widen the queue for a workflow that does not exist.
+- A package element's target is a raw identifier validated by one component rather
+  than by a foreign key per kind. The trade is deliberate; that validator is the
+  thing to watch.
+- `role_is_exclusive` is denormalized onto the attachment row and could in
+  principle drift. It is written only by the aggregate that owns both sides.
+- Project history is per project and limit-bounded. It is a curated timeline, not
+  a general audit browser.
+- Relationship views are derived from typed relational queries. No graph database,
+  and PostgreSQL stays canonical.
+
 Deliver:
-- Project/IP;
-- Role;
-- Attachment;
-- Package;
-- buyer/seller/company relationships.
+- Project/IP; **met** (status and stage separate; source properties describe only)
+- Role; **met** (independent of its occupant; occupancy derived)
+- Attachment; **met** (claims about the world; exclusivity enforced in the database)
+- Package; **met** (facts and hopes held apart)
+- company participation. **met** (a distinct model, with the reasoning recorded)
 
 ## M6 — Opportunities & Submissions
 Deliver:

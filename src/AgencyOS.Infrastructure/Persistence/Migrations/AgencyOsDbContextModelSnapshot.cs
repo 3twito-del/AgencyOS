@@ -553,6 +553,699 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     b.ToTable("people", (string)null);
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Attachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly?>("EndsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("ends_on");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("person_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid>("ProjectRoleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_role_id");
+
+                    b.Property<bool>("RoleIsExclusive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("role_is_exclusive");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("source");
+
+                    b.Property<DateOnly>("StartsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("starts_on");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("OrganizationId", "CompanyId");
+
+                    b.HasIndex("OrganizationId", "PersonId")
+                        .HasDatabaseName("ix_attachments_organization_person");
+
+                    b.HasIndex("OrganizationId", "ProjectRoleId");
+
+                    b.HasIndex("ProjectId", "Status")
+                        .HasDatabaseName("ix_attachments_project_status");
+
+                    b.ToTable("attachments", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.AttachmentEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AttachmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attachment_id");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttachmentId", "RecordedAt")
+                        .HasDatabaseName("ix_attachment_events_attachment_recorded");
+
+                    b.ToTable("attachment_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Package", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("LeadUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lead_user_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StrategyNotes")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("strategy_notes");
+
+                    b.Property<string>("Thesis")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("thesis");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("LeadUserId");
+
+                    b.HasIndex("OrganizationId", "ProjectId");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_packages_organization_status");
+
+                    b.ToTable("packages", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.PackageElement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("AddedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("PackageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("package_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackageId", "Kind", "TargetId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_package_elements_target");
+
+                    b.ToTable("package_elements", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.PackageEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("PackageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("package_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackageId", "RecordedAt")
+                        .HasDatabaseName("ix_package_events_package_recorded");
+
+                    b.ToTable("package_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Project", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid?>("LeadUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lead_user_id");
+
+                    b.Property<string>("Logline")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("logline");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PrimaryCompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("primary_company_id");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("integer")
+                        .HasColumnName("stage");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Synopsis")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("synopsis");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("title");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.Property<string>("WorkingTitle")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("working_title");
+
+                    b.Property<int?>("Year")
+                        .HasColumnType("integer")
+                        .HasColumnName("year");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeadUserId");
+
+                    b.HasIndex("OrganizationId", "PrimaryCompanyId");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_projects_organization_status");
+
+                    b.HasIndex("OrganizationId", "UpdatedAt")
+                        .HasDatabaseName("ix_projects_organization_updated");
+
+                    b.ToTable("projects", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectCompanyParticipation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("integer")
+                        .HasColumnName("capacity");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly?>("EndsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("ends_on");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateOnly>("StartsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("starts_on");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("OrganizationId", "CompanyId")
+                        .HasDatabaseName("ix_project_companies_organization_company");
+
+                    b.ToTable("project_company_participations", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("FromStage")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_stage");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int?>("ToStage")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_stage");
+
+                    b.Property<int?>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "RecordedAt")
+                        .HasDatabaseName("ix_project_events_project_recorded");
+
+                    b.ToTable("project_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectMaterialLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("linked_at");
+
+                    b.Property<Guid>("LinkedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("linked_by");
+
+                    b.Property<Guid>("MaterialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("material_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "MaterialId");
+
+                    b.HasIndex("ProjectId", "MaterialId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_project_material_links_pair");
+
+                    b.ToTable("project_material_links", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectRole", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsExclusive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_exclusive");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("label");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "Status")
+                        .HasDatabaseName("ix_project_roles_project_status");
+
+                    b.ToTable("project_roles", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectSourceProperty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("linked_at");
+
+                    b.Property<Guid>("LinkedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("linked_by");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid>("SourcePropertyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_property_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "SourcePropertyId");
+
+                    b.HasIndex("ProjectId", "SourcePropertyId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_project_source_properties_pair");
+
+                    b.ToTable("project_source_properties", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.SourceProperty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AttributedCreator")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("attributed_creator");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid?>("CreatorPersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_person_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Provenance")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("provenance");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("source_reference");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("title");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.Property<int?>("Year")
+                        .HasColumnType("integer")
+                        .HasColumnName("year");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "CreatorPersonId");
+
+                    b.ToTable("source_properties", (string)null);
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Provisioning.SystemInitialization", b =>
                 {
                     b.Property<int>("Id")
@@ -823,7 +1516,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Representations.RepresentationEvent", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -871,7 +1563,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Representations.RepresentationScope", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -909,7 +1600,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Representations.RepresentationTeamMember", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1140,6 +1830,9 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId", "PersonId")
                         .HasDatabaseName("ix_credits_organization_person");
 
+                    b.HasIndex("OrganizationId", "ProjectId")
+                        .HasDatabaseName("ix_credits_organization_project");
+
                     b.ToTable("credits", (string)null);
                 });
 
@@ -1212,8 +1905,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("version_label");
 
                     b.HasKey("Id");
-
-                    b.HasAlternateKey("OrganizationId", "Id");
 
                     b.HasIndex("OrganizationId", "PersonId")
                         .HasDatabaseName("ix_materials_organization_person");
@@ -1301,7 +1992,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Talent.ProspectEvent", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1349,7 +2039,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Talent.TalentDiscipline", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1595,6 +2284,178 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Attachment", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany("Attachments")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Companies.Company", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CompanyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.People.Person", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "PersonId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.Projects.ProjectRole", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ProjectRoleId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.AttachmentEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Attachment", null)
+                        .WithMany("Events")
+                        .HasForeignKey("AttachmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Package", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("LeadUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ProjectId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.PackageElement", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Package", null)
+                        .WithMany("Elements")
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.PackageEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Package", null)
+                        .WithMany("Events")
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Project", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("LeadUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Companies.Company", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "PrimaryCompanyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectCompanyParticipation", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany("CompanyParticipations")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Companies.Company", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CompanyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany("Events")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectMaterialLink", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany("Materials")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Talent.Material", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "MaterialId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectRole", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany("Roles")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.ProjectSourceProperty", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany("SourceProperties")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Projects.SourceProperty", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "SourcePropertyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.SourceProperty", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.People.Person", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CreatorPersonId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Relationships.ProfessionalRelationship", b =>
                 {
                     b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
@@ -1688,6 +2549,12 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasPrincipalKey("OrganizationId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ProjectId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Talent.Material", b =>
@@ -1756,6 +2623,33 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Interactions.Interaction", b =>
                 {
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Attachment", b =>
+                {
+                    b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Package", b =>
+                {
+                    b.Navigation("Elements");
+
+                    b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Projects.Project", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("CompanyParticipations");
+
+                    b.Navigation("Events");
+
+                    b.Navigation("Materials");
+
+                    b.Navigation("Roles");
+
+                    b.Navigation("SourceProperties");
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Representations.Representation", b =>

@@ -1,0 +1,28 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreatePackageDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="New package"
+    PrimaryButtonText="Create"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="440">
+        <TextBox x:Name="ProjectIdBox" Header="Project identifier"
+                 TextChanged="OnRequiredChanged" />
+
+        <TextBox x:Name="NameBox" Header="Name" PlaceholderText="What we are calling this package"
+                 TextChanged="OnRequiredChanged" />
+
+        <TextBox x:Name="LeadIdBox" Header="Lead" PlaceholderText="Internal owner identifier"
+                 TextChanged="OnRequiredChanged" />
+
+        <TextBox x:Name="ThesisBox" Header="Thesis" AcceptsReturn="True" Height="70"
+                 TextWrapping="Wrap" PlaceholderText="What this package argues" />
+
+        <TextBox x:Name="StrategyBox" Header="Strategy" AcceptsReturn="True" Height="90"
+                 TextWrapping="Wrap"
+                 PlaceholderText="Internal. Only colleagues granted package strategy access can read this back." />
+    </StackPanel>
+</ContentDialog>

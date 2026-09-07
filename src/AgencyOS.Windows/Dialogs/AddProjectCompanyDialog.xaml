@@ -1,0 +1,34 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddProjectCompanyDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record company involvement"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="420">
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="Known involvement"
+                 Message="This records how a company is involved in making or selling the project. It is not a sales process: buyers, pitches and submissions arrive in a later milestone." />
+
+        <TextBox x:Name="CompanyIdBox" Header="Company identifier"
+                 TextChanged="OnRequiredChanged" />
+
+        <ComboBox x:Name="CapacityBox" Header="Capacity" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Studio" Tag="Studio" />
+            <ComboBoxItem Content="Network" Tag="Network" />
+            <ComboBoxItem Content="Streamer" Tag="Streamer" />
+            <ComboBoxItem Content="Production company" Tag="ProductionCompany" />
+            <ComboBoxItem Content="Financier" Tag="Financier" />
+            <ComboBoxItem Content="Distributor" Tag="Distributor" />
+            <ComboBoxItem Content="Sales company" Tag="SalesCompany" />
+            <ComboBoxItem Content="Other" Tag="Other" />
+        </ComboBox>
+
+        <DatePicker x:Name="StartsOnPicker" Header="Involved from" />
+
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>

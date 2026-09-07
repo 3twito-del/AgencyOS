@@ -1,0 +1,260 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.ProjectsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="16" ColumnSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="420" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Projects" Style="{StaticResource TitleTextBlockStyle}" />
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                <ComboBox x:Name="StatusBox" MinWidth="130" SelectionChanged="OnFilterChanged">
+                    <ComboBoxItem Content="Active" Tag="Active" IsSelected="True" />
+                    <ComboBoxItem Content="Any status" Tag="" />
+                    <ComboBoxItem Content="Inactive" Tag="Inactive" />
+                    <ComboBoxItem Content="Completed" Tag="Completed" />
+                    <ComboBoxItem Content="Cancelled" Tag="Cancelled" />
+                    <ComboBoxItem Content="Archived" Tag="Archived" />
+                </ComboBox>
+
+                <ComboBox x:Name="StageBox" PlaceholderText="Any stage" MinWidth="150"
+                          SelectionChanged="OnFilterChanged">
+                    <ComboBoxItem Content="Any stage" Tag="" />
+                    <ComboBoxItem Content="Concept" Tag="Concept" />
+                    <ComboBoxItem Content="Development" Tag="Development" />
+                    <ComboBoxItem Content="Packaging" Tag="Packaging" />
+                    <ComboBoxItem Content="Pre-production" Tag="PreProduction" />
+                    <ComboBoxItem Content="Production" Tag="Production" />
+                    <ComboBoxItem Content="Post-production" Tag="PostProduction" />
+                    <ComboBoxItem Content="Released" Tag="Released" />
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                <ComboBox x:Name="MissingRoleBox" PlaceholderText="Missing any role" MinWidth="170"
+                          SelectionChanged="OnFilterChanged">
+                    <ComboBoxItem Content="Any" Tag="" />
+                    <ComboBoxItem Content="Missing a writer" Tag="Writer" />
+                    <ComboBoxItem Content="Missing a director" Tag="Director" />
+                    <ComboBoxItem Content="Missing a showrunner" Tag="Showrunner" />
+                    <ComboBoxItem Content="Missing a producer" Tag="Producer" />
+                </ComboBox>
+
+                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Title" MinWidth="190"
+                                QuerySubmitted="OnSearchSubmitted" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Spacing="6">
+                <ProgressBar x:Name="ListBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False"
+                         Title="Could not load projects" />
+                <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
+                         Title="No projects"
+                         Message="Nothing on the slate matches these filters." />
+                <TextBlock x:Name="SummaryText" Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
+
+            <ListView Grid.Row="4" x:Name="ProjectList" SelectionMode="Single"
+                      SelectionChanged="OnProjectSelected">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="4,6" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding Title}" />
+                                <TextBlock Text="{Binding Stage}" Opacity="0.7"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Column="1" Text="{Binding Type}" Opacity="0.7"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+
+        <Grid Grid.Column="1" RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Spacing="4">
+                <TextBlock x:Name="DetailTitle" Style="{StaticResource SubtitleTextBlockStyle}"
+                           Text="Select a project" />
+                <TextBlock x:Name="DetailStanding" Opacity="0.75"
+                           Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Spacing="8">
+                <InfoBar x:Name="DetailBar" Severity="Error" IsOpen="False" IsClosable="True" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="NewProjectButton" Content="New project" Click="OnNewProjectClick" />
+                <Button x:Name="AddRoleButton" Content="Add role" Click="OnAddRoleClick" IsEnabled="False" />
+                <Button x:Name="AttachButton" Content="Attach" Click="OnAttachClick" IsEnabled="False" />
+                <Button x:Name="StageButton" Content="Change stage" Click="OnChangeStageClick" IsEnabled="False" />
+                </StackPanel>
+            </StackPanel>
+
+            <TabView Grid.Row="2" x:Name="DetailTabs" IsAddTabButtonVisible="False"
+                     CanDragTabs="False" CanReorderTabs="False">
+                <TabViewItem Header="Roles" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <InfoBar x:Name="GapsBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                                     Title="Still to fill" />
+                            <ListView x:Name="RoleList" SelectionMode="Single">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="4,6">
+                                            <TextBlock Text="{Binding Type}" />
+                                            <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Attachments" IsClosable="False">
+                    <ScrollViewer>
+                        <ListView x:Name="AttachmentList" SelectionMode="Single" Padding="4">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="4,6" ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                            <TextBlock Text="{Binding RoleType}" Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="1" Text="{Binding Status}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Companies" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <Button x:Name="AddCompanyButton" Content="Record involvement"
+                                    Click="OnAddCompanyClick" IsEnabled="False" />
+                            <ListView x:Name="CompanyList" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="4,6">
+                                            <TextBlock Text="{Binding CompanyName}" />
+                                            <TextBlock Text="{Binding Capacity}" Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Source" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                                     Title="Descriptive only"
+                                     Message="Source properties record what a project comes from. They assert nothing about who owns anything: rights and options arrive in a later milestone." />
+                            <ListView x:Name="SourceList" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="4,6">
+                                            <TextBlock Text="{Binding Title}" />
+                                            <TextBlock Text="{Binding AttributedCreator}" Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Materials" IsClosable="False">
+                    <ScrollViewer>
+                        <ListView x:Name="MaterialList" SelectionMode="None" Padding="4">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Padding="4,6">
+                                        <TextBlock Text="{Binding Title}" />
+                                        <TextBlock Text="{Binding PersonName}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Packages" IsClosable="False">
+                    <ScrollViewer>
+                        <ListView x:Name="PackageList" SelectionMode="None" Padding="4">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Padding="4,6">
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Activity" IsClosable="False">
+                    <ScrollViewer>
+                        <ListView x:Name="HistoryList" SelectionMode="None" Padding="4">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Padding="4,6">
+                                        <TextBlock Text="{Binding Summary}" />
+                                        <TextBlock Text="{Binding Detail}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                </TabViewItem>
+            </TabView>
+        </Grid>
+    </Grid>
+</Page>

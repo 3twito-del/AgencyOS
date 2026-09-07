@@ -1,4 +1,5 @@
 using AgencyOS.Application.Abstractions;
+using AgencyOS.Application.Projects;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Infrastructure.Authorization;
 using AgencyOS.Application.Directory;
@@ -78,6 +79,13 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ICreditRepository, CreditRepository>();
         services.AddScoped<IMaterialRepository, MaterialRepository>();
         services.AddScoped<IRepresentationQueries, RepresentationQueries>();
+
+        // Projects and packaging (M5).
+        services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<ISourcePropertyRepository, SourcePropertyRepository>();
+        services.AddScoped<IPackageRepository, PackageRepository>();
+        services.AddScoped<IPackageElementTargets, PackageElementTargets>();
+        services.AddScoped<IProjectQueries, ProjectQueries>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 

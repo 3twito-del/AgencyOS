@@ -44,6 +44,14 @@ public sealed class SearchService
             // gated by the same permission that governs the record itself.
             [SearchEntityType.Credit] = Permission.TalentRead,
             [SearchEntityType.Material] = Permission.TalentRead,
+
+            // Projects and the properties they derive from are gated together; a
+            // package is gated by its own permission, because a caller who may see
+            // the slate is not automatically entitled to what the agency is
+            // quietly assembling on it.
+            [SearchEntityType.Project] = Permission.ProjectsRead,
+            [SearchEntityType.SourceProperty] = Permission.ProjectsRead,
+            [SearchEntityType.Package] = Permission.PackagesRead,
         };
 
     private readonly ISearchQueries _queries;

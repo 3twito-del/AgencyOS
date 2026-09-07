@@ -25,6 +25,7 @@ using AgencyOS.Application.Idempotency;
 using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
+using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Application.Search;
@@ -152,6 +153,18 @@ builder.Services.AddScoped<IdempotencyCoordinator>();
 // goes through it, including saved views (ADR-0017).
 builder.Services.AddScoped<SensitiveNotes>();
 builder.Services.AddScoped<RepresentationQueryService>();
+
+// Projects and packaging (M5).
+builder.Services.AddScoped<ProjectQueryService>();
+builder.Services.AddScoped<CreateProjectHandler>();
+builder.Services.AddScoped<UpdateProjectHandler>();
+builder.Services.AddScoped<ChangeProjectLifecycleHandler>();
+builder.Services.AddScoped<ProjectRoleHandler>();
+builder.Services.AddScoped<AttachmentHandler>();
+builder.Services.AddScoped<ProjectCompanyHandler>();
+builder.Services.AddScoped<SourcePropertyHandler>();
+builder.Services.AddScoped<ProjectLinkHandler>();
+builder.Services.AddScoped<PackageHandler>();
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();
 builder.Services.AddScoped<ChangeTalentDisciplineHandler>();

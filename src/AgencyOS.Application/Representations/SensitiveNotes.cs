@@ -1,4 +1,5 @@
 using AgencyOS.Application.Authorization;
+using AgencyOS.Application.Projects;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Organizations;
 
@@ -23,6 +24,12 @@ namespace AgencyOS.Application.Representations;
 /// endpoint would have redacted them for. One implementation, called from every
 /// path that returns these models, is the only arrangement where that class of
 /// mistake is a compile-time question rather than a review one.
+/// </para>
+/// <para>
+/// M5 adds a package's strategy under its own permission. It is a separate grant
+/// from talent notes rather than the same one, because the populations differ: a
+/// coordinator who legitimately reads client positioning has no particular reason
+/// to read what the agency thinks its play is on a package (ADR-0019).
 /// </para>
 /// </remarks>
 public sealed class SensitiveNotes
@@ -74,6 +81,25 @@ public sealed class SensitiveNotes
             : [.. prospects.Select(Redact)];
     }
 
+    /// <summary>Whether the caller may read package strategy in this tenant.</summary>
+    public Task<bool> MayReadPackageStrategyAsync(
+        OrganizationId organizationId,
+        CancellationToken cancellationToken = default) =>
+        _guard.HasPermissionAsync(Permission.PackageStrategyRead, organizationId, cancellationToken);
+
+    /// <summary>Redacts a package unless the caller may read its strategy.</summary>
+    public async Task<PackageDetailModel> ApplyAsync(
+        OrganizationId organizationId,
+        PackageDetailModel package,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+
+        return await MayReadPackageStrategyAsync(organizationId, cancellationToken).ConfigureAwait(false)
+            ? package
+            : Redact(package);
+    }
+
     /// <summary>The redaction itself, in one place so both models agree on what it means.</summary>
     public static TalentDetailModel Redact(TalentDetailModel talent)
     {
@@ -88,5 +114,13 @@ public sealed class SensitiveNotes
         ArgumentNullException.ThrowIfNull(prospect);
 
         return prospect with { StrategyNotes = null };
+    }
+
+    /// <inheritdoc cref="Redact(TalentDetailModel)"/>
+    public static PackageDetailModel Redact(PackageDetailModel package)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+
+        return package with { StrategyNotes = null };
     }
 }

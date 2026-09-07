@@ -29,13 +29,18 @@ public static class ApiContract
     /// representations with effective-dated scope and team, credits and materials.
     /// </para>
     /// <para>
+    /// Version 5 adds the M5 slate: projects with separate operational status and
+    /// development stage, source properties, roles, attachments, company
+    /// participation and packages.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 4;
+    public const int Current = 5;
 
     /// <summary>
     /// The lowest contract version this build still serves.

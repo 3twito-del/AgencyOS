@@ -1,0 +1,36 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddProjectRoleDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add role"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="10" MinWidth="400">
+        <ComboBox x:Name="TypeBox" Header="Role" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Writer" Tag="Writer" />
+            <ComboBoxItem Content="Director" Tag="Director" />
+            <ComboBoxItem Content="Actor" Tag="Actor" />
+            <ComboBoxItem Content="Producer" Tag="Producer" />
+            <ComboBoxItem Content="Executive producer" Tag="ExecutiveProducer" />
+            <ComboBoxItem Content="Showrunner" Tag="Showrunner" />
+            <ComboBoxItem Content="Creator" Tag="Creator" />
+            <ComboBoxItem Content="Composer" Tag="Composer" />
+            <ComboBoxItem Content="Cinematographer" Tag="Cinematographer" />
+            <ComboBoxItem Content="Host" Tag="Host" />
+            <ComboBoxItem Content="Other" Tag="Other" />
+        </ComboBox>
+
+        <TextBox x:Name="LabelBox" Header="Label"
+                 PlaceholderText="Character name, or a description of the position" />
+
+        <CheckBox x:Name="ExclusiveBox"
+                  Content="Only one party may hold this role at a time" />
+
+        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                   Text="Leave this unticked unless you are sure. A role marked exclusive refuses a second attachment, which is right for a director and wrong for a cast member." />
+
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>

@@ -1,0 +1,31 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddPackageElementDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add package element"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="440">
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="Facts and hopes, kept apart"
+                 Message="Only an attached party is a claim about the project. A proposed person is somebody you would like, and the package shows the two separately for exactly that reason." />
+
+        <ComboBox x:Name="KindBox" Header="Kind" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnKindChanged">
+            <ComboBoxItem Content="Attached party" Tag="AttachedParty" />
+            <ComboBoxItem Content="Proposed person" Tag="ProposedPerson" />
+            <ComboBoxItem Content="Proposed company" Tag="ProposedCompany" />
+            <ComboBoxItem Content="Open role" Tag="OpenRole" />
+            <ComboBoxItem Content="Material" Tag="Material" />
+            <ComboBoxItem Content="Source property" Tag="SourceProperty" />
+        </ComboBox>
+
+        <TextBox x:Name="TargetIdBox" Header="Identifier" TextChanged="OnRequiredChanged" />
+
+        <TextBox x:Name="NoteBox" Header="Note" AcceptsReturn="True" Height="70" TextWrapping="Wrap"
+                 PlaceholderText="Why this is in the package" />
+    </StackPanel>
+</ContentDialog>

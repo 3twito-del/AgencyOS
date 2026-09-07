@@ -44,7 +44,7 @@ public sealed class SavedViewVersionTests
     /// <summary>A version from the future is refused rather than guessed at.</summary>
     [Theory]
     [InlineData(0)]
-    [InlineData(3)]
+    [InlineData(4)]
     [InlineData(99)]
     public void AnUnknownVersion_IsRefused(int version)
     {
@@ -59,11 +59,76 @@ public sealed class SavedViewVersionTests
     }
 
     /// <summary>The understood range is contiguous and includes what M3 wrote.</summary>
+    /// <remarks>
+    /// Pinned deliberately. Raising the minimum is how views saved by an earlier
+    /// build stop working, so it should be a visible decision rather than a
+    /// side effect of adding a target.
+    /// </remarks>
     [Fact]
     public void TheUnderstoodRange_CoversEveryVersionEverShipped()
     {
         Assert.Equal(1, SavedViewDefinition.MinimumUnderstoodVersion);
-        Assert.Equal(2, SavedViewDefinition.CurrentDefinitionVersion);
+        Assert.Equal(3, SavedViewDefinition.CurrentDefinitionVersion);
+    }
+
+    /// <summary>
+    /// Every target says which definition version it arrived in.
+    /// </summary>
+    /// <remarks>
+    /// A missing entry would throw at validation time for any view naming that
+    /// target, which is a runtime failure for something knowable now.
+    /// </remarks>
+    [Fact]
+    public void EveryTarget_SaysWhenItArrived()
+    {
+        foreach (SavedViewTarget target in Enum.GetValues<SavedViewTarget>())
+        {
+            Assert.True(
+                SavedViewDefinition.TargetIntroducedIn.ContainsKey(target),
+                $"{target} does not say which definition version introduced it.");
+
+            int introduced = SavedViewDefinition.TargetIntroducedIn[target];
+
+            Assert.InRange(
+                introduced,
+                SavedViewDefinition.MinimumUnderstoodVersion,
+                SavedViewDefinition.CurrentDefinitionVersion);
+        }
+    }
+
+    /// <summary>
+    /// A target cannot be claimed at a version that predates it.
+    /// </summary>
+    /// <remarks>
+    /// Otherwise the version number describes nothing: a document could say it was
+    /// written by a build that had never heard of the target it names.
+    /// </remarks>
+    [Fact]
+    public void ATargetOlderThanItsVersion_IsRefused()
+    {
+        SavedViewDefinition definition = new(
+            2,
+            SavedViewTarget.Projects,
+            new SavedViewFilters());
+
+        DomainException failure = Assert.Throws<DomainException>(definition.Validate);
+
+        Assert.Contains("did not exist", failure.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>A target at or after the version it arrived in is fine.</summary>
+    [Fact]
+    public void ATargetAtItsOwnVersion_IsAccepted()
+    {
+        foreach (SavedViewTarget target in Enum.GetValues<SavedViewTarget>())
+        {
+            SavedViewDefinition definition = new(
+                SavedViewDefinition.TargetIntroducedIn[target],
+                target,
+                new SavedViewFilters());
+
+            definition.Validate();
+        }
     }
 
     /// <summary>Every target has an explicit sortable-field allow-list.</summary>

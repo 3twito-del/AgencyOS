@@ -151,6 +151,97 @@ stored. Document storage is M10.
 - Id, PersonId, Title, Type, Status, ExternalUri?, Notes?
 - Version, CreatedAt, UpdatedAt
 
+## M5 entities — projects and packaging
+
+Implemented in M5. `docs/adr/ADR-0018-project-status-stage-and-vocabularies.md` and
+`ADR-0019-attachment-participation-and-packages.md` record why the shape is this
+one.
+
+### Project
+The canonical work. Status and stage are separate columns because they are separate
+facts: status says whether anybody is working it, stage says how far the work got.
+- Id, Title, WorkingTitle?, Type, Status, Stage
+- Logline?, Synopsis?, Year?, Notes?
+- PrimaryCompanyId? — a display convenience, not the company structure
+- LeadUserId? — internal owner
+- Version, CreatedAt, UpdatedAt, CreatedBy
+
+### ProjectEvent
+Append-only. One row per status or stage change, with a reason.
+
+### SourceProperty
+What a project derives from, **as described**. Asserts nothing about ownership,
+availability, options, territories or windows — those are M8, and the name is
+chosen so nobody mistakes this for a rights position.
+- Id, Title, Type, AttributedCreator? (free text), CreatorPersonId? (when known)
+- SourceReference? (ISBN, URL), Provenance?, Year?, Notes?
+- Version, CreatedAt, UpdatedAt
+
+### ProjectSourceProperty
+Many-to-many link. One book spawns a film and a series; one project draws on a book
+and an article. Unique per (project, source property).
+
+### ProjectRole
+A position, which may or may not be occupied. A role is not the person in it, and
+the occupant arrives only through an `Attachment`.
+- Id, ProjectId, Type, Label? (character name or description)
+- Status (Open | Filled | OnHold | Closed) — **derived from attachments, never set
+  by hand**
+- IsExclusive — opt-in; a convenience constraint should fail open
+- Notes?, CreatedAt, UpdatedAt
+
+### Attachment
+A person's or company's commitment to a role. Every status is a claim about the
+world; there is deliberately no `Targeted`.
+- Id, ProjectId, ProjectRoleId
+- PersonId? / CompanyId? — exactly one, enforced by CHECK
+- Status (InDiscussion | Attached ↔ Conditional | Ended | Withdrawn)
+- RoleIsExclusive — copied from the role; the only denormalization in M5, because
+  PostgreSQL forbids a subquery in an index predicate
+- StartsOn, EndsOn?, Source?, Notes?
+- Version, CreatedAt, UpdatedAt, CreatedBy
+- Partial unique index: one holder per exclusive role, where status occupies it.
+
+### AttachmentEvent
+Append-only. One row per status change.
+
+### ProjectCompanyParticipation
+A company's structural involvement — deliberately not an attachment, because a
+studio is not a position anybody fills.
+- Id, ProjectId, CompanyId, Capacity (Studio | Network | Streamer |
+  ProductionCompany | Financier | Distributor | SalesCompany | Other)
+- StartsOn, EndsOn?, Notes?
+- Partial unique index: one open involvement per (project, company, capacity).
+
+### Package
+The agency's own assembly, allowed to contain hopes as well as facts.
+- Id, ProjectId, Name, Status (Draft | Assembling ↔ Ready | Active ↔ Paused |
+  Closed | Abandoned)
+- Thesis?, StrategyNotes? (sensitive; requires `packages.strategy.read`)
+- LeadUserId, Version, CreatedAt, UpdatedAt, CreatedBy
+
+### PackageEvent
+Append-only. One row per status change.
+
+### PackageElement
+One item in the assembly.
+- Id, PackageId, Kind (AttachedParty | ProposedPerson | ProposedCompany | OpenRole
+  | Material | SourceProperty), TargetId, Note?, Position
+- Unique per (package, kind, target).
+
+`TargetId` is a raw identifier interpreted by kind. A foreign key per kind would be
+six mostly-null columns and an unreadable check constraint; instead every target is
+resolved against the tenant before it is stored.
+
+### ProjectMaterialLink
+Join between a project and an M4 material. A column on `Material` would force 1:1
+and would express a project fact by mutating the talent's own record.
+
+### Credit (M4, seam closed here)
+`Credit.ProjectId` becomes a real composite, tenant-qualified foreign key. Still
+nullable, because most historical credits describe work the agency had nothing to
+do with. Linking is always an explicit command — never inferred from a title.
+
 ## Temporal modeling
 
 Effective-date history rather than destructive overwrite, applied from M4 onward.
@@ -169,5 +260,9 @@ Business dates use `DateOnly`, mapping to PostgreSQL `date`. A representation th
 started on 3 March did not start at a time of day anybody agreed, and storing one
 would invent a fact.
 
-Employment, attachments, rights and contractual relationships follow the same
-pattern when their milestones arrive.
+M5 follows the same pattern: `Attachment` and `ProjectCompanyParticipation` are
+effective-dated with period check constraints, and status changes on projects,
+attachments and packages are append-only events beside the current value.
+
+Rights and contractual relationships follow the same pattern when their milestones
+arrive.

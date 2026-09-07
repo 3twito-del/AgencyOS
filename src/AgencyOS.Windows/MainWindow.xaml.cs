@@ -112,6 +112,18 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
         });
 
+        AddAccelerator(VirtualKey.Number8, VirtualKeyModifiers.Control, (_, args) =>
+        {
+            SelectMenu(7);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.Number9, VirtualKeyModifiers.Control, (_, args) =>
+        {
+            SelectMenu(8);
+            args.Handled = true;
+        });
+
         AddAccelerator(VirtualKey.K, VirtualKeyModifiers.Control, (_, args) =>
         {
             ToggleSearch();
@@ -160,6 +172,8 @@ public sealed partial class MainWindow : Window
             "companies" => typeof(CompaniesPage),
             "talent" => typeof(TalentPage),
             "prospects" => typeof(ProspectsPage),
+            "projects" => typeof(ProjectsPage),
+            "packages" => typeof(PackagesPage),
             "saved-views" => typeof(SavedViewsPage),
             "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
@@ -267,12 +281,20 @@ public sealed partial class MainWindow : Window
                 SelectMenu(4);
                 return;
 
-            case "go.saved-views":
+            case "go.projects":
                 SelectMenu(5);
                 return;
 
-            case "go.sync":
+            case "go.packages":
                 SelectMenu(6);
+                return;
+
+            case "go.saved-views":
+                SelectMenu(7);
+                return;
+
+            case "go.sync":
+                SelectMenu(8);
                 return;
 
             case "search.open":

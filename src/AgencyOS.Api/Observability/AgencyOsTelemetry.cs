@@ -72,6 +72,39 @@ public static class AgencyOsTelemetry
             "agencyos.representation.transitions",
             description: "Representation status changes.");
 
+    /// <summary>Project operational status changes.</summary>
+    /// <remarks>
+    /// Status and stage are counted separately because they answer different
+    /// questions: how many projects are being cancelled, versus how much work is
+    /// moving through development. One counter would conflate them.
+    /// </remarks>
+    public static Counter<long> ProjectStatusChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.project.status.changes",
+            description: "Project operational status changes.");
+
+    /// <summary>Project development stage changes.</summary>
+    public static Counter<long> ProjectStageChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.project.stage.changes",
+            description: "Project development stage changes.");
+
+    /// <summary>Attachments created or moved.</summary>
+    /// <remarks>
+    /// The high-traffic consequential mutation in M5, and the one whose invariant a
+    /// concurrent retry could most easily test.
+    /// </remarks>
+    public static Counter<long> AttachmentChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.project.attachment.changes",
+            description: "Attachments created or moved to a new status.");
+
+    /// <summary>Package status changes.</summary>
+    public static Counter<long> PackageStatusChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.package.status.changes",
+            description: "Package status changes.");
+
     /// <summary>Writes refused because the record had moved on.</summary>
     public static Counter<long> VersionConflicts { get; } =
         Meter.CreateCounter<long>(

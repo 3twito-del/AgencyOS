@@ -4,6 +4,7 @@ using AgencyOS.Application.Search;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
+using AgencyOS.Domain.Projects;
 using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -178,6 +179,58 @@ internal sealed class SearchQueries : ISearchQueries
                     : $"t.status <> {(int)MaterialStatus.Retired}"));
         }
 
+        if (types.Contains(SearchEntityType.Project))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Project,
+                table: "projects",
+                idColumn: "id",
+                titleColumn: "title",
+                subtitleExpression: "COALESCE(t.working_title, t.logline)",
+                statusColumn: "status",
+
+                // An archived project is filed away rather than deleted, so it is
+                // the project equivalent of an archived person: still findable when
+                // asked for, absent from the working set.
+                archivedPredicate: includeArchived
+                    ? "TRUE"
+                    : $"t.status <> {(int)ProjectStatus.Archived}"));
+        }
+
+        if (types.Contains(SearchEntityType.SourceProperty))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.SourceProperty,
+                table: "source_properties",
+                idColumn: "id",
+                titleColumn: "title",
+                subtitleExpression: "COALESCE(t.attributed_creator, t.source_reference)",
+
+                // A source property has no lifecycle: it either is a book or it is
+                // not. The type stands in for a status so the shared shape holds.
+                statusColumn: "type",
+                archivedPredicate: "TRUE"));
+        }
+
+        if (types.Contains(SearchEntityType.Package))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Package,
+                table: "packages",
+                idColumn: "id",
+                titleColumn: "name",
+
+                // Deliberately not strategy_notes. A caller without
+                // packages.strategy.read must not be able to confirm what a note
+                // says by searching a phrase and watching the package surface
+                // (ADR-0019).
+                subtitleExpression: "t.thesis",
+                statusColumn: "status",
+                archivedPredicate: includeArchived
+                    ? "TRUE"
+                    : $"t.status NOT IN ({(int)PackageStatus.Closed}, {(int)PackageStatus.Abandoned})"));
+        }
+
         if (branches.Count == 0)
         {
             return new SearchResultModel([], HasMore: false);
@@ -272,6 +325,9 @@ internal sealed class SearchQueries : ISearchQueries
         SearchEntityType.Task => ((TaskState)status).ToString(),
         SearchEntityType.Credit => ((CreditStatus)status).ToString(),
         SearchEntityType.Material => ((MaterialStatus)status).ToString(),
+        SearchEntityType.Project => ((ProjectStatus)status).ToString(),
+        SearchEntityType.SourceProperty => ((SourcePropertyType)status).ToString(),
+        SearchEntityType.Package => ((PackageStatus)status).ToString(),
         _ => status.ToString(CultureInfo.InvariantCulture),
     };
 }

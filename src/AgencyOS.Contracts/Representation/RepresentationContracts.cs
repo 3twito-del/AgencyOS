@@ -283,6 +283,11 @@ public sealed record ProspectResponse(
     DateTimeOffset UpdatedAt,
     int Version);
 
+/// <param name="ProjectId">
+/// The canonical project this credit belongs to, when one has been identified.
+/// Null for the many credits describing work the agency had nothing to do with,
+/// and linked only by an explicit command - never inferred from the title.
+/// </param>
 public sealed record CreditResponse(
     Guid Id,
     Guid PersonId,
@@ -295,6 +300,7 @@ public sealed record CreditResponse(
     string? CompanyName,
     string? Source,
     string? Notes,
+    Guid? ProjectId,
     int Version);
 
 /// <param name="ExternalUri">Where the document lives. Never a device-local path.</param>

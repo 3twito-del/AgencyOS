@@ -61,6 +61,38 @@ entry that nothing enqueues is exactly that. The condition for adding them is a
 Windows surface that genuinely captures a credit or a material away from a
 connection.
 
+## ONLINE_ONLY (all M5 mutations)
+
+| Command | Why it is not queued |
+|---|---|
+| CreateProject / UpdateProject | Could be made safe; see below. |
+| ChangeProjectStatus | The legal target depends on the current status, which an offline client may not have. |
+| ChangeProjectStage | Effective immediately and freely reversible, so a stale queued move would silently undo a colleague's correction. |
+| CreateProjectRole / ChangeProjectRole | Role exclusivity is a statement about the whole roster, and the roster is what an offline client cannot see. |
+| AttachToProjectRole | **The invariant this milestone exists to protect.** Two agents attaching different directors offline would both believe they succeeded, and only one can. Deferring that discovery by hours is worse than refusing it now. |
+| ChangeAttachmentStatus | Legality depends on the current status, and ending an attachment that has already ended is not a conflict to merge. |
+| AddProjectCompany / EndProjectCompany | Effective-dated, and one open involvement per capacity is enforced per project. |
+| CreateSourceProperty | Could be made safe; see below. |
+| LinkSourceProperty / UnlinkSourceProperty | Version-guarded against a project the client may not hold the current version of. |
+| LinkMaterialToProject / UnlinkMaterialFromProject | As above. |
+| LinkCreditToProject | Asserts that a credit and a project are the same work. That is a judgement worth making with the current record in front of you. |
+| CreatePackage / UpdatePackage | Could be made safe; see below. |
+| ChangePackageStatus | Legality depends on the current status. |
+| AddPackageElement / RemovePackageElement | Element targets are validated against this tenant at execution; queuing would defer that check. |
+
+### Why the additive M5 commands are still ONLINE_ONLY
+
+`CreateProject`, `CreateSourceProperty` and `CreatePackage` would qualify: all
+three are additive, none has a uniqueness constraint that two offline clients
+could both violate, and an idempotency key makes each replay-safe.
+
+They are excluded for the same reason M4 excluded credits and materials: there is
+no offline capture surface for them, so admitting them would widen the queue for a
+workflow that does not exist. `CLAUDE.md` section 5 forbids infrastructure with no
+current workload, and a queue entry nothing enqueues is exactly that. The
+condition for adding them is a Windows surface that genuinely opens a project away
+from a connection.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |
@@ -68,7 +100,9 @@ connection.
 | People list and detail | M3 |
 | Companies list | M3 |
 | Tasks list | M3 |
-| Talent and client list, with representation status, lead and scopes | **M4** |
+| Talent and client list, with representation status, lead and scopes | M4 |
+
+M5 adds nothing to this table. See below.
 
 M4 extends the change feed with a talent entry keyed by **person**, because the
 cached talent row denormalizes representation status and a representation change
@@ -81,7 +115,28 @@ never seen; discarding a cache to avoid writing a migration would lose a user's
 work. `AgencyOS.Tests.Unit.Client.CacheMigrationTests` proves the path before any
 real cache depends on it.
 
-### Deliberately not cached
+### Deliberately not cached: the whole slate
+
+**M5 adds no cached projections, and that is a policy answer rather than an
+omission.** Caching needs a bounded rule saying *which* records, and "all
+projects" is not one.
+
+Talent was cacheable because "the client list" is a well-defined, bounded set an
+agency can reasonably hold on a laptop. The slate has no equivalent bound: an
+agency's projects run to the hundreds, most of them are somebody else's work, and
+the obvious candidate rules - active only, mine only, recently touched - are three
+different answers to a question nobody has yet asked. Picking one on speculation
+is what section 21 of the milestone brief warns against, and picking wrong means
+either a cache that misses what the user wanted or one that syncs a tenant's whole
+history to every device.
+
+The condition for revisiting is a stated rule about which projects a user needs
+away from a connection. Until then, project and package reads are refused offline
+and say so, which is honest.
+
+The cache schema therefore stays at **version 2**. M5 adds no migration.
+
+### Also deliberately not cached
 
 - **Client overview** — composes tasks, interactions, credits, materials and
   history. An offline copy would be a snapshot of five things of differing

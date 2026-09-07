@@ -3,6 +3,7 @@ using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
+using AgencyOS.Domain.Projects;
 
 namespace AgencyOS.Domain.Talent;
 
@@ -98,13 +99,16 @@ public sealed class Credit
     public string? Notes { get; private set; }
 
     /// <summary>
-    /// The canonical project this credit belongs to, once M5 exists.
+    /// The canonical project this credit belongs to, when one has been identified.
     /// </summary>
     /// <remarks>
-    /// Always null in M4. Present so linking is an additive migration rather than a
-    /// redesign.
+    /// The seam M4 left open, closed by M5 with a real foreign key. Still nullable,
+    /// and deliberately so: most historical credits are for work the agency had
+    /// nothing to do with and will never have a project record. Linking is always
+    /// an explicit act - a credit is never matched to a project because the titles
+    /// look alike (ADR-0019).
     /// </remarks>
-    public Guid? ProjectId { get; private set; }
+    public ProjectId? ProjectId { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
 
@@ -168,6 +172,28 @@ public sealed class Credit
         CompanyId = companyId;
         Source = Ensure.OptionalMax(source, nameof(source), 512);
         Notes = Ensure.OptionalMax(notes, nameof(notes), 2000);
+        UpdatedAt = now;
+        Version++;
+    }
+
+    /// <summary>
+    /// Links this credit to a canonical project, or clears the link.
+    /// </summary>
+    /// <remarks>
+    /// The recorded <see cref="Title"/> is left alone either way. What a credit
+    /// said is a fact about the credit, and it stays true whether or not the agency
+    /// has since built a project record for the same work.
+    /// </remarks>
+    public void LinkToProject(ProjectId? projectId, DateTimeOffset now, int expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+
+        if (ProjectId == projectId)
+        {
+            return;
+        }
+
+        ProjectId = projectId;
         UpdatedAt = now;
         Version++;
     }

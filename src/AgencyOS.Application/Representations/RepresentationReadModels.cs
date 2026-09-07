@@ -147,6 +147,7 @@ public sealed record CreditModel(
     string? CompanyName,
     string? Source,
     string? Notes,
+    Guid? ProjectId,
     int Version);
 
 /// <param name="Id">Material identifier.</param>

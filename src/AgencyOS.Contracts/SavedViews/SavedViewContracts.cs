@@ -38,7 +38,14 @@ public sealed record SavedViewFiltersModel(
     bool FormerClientsOnly = false,
     string? ProspectStage = null,
     Guid? OwnerUserId = null,
-    int? FollowUpWithinDays = null);
+    int? FollowUpWithinDays = null,
+    string? ProjectType = null,
+    string? DevelopmentStage = null,
+    string? ProjectStatus = null,
+    Guid? AttachedPersonId = null,
+    string? MissingRoleType = null,
+    string? PackageStatus = null,
+    Guid? ProjectId = null);
 
 /// <param name="Field">Field to order by. Must be sortable for the target.</param>
 /// <param name="Direction">Ascending or Descending.</param>
@@ -82,19 +89,23 @@ public sealed record UpdateSavedViewRequest(
 /// people and tasks as tasks without inspecting a discriminator. Exactly one of
 /// the three collections is populated, named by <paramref name="Target"/>.
 /// </remarks>
-/// <param name="Target">Which list this is: People, Companies, Tasks, Talent or Prospects.</param>
+/// <param name="Target">Which list this is: People, Companies, Tasks, Talent, Prospects, Projects or Packages.</param>
 /// <param name="People">Matching people.</param>
 /// <param name="Companies">Matching companies.</param>
 /// <param name="Tasks">Matching tasks.</param>
 /// <param name="Talent">Matching talent.</param>
 /// <param name="Prospects">Matching prospects.</param>
+/// <param name="Projects">Matching projects.</param>
+/// <param name="Packages">Matching packages.</param>
 public sealed record SavedViewResultsResponse(
     string Target,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.PersonSummaryResponse> People,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.CompanySummaryResponse> Companies,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.TaskResponse> Tasks,
     IReadOnlyList<AgencyOS.Contracts.Representation.TalentSummaryResponse> Talent,
-    IReadOnlyList<AgencyOS.Contracts.Representation.ProspectResponse> Prospects);
+    IReadOnlyList<AgencyOS.Contracts.Representation.ProspectResponse> Prospects,
+    IReadOnlyList<AgencyOS.Contracts.Projects.ProjectSummaryResponse> Projects,
+    IReadOnlyList<AgencyOS.Contracts.Projects.PackageSummaryResponse> Packages);
 
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>
