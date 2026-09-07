@@ -258,6 +258,7 @@ function Invoke-Contract {
         "/api/v1/organizations/{organizationId}/tasks",
         "/api/v1/organizations/{organizationId}/search",
         "/api/v1/organizations/{organizationId}/saved-views",
+        "/api/v1/organizations/{organizationId}/saved-views/{savedViewId}/results",
         "/api/v1/organizations/{organizationId}/sync/changes"
     )
 

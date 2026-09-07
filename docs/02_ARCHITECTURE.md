@@ -111,7 +111,11 @@ Canonical:
 - PostgreSQL.
 
 Local:
-- SQLite cache, encrypted where appropriate.
+- SQLite cache, encrypted. "Where appropriate" was resolved in M3: the client
+  cache holds contact data, so it is always encrypted with SQLCipher under a
+  DPAPI-protected key, and isolated per channel, tenant and user. It is never
+  canonical and can always be rebuilt from the change feed. See
+  `docs/adr/ADR-0015-local-cache-encryption.md`.
 
 Projections later:
 - pgvector inside PostgreSQL first;

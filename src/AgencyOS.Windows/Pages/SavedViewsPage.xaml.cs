@@ -32,6 +32,7 @@ public sealed partial class SavedViewsPage : Page, IPaletteCommandTarget
             _viewModel.PropertyChanged += (_, _) => Render();
 
             ViewList.ItemsSource = _viewModel.Views;
+            ResultList.ItemsSource = _viewModel.Results;
         }
 
         TargetBox.SelectedIndex = 0;
@@ -50,6 +51,10 @@ public sealed partial class SavedViewsPage : Page, IPaletteCommandTarget
 
             case "view.save":
                 _ = SaveAsync();
+                break;
+
+            case "view.run":
+                _ = RunAsync();
                 break;
 
             default:
@@ -98,6 +103,7 @@ public sealed partial class SavedViewsPage : Page, IPaletteCommandTarget
         }
 
         _viewModel.Selected = view;
+        _viewModel.Results.Clear();
 
         NameBox.Text = view.Name;
         SelectByTag(TargetBox, view.Target);
@@ -110,6 +116,27 @@ public sealed partial class SavedViewsPage : Page, IPaletteCommandTarget
     }
 
     private void OnSaveClick(object sender, RoutedEventArgs e) => _ = SaveAsync();
+
+    private void OnRunClick(object sender, RoutedEventArgs e) => _ = RunAsync();
+
+    /// <summary>
+    /// Runs the selected view.
+    /// </summary>
+    /// <remarks>
+    /// The server re-checks the target's read permission as it runs, so a view
+    /// saved while a grant was held stops returning rows once that grant is
+    /// revoked. The client neither decides that nor caches the answer.
+    /// </remarks>
+    private async Task RunAsync()
+    {
+        if (_viewModel?.Selected is not { } selected)
+        {
+            return;
+        }
+
+        await _viewModel.RunAsync(selected).ConfigureAwait(true);
+        Render();
+    }
 
     private async Task SaveAsync()
     {
@@ -213,6 +240,8 @@ public sealed partial class SavedViewsPage : Page, IPaletteCommandTarget
 
         DetailEmpty.IsOpen = _viewModel.Selected is null;
         DeleteButton.IsEnabled = _viewModel.Selected is not null;
+        RunButton.IsEnabled = _viewModel.Selected is not null;
+        NoResultsBar.IsOpen = _viewModel.HasNoResults;
         SaveButton.Content = _viewModel.Selected is null ? "Create" : "Save";
 
         VersionText.Text = _viewModel.Selected is { } selected

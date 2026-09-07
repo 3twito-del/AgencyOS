@@ -90,6 +90,7 @@ public sealed class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/search")]
     [InlineData("/api/v1/organizations/{organizationId}/saved-views")]
     [InlineData("/api/v1/organizations/{organizationId}/saved-views/{savedViewId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/saved-views/{savedViewId}/results")]
     [InlineData("/api/v1/organizations/{organizationId}/sync/changes")]
     [InlineData("/api/v1/organizations/{organizationId}/sync/head")]
     public async Task Contract_DescribesTheImplementedSurface(string path)

@@ -80,7 +80,11 @@ public sealed class SavedViewService
             [SavedViewTarget.Tasks] = Permission.TasksRead,
         };
 
+    /// <summary>Largest page a saved view returns.</summary>
+    private const int MaximumResults = 200;
+
     private readonly ISavedViewRepository _views;
+    private readonly ISavedViewResultQueries _results;
     private readonly TenantGuard _guard;
     private readonly AuditRecorder _audit;
     private readonly IClock _clock;
@@ -88,12 +92,14 @@ public sealed class SavedViewService
 
     public SavedViewService(
         ISavedViewRepository views,
+        ISavedViewResultQueries results,
         TenantGuard guard,
         AuditRecorder audit,
         IClock clock,
         IUnitOfWork unitOfWork)
     {
         _views = views;
+        _results = results;
         _guard = guard;
         _audit = audit;
         _clock = clock;
@@ -119,6 +125,46 @@ public sealed class SavedViewService
         UserId owner = await AuthorizeOwnerAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         return await _views.FindAsync(organizationId, owner, id, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Runs one of the caller's saved views.
+    /// </summary>
+    /// <remarks>
+    /// The target's read permission is checked here, at execution time, not at the
+    /// time the view was saved. A view composed in March must stop working in June
+    /// if the grant behind it was revoked; a stored document is not a standing
+    /// authorization.
+    /// </remarks>
+    public async Task<SavedViewResultModel?> RunAsync(
+        OrganizationId organizationId,
+        SavedViewId id,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        UserId owner = await AuthorizeOwnerAsync(organizationId, cancellationToken).ConfigureAwait(false);
+
+        SavedView? view = await _views
+            .FindAsync(organizationId, owner, id, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (view is null)
+        {
+            return null;
+        }
+
+        await _guard
+            .AuthorizeAsync(RequiredPermissions[view.Target], organizationId, cancellationToken)
+            .ConfigureAwait(false);
+
+        return await _results
+            .RunAsync(
+                organizationId,
+                view.Definition,
+                _clock.UtcNow,
+                Math.Clamp(limit ?? 50, 1, MaximumResults),
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public async Task<SavedViewId> CreateAsync(

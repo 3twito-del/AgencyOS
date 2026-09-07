@@ -482,6 +482,122 @@ public sealed class SavedViewTests
         Assert.Equal(HttpStatusCode.Forbidden, crossing.StatusCode);
     }
 
+    /// <summary>
+    /// A saved view runs, and its filters actually select.
+    /// </summary>
+    /// <remarks>
+    /// A view that cannot be executed is a bookmark that does nothing. This is the
+    /// difference between storing a definition and having the feature.
+    /// </remarks>
+    [Fact]
+    public async Task ASavedView_RunsAndAppliesItsFilters()
+    {
+        SeededActor actor = await _fixture.SeedActorAsync(AgencyRole.Member, "views-run");
+        using HttpClient client = _fixture.CreateClient(actor.Subject);
+        Guid tenant = actor.Organization.Id.Value;
+
+        using (HttpResponseMessage wanted = await client.PostAsJsonAsync(
+            $"/api/v1/organizations/{tenant}/people",
+            new CreatePersonRequest("Rosalind", "Achebe", Title: "Literary Agent")))
+        {
+            Assert.Equal(HttpStatusCode.Created, wanted.StatusCode);
+        }
+
+        using (HttpResponseMessage other = await client.PostAsJsonAsync(
+            $"/api/v1/organizations/{tenant}/people",
+            new CreatePersonRequest("Tobias", "Achebe", Title: "Accountant")))
+        {
+            Assert.Equal(HttpStatusCode.Created, other.StatusCode);
+        }
+
+        SavedViewResponse view = await CreateAsync(client, tenant, "Agents only", "People");
+
+        using (HttpResponseMessage narrow = await client.PutAsJsonAsync(
+            $"/api/v1/organizations/{tenant}/saved-views/{view.Id}",
+            new UpdateSavedViewRequest(
+                "Agents only",
+                new SavedViewDefinitionModel(
+                    1,
+                    "People",
+                    new SavedViewFiltersModel(Status: "Active", TitleContains: "Literary")),
+                view.Version)))
+        {
+            Assert.Equal(HttpStatusCode.OK, narrow.StatusCode);
+        }
+
+        using HttpResponseMessage response = await client.GetAsync(
+            $"/api/v1/organizations/{tenant}/saved-views/{view.Id}/results");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        SavedViewResultsResponse results =
+            (await response.Content.ReadFromJsonAsync<SavedViewResultsResponse>())!;
+
+        Assert.Equal("People", results.Target);
+        Assert.Equal("Rosalind Achebe", Assert.Single(results.People).DisplayName);
+        Assert.Empty(results.Companies);
+        Assert.Empty(results.Tasks);
+    }
+
+    /// <summary>A task view runs against tasks, and overdue means open and past due.</summary>
+    [Fact]
+    public async Task ATaskView_RunsAgainstTasks()
+    {
+        SeededActor actor = await _fixture.SeedActorAsync(AgencyRole.Member, "views-run-tasks");
+        using HttpClient client = _fixture.CreateClient(actor.Subject);
+        Guid tenant = actor.Organization.Id.Value;
+
+        using (HttpResponseMessage task = await client.PostAsJsonAsync(
+            $"/api/v1/organizations/{tenant}/tasks",
+            new CreateTaskRequest("Chase the option paperwork", DateTimeOffset.UtcNow.AddDays(-2))))
+        {
+            Assert.Equal(HttpStatusCode.Created, task.StatusCode);
+        }
+
+        using HttpResponseMessage created = await client.PostAsJsonAsync(
+            $"/api/v1/organizations/{tenant}/saved-views",
+            new CreateSavedViewRequest(
+                "Overdue",
+                new SavedViewDefinitionModel(1, "Tasks", new SavedViewFiltersModel(OverdueOnly: true))));
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+
+        SavedViewResponse view = (await created.Content.ReadFromJsonAsync<SavedViewResponse>())!;
+
+        using HttpResponseMessage response = await client.GetAsync(
+            $"/api/v1/organizations/{tenant}/saved-views/{view.Id}/results");
+
+        SavedViewResultsResponse results =
+            (await response.Content.ReadFromJsonAsync<SavedViewResultsResponse>())!;
+
+        Assert.Equal("Tasks", results.Target);
+        Assert.Equal("Chase the option paperwork", Assert.Single(results.Tasks).Title);
+    }
+
+    /// <summary>Running another user's view is a 404, exactly as reading it is.</summary>
+    [Fact]
+    public async Task RunningAnotherUsersView_IsRefused()
+    {
+        SeededActor owner = await _fixture.SeedActorAsync(AgencyRole.Member, "views-run-owner");
+
+        string otherSubject = $"views-run-other-{Guid.NewGuid():N}";
+        Domain.Identity.User other = await _fixture.SeedUserAsync(otherSubject, "Other Member");
+
+        await _fixture.SeedMembershipAsync(owner.Organization.Id, other.Id, AgencyRole.Member, owner.User.Id);
+
+        using HttpClient ownerClient = _fixture.CreateClient(owner.Subject);
+        Guid tenant = owner.Organization.Id.Value;
+
+        SavedViewResponse mine = await CreateAsync(ownerClient, tenant, "Private view", "People");
+
+        using HttpClient otherClient = _fixture.CreateClient(otherSubject);
+
+        using HttpResponseMessage response = await otherClient.GetAsync(
+            $"/api/v1/organizations/{tenant}/saved-views/{mine.Id}/results");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     // ------------------------------------------------------------- plumbing
 
     private static SavedViewDefinitionModel Definition(string target) =>

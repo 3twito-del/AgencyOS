@@ -67,6 +67,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ISearchQueries, SearchQueries>();
         services.AddScoped<ISyncQueries, SyncQueries>();
         services.AddScoped<ISavedViewRepository, SavedViewRepository>();
+        services.AddScoped<ISavedViewResultQueries, SavedViewResultQueries>();
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();

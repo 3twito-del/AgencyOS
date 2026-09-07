@@ -335,6 +335,18 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
         return Task.CompletedTask;
     }
 
+    public Task<SavedViewResultsResponse> RunSavedViewAsync(
+        Guid savedViewId,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        SavedViewResponse view = SavedViews.Single(x => x.Id == savedViewId);
+
+        return Task.FromResult(new SavedViewResultsResponse(view.Target, [.. People], [.. Companies], []));
+    }
+
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
         long cursor,
         int? take = null,

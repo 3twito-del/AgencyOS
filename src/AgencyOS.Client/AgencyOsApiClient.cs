@@ -199,6 +199,12 @@ public interface IAgencyOsApi
 
     Task DeleteSavedViewAsync(Guid savedViewId, CancellationToken cancellationToken = default);
 
+    /// <summary>Runs a saved view, which re-checks the caller's permission server-side.</summary>
+    Task<SavedViewResultsResponse> RunSavedViewAsync(
+        Guid savedViewId,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
     Task<SyncChangesResponse> ReadSyncChangesAsync(
         long cursor,
         int? take = null,
@@ -484,6 +490,21 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
             .ConfigureAwait(false);
 
         await EnsureSuccessAsync(response, cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task<SavedViewResultsResponse> RunSavedViewAsync(
+        Guid savedViewId,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        string uri = $"{TenantRoot}/saved-views/{savedViewId}/results";
+
+        if (limit is { } size)
+        {
+            uri += $"?limit={size.ToString(CultureInfo.InvariantCulture)}";
+        }
+
+        return GetAsync<SavedViewResultsResponse>(uri, cancellationToken);
     }
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(

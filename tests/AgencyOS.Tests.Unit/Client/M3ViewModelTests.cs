@@ -214,6 +214,51 @@ public sealed class SavedViewsViewModelTests
         Assert.True(viewModel.IsEmpty);
     }
 
+    /// <summary>Running a view surfaces its rows, flattened for one list.</summary>
+    [Fact]
+    public async Task Run_ShowsWhatTheViewReturned()
+    {
+        FakeAgencyOsApi api = new();
+
+        api.People.Add(new PersonSummaryResponse(
+            Guid.NewGuid(), "Rosalind Achebe", "Literary Agent", null, null, "Active", null, null,
+            DateTimeOffset.UtcNow, 1));
+
+        SavedViewsViewModel viewModel = new(api);
+
+        await viewModel.CreateAsync("Agents", Definition("People"));
+        await viewModel.RunAsync(viewModel.Views[0]);
+
+        SavedViewRow row = Assert.Single(viewModel.Results);
+
+        Assert.Equal("Rosalind Achebe", row.Title);
+        Assert.Equal("Person", row.Kind);
+        Assert.True(viewModel.HasRun);
+        Assert.False(viewModel.HasNoResults);
+    }
+
+    /// <summary>
+    /// A view that matches nothing is a correct answer, not an empty screen.
+    /// </summary>
+    /// <remarks>
+    /// Distinct from having no saved views at all, which is what
+    /// <c>IsEmpty</c> reports. Conflating the two would tell a user their view was
+    /// missing when it simply found nothing.
+    /// </remarks>
+    [Fact]
+    public async Task Run_WithNoMatches_SaysSoWithoutClaimingThereAreNoViews()
+    {
+        SavedViewsViewModel viewModel = new(new FakeAgencyOsApi());
+
+        await viewModel.CreateAsync("Agents", Definition("People"));
+        await viewModel.RunAsync(viewModel.Views[0]);
+
+        Assert.Empty(viewModel.Results);
+        Assert.True(viewModel.HasNoResults);
+        Assert.False(viewModel.IsEmpty);
+        Assert.False(viewModel.HasError);
+    }
+
     private static SavedViewDefinitionModel Definition(string target) =>
         new(1, target, new SavedViewFiltersModel(Status: "Active"));
 }

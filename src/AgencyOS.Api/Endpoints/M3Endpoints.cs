@@ -118,6 +118,39 @@ internal static class M3Endpoints
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("GetSavedView");
 
+        tenant.MapGet("/saved-views/{savedViewId:guid}/results", async (
+                Guid organizationId,
+                Guid savedViewId,
+                SavedViewService views,
+                int? limit,
+                CancellationToken cancellationToken) =>
+            {
+                using Activity? activity = AgencyOsTelemetry.Source.StartActivity("agencyos.savedview.run");
+
+                SavedViewResultModel? results = await views
+                    .RunAsync(
+                        new OrganizationId(organizationId),
+                        new SavedViewId(savedViewId),
+                        limit,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (results is null)
+                {
+                    return Results.NotFound();
+                }
+
+                activity?.SetTag("agencyos.savedview.rows", results.Count);
+
+                return Results.Ok(new SavedViewResultsResponse(
+                    results.Target.ToString(),
+                    [.. results.People.Select(MapPerson)],
+                    [.. results.Companies.Select(MapCompany)],
+                    [.. results.Tasks.Select(MapTask)]));
+            })
+            .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
+            .WithName("RunSavedView");
+
         tenant.MapPost("/saved-views", async (
                 Guid organizationId,
                 CreateSavedViewRequest request,

@@ -94,16 +94,62 @@
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
                 <Button x:Name="SaveButton" Content="Save" Click="OnSaveClick" Style="{StaticResource AccentButtonStyle}" />
+                <Button x:Name="RunButton" Content="Run" Click="OnRunClick" />
                 <Button x:Name="DeleteButton" Content="Delete" Click="OnDeleteClick" />
                 <Button Content="Refresh" Click="OnRefreshClick" />
             </StackPanel>
 
-            <TextBlock
-                Grid.Row="3"
-                x:Name="VersionText"
-                VerticalAlignment="Bottom"
-                Opacity="0.6"
-                Style="{StaticResource CaptionTextBlockStyle}" />
+            <Grid Grid.Row="3" RowSpacing="6">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Results" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                <InfoBar
+                    Grid.Row="1"
+                    x:Name="NoResultsBar"
+                    Severity="Informational"
+                    IsOpen="False"
+                    IsClosable="False"
+                    Title="Nothing matched"
+                    Message="This view is correct; there is simply nothing that fits it right now." />
+
+                <ListView Grid.Row="2" x:Name="ResultList" SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="1">
+                                    <TextBlock Text="{Binding Title}" />
+                                    <TextBlock
+                                        Text="{Binding Subtitle}"
+                                        Opacity="0.65"
+                                        Style="{StaticResource CaptionTextBlockStyle}" />
+                                </StackPanel>
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Text="{Binding Kind}"
+                                    VerticalAlignment="Center"
+                                    Opacity="0.55"
+                                    Style="{StaticResource CaptionTextBlockStyle}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <TextBlock
+                    Grid.Row="3"
+                    x:Name="VersionText"
+                    Opacity="0.6"
+                    Style="{StaticResource CaptionTextBlockStyle}" />
+            </Grid>
         </Grid>
     </Grid>
 </Page>

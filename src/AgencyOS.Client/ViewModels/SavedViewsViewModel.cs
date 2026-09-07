@@ -1,7 +1,15 @@
 using System.Collections.ObjectModel;
+using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.SavedViews;
 
 namespace AgencyOS.Client.ViewModels;
+
+/// <summary>One row a saved view returned, flattened for display.</summary>
+/// <param name="Id">Identifier of the record, so the row can be opened.</param>
+/// <param name="Title">Primary label.</param>
+/// <param name="Subtitle">Supporting context.</param>
+/// <param name="Kind">Person, Company or Task.</param>
+public sealed record SavedViewRow(Guid Id, string Title, string? Subtitle, string Kind);
 
 /// <summary>
 /// The user's own saved views: list, create, rename, replace, delete.
@@ -23,6 +31,7 @@ public sealed class SavedViewsViewModel : ViewModelBase
 
     private SavedViewResponse? _selected;
     private bool _loaded;
+    private bool _hasRun;
 
     public SavedViewsViewModel(IAgencyOsApi api)
     {
@@ -31,6 +40,16 @@ public sealed class SavedViewsViewModel : ViewModelBase
     }
 
     public ObservableCollection<SavedViewResponse> Views { get; } = [];
+
+    /// <summary>Rows the selected view returned, as one flat list for display.</summary>
+    /// <remarks>
+    /// Flattened here rather than in the contract: the response is typed per target
+    /// so a caller can render each kind properly, and this screen wants one list.
+    /// </remarks>
+    public ObservableCollection<SavedViewRow> Results { get; } = [];
+
+    /// <summary>Gets a value indicating whether the selected view has been run.</summary>
+    public bool HasRun => _hasRun;
 
     /// <summary>The view the user is looking at, if any.</summary>
     public SavedViewResponse? Selected
@@ -126,6 +145,58 @@ public sealed class SavedViewsViewModel : ViewModelBase
     /// empty state hidden after deleting the last view - the list would be empty
     /// and the screen would show nothing at all.
     /// </remarks>
+    /// <summary>
+    /// Runs the selected view and shows what it returned.
+    /// </summary>
+    /// <remarks>
+    /// The server re-checks the target's read permission when it runs, so a view
+    /// composed while a grant was held stops working once it is revoked. The
+    /// client does not decide that and does not cache the answer.
+    /// </remarks>
+    public Task RunAsync(SavedViewResponse view, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+
+        return RunAsync(async token =>
+        {
+            SavedViewResultsResponse results = await _api
+                .RunSavedViewAsync(view.Id, limit: null, token)
+                .ConfigureAwait(true);
+
+            Results.Clear();
+
+            foreach (PersonSummaryResponse person in results.People)
+            {
+                Results.Add(new SavedViewRow(person.Id, person.DisplayName, person.Title ?? person.Email, "Person"));
+            }
+
+            foreach (CompanySummaryResponse company in results.Companies)
+            {
+                Results.Add(new SavedViewRow(company.Id, company.Name, company.Type, "Company"));
+            }
+
+            foreach (TaskResponse task in results.Tasks)
+            {
+                Results.Add(new SavedViewRow(
+                    task.Id,
+                    task.Title,
+                    task.DueAt is { } due ? $"due {due:d}" : "no due date",
+                    "Task"));
+            }
+
+            _hasRun = true;
+            OnPropertyChanged(nameof(HasRun));
+            OnPropertyChanged(nameof(HasNoResults));
+        }, cancellationToken);
+    }
+
+    /// <summary>Gets a value indicating whether the view ran and matched nothing.</summary>
+    /// <remarks>
+    /// Distinct from <see cref="IsEmpty"/>, which is about having no saved views at
+    /// all. A view that matches nothing is a useful, correct answer.
+    /// </remarks>
+    public bool HasNoResults => _hasRun && Results.Count == 0;
+
     private void Replace(IReadOnlyList<SavedViewResponse> views)
     {
         _loaded = true;

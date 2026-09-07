@@ -57,6 +57,24 @@ public sealed record UpdateSavedViewRequest(
     SavedViewDefinitionModel Definition,
     int ExpectedVersion);
 
+/// <summary>
+/// What running a saved view produced.
+/// </summary>
+/// <remarks>
+/// Typed per target rather than one untyped list, so the client renders people as
+/// people and tasks as tasks without inspecting a discriminator. Exactly one of
+/// the three collections is populated, named by <paramref name="Target"/>.
+/// </remarks>
+/// <param name="Target">Which list this is: People, Companies or Tasks.</param>
+/// <param name="People">Matching people.</param>
+/// <param name="Companies">Matching companies.</param>
+/// <param name="Tasks">Matching tasks.</param>
+public sealed record SavedViewResultsResponse(
+    string Target,
+    IReadOnlyList<AgencyOS.Contracts.PeopleSlice.PersonSummaryResponse> People,
+    IReadOnlyList<AgencyOS.Contracts.PeopleSlice.CompanySummaryResponse> Companies,
+    IReadOnlyList<AgencyOS.Contracts.PeopleSlice.TaskResponse> Tasks);
+
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>
 /// <param name="Target">What it lists.</param>

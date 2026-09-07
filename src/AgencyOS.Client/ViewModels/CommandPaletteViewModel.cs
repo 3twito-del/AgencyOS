@@ -134,6 +134,7 @@ public sealed class CommandPaletteViewModel : ViewModelBase
         new("task.create", "New task", "Create", "Ctrl+T"),
         new("relationship.create", "Connect two parties", "Create"),
         new("view.save", "Save current view", "View"),
+        new("view.run", "Run selected view", "View"),
         new("sync.now", "Synchronize now", "Sync", "F9"),
         new("cache.reset", "Reset local cache", "Sync"),
         new("view.refresh", "Refresh", "View", "F5"),
