@@ -1,5 +1,6 @@
 using System.Reflection;
 using AgencyOS.Client;
+using AgencyOS.Client.Cache;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
@@ -724,6 +725,53 @@ public sealed class ClientBoundaryTests
             .Select(reference => reference.Name);
 
         Assert.DoesNotContain(assemblyName, referenced);
+    }
+
+    /// <summary>
+    /// The offline queue may only carry reversible, low-risk commands.
+    /// </summary>
+    /// <remarks>
+    /// The allow-list is closed by construction, and this pins it. Queueing a
+    /// privileged operation would mean deciding offline that it is permitted;
+    /// possession of a cached record is not permission to change anything, and the
+    /// server re-authorizes every queued command when it finally runs. Nothing
+    /// touching authorization, release policy, bootstrap, deletion, deals or money
+    /// belongs here - adding one should require editing this test and saying why.
+    /// </remarks>
+    [Fact]
+    public void TheOfflineQueueCarriesOnlyReversibleLowRiskCommands()
+    {
+        string[] permitted =
+        [
+            nameof(QueuedOperation.CreatePerson),
+            nameof(QueuedOperation.UpdatePerson),
+            nameof(QueuedOperation.CreateCompany),
+            nameof(QueuedOperation.UpdateCompany),
+            nameof(QueuedOperation.CreateTask),
+            nameof(QueuedOperation.CompleteTask),
+            nameof(QueuedOperation.ReopenTask),
+            nameof(QueuedOperation.RecordInteraction),
+        ];
+
+        Assert.Equal(permitted.Order(), Enum.GetNames<QueuedOperation>().Order());
+    }
+
+    /// <summary>
+    /// The client cannot reach the audit trail, so it cannot record a cache
+    /// operation as a business event.
+    /// </summary>
+    /// <remarks>
+    /// Reading a record into a local cache is not a consequential business fact,
+    /// and recording it would dilute the trail that matters. The commands the queue
+    /// submits are audited by the server when they actually run. This is a
+    /// compile-time fact rather than a convention.
+    /// </remarks>
+    [Fact]
+    public void ClientCannotReachTheAuditTrail()
+    {
+        Assert.DoesNotContain(
+            typeof(AgencyOS.Client.Cache.LocalCache).Assembly.GetReferencedAssemblies(),
+            reference => reference.Name == "AgencyOS.Domain" || reference.Name == "AgencyOS.Application");
     }
 
     [Fact]
