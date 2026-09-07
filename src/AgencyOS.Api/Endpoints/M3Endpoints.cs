@@ -150,7 +150,8 @@ internal static class M3Endpoints
                     [.. results.Talent.Select(M4Endpoints.MapTalentSummary)],
                     [.. results.Prospects.Select(M4Endpoints.MapProspect)],
                     [.. results.Projects.Select(M5Endpoints.MapProjectSummary)],
-                    [.. results.Packages.Select(M5Endpoints.MapPackageSummary)]));
+                    [.. results.Packages.Select(M5Endpoints.MapPackageSummary)],
+                    [.. results.Opportunities.Select(M6Endpoints.MapOpportunitySummary)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("RunSavedView");
@@ -360,7 +361,17 @@ internal static class M3Endpoints
         AttachedPersonId: filters.AttachedPersonId,
         MissingRoleType: filters.MissingRoleType,
         PackageStatus: filters.PackageStatus,
-        ProjectId: filters.ProjectId);
+        ProjectId: filters.ProjectId,
+        OpportunityKind: filters.OpportunityKind,
+        OpportunityStatus: filters.OpportunityStatus,
+        TalentProfileId: filters.TalentProfileId,
+        PackageId: filters.PackageId,
+        TargetCompanyId: filters.TargetCompanyId,
+        TargetPersonId: filters.TargetPersonId,
+        TargetStage: filters.TargetStage,
+        HasSubmission: filters.HasSubmission,
+        AwaitingResponse: filters.AwaitingResponse,
+        FollowUpDueWithinDays: filters.FollowUpDueWithinDays);
 
     /// <inheritdoc cref="ToFilters"/>
     internal static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
@@ -385,7 +396,17 @@ internal static class M3Endpoints
         AttachedPersonId: filters.AttachedPersonId,
         MissingRoleType: filters.MissingRoleType,
         PackageStatus: filters.PackageStatus,
-        ProjectId: filters.ProjectId);
+        ProjectId: filters.ProjectId,
+        OpportunityKind: filters.OpportunityKind,
+        OpportunityStatus: filters.OpportunityStatus,
+        TalentProfileId: filters.TalentProfileId,
+        PackageId: filters.PackageId,
+        TargetCompanyId: filters.TargetCompanyId,
+        TargetPersonId: filters.TargetPersonId,
+        TargetStage: filters.TargetStage,
+        HasSubmission: filters.HasSubmission,
+        AwaitingResponse: filters.AwaitingResponse,
+        FollowUpDueWithinDays: filters.FollowUpDueWithinDays);
 
     // --------------------------------------------------------------- mapping
 

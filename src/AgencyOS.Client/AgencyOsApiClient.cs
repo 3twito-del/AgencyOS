@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using AgencyOS.Contracts;
+using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
 using AgencyOS.Contracts.Projects;
@@ -442,6 +443,87 @@ public interface IAgencyOsApi
         CancellationToken cancellationToken = default);
 
     Task<ProjectCommandCenterResponse> GetProjectCommandCenterAsync(
+        CancellationToken cancellationToken = default);
+
+    // ---- Opportunities and submissions (M6) ----
+
+    /// <param name="status">Restrict to one status.</param>
+    /// <param name="kind">Restrict to one kind of pursuit.</param>
+    /// <param name="ownerUserId">Restrict to one internal owner.</param>
+    /// <param name="awaitingResponse">Only pursuits with a reply overdue.</param>
+    /// <param name="search">Substring match on name and description.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    Task<IReadOnlyList<OpportunitySummaryResponse>> ListOpportunitiesAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? ownerUserId = null,
+        bool awaitingResponse = false,
+        string? search = null,
+        CancellationToken cancellationToken = default);
+
+    Task<OpportunityDetailResponse> GetOpportunityAsync(
+        Guid opportunityId,
+        CancellationToken cancellationToken = default);
+
+    Task<OpportunityDetailResponse> CreateOpportunityAsync(
+        CreateOpportunityRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ChangeOpportunityStatusAsync(
+        Guid opportunityId,
+        ChangeOpportunityStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<OpportunityHistoryEntryResponse>> GetOpportunityHistoryAsync(
+        Guid opportunityId,
+        CancellationToken cancellationToken = default);
+
+    Task<Guid> AddOpportunityTargetAsync(
+        Guid opportunityId,
+        AddOpportunityTargetRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<OpportunityTargetResponse> GetOpportunityTargetAsync(
+        Guid targetId,
+        CancellationToken cancellationToken = default);
+
+    Task MoveOpportunityTargetAsync(
+        Guid targetId,
+        MoveOpportunityTargetRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task RecordTargetResponseAsync(
+        Guid targetId,
+        RecordTargetResponseRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<RecordSubmissionResponse> RecordSubmissionAsync(
+        Guid targetId,
+        RecordSubmissionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<RecordPitchResponse> RecordPitchAsync(
+        Guid targetId,
+        RecordPitchRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<SubmissionResponse>> ListSubmissionsAsync(
+        Guid? opportunityId = null,
+        Guid? targetId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<PipelineColumnResponse>> GetPipelineAsync(
+        Guid? ownerUserId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<OpportunityCommandCenterResponse> GetOpportunityCommandCenterAsync(
         CancellationToken cancellationToken = default);
 }
 
@@ -1261,6 +1343,204 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
         CancellationToken cancellationToken = default) =>
         GetAsync<ProjectCommandCenterResponse>(
             $"{TenantRoot}/project-command-center", cancellationToken);
+
+    // ---- Opportunities and submissions (M6) ----
+
+    public Task<IReadOnlyList<OpportunitySummaryResponse>> ListOpportunitiesAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? ownerUserId = null,
+        bool awaitingResponse = false,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query.Add($"status={Uri.EscapeDataString(status)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(kind))
+        {
+            query.Add($"kind={Uri.EscapeDataString(kind)}");
+        }
+
+        if (ownerUserId is { } owner)
+        {
+            query.Add($"ownerUserId={owner}");
+        }
+
+        if (awaitingResponse)
+        {
+            query.Add("awaitingResponse=true");
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query.Add($"search={Uri.EscapeDataString(search)}");
+        }
+
+        string uri = $"{TenantRoot}/opportunities";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<OpportunitySummaryResponse>(uri, cancellationToken);
+    }
+
+    public Task<OpportunityDetailResponse> GetOpportunityAsync(
+        Guid opportunityId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<OpportunityDetailResponse>(
+            $"{TenantRoot}/opportunities/{opportunityId}", cancellationToken);
+
+    public Task<OpportunityDetailResponse> CreateOpportunityAsync(
+        CreateOpportunityRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateOpportunityRequest, OpportunityDetailResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/opportunities",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ChangeOpportunityStatusAsync(
+        Guid opportunityId,
+        ChangeOpportunityStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/opportunities/{opportunityId}/status",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<OpportunityHistoryEntryResponse>> GetOpportunityHistoryAsync(
+        Guid opportunityId,
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<OpportunityHistoryEntryResponse>(
+            $"{TenantRoot}/opportunities/{opportunityId}/history", cancellationToken);
+
+    public async Task<Guid> AddOpportunityTargetAsync(
+        Guid opportunityId,
+        AddOpportunityTargetRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        CreatedIdResponse created = await SendAsync<AddOpportunityTargetRequest, CreatedIdResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/opportunities/{opportunityId}/targets",
+            request,
+            idempotencyKey,
+            cancellationToken).ConfigureAwait(false);
+
+        return created.Id;
+    }
+
+    public Task<OpportunityTargetResponse> GetOpportunityTargetAsync(
+        Guid targetId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<OpportunityTargetResponse>(
+            $"{TenantRoot}/opportunity-targets/{targetId}", cancellationToken);
+
+    public Task MoveOpportunityTargetAsync(
+        Guid targetId,
+        MoveOpportunityTargetRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/opportunity-targets/{targetId}/stage",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task RecordTargetResponseAsync(
+        Guid targetId,
+        RecordTargetResponseRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/opportunity-targets/{targetId}/responses",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RecordSubmissionResponse> RecordSubmissionAsync(
+        Guid targetId,
+        RecordSubmissionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordSubmissionRequest, RecordSubmissionResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/opportunity-targets/{targetId}/submissions",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RecordPitchResponse> RecordPitchAsync(
+        Guid targetId,
+        RecordPitchRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordPitchRequest, RecordPitchResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/opportunity-targets/{targetId}/pitches",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<SubmissionResponse>> ListSubmissionsAsync(
+        Guid? opportunityId = null,
+        Guid? targetId = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (opportunityId is { } opportunity)
+        {
+            query.Add($"opportunityId={opportunity}");
+        }
+
+        if (targetId is { } target)
+        {
+            query.Add($"targetId={target}");
+        }
+
+        string uri = $"{TenantRoot}/submissions";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<SubmissionResponse>(uri, cancellationToken);
+    }
+
+    public Task<IReadOnlyList<PipelineColumnResponse>> GetPipelineAsync(
+        Guid? ownerUserId = null,
+        CancellationToken cancellationToken = default)
+    {
+        string uri = $"{TenantRoot}/pipeline";
+
+        if (ownerUserId is { } owner)
+        {
+            uri += $"?ownerUserId={owner}";
+        }
+
+        return GetListAsync<PipelineColumnResponse>(uri, cancellationToken);
+    }
+
+    public Task<OpportunityCommandCenterResponse> GetOpportunityCommandCenterAsync(
+        CancellationToken cancellationToken = default) =>
+        GetAsync<OpportunityCommandCenterResponse>(
+            $"{TenantRoot}/opportunity-command-center", cancellationToken);
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
         long cursor,

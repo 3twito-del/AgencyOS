@@ -52,6 +52,10 @@ public sealed class SearchService
             [SearchEntityType.Project] = Permission.ProjectsRead,
             [SearchEntityType.SourceProperty] = Permission.ProjectsRead,
             [SearchEntityType.Package] = Permission.PackagesRead,
+
+            // Gated by opportunity access. Strategy is not searchable at all, so
+            // there is nothing here a reader of the pipeline should not see.
+            [SearchEntityType.Opportunity] = Permission.OpportunitiesRead,
         };
 
     private readonly ISearchQueries _queries;

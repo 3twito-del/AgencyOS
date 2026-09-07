@@ -1,0 +1,46 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordSubmissionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record submission"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="10" MinWidth="460">
+        <TextBlock x:Name="TargetText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="Recorded, not sent"
+                 Message="AgencyOS is recording that you sent this. It does not send anything itself and cannot confirm it arrived." />
+
+        <DatePicker x:Name="SentPicker" Header="Sent" />
+
+        <ComboBox x:Name="ChannelBox" Header="How" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Email" Tag="Email" />
+            <ComboBoxItem Content="Portal" Tag="Portal" />
+            <ComboBoxItem Content="Courier" Tag="Courier" />
+            <ComboBoxItem Content="In person" Tag="InPerson" />
+            <ComboBoxItem Content="Phone" Tag="Phone" />
+            <ComboBoxItem Content="Other" Tag="Other" />
+        </ComboBox>
+
+        <TextBox x:Name="SubjectBox" Header="Subject" PlaceholderText="What it was called" />
+
+        <StackPanel Spacing="4">
+            <TextBox x:Name="MaterialIdBox" Header="Material" PlaceholderText="Material identifier"
+                     TextChanged="OnMaterialChanged" />
+            <TextBlock x:Name="SnapshotHint" Style="{StaticResource CaptionTextBlockStyle}"
+                       Opacity="0.75" TextWrapping="Wrap"
+                       Text="The material's title and version label are copied into this record as they read now, so editing it later does not rewrite what you sent." />
+        </StackPanel>
+
+        <DatePicker x:Name="ResponsePicker" Header="Reply expected by" />
+
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+
+        <CheckBox x:Name="FollowUpBox" Content="Create a follow-up task" IsChecked="True" />
+
+        <TextBox x:Name="FollowUpTitleBox" Header="Follow-up" Text="Chase for a response" />
+    </StackPanel>
+</ContentDialog>

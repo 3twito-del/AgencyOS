@@ -22,8 +22,9 @@
                 <muxc:NavigationViewItem Content="Prospects" Tag="prospects" AccessKey="5" />
                 <muxc:NavigationViewItem Content="Projects" Tag="projects" AccessKey="6" />
                 <muxc:NavigationViewItem Content="Packages" Tag="packages" AccessKey="7" />
-                <muxc:NavigationViewItem Content="Saved Views" Tag="saved-views" AccessKey="8" />
-                <muxc:NavigationViewItem Content="Sync and Offline" Tag="sync" AccessKey="9" />
+                <muxc:NavigationViewItem Content="Pipeline" Tag="pipeline" AccessKey="8" />
+                <muxc:NavigationViewItem Content="Saved Views" Tag="saved-views" AccessKey="9" />
+                <muxc:NavigationViewItem Content="Sync and Offline" Tag="sync" AccessKey="0" />
             </muxc:NavigationView.MenuItems>
 
             <muxc:NavigationView.PaneFooter>

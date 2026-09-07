@@ -25,6 +25,7 @@ using AgencyOS.Application.Idempotency;
 using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
+using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
 using AgencyOS.Application.SavedViews;
@@ -165,6 +166,13 @@ builder.Services.AddScoped<ProjectCompanyHandler>();
 builder.Services.AddScoped<SourcePropertyHandler>();
 builder.Services.AddScoped<ProjectLinkHandler>();
 builder.Services.AddScoped<PackageHandler>();
+
+// Opportunities and submissions (M6).
+builder.Services.AddScoped<OpportunityQueryService>();
+builder.Services.AddScoped<OpportunityHandler>();
+builder.Services.AddScoped<OpportunityTargetHandler>();
+builder.Services.AddScoped<RecordSubmissionHandler>();
+builder.Services.AddScoped<RecordPitchHandler>();
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();
 builder.Services.AddScoped<ChangeTalentDisciplineHandler>();

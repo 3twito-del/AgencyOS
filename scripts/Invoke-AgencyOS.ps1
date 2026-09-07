@@ -281,7 +281,23 @@ function Invoke-Contract {
         "/api/v1/organizations/{organizationId}/source-properties",
         "/api/v1/organizations/{organizationId}/packages",
         "/api/v1/organizations/{organizationId}/packages/{packageId}",
-        "/api/v1/organizations/{organizationId}/project-command-center"
+        "/api/v1/organizations/{organizationId}/project-command-center",
+        "/api/v1/organizations/{organizationId}/opportunities",
+        "/api/v1/organizations/{organizationId}/opportunities/{opportunityId}",
+        "/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/history",
+        "/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/status",
+        "/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/subjects",
+        "/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/targets",
+        "/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}",
+        "/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}/stage",
+        "/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}/responses",
+        "/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}/submissions",
+        "/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}/pitches",
+        "/api/v1/organizations/{organizationId}/submissions",
+        "/api/v1/organizations/{organizationId}/submissions/{submissionId}",
+        "/api/v1/organizations/{organizationId}/pitches",
+        "/api/v1/organizations/{organizationId}/pipeline",
+        "/api/v1/organizations/{organizationId}/opportunity-command-center"
     )
 
     $paths = @($contract.paths.PSObject.Properties.Name)

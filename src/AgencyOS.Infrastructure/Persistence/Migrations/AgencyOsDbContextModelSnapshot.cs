@@ -417,6 +417,643 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     b.ToTable("memberships", (string)null);
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.Opportunity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly?>("ClosedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("closed_on");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
+
+                    b.Property<DateOnly>("OpenedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("opened_on");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int?>("Outcome")
+                        .HasColumnType("integer")
+                        .HasColumnName("outcome");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StrategyNotes")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("strategy_notes");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("OrganizationId", "OwnerUserId")
+                        .HasDatabaseName("ix_opportunities_organization_owner");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_opportunities_organization_status");
+
+                    b.HasIndex("OrganizationId", "UpdatedAt")
+                        .HasDatabaseName("ix_opportunities_organization_updated");
+
+                    b.ToTable("opportunities", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OpportunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OpportunityId", "RecordedAt")
+                        .HasDatabaseName("ix_opportunity_events_opportunity_recorded");
+
+                    b.ToTable("opportunity_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityPitch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("InteractionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("interaction_id");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("OpportunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_id");
+
+                    b.Property<Guid>("OpportunityTargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_target_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Outcome")
+                        .HasColumnType("integer")
+                        .HasColumnName("outcome");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("subject");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("InteractionId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_opportunity_pitches_interaction");
+
+                    b.HasIndex("OpportunityTargetId", "OccurredAt")
+                        .HasDatabaseName("ix_opportunity_pitches_target_occurred");
+
+                    b.HasIndex("OrganizationId", "OpportunityTargetId");
+
+                    b.ToTable("opportunity_pitches", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunitySubject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("OpportunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PackageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("package_id");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid?>("ProjectRoleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_role_id");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.Property<Guid?>("TalentProfileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("talent_profile_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OpportunityId");
+
+                    b.HasIndex("OrganizationId", "PackageId");
+
+                    b.HasIndex("OrganizationId", "ProjectId");
+
+                    b.HasIndex("OrganizationId", "ProjectRoleId");
+
+                    b.HasIndex("OrganizationId", "TalentProfileId");
+
+                    b.ToTable("opportunity_subjects", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityTarget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly?>("ClosedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("closed_on");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
+                    b.Property<Guid?>("ContactPersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_person_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly?>("NextActionOn")
+                        .HasColumnType("date")
+                        .HasColumnName("next_action_on");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OpportunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<Guid?>("PersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("person_id");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("integer")
+                        .HasColumnName("stage");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OpportunityId", "Stage")
+                        .HasDatabaseName("ix_opportunity_targets_opportunity_stage");
+
+                    b.HasIndex("OrganizationId", "CompanyId");
+
+                    b.HasIndex("OrganizationId", "ContactPersonId");
+
+                    b.HasIndex("OrganizationId", "NextActionOn")
+                        .HasDatabaseName("ix_opportunity_targets_organization_next_action");
+
+                    b.HasIndex("OrganizationId", "OpportunityId");
+
+                    b.HasIndex("OrganizationId", "PersonId");
+
+                    b.ToTable("opportunity_targets", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityTargetEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("FromStage")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_stage");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("OpportunityTargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_target_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PitchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pitch_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<Guid?>("SubmissionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("submission_id");
+
+                    b.Property<int?>("ToStage")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_stage");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OpportunityTargetId", "OccurredAt")
+                        .HasDatabaseName("ix_opportunity_target_events_target_occurred");
+
+                    b.ToTable("opportunity_target_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityTaskLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("linked_at");
+
+                    b.Property<Guid>("OpportunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_id");
+
+                    b.Property<Guid?>("OpportunityTargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_target_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("TaskItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("task_item_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OpportunityId")
+                        .HasDatabaseName("ix_opportunity_task_links_opportunity");
+
+                    b.HasIndex("TaskItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_opportunity_task_links_task");
+
+                    b.HasIndex("OrganizationId", "OpportunityId");
+
+                    b.HasIndex("OrganizationId", "OpportunityTargetId");
+
+                    b.HasIndex("OrganizationId", "TaskItemId");
+
+                    b.ToTable("opportunity_task_links", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.PitchMaterial", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("MaterialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("material_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("PitchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pitch_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<string>("TitleAtPitch")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("title_at_pitch");
+
+                    b.Property<int>("TypeAtPitch")
+                        .HasColumnType("integer")
+                        .HasColumnName("type_at_pitch");
+
+                    b.Property<string>("VersionLabelAtPitch")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("version_label_at_pitch");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "MaterialId");
+
+                    b.HasIndex("PitchId", "MaterialId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_pitch_materials_pair");
+
+                    b.ToTable("pitch_materials", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.Submission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("integer")
+                        .HasColumnName("channel");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("external_reference");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OpportunityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_id");
+
+                    b.Property<Guid>("OpportunityTargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_target_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateOnly?>("ResponseExpectedBy")
+                        .HasColumnType("date")
+                        .HasColumnName("response_expected_by");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<Guid>("SentByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sent_by_user_id");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("subject");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("OpportunityTargetId", "SentAt")
+                        .HasDatabaseName("ix_submissions_target_sent");
+
+                    b.HasIndex("OrganizationId", "OpportunityTargetId");
+
+                    b.HasIndex("OrganizationId", "ResponseExpectedBy")
+                        .HasDatabaseName("ix_submissions_organization_response_expected");
+
+                    b.ToTable("submissions", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.SubmissionMaterial", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("MaterialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("material_id");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<Guid>("SubmissionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("submission_id");
+
+                    b.Property<string>("TitleAtSubmission")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("title_at_submission");
+
+                    b.Property<int>("TypeAtSubmission")
+                        .HasColumnType("integer")
+                        .HasColumnName("type_at_submission");
+
+                    b.Property<string>("VersionLabelAtSubmission")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("version_label_at_submission");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "MaterialId");
+
+                    b.HasIndex("SubmissionId", "MaterialId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_submission_materials_pair");
+
+                    b.ToTable("submission_materials", (string)null);
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Organizations.Organization", b =>
                 {
                     b.Property<Guid>("Id")
@@ -740,8 +1377,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("version");
 
                     b.HasKey("Id");
-
-                    b.HasAlternateKey("OrganizationId", "Id");
 
                     b.HasIndex("LeadUserId");
 
@@ -2129,8 +2764,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasAlternateKey("OrganizationId", "Id");
-
                     b.HasIndex("OrganizationId", "PersonId")
                         .IsUnique()
                         .HasDatabaseName("ux_talent_profiles_organization_person");
@@ -2271,6 +2904,181 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     b.HasOne("AgencyOS.Domain.Identity.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.Opportunity", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Opportunities.Opportunity", null)
+                        .WithMany("Events")
+                        .HasForeignKey("OpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityPitch", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Interactions.Interaction", null)
+                        .WithMany()
+                        .HasForeignKey("InteractionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Opportunities.OpportunityTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "OpportunityTargetId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunitySubject", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Opportunities.Opportunity", null)
+                        .WithMany("Subjects")
+                        .HasForeignKey("OpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Projects.Package", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "PackageId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ProjectId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AgencyOS.Domain.Projects.ProjectRole", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ProjectRoleId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AgencyOS.Domain.Talent.TalentProfile", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "TalentProfileId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityTarget", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Companies.Company", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CompanyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.People.Person", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContactPersonId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.Opportunities.Opportunity", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "OpportunityId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.People.Person", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "PersonId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityTargetEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Opportunities.OpportunityTarget", null)
+                        .WithMany("Events")
+                        .HasForeignKey("OpportunityTargetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityTaskLink", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Opportunities.Opportunity", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "OpportunityId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Opportunities.OpportunityTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "OpportunityTargetId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AgencyOS.Domain.Tasks.TaskItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "TaskItemId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.PitchMaterial", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Opportunities.OpportunityPitch", null)
+                        .WithMany("Materials")
+                        .HasForeignKey("PitchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Talent.Material", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "MaterialId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.Submission", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Opportunities.OpportunityTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "OpportunityTargetId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.SubmissionMaterial", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Opportunities.Submission", null)
+                        .WithMany("Materials")
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Talent.Material", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "MaterialId")
+                        .HasPrincipalKey("OrganizationId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -2623,6 +3431,28 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Interactions.Interaction", b =>
                 {
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.Opportunity", b =>
+                {
+                    b.Navigation("Events");
+
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityPitch", b =>
+                {
+                    b.Navigation("Materials");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.OpportunityTarget", b =>
+                {
+                    b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Opportunities.Submission", b =>
+                {
+                    b.Navigation("Materials");
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Projects.Attachment", b =>

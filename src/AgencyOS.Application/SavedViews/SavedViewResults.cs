@@ -1,4 +1,5 @@
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
 using AgencyOS.Domain.Organizations;
@@ -21,6 +22,7 @@ namespace AgencyOS.Application.SavedViews;
 /// <param name="Prospects">Matching prospects, when the target is Prospects.</param>
 /// <param name="Projects">Matching projects, when the target is Projects.</param>
 /// <param name="Packages">Matching packages, when the target is Packages.</param>
+/// <param name="Opportunities">Matching pursuits, when the target is Opportunities.</param>
 public sealed record SavedViewResultModel(
     SavedViewTarget Target,
     IReadOnlyList<PersonSummaryModel> People,
@@ -29,10 +31,41 @@ public sealed record SavedViewResultModel(
     IReadOnlyList<TalentSummaryModel> Talent,
     IReadOnlyList<ProspectModel> Prospects,
     IReadOnlyList<ProjectSummaryModel> Projects,
-    IReadOnlyList<PackageSummaryModel> Packages)
+    IReadOnlyList<PackageSummaryModel> Packages,
+    IReadOnlyList<OpportunitySummaryModel> Opportunities)
 {
     public static SavedViewResultModel Empty(SavedViewTarget target) =>
-        new(target, [], [], [], [], [], [], []);
+        new(target, [], [], [], [], [], [], [], []);
+
+    // One factory per target, so a query names only the list it filled. Building
+    // these positionally meant every target's call site had to grow by an empty
+    // list each time a target was added - eight edits for one addition, each of
+    // them a chance to put a list in the wrong slot.
+
+    public static SavedViewResultModel OfPeople(IReadOnlyList<PersonSummaryModel> people) =>
+        Empty(SavedViewTarget.People) with { People = people };
+
+    public static SavedViewResultModel OfCompanies(IReadOnlyList<CompanySummaryModel> companies) =>
+        Empty(SavedViewTarget.Companies) with { Companies = companies };
+
+    public static SavedViewResultModel OfTasks(IReadOnlyList<TaskModel> tasks) =>
+        Empty(SavedViewTarget.Tasks) with { Tasks = tasks };
+
+    public static SavedViewResultModel OfTalent(IReadOnlyList<TalentSummaryModel> talent) =>
+        Empty(SavedViewTarget.Talent) with { Talent = talent };
+
+    public static SavedViewResultModel OfProspects(IReadOnlyList<ProspectModel> prospects) =>
+        Empty(SavedViewTarget.Prospects) with { Prospects = prospects };
+
+    public static SavedViewResultModel OfProjects(IReadOnlyList<ProjectSummaryModel> projects) =>
+        Empty(SavedViewTarget.Projects) with { Projects = projects };
+
+    public static SavedViewResultModel OfPackages(IReadOnlyList<PackageSummaryModel> packages) =>
+        Empty(SavedViewTarget.Packages) with { Packages = packages };
+
+    public static SavedViewResultModel OfOpportunities(
+        IReadOnlyList<OpportunitySummaryModel> opportunities) =>
+        Empty(SavedViewTarget.Opportunities) with { Opportunities = opportunities };
 
     /// <summary>Gets how many rows the view returned, whatever its target.</summary>
     public int Count =>
@@ -42,7 +75,8 @@ public sealed record SavedViewResultModel(
         + Talent.Count
         + Prospects.Count
         + Projects.Count
-        + Packages.Count;
+        + Packages.Count
+        + Opportunities.Count;
 }
 
 /// <summary>

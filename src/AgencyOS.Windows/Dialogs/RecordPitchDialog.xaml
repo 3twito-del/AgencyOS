@@ -1,0 +1,55 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordPitchDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record pitch"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="460">
+        <TextBlock x:Name="TargetText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="One meeting, one record"
+                 Message="This creates the interaction as well, so the meeting appears once on every timeline rather than twice." />
+
+        <TextBox x:Name="SummaryBox" Header="What happened" TextChanged="OnRequiredChanged"
+                 PlaceholderText="Pitched the feature to Northgate" />
+
+        <ComboBox x:Name="TypeBox" Header="Kind of contact" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Meeting" Tag="Meeting" />
+            <ComboBoxItem Content="Call" Tag="Call" />
+            <ComboBoxItem Content="Email" Tag="Email" />
+        </ComboBox>
+
+        <DatePicker x:Name="OccurredPicker" Header="When" />
+
+        <ComboBox x:Name="KindBox" Header="Pitch" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Formal" Tag="Formal" />
+            <ComboBoxItem Content="Introductory" Tag="Introductory" />
+            <ComboBoxItem Content="Follow-up" Tag="FollowUp" />
+            <ComboBoxItem Content="Incidental" Tag="Incidental" />
+        </ComboBox>
+
+        <ComboBox x:Name="OutcomeBox" Header="Outcome" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="No decision" Tag="NoDecision" />
+            <ComboBoxItem Content="Follow-up requested" Tag="FollowUpRequested" />
+            <ComboBoxItem Content="More material requested" Tag="MoreMaterialRequested" />
+            <ComboBoxItem Content="Interested" Tag="Interested" />
+            <ComboBoxItem Content="Passed" Tag="Passed" />
+        </ComboBox>
+
+        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                   Text="Interested and Passed move the target. Anything commercial belongs to a later milestone." />
+
+        <TextBox x:Name="MaterialIdBox" Header="Material shown" PlaceholderText="Material identifier" />
+
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+
+        <CheckBox x:Name="FollowUpBox" Content="Create a follow-up task" />
+
+        <TextBox x:Name="FollowUpTitleBox" Header="Follow-up" Text="Follow up after the pitch" />
+    </StackPanel>
+</ContentDialog>

@@ -31,7 +31,12 @@ public static class RolePermissions
         // An observer sees the slate and what is being packaged, but not the
         // agency's private strategy: packages.strategy.read is deliberately absent.
         Permission.ProjectsRead,
-        Permission.PackagesRead);
+        Permission.PackagesRead,
+
+        // An observer sees the pipeline and what has gone out, but not the agency's
+        // private strategy: opportunities.strategy.read is deliberately absent.
+        Permission.OpportunitiesRead,
+        Permission.SubmissionsRead);
 
     /// <summary>
     /// The day-to-day operational role: everything needed to run the M2 workflow,
@@ -62,7 +67,12 @@ public static class RolePermissions
         Permission.ProjectsWrite,
         Permission.PackagesRead,
         Permission.PackagesWrite,
-        Permission.PackageStrategyRead);
+        Permission.PackageStrategyRead,
+        Permission.OpportunitiesRead,
+        Permission.OpportunitiesWrite,
+        Permission.SubmissionsRead,
+        Permission.SubmissionsWrite,
+        Permission.OpportunityStrategyRead);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,

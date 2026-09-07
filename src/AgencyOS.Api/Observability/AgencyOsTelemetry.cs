@@ -105,6 +105,44 @@ public static class AgencyOsTelemetry
             "agencyos.package.status.changes",
             description: "Package status changes.");
 
+    /// <summary>Pursuits opened.</summary>
+    public static Counter<long> OpportunitiesCreated { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.opportunity.created",
+            description: "Opportunities opened.");
+
+    /// <summary>Opportunity status changes.</summary>
+    public static Counter<long> OpportunityStatusChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.opportunity.status.changes",
+            description: "Opportunity status changes.");
+
+    /// <summary>Targets added or moved through the pipeline.</summary>
+    /// <remarks>
+    /// The high-traffic mutation in M6, and the one whose rate says most about
+    /// whether the pipeline is being worked at all.
+    /// </remarks>
+    public static Counter<long> OpportunityTargetChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.opportunity.target.changes",
+            description: "Opportunity targets added or moved.");
+
+    /// <summary>Submissions recorded.</summary>
+    /// <remarks>
+    /// Counts what the agency says it sent. AgencyOS transmits nothing, so this is
+    /// a count of assertions rather than of deliveries (ADR-0020).
+    /// </remarks>
+    public static Counter<long> SubmissionsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.submission.recorded",
+            description: "Submissions recorded.");
+
+    /// <summary>Pitches recorded.</summary>
+    public static Counter<long> PitchesRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.pitch.recorded",
+            description: "Pitches recorded, each carried by one interaction.");
+
     /// <summary>Writes refused because the record had moved on.</summary>
     public static Counter<long> VersionConflicts { get; } =
         Meter.CreateCounter<long>(

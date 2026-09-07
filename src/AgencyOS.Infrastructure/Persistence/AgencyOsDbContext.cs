@@ -4,6 +4,7 @@ using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Interactions;
 using AgencyOS.Domain.Memberships;
+using AgencyOS.Domain.Opportunities;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
 using AgencyOS.Domain.Projects;
@@ -142,6 +143,28 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     public DbSet<PackageEvent> PackageEvents => Set<PackageEvent>();
 
     public DbSet<PackageElement> PackageElements => Set<PackageElement>();
+
+    // ---- Opportunities and submissions (M6) ----
+
+    public DbSet<Opportunity> Opportunities => Set<Opportunity>();
+
+    public DbSet<OpportunityEvent> OpportunityEvents => Set<OpportunityEvent>();
+
+    public DbSet<OpportunitySubject> OpportunitySubjects => Set<OpportunitySubject>();
+
+    public DbSet<OpportunityTarget> OpportunityTargets => Set<OpportunityTarget>();
+
+    public DbSet<OpportunityTargetEvent> OpportunityTargetEvents => Set<OpportunityTargetEvent>();
+
+    public DbSet<Submission> Submissions => Set<Submission>();
+
+    public DbSet<SubmissionMaterial> SubmissionMaterials => Set<SubmissionMaterial>();
+
+    public DbSet<OpportunityPitch> OpportunityPitches => Set<OpportunityPitch>();
+
+    public DbSet<PitchMaterial> PitchMaterials => Set<PitchMaterial>();
+
+    public DbSet<OpportunityTaskLink> OpportunityTaskLinks => Set<OpportunityTaskLink>();
 
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.

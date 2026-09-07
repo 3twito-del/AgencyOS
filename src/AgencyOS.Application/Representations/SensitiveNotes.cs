@@ -1,4 +1,5 @@
 using AgencyOS.Application.Authorization;
+using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Organizations;
@@ -30,6 +31,13 @@ namespace AgencyOS.Application.Representations;
 /// from talent notes rather than the same one, because the populations differ: a
 /// coordinator who legitimately reads client positioning has no particular reason
 /// to read what the agency thinks its play is on a package (ADR-0019).
+/// </para>
+/// <para>
+/// M6 adds opportunity strategy under a third grant. It is the most sensitive text
+/// the system holds - it names who the agency expects to pass and what it will
+/// settle for - and it is kept out of the search vector as well, because a
+/// redaction that can be defeated by searching for a phrase is not a redaction
+/// (ADR-0020).
 /// </para>
 /// </remarks>
 public sealed class SensitiveNotes
@@ -100,6 +108,25 @@ public sealed class SensitiveNotes
             : Redact(package);
     }
 
+    /// <summary>Whether the caller may read opportunity strategy in this tenant.</summary>
+    public Task<bool> MayReadOpportunityStrategyAsync(
+        OrganizationId organizationId,
+        CancellationToken cancellationToken = default) =>
+        _guard.HasPermissionAsync(Permission.OpportunityStrategyRead, organizationId, cancellationToken);
+
+    /// <summary>Redacts an opportunity unless the caller may read its strategy.</summary>
+    public async Task<OpportunityDetailModel> ApplyAsync(
+        OrganizationId organizationId,
+        OpportunityDetailModel opportunity,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(opportunity);
+
+        return await MayReadOpportunityStrategyAsync(organizationId, cancellationToken).ConfigureAwait(false)
+            ? opportunity
+            : Redact(opportunity);
+    }
+
     /// <summary>The redaction itself, in one place so both models agree on what it means.</summary>
     public static TalentDetailModel Redact(TalentDetailModel talent)
     {
@@ -122,5 +149,13 @@ public sealed class SensitiveNotes
         ArgumentNullException.ThrowIfNull(package);
 
         return package with { StrategyNotes = null };
+    }
+
+    /// <inheritdoc cref="Redact(TalentDetailModel)"/>
+    public static OpportunityDetailModel Redact(OpportunityDetailModel opportunity)
+    {
+        ArgumentNullException.ThrowIfNull(opportunity);
+
+        return opportunity with { StrategyNotes = null };
     }
 }

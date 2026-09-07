@@ -34,13 +34,18 @@ public static class ApiContract
     /// participation and packages.
     /// </para>
     /// <para>
+    /// Version 6 adds the M6 pursuit layer: opportunities, their typed subjects,
+    /// per-target market progression, recorded submissions with material snapshots,
+    /// and pitches carried by one M2 interaction each.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 5;
+    public const int Current = 6;
 
     /// <summary>
     /// The lowest contract version this build still serves.

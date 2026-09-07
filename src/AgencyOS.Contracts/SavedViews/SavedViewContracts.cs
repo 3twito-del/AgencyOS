@@ -45,7 +45,17 @@ public sealed record SavedViewFiltersModel(
     Guid? AttachedPersonId = null,
     string? MissingRoleType = null,
     string? PackageStatus = null,
-    Guid? ProjectId = null);
+    Guid? ProjectId = null,
+    string? OpportunityKind = null,
+    string? OpportunityStatus = null,
+    Guid? TalentProfileId = null,
+    Guid? PackageId = null,
+    Guid? TargetCompanyId = null,
+    Guid? TargetPersonId = null,
+    string? TargetStage = null,
+    bool HasSubmission = false,
+    bool AwaitingResponse = false,
+    int? FollowUpDueWithinDays = null);
 
 /// <param name="Field">Field to order by. Must be sortable for the target.</param>
 /// <param name="Direction">Ascending or Descending.</param>
@@ -89,7 +99,10 @@ public sealed record UpdateSavedViewRequest(
 /// people and tasks as tasks without inspecting a discriminator. Exactly one of
 /// the three collections is populated, named by <paramref name="Target"/>.
 /// </remarks>
-/// <param name="Target">Which list this is: People, Companies, Tasks, Talent, Prospects, Projects or Packages.</param>
+/// <param name="Target">
+/// Which list this is: People, Companies, Tasks, Talent, Prospects, Projects,
+/// Packages or Opportunities.
+/// </param>
 /// <param name="People">Matching people.</param>
 /// <param name="Companies">Matching companies.</param>
 /// <param name="Tasks">Matching tasks.</param>
@@ -97,6 +110,7 @@ public sealed record UpdateSavedViewRequest(
 /// <param name="Prospects">Matching prospects.</param>
 /// <param name="Projects">Matching projects.</param>
 /// <param name="Packages">Matching packages.</param>
+/// <param name="Opportunities">Matching opportunities.</param>
 public sealed record SavedViewResultsResponse(
     string Target,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.PersonSummaryResponse> People,
@@ -105,7 +119,8 @@ public sealed record SavedViewResultsResponse(
     IReadOnlyList<AgencyOS.Contracts.Representation.TalentSummaryResponse> Talent,
     IReadOnlyList<AgencyOS.Contracts.Representation.ProspectResponse> Prospects,
     IReadOnlyList<AgencyOS.Contracts.Projects.ProjectSummaryResponse> Projects,
-    IReadOnlyList<AgencyOS.Contracts.Projects.PackageSummaryResponse> Packages);
+    IReadOnlyList<AgencyOS.Contracts.Projects.PackageSummaryResponse> Packages,
+    IReadOnlyList<AgencyOS.Contracts.Opportunities.OpportunitySummaryResponse> Opportunities);
 
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>

@@ -104,6 +104,28 @@ public static class Permission
     /// </remarks>
     public const string PackageStrategyRead = "packages.strategy.read";
 
+    // ---- Opportunities and submissions (M6) ----
+    //
+    // Submissions are separated from opportunities deliberately. Recording a
+    // submission asserts that something left the building and became provenance
+    // somebody may later rely on; who may make that assertion is worth being able
+    // to control apart from who may edit a pursuit (ADR-0020).
+
+    public const string OpportunitiesRead = "opportunities.read";
+    public const string OpportunitiesWrite = "opportunities.write";
+
+    public const string SubmissionsRead = "submissions.read";
+    public const string SubmissionsWrite = "submissions.write";
+
+    /// <summary>Reading an opportunity's internal strategy.</summary>
+    /// <remarks>
+    /// The most sensitive text the system holds: it names who the agency expects to
+    /// pass, what it will settle for, and which buyer is being kept until last.
+    /// Absent rather than refused, as <see cref="TalentNotesRead"/> works, and kept
+    /// out of the search vector so its terms cannot be confirmed by searching.
+    /// </remarks>
+    public const string OpportunityStrategyRead = "opportunities.strategy.read";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -138,5 +160,10 @@ public static class Permission
         PackagesRead,
         PackagesWrite,
         PackageStrategyRead,
+        OpportunitiesRead,
+        OpportunitiesWrite,
+        SubmissionsRead,
+        SubmissionsWrite,
+        OpportunityStrategyRead,
     };
 }

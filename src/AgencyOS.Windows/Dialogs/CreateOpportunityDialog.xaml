@@ -1,0 +1,47 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreateOpportunityDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="New opportunity"
+    PrimaryButtonText="Create"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="460">
+        <TextBox x:Name="NameBox" Header="Name" PlaceholderText="The Undertow to market"
+                 TextChanged="OnRequiredChanged" />
+
+        <ComboBox x:Name="KindBox" Header="Kind" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnKindChanged">
+            <ComboBoxItem Content="Talent engagement" Tag="TalentEngagement" />
+            <ComboBoxItem Content="Project market" Tag="ProjectMarket" />
+            <ComboBoxItem Content="Package market" Tag="PackageMarket" />
+            <ComboBoxItem Content="Staffing" Tag="Staffing" />
+            <ComboBoxItem Content="Partnership" Tag="Partnership" />
+            <ComboBoxItem Content="Other" Tag="Other" />
+        </ComboBox>
+
+        <TextBox x:Name="OwnerIdBox" Header="Owner" PlaceholderText="Internal owner identifier"
+                 TextChanged="OnRequiredChanged" />
+
+        <StackPanel Spacing="4">
+            <TextBox x:Name="SubjectIdBox" Header="Subject" TextChanged="OnRequiredChanged" />
+            <TextBlock x:Name="SubjectHint" Style="{StaticResource CaptionTextBlockStyle}"
+                       Opacity="0.75" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <ComboBox x:Name="PriorityBox" Header="Priority" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Normal" Tag="Normal" IsSelected="True" />
+            <ComboBoxItem Content="High" Tag="High" />
+            <ComboBoxItem Content="Low" Tag="Low" />
+        </ComboBox>
+
+        <TextBox x:Name="DescriptionBox" Header="Description" AcceptsReturn="True" Height="70"
+                 TextWrapping="Wrap" PlaceholderText="What is being pursued" />
+
+        <TextBox x:Name="StrategyBox" Header="Strategy" AcceptsReturn="True" Height="90"
+                 TextWrapping="Wrap"
+                 PlaceholderText="Internal. Only colleagues granted opportunity strategy access can read this back." />
+    </StackPanel>
+</ContentDialog>

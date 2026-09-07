@@ -2,6 +2,7 @@ using System.Reflection;
 using AgencyOS.Client;
 using AgencyOS.Client.Cache;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Contracts.Releases;
@@ -374,6 +375,7 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             [],
             [.. Talent],
             [.. Prospects],
+            [],
             [],
             []));
     }
@@ -1206,6 +1208,372 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
         Throw();
         return Task.FromResult(ProjectCommandCenter);
     }
+
+    // ---- Opportunities and submissions (M6) ----
+
+    public List<OpportunitySummaryResponse> Opportunities { get; } = [];
+
+    public Dictionary<Guid, List<OpportunityTargetResponse>> Targets { get; } = [];
+
+    public List<SubmissionResponse> Submissions { get; } = [];
+
+    public List<PitchResponse> Pitches { get; } = [];
+
+    public List<PipelineColumnResponse> Pipeline { get; } = [];
+
+    public List<OpportunityHistoryEntryResponse> OpportunityHistory { get; } = [];
+
+    /// <summary>Strategy the fake hands back, so redaction can be simulated.</summary>
+    public string? OpportunityStrategy { get; set; }
+
+    /// <summary>The filter the last list call actually sent.</summary>
+    public (string? Status, string? Kind, bool Awaiting, string? Search) LastOpportunityFilter
+    { get; private set; }
+
+    public OpportunityCommandCenterResponse OpportunityCommandCenter { get; set; } =
+        new([], [], [], [], 0, 0);
+
+    public Task<IReadOnlyList<OpportunitySummaryResponse>> ListOpportunitiesAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? ownerUserId = null,
+        bool awaitingResponse = false,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        LastOpportunityFilter = (status, kind, awaitingResponse, search);
+
+        IEnumerable<OpportunitySummaryResponse> matches = Opportunities;
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            matches = matches.Where(x => x.Status == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(kind))
+        {
+            matches = matches.Where(x => x.Kind == kind);
+        }
+
+        if (awaitingResponse)
+        {
+            matches = matches.Where(x => x.AwaitingResponseCount > 0);
+        }
+
+        return Task.FromResult<IReadOnlyList<OpportunitySummaryResponse>>([.. matches]);
+    }
+
+    public Task<OpportunityDetailResponse> GetOpportunityAsync(
+        Guid opportunityId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        OpportunitySummaryResponse summary = Opportunities.First(x => x.Id == opportunityId);
+
+        return Task.FromResult(new OpportunityDetailResponse(
+            summary,
+            "A pursuit.",
+            OpportunityStrategy,
+            [],
+            TargetsOf(opportunityId),
+            [.. Submissions.Where(x => x.OpportunityId == opportunityId)],
+            [.. Pitches.Where(x => x.OpportunityId == opportunityId)],
+            [],
+            DateTimeOffset.UtcNow));
+    }
+
+    public Task<OpportunityDetailResponse> CreateOpportunityAsync(
+        CreateOpportunityRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        OpportunitySummaryResponse summary = Opportunity(
+            request.Name, request.Kind, "Draft", request.Priority ?? "Normal");
+
+        Opportunities.Add(summary);
+
+        return Task.FromResult(new OpportunityDetailResponse(
+            summary,
+            request.Description,
+            request.StrategyNotes,
+            [],
+            [],
+            [],
+            [],
+            [],
+            DateTimeOffset.UtcNow));
+    }
+
+    public Task ChangeOpportunityStatusAsync(
+        Guid opportunityId,
+        ChangeOpportunityStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Opportunities.FindIndex(x => x.Id == opportunityId);
+
+        if (index >= 0)
+        {
+            Opportunities[index] = Opportunities[index] with
+            {
+                Status = request.Status,
+                Outcome = request.Outcome,
+                Version = Opportunities[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<OpportunityHistoryEntryResponse>> GetOpportunityHistoryAsync(
+        Guid opportunityId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<OpportunityHistoryEntryResponse>>([.. OpportunityHistory]);
+    }
+
+    public Task<Guid> AddOpportunityTargetAsync(
+        Guid opportunityId,
+        AddOpportunityTargetRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Guid id = Guid.NewGuid();
+
+        if (!Targets.TryGetValue(opportunityId, out List<OpportunityTargetResponse>? targets))
+        {
+            Targets[opportunityId] = targets = [];
+        }
+
+        targets.Add(Target(id, "Identified", request.NextActionOn));
+
+        return Task.FromResult(id);
+    }
+
+    public Task<OpportunityTargetResponse> GetOpportunityTargetAsync(
+        Guid targetId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(Targets.Values.SelectMany(x => x).First(x => x.Id == targetId));
+    }
+
+    public Task MoveOpportunityTargetAsync(
+        Guid targetId,
+        MoveOpportunityTargetRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        foreach (List<OpportunityTargetResponse> targets in Targets.Values)
+        {
+            int index = targets.FindIndex(x => x.Id == targetId);
+
+            if (index >= 0)
+            {
+                targets[index] = targets[index] with
+                {
+                    Stage = request.Stage,
+                    IsOpen = request.Stage is not ("Passed" or "Withdrawn" or "Exhausted"),
+                    Version = targets[index].Version + 1,
+                };
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task RecordTargetResponseAsync(
+        Guid targetId,
+        RecordTargetResponseRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.CompletedTask;
+    }
+
+    public Task<RecordSubmissionResponse> RecordSubmissionAsync(
+        Guid targetId,
+        RecordSubmissionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Guid id = Guid.NewGuid();
+
+        Submissions.Add(new SubmissionResponse(
+            id,
+            OpportunityOf(targetId),
+            targetId,
+            "Northgate Pictures",
+            request.SentAt ?? DateTimeOffset.UtcNow,
+            Guid.NewGuid(),
+            null,
+            request.Channel,
+            request.Subject,
+            request.Notes,
+            request.ResponseExpectedBy,
+            request.ExternalReference,
+            [],
+            null,
+            false,
+            1));
+
+        return Task.FromResult(new RecordSubmissionResponse(
+            id, request.FollowUp is null ? null : Guid.NewGuid()));
+    }
+
+    public Task<RecordPitchResponse> RecordPitchAsync(
+        Guid targetId,
+        RecordPitchRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Guid id = Guid.NewGuid();
+        Guid interaction = Guid.NewGuid();
+
+        Pitches.Add(new PitchResponse(
+            id,
+            OpportunityOf(targetId),
+            targetId,
+            "Northgate Pictures",
+            interaction,
+            request.Kind,
+            request.Outcome,
+            request.Subject,
+            request.Notes,
+            request.OccurredAt ?? DateTimeOffset.UtcNow,
+            [.. request.Participants.Select(x => x.Role ?? x.PartyKind)],
+            [],
+            1));
+
+        return Task.FromResult(new RecordPitchResponse(
+            id, interaction, request.FollowUp is null ? null : Guid.NewGuid()));
+    }
+
+    public Task<IReadOnlyList<SubmissionResponse>> ListSubmissionsAsync(
+        Guid? opportunityId = null,
+        Guid? targetId = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        IEnumerable<SubmissionResponse> matches = Submissions;
+
+        if (opportunityId is { } opportunity)
+        {
+            matches = matches.Where(x => x.OpportunityId == opportunity);
+        }
+
+        if (targetId is { } target)
+        {
+            matches = matches.Where(x => x.OpportunityTargetId == target);
+        }
+
+        return Task.FromResult<IReadOnlyList<SubmissionResponse>>([.. matches]);
+    }
+
+    public Task<IReadOnlyList<PipelineColumnResponse>> GetPipelineAsync(
+        Guid? ownerUserId = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<PipelineColumnResponse>>([.. Pipeline]);
+    }
+
+    public Task<OpportunityCommandCenterResponse> GetOpportunityCommandCenterAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult(OpportunityCommandCenter);
+    }
+
+    /// <summary>The targets recorded against one pursuit.</summary>
+    internal List<OpportunityTargetResponse> TargetsOf(Guid opportunityId) =>
+        Targets.TryGetValue(opportunityId, out List<OpportunityTargetResponse>? targets)
+            ? targets
+            : [];
+
+    /// <summary>Which pursuit a target belongs to, so derived rows agree with it.</summary>
+    private Guid OpportunityOf(Guid targetId) =>
+        Targets.FirstOrDefault(pair => pair.Value.Any(x => x.Id == targetId)).Key;
+
+    /// <summary>A pursuit the tests can assert against.</summary>
+    internal static OpportunitySummaryResponse Opportunity(
+        string name,
+        string kind = "ProjectMarket",
+        string status = "Active",
+        string priority = "Normal",
+        int awaitingResponseCount = 0,
+        DateOnly? nextActionOn = null,
+        Guid? id = null) =>
+        new(
+            id ?? Guid.NewGuid(),
+            name,
+            kind,
+            status,
+            priority,
+            Guid.NewGuid(),
+            null,
+            new DateOnly(2026, 1, 5),
+            null,
+            null,
+            null,
+            0,
+            0,
+            0,
+            awaitingResponseCount,
+            nextActionOn,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow,
+            1);
+
+    /// <summary>A target the tests can assert against.</summary>
+    internal static OpportunityTargetResponse Target(
+        Guid id,
+        string stage,
+        DateOnly? nextActionOn = null,
+        int submissionCount = 0,
+        DateOnly? awaitingSince = null,
+        string displayName = "Northgate Pictures") =>
+        new(
+            id,
+            Guid.NewGuid(),
+            null,
+            displayName,
+            null,
+            null,
+            stage,
+            stage is not ("Passed" or "Withdrawn" or "Exhausted"),
+            null,
+            null,
+            nextActionOn,
+            null,
+            null,
+            submissionCount,
+            submissionCount > 0 ? DateTimeOffset.UtcNow : null,
+            0,
+            null,
+            DateTimeOffset.UtcNow,
+            awaitingSince,
+            DateTimeOffset.UtcNow,
+            1);
 
     private void Throw()
     {

@@ -1,8 +1,10 @@
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Domain.Companies;
+using AgencyOS.Domain.Opportunities;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
 using AgencyOS.Domain.Projects;
@@ -35,15 +37,18 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
     private readonly AgencyOsDbContext _context;
     private readonly IRepresentationQueries _representation;
     private readonly IProjectQueries _projects;
+    private readonly IOpportunityQueries _opportunities;
 
     public SavedViewResultQueries(
         AgencyOsDbContext context,
         IRepresentationQueries representation,
-        IProjectQueries projects)
+        IProjectQueries projects,
+        IOpportunityQueries opportunities)
     {
         _context = context;
         _representation = representation;
         _projects = projects;
+        _opportunities = opportunities;
     }
 
     public async Task<SavedViewResultModel> RunAsync(
@@ -83,6 +88,10 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
             SavedViewTarget.Packages =>
                 await RunPackagesAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Opportunities =>
+                await RunOpportunitiesAsync(organizationId, definition, now, limit, cancellationToken)
                     .ConfigureAwait(false),
 
             _ => SavedViewResultModel.Empty(definition.Target),
@@ -147,15 +156,8 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             people.Where(x => x.PrimaryCompanyId.HasValue).Select(x => x.PrimaryCompanyId!.Value),
             cancellationToken).ConfigureAwait(false);
 
-        return new SavedViewResultModel(
-            SavedViewTarget.People,
-            [.. people.Select(person => ToSummary(person, companyNames))],
-            [],
-            [],
-            [],
-            [],
-            [],
-            []);
+        return SavedViewResultModel.OfPeople(
+            [.. people.Select(person => ToSummary(person, companyNames))]);
     }
 
     private async Task<SavedViewResultModel> RunCompaniesAsync(
@@ -199,15 +201,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return new SavedViewResultModel(
-            SavedViewTarget.Companies,
-            [],
-            [.. companies.Select(ToSummary)],
-            [],
-            [],
-            [],
-            [],
-            []);
+        return SavedViewResultModel.OfCompanies([.. companies.Select(ToSummary)]);
     }
 
     private async Task<SavedViewResultModel> RunTasksAsync(
@@ -272,15 +266,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
         PartyNameLookup names = await LoadPartyNamesAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
-        return new SavedViewResultModel(
-            SavedViewTarget.Tasks,
-            [],
-            [],
-            [.. tasks.Select(task => ToModel(task, names))],
-            [],
-            [],
-            [],
-            []);
+        return SavedViewResultModel.OfTasks([.. tasks.Select(task => ToModel(task, names))]);
     }
 
     /// <summary>
@@ -311,7 +297,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ListTalentAsync(organizationId, filter, limit, cancellationToken)
             .ConfigureAwait(false);
 
-        return new SavedViewResultModel(SavedViewTarget.Talent, [], [], [], talent, [], [], []);
+        return SavedViewResultModel.OfTalent(talent);
     }
 
     /// <summary>Runs a prospect view.</summary>
@@ -342,7 +328,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ListProspectsAsync(organizationId, filter, limit, cancellationToken)
             .ConfigureAwait(false);
 
-        return new SavedViewResultModel(SavedViewTarget.Prospects, [], [], [], [], prospects, [], []);
+        return SavedViewResultModel.OfProspects(prospects);
     }
 
     /// <summary>
@@ -374,7 +360,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ListProjectsAsync(organizationId, filter, limit, cancellationToken)
             .ConfigureAwait(false);
 
-        return new SavedViewResultModel(SavedViewTarget.Projects, [], [], [], [], [], projects, []);
+        return SavedViewResultModel.OfProjects(projects);
     }
 
     /// <summary>Runs a package view.</summary>
@@ -396,7 +382,46 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ListPackagesAsync(organizationId, filter, limit, cancellationToken)
             .ConfigureAwait(false);
 
-        return new SavedViewResultModel(SavedViewTarget.Packages, [], [], [], [], [], [], packages);
+        return SavedViewResultModel.OfPackages(packages);
+    }
+
+    /// <summary>Runs an opportunity view against the pursuit projection.</summary>
+    /// <remarks>
+    /// Reuses the query the pipeline list already uses. Two implementations of
+    /// "which pursuits match this" would eventually disagree, and the saved view
+    /// would quietly become the wrong answer.
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunOpportunitiesAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        DateTimeOffset now,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        OpportunityFilter filter = new(
+            Parse<OpportunityStatus>(filters.OpportunityStatus),
+            Parse<OpportunityKind>(filters.OpportunityKind),
+            filters.OwnerUserId,
+            filters.TalentProfileId,
+            filters.ProjectId,
+            filters.PackageId,
+            filters.TargetCompanyId,
+            filters.TargetPersonId,
+            Parse<OpportunityTargetStage>(filters.TargetStage),
+            filters.HasSubmission,
+            filters.AwaitingResponse,
+            filters.FollowUpDueWithinDays is { } days
+                ? DateOnly.FromDateTime(now.UtcDateTime).AddDays(days)
+                : null,
+            filters.TextContains);
+
+        IReadOnlyList<OpportunitySummaryModel> opportunities = await _opportunities
+            .ListOpportunitiesAsync(organizationId, filter, now, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfOpportunities(opportunities);
     }
 
     private async Task<Dictionary<Guid, string>> LoadCompanyNamesAsync(

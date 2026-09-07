@@ -19,6 +19,10 @@ public enum SavedViewTarget
     // from daily: what am I developing, and what am I assembling.
     Projects = 6,
     Packages = 7,
+
+    // Added in definition version 4. The pipeline is the list an agency lives in
+    // once it has a slate: what is out, with whom, and what is overdue.
+    Opportunities = 8,
 }
 
 /// <summary>Sort direction for a saved view.</summary>
@@ -71,6 +75,19 @@ public sealed record SavedViewSort(string Field, SavedViewSortDirection Directio
 /// </param>
 /// <param name="PackageStatus">Restricts packages to one status.</param>
 /// <param name="ProjectId">Restricts packages to one project.</param>
+/// <param name="OpportunityKind">Restricts pursuits to one kind.</param>
+/// <param name="OpportunityStatus">Restricts pursuits to one status.</param>
+/// <param name="TalentProfileId">Only pursuits about this client.</param>
+/// <param name="PackageId">Only pursuits about this package.</param>
+/// <param name="TargetCompanyId">Only pursuits aimed at this company.</param>
+/// <param name="TargetPersonId">Only pursuits aimed at this person.</param>
+/// <param name="TargetStage">Only pursuits with a target at this stage.</param>
+/// <param name="HasSubmission">Only pursuits something has gone out on.</param>
+/// <param name="AwaitingResponse">
+/// Only pursuits with a reply overdue. Derived from the submission's expected date
+/// and the absence of anything recorded since; silence is never stored.
+/// </param>
+/// <param name="FollowUpDueWithinDays">Only pursuits with a target action due within this many days.</param>
 public sealed record SavedViewFilters(
     string? Status = null,
     Guid? CompanyId = null,
@@ -93,7 +110,17 @@ public sealed record SavedViewFilters(
     Guid? AttachedPersonId = null,
     string? MissingRoleType = null,
     string? PackageStatus = null,
-    Guid? ProjectId = null);
+    Guid? ProjectId = null,
+    string? OpportunityKind = null,
+    string? OpportunityStatus = null,
+    Guid? TalentProfileId = null,
+    Guid? PackageId = null,
+    Guid? TargetCompanyId = null,
+    Guid? TargetPersonId = null,
+    string? TargetStage = null,
+    bool HasSubmission = false,
+    bool AwaitingResponse = false,
+    int? FollowUpDueWithinDays = null);
 
 /// <summary>
 /// A saved view's query, as a versioned, validated document.
@@ -122,7 +149,7 @@ public sealed record SavedViewDefinition(
 {
     /// <summary>The definition schema version this build writes and understands.</summary>
     /// <summary>Definition schema this build writes.</summary>
-    public const int CurrentDefinitionVersion = 3;
+    public const int CurrentDefinitionVersion = 4;
 
     /// <summary>
     /// The oldest definition schema this build still understands.
@@ -156,6 +183,7 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Prospects] = 2,
             [SavedViewTarget.Projects] = 3,
             [SavedViewTarget.Packages] = 3,
+            [SavedViewTarget.Opportunities] = 4,
         };
 
     /// <summary>Fields a view may sort by, per target.</summary>
@@ -173,6 +201,8 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Prospects] = Freeze("NextFollowUpOn", "IdentifiedOn", "Stage", "DisplayName"),
             [SavedViewTarget.Projects] = Freeze("Title", "UpdatedAt", "Stage", "Status", "Year"),
             [SavedViewTarget.Packages] = Freeze("Name", "UpdatedAt", "Status"),
+            [SavedViewTarget.Opportunities] =
+                Freeze("Name", "UpdatedAt", "OpenedOn", "Status", "Priority"),
         };
 
     /// <summary>Validates the document, failing with a message that says what is wrong.</summary>
@@ -228,6 +258,111 @@ public sealed record SavedViewDefinition(
     }
 
     /// <summary>
+    /// The filters each target understands. Anything else is refused.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// An accept-list rather than a set of reject-lists, and the inversion is
+    /// deliberate. Rejecting per target meant every new filter group had to be
+    /// refused explicitly by every existing target: eight cases to edit for one
+    /// addition, growing with the product of targets and filters, and silently
+    /// permissive if one was missed. Accepting a filter it should not have would
+    /// return everything rather than what was asked for, which is the failure that
+    /// looks like a working view.
+    /// </para>
+    /// <para>
+    /// Stated this way, a filter nobody claims is refused everywhere by default,
+    /// and a test asserts every filter is claimed by at least one target - so
+    /// adding one and forgetting to wire it up fails loudly instead of quietly
+    /// (ADR-0020).
+    /// </para>
+    /// </remarks>
+    public static IReadOnlyDictionary<SavedViewTarget, IReadOnlySet<string>> AcceptedFilters
+    { get; } = new Dictionary<SavedViewTarget, IReadOnlySet<string>>
+    {
+        [SavedViewTarget.People] = FreezeFilters(
+            nameof(SavedViewFilters.Status),
+            nameof(SavedViewFilters.CompanyId),
+            nameof(SavedViewFilters.TitleContains),
+            nameof(SavedViewFilters.TextContains)),
+
+        [SavedViewTarget.Companies] = FreezeFilters(
+            nameof(SavedViewFilters.Status),
+            nameof(SavedViewFilters.TextContains)),
+
+        [SavedViewTarget.Tasks] = FreezeFilters(
+            nameof(SavedViewFilters.Status),
+            nameof(SavedViewFilters.CompanyId),
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.TaskState),
+            nameof(SavedViewFilters.DueWithinDays),
+            nameof(SavedViewFilters.OverdueOnly)),
+
+        [SavedViewTarget.Talent] = FreezeFilters(
+            nameof(SavedViewFilters.Status),
+            nameof(SavedViewFilters.CompanyId),
+            nameof(SavedViewFilters.TitleContains),
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.Discipline),
+            nameof(SavedViewFilters.ScopeArea),
+            nameof(SavedViewFilters.LeadUserId),
+            nameof(SavedViewFilters.ClientsOnly),
+            nameof(SavedViewFilters.FormerClientsOnly)),
+
+        [SavedViewTarget.Prospects] = FreezeFilters(
+            nameof(SavedViewFilters.Status),
+            nameof(SavedViewFilters.CompanyId),
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.ProspectStage),
+            nameof(SavedViewFilters.OwnerUserId),
+            nameof(SavedViewFilters.FollowUpWithinDays)),
+
+        [SavedViewTarget.Projects] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.LeadUserId),
+            nameof(SavedViewFilters.ProjectType),
+            nameof(SavedViewFilters.DevelopmentStage),
+            nameof(SavedViewFilters.ProjectStatus),
+            nameof(SavedViewFilters.AttachedPersonId),
+            nameof(SavedViewFilters.MissingRoleType)),
+
+        [SavedViewTarget.Packages] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.LeadUserId),
+            nameof(SavedViewFilters.PackageStatus),
+            nameof(SavedViewFilters.ProjectId)),
+
+        [SavedViewTarget.Opportunities] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.OwnerUserId),
+            nameof(SavedViewFilters.ProjectId),
+            nameof(SavedViewFilters.OpportunityKind),
+            nameof(SavedViewFilters.OpportunityStatus),
+            nameof(SavedViewFilters.TalentProfileId),
+            nameof(SavedViewFilters.PackageId),
+            nameof(SavedViewFilters.TargetCompanyId),
+            nameof(SavedViewFilters.TargetPersonId),
+            nameof(SavedViewFilters.TargetStage),
+            nameof(SavedViewFilters.HasSubmission),
+            nameof(SavedViewFilters.AwaitingResponse),
+            nameof(SavedViewFilters.FollowUpDueWithinDays)),
+    };
+
+    /// <summary>Every filter the document could carry, by name.</summary>
+    /// <remarks>
+    /// Read from the record itself, so the accept-lists above are checked against
+    /// what actually exists rather than against a second hand-written list that
+    /// could drift from it.
+    /// </remarks>
+    public static IReadOnlySet<string> AllFilterNames { get; } =
+        new HashSet<string>(
+            typeof(SavedViewFilters)
+                .GetProperties()
+                .Select(x => x.Name)
+                .Where(x => x != "EqualityContract"),
+            StringComparer.Ordinal);
+
+    /// <summary>
     /// Refuses filters that mean nothing for the chosen target.
     /// </summary>
     /// <remarks>
@@ -236,132 +371,59 @@ public sealed record SavedViewDefinition(
     /// </remarks>
     private void ValidateFiltersForTarget()
     {
-        switch (Target)
+        IReadOnlySet<string> accepted = AcceptedFilters.TryGetValue(Target, out IReadOnlySet<string>? set)
+            ? set
+            : FreezeFilters();
+
+        foreach (string name in SetFilterNames(Filters))
         {
-            case SavedViewTarget.People:
-                Reject(Filters.TaskState is not null, "TaskState", Target);
-                Reject(Filters.OverdueOnly, "OverdueOnly", Target);
-                Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
-                RejectRepresentationFilters();
-                RejectProspectFilters();
-                RejectProjectFilters();
-                RejectPackageFilters();
-                break;
+            if (!accepted.Contains(name))
+            {
+                throw new DomainException($"Filter '{name}' does not apply to a {Target} view.");
+            }
+        }
 
-            case SavedViewTarget.Companies:
-                Reject(Filters.TaskState is not null, "TaskState", Target);
-                Reject(Filters.OverdueOnly, "OverdueOnly", Target);
-                Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
-                Reject(Filters.TitleContains is not null, "TitleContains", Target);
-                Reject(Filters.CompanyId is not null, "CompanyId", Target);
-                RejectRepresentationFilters();
-                RejectProspectFilters();
-                RejectProjectFilters();
-                RejectPackageFilters();
-                break;
-
-            case SavedViewTarget.Tasks:
-                Reject(Filters.TitleContains is not null, "TitleContains", Target);
-                RejectRepresentationFilters();
-                RejectProspectFilters();
-                RejectProjectFilters();
-                RejectPackageFilters();
-                break;
-
-            case SavedViewTarget.Talent:
-                Reject(Filters.TaskState is not null, "TaskState", Target);
-                Reject(Filters.OverdueOnly, "OverdueOnly", Target);
-                Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
-                RejectProspectFilters();
-                RejectProjectFilters();
-                RejectPackageFilters();
-
-                // Current and former are contradictory: a view asking for both
-                // returns nothing, which reads as a broken view rather than an
-                // impossible question.
-                Reject(
-                    Filters.ClientsOnly && Filters.FormerClientsOnly,
-                    "ClientsOnly with FormerClientsOnly",
-                    Target);
-                break;
-
-            case SavedViewTarget.Prospects:
-                Reject(Filters.TaskState is not null, "TaskState", Target);
-                Reject(Filters.OverdueOnly, "OverdueOnly", Target);
-                Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
-                Reject(Filters.TitleContains is not null, "TitleContains", Target);
-                RejectRepresentationFilters();
-                RejectProjectFilters();
-                RejectPackageFilters();
-                break;
-
-            case SavedViewTarget.Projects:
-                Reject(Filters.TaskState is not null, "TaskState", Target);
-                Reject(Filters.OverdueOnly, "OverdueOnly", Target);
-                Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
-                Reject(Filters.TitleContains is not null, "TitleContains", Target);
-                Reject(Filters.CompanyId is not null, "CompanyId", Target);
-
-                // Status is the people-and-companies lifecycle field. A project has
-                // its own, and accepting the wrong one would silently return
-                // everything rather than what was asked for.
-                Reject(Filters.Status is not null, "Status", Target);
-                RejectRepresentationFilters();
-                RejectProspectFilters();
-                RejectPackageFilters();
-                break;
-
-            case SavedViewTarget.Packages:
-                Reject(Filters.TaskState is not null, "TaskState", Target);
-                Reject(Filters.OverdueOnly, "OverdueOnly", Target);
-                Reject(Filters.DueWithinDays is not null, "DueWithinDays", Target);
-                Reject(Filters.TitleContains is not null, "TitleContains", Target);
-                Reject(Filters.CompanyId is not null, "CompanyId", Target);
-                Reject(Filters.Status is not null, "Status", Target);
-                RejectRepresentationFilters();
-                RejectProspectFilters();
-                RejectProjectFilters();
-                break;
-
-            default:
-                break;
+        // Current and former are contradictory: a view asking for both returns
+        // nothing, which reads as a broken view rather than an impossible question.
+        if (Filters.ClientsOnly && Filters.FormerClientsOnly)
+        {
+            throw new DomainException(
+                $"Filter 'ClientsOnly with FormerClientsOnly' does not apply to a {Target} view.");
         }
     }
 
-    /// <summary>Refuses representation filters on a target that has no representation.</summary>
-    private void RejectRepresentationFilters()
+    /// <summary>
+    /// The filters this document actually sets.
+    /// </summary>
+    /// <remarks>
+    /// Walked by reflection rather than listed, for the same reason the mapping is
+    /// verified that way: a filter added later is covered without anybody
+    /// remembering to cover it. A false boolean and a null reference both count as
+    /// unset, because that is what "the user did not ask for this" looks like on
+    /// the wire.
+    /// </remarks>
+    private static IEnumerable<string> SetFilterNames(SavedViewFilters filters)
     {
-        Reject(Filters.Discipline is not null, "Discipline", Target);
-        Reject(Filters.ScopeArea is not null, "ScopeArea", Target);
-        Reject(Filters.LeadUserId is not null, "LeadUserId", Target);
-        Reject(Filters.ClientsOnly, "ClientsOnly", Target);
-        Reject(Filters.FormerClientsOnly, "FormerClientsOnly", Target);
+        foreach (System.Reflection.PropertyInfo property in typeof(SavedViewFilters).GetProperties())
+        {
+            if (property.Name == "EqualityContract")
+            {
+                continue;
+            }
+
+            object? value = property.GetValue(filters);
+
+            if (value is null || value is bool set && !set)
+            {
+                continue;
+            }
+
+            yield return property.Name;
+        }
     }
 
-    /// <summary>Refuses prospect filters on a target that is not a pursuit.</summary>
-    private void RejectProspectFilters()
-    {
-        Reject(Filters.ProspectStage is not null, "ProspectStage", Target);
-        Reject(Filters.OwnerUserId is not null, "OwnerUserId", Target);
-        Reject(Filters.FollowUpWithinDays is not null, "FollowUpWithinDays", Target);
-    }
-
-    /// <summary>Refuses project filters on a target that is not a project.</summary>
-    private void RejectProjectFilters()
-    {
-        Reject(Filters.ProjectType is not null, "ProjectType", Target);
-        Reject(Filters.DevelopmentStage is not null, "DevelopmentStage", Target);
-        Reject(Filters.ProjectStatus is not null, "ProjectStatus", Target);
-        Reject(Filters.AttachedPersonId is not null, "AttachedPersonId", Target);
-        Reject(Filters.MissingRoleType is not null, "MissingRoleType", Target);
-    }
-
-    /// <summary>Refuses package filters on a target that is not a package.</summary>
-    private void RejectPackageFilters()
-    {
-        Reject(Filters.PackageStatus is not null, "PackageStatus", Target);
-        Reject(Filters.ProjectId is not null, "ProjectId", Target);
-    }
+    private static IReadOnlySet<string> FreezeFilters(params string[] values) =>
+        new HashSet<string>(values, StringComparer.Ordinal);
 
     private static void Reject(bool present, string filter, SavedViewTarget target)
     {

@@ -20,6 +20,10 @@ public enum SearchEntityType
     Project = 6,
     SourceProperty = 7,
     Package = 8,
+
+    // Added in M6. "What are we doing about that studio" is asked constantly, and
+    // without this the only way to find a pursuit is to remember whose it is.
+    Opportunity = 9,
 }
 
 /// <summary>Why a row matched, so a ranked list can explain itself.</summary>

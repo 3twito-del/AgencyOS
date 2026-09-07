@@ -1,0 +1,32 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddOpportunityTargetDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add target"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="440">
+        <ComboBox x:Name="KindBox" Header="Target" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnKindChanged">
+            <ComboBoxItem Content="Company" Tag="Company" />
+            <ComboBoxItem Content="Person" Tag="Person" />
+        </ComboBox>
+
+        <TextBox x:Name="TargetIdBox" Header="Identifier" TextChanged="OnRequiredChanged" />
+
+        <TextBox x:Name="ContactIdBox" Header="Contact"
+                 PlaceholderText="The individual you deal with at this company"
+                 TextChanged="OnRequiredChanged" />
+
+        <TextBlock x:Name="ContactHint" Style="{StaticResource CaptionTextBlockStyle}"
+                   Opacity="0.75" TextWrapping="Wrap"
+                   Text="A contact belongs to a company target. For a person target, the person is who you are dealing with." />
+
+        <DatePicker x:Name="NextActionPicker" Header="Next action" />
+
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>

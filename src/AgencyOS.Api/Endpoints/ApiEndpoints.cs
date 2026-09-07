@@ -55,6 +55,7 @@ internal static class ApiEndpoints
         M3Endpoints.MapSearchSavedViewsAndSync(api);
         M4Endpoints.MapRepresentation(api);
         M5Endpoints.MapProjects(api);
+        M6Endpoints.MapOpportunities(api);
 
         // Idempotency is applied to the whole versioned surface and skipped for
         // reads. Opting in per endpoint would mean a mutation added later is

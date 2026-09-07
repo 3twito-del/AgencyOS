@@ -17,7 +17,7 @@ must be **defined and proven**, not merely plausible. See
 `docs/adr/ADR-0013-synchronization-architecture.md`,
 `ADR-0014-concurrency-and-idempotency.md` and `specs/OfflineWriteQueue.tla`.
 
-## OFFLINE_SAFE (M2/M3 — unchanged in M4)
+## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5 and M6)
 
 | Command | Why it is safe |
 |---|---|
@@ -93,6 +93,33 @@ current workload, and a queue entry nothing enqueues is exactly that. The
 condition for adding them is a Windows surface that genuinely opens a project away
 from a connection.
 
+## ONLINE_ONLY (all M6 mutations)
+
+| Command | Why it is not queued |
+|---|---|
+| CreateOpportunity / UpdateOpportunity | Could be made safe; see below. |
+| ChangeOpportunityStatus | The legal target depends on the current status, and closing requires an outcome the offline client cannot validate. |
+| AddOpportunitySubject / RemoveOpportunitySubject | The subject is resolved against this tenant at execution; queuing would defer that check. |
+| AddOpportunityTarget | **One open target per party is enforced per opportunity.** Two agents adding the same buyer offline would both believe they succeeded. |
+| UpdateOpportunityTarget / MoveOpportunityTarget | Stage legality depends on the current stage, which a stale client may not hold. |
+| RecordTargetResponse | Describes something a buyer did. Recording it against a target that has since been withdrawn is not a conflict to merge. |
+| RecordSubmission | **The one that matters.** A queued submission would replay against a pursuit that may have closed while the client was offline - and the user would have already told a client it went out. |
+| AmendSubmission | Version-guarded against a row the offline client may not hold the current version of. |
+| RecordPitch | Creates a pitch and its interaction in one transaction. A queued half of that pair is a duplicated meeting. |
+
+### Why the additive M6 commands are still ONLINE_ONLY
+
+`CreateOpportunity` would qualify on the same reasoning as `CreateProject`: it is
+additive, has no uniqueness constraint two offline clients could both violate, and
+an idempotency key makes it replay-safe.
+
+It is excluded for the reason M4 and M5 gave, and one stronger. There is no
+offline capture surface for a pursuit, so admitting it would widen the queue for a
+workflow that does not exist. And market activity is the wrong class of work to
+hold in a queue at all: a submission the user believes went out, held on a laptop
+for four hours, is worse than a submission refused with an explanation, because
+the user has already acted on the belief.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |
@@ -102,7 +129,7 @@ from a connection.
 | Tasks list | M3 |
 | Talent and client list, with representation status, lead and scopes | M4 |
 
-M5 adds nothing to this table. See below.
+M5 and M6 add nothing to this table. See below.
 
 M4 extends the change feed with a talent entry keyed by **person**, because the
 cached talent row denormalizes representation status and a representation change
@@ -136,6 +163,27 @@ and say so, which is honest.
 
 The cache schema therefore stays at **version 2**. M5 adds no migration.
 
+### Deliberately not cached: the pipeline
+
+**M6 adds no cached projections either, and here the reasoning is stronger than a
+missing bound.**
+
+A stale pipeline is not merely unhelpful; it is dangerous. An agent whose cached
+copy does not show yesterday's submission may submit to the same buyer again, or
+tell a client that nobody has seen the material when three people have. The damage
+happens in the world, outside the system, and no later sync repairs it.
+
+"All opportunities" also has no bounded deterministic rule, exactly as "all
+projects" did not. The plausible candidates - mine, active, recently touched - are
+three different answers to a question nobody has asked, and the pipeline is worked
+collaboratively, so "mine" is the least stable of the three.
+
+The condition for revisiting is the same: a stated rule about which pursuits a
+user needs away from a connection, and a surface that makes their staleness
+impossible to miss.
+
+The cache schema therefore stays at **version 2**. M6 adds no migration.
+
 ### Also deliberately not cached
 
 - **Client overview** — composes tasks, interactions, credits, materials and
@@ -149,6 +197,12 @@ The cache schema therefore stays at **version 2**. M5 adds no migration.
   a stale pipeline is actively misleading.
 - **Saved views** — small, server-backed and changed deliberately. A stale
   definition would quietly run the wrong query.
+- **Opportunity detail, submissions, pitches, the pipeline board and the market
+  command centre** — every figure on them is derived at read time from event rows,
+  so a cached copy would be a projection of a projection, stale in a way the user
+  could not inspect.
+- **Opportunity strategy notes** — permission-dependent. A cached copy would
+  outlive the permission that justified reading it.
 
 ## How the client behaves offline
 

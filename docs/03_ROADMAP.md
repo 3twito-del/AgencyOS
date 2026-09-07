@@ -502,14 +502,123 @@ Deliver:
 - Package; **met** (facts and hopes held apart)
 - company participation. **met** (a distinct model, with the reasoning recorded)
 
-## M6 — Opportunities & Submissions
+## M6 — Opportunities, Targets, Submissions & Pitches — **Implemented** (2026-09-07)
+
+Implemented: the pursuit as a first-class record, distinct from what it is about;
+targets as individual market conversations; submissions and pitches as recorded
+events; responses; follow-up tasks linked rather than embedded; a pipeline board
+and a market command centre.
+
+An **opportunity's status** says whether the agency is working the pursuit at all.
+A **target's stage** says where one conversation stands. Collapsing them is the
+defining CRM mistake: twelve buyers on one project are twelve simultaneous,
+unrelated positions, and a single field forces the pursuit to pretend it is at
+whichever stage the loudest target is at. Eleven passes and one live read is not
+"passed" and is not "interested" - it is one conversation inside a pursuit that is
+still open.
+
+There is deliberately **no `Submitted` stage**. A submission is an event at an
+instant; a stage is where a conversation stands. `Submitted` as a stage would
+strand a target there forever after one email and leave a second submission six
+weeks later nowhere to go. Recording a submission moves a target Contacted →
+Engaged and leaves a row carrying the date, the channel and a material snapshot.
+
+Outcomes stop short of the deal boundary. `Placed`, `NoInterest`, `Withdrawn`,
+`Superseded`, `NotPursued` - no `Won`, no `Lost`, no `DealClosed`, and no
+offer-shaped pitch outcome. Whether money changed hands and on what terms is M7,
+and a `Won` here would be a commercial claim made by a model with no commercial
+vocabulary.
+
+**AgencyOS records that a submission happened; it does not send anything.** There
+is no outbound transport, no credential store and no delivery status anywhere in
+M6. `SentAt` is when the agent says it went and is freely backdated, because most
+submissions are recorded after the fact. `ExternalReference` is an opaque string
+AgencyOS assigns no meaning to - the seam an M10 mail integration would fill. The
+Windows submissions surface states this permanently and non-dismissibly, because a
+system that implied it had verified delivery would be worse than one that said
+nothing.
+
+**Silence is derived, never stored.** Nothing records a non-response. A submission
+carries `ResponseExpectedBy`; a target is awaiting a reply when that date has
+passed with no response event since. The same rule removes every convenience
+boolean: no `HasSubmission`, no `HasBeenPitched`, no stored counts. Two facts that
+can disagree are one fact too many.
+
+A **pitch is one interaction, read commercially** - a required, unique
+`InteractionId`, both created in one command and one transaction. Two steps is how
+one meeting ends up in the system twice with the same participants and the same
+timestamp, and the unique index makes the duplicate impossible rather than
+unlikely.
+
+Subjects use **typed, tenant-qualified foreign keys** - an exclusive arc over
+talent profile, project, package and project role, with check constraints asserting
+exactly one is set and that it matches the declared kind. ADR-0019 accepted a
+validator-only raw identifier for package elements and named it as the thing to
+watch; M6 does not repeat it.
+
+Follow-ups are ordinary M2 tasks joined through `OpportunityTaskLink` rather than
+another nullable column on `TaskItem`. One open target per party per opportunity is
+enforced by a partial unique index, because two colleagues working the same buyer
+without knowing about each other is the situation this part of the system exists to
+prevent.
+
+`opportunities.strategy.read` is its own permission, redacted through the shared
+`SensitiveNotes` from M4 so detail, lists, saved views and search apply one rule -
+and strategy is excluded from the search vector, since confirming a note by
+searching a phrase would defeat the redaction entirely.
+
+Saved-view filters moved from reject-lists to a declared **accept-list** per
+target, with set and known filter names derived by reflection. A new filter field
+is therefore covered by the completeness test automatically. Definition version
+moves to 4.
+
+Everything in M6 is **online-only**. No read is cached, no write is queued, and the
+local cache schema stays at version 2. A stale pipeline is worse than no pipeline:
+an agent who submits again because their cached copy missed yesterday's submission
+has done damage in the world that no later sync repairs.
+
+Decisions recorded:
+`docs/adr/ADR-0020-opportunity-pipeline-and-market-activity.md`.
+
+Defects found by tests written for this milestone:
+
+- **`OpportunityTaskLink.TaskItemId` was a raw `Guid`** while `TaskItem.Id` is a
+  typed `TaskItemId`. It compiled, and it would have let a task from any aggregate
+  be linked to a pursuit. Now typed, with the empty guard on the typed value.
+- **A LINQ join on `SubmissionId` against `Nullable<SubmissionId>` was
+  untranslatable**, and would have thrown at runtime on the response-derivation
+  path rather than at build. The key list is now nullable and the grouping keys on
+  it.
+- **The first generated migration placed its raw SQL after `Up`'s closing brace.**
+  Caught before it was committed; the migration was regenerated from a restored
+  snapshot.
+
+Known limitations, recorded rather than implied:
+
+- AgencyOS cannot tell the user whether a submission arrived, and says so on the
+  screen. That is a real limitation, deliberately visible.
+- Backdated `SentAt` means the submission timeline reflects when things happened
+  rather than when they were typed, so it is not an audit trail. The audit log is.
+- Every pipeline figure is computed at read time from event rows. That cannot be
+  stale, and it is more work per read than a column would be.
+- No offline projections for the pipeline at all, by the policy in
+  `docs/13_OFFLINE_CLASSIFICATION.md`. Opportunity reads are refused offline and
+  say so.
+- `CreateOpportunity` would qualify as offline-safe but has no offline capture
+  surface, so admitting it would widen the queue for a workflow that does not
+  exist.
+- Opportunity history is per pursuit and limit-bounded. It is a curated timeline
+  composed from domain events, not a raw audit browser.
+- No `DealId` anywhere. M7 attaches an offer to a target, a submission or a pitch
+  without M6 having pre-judged which.
+
 Deliver:
-- Opportunity;
-- Pitch;
-- Meeting;
-- Submission;
-- outcomes;
-- follow-up workflows.
+- Opportunity; **met** (pursuit status distinct from per-target stage)
+- Pitch; **met** (one interaction, read commercially; uniqueness enforced)
+- Meeting; **met** (the M2 interaction, created with the pitch in one transaction)
+- Submission; **met** (recorded, never sent; material snapshotted at the time)
+- outcomes; **met** (restrained; stops before the deal boundary)
+- follow-up workflows. **met** (linked M2 tasks, created with the activity)
 
 ## M7 — Deal Engine
 Deliver:

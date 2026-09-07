@@ -124,6 +124,14 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
         });
 
+        // Sync moves to F8 rather than Ctrl+0, which several keyboard layouts
+        // intercept for zoom.
+        AddAccelerator(VirtualKey.F8, VirtualKeyModifiers.None, (_, args) =>
+        {
+            SelectMenu(9);
+            args.Handled = true;
+        });
+
         AddAccelerator(VirtualKey.K, VirtualKeyModifiers.Control, (_, args) =>
         {
             ToggleSearch();
@@ -174,6 +182,7 @@ public sealed partial class MainWindow : Window
             "prospects" => typeof(ProspectsPage),
             "projects" => typeof(ProjectsPage),
             "packages" => typeof(PackagesPage),
+            "pipeline" => typeof(PipelinePage),
             "saved-views" => typeof(SavedViewsPage),
             "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
@@ -289,12 +298,16 @@ public sealed partial class MainWindow : Window
                 SelectMenu(6);
                 return;
 
-            case "go.saved-views":
+            case "go.pipeline":
                 SelectMenu(7);
                 return;
 
-            case "go.sync":
+            case "go.saved-views":
                 SelectMenu(8);
+                return;
+
+            case "go.sync":
+                SelectMenu(9);
                 return;
 
             case "search.open":

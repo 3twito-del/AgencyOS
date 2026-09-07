@@ -242,6 +242,109 @@ and would express a project fact by mutating the talent's own record.
 nullable, because most historical credits describe work the agency had nothing to
 do with. Linking is always an explicit command — never inferred from a title.
 
+## M6 entities — opportunities and market activity
+
+Implemented in M6.
+`docs/adr/ADR-0020-opportunity-pipeline-and-market-activity.md` records why the
+shape is this one.
+
+### Opportunity
+A pursuit: something the agency is trying to make happen. Distinct from what it is
+about, which is where M5's records come in.
+- Id, Name, Kind (TalentEngagement | ProjectMarket | PackageMarket | Staffing |
+  Partnership | Other)
+- Status (Draft → Active ↔ Paused → Closed → Active | Cancelled) — whether the
+  agency is working it at all
+- Outcome? (Placed | NoInterest | Withdrawn | Superseded | NotPursued) — required
+  exactly when closed, enforced by CHECK. **No Won, Lost or DealClosed**: those
+  are M7 facts and this model has no commercial vocabulary.
+- Priority (Low | Normal | High) — set by a person; nothing computes it
+- OwnerUserId, OpenedOn, ClosedOn?
+- Description?, StrategyNotes? — strategy behind `opportunities.strategy.read`,
+  and excluded from the search vector
+- Version, CreatedAt, UpdatedAt, CreatedBy
+
+Nothing here counts submissions, tracks whether a reply is overdue, or stores a
+probability. Every such figure is projected at read time from the event rows.
+
+### OpportunityEvent
+Append-only. One row per status change, with a reason.
+
+### OpportunitySubject
+What the pursuit is about. An **exclusive arc of typed, tenant-qualified foreign
+keys** rather than a kind plus a raw GUID.
+- Id, OpportunityId, Kind (TalentProfile | Project | Package | ProjectRole)
+- TalentProfileId? / ProjectId? / PackageId? / ProjectRoleId? — exactly one,
+  enforced by CHECK, with a second CHECK asserting it matches the declared kind
+- Role (Primary | Context | Supporting), Note?
+- Unique per (opportunity, kind, target).
+
+The opportunity's kind determines which subject it requires. `PrimarySubject` is
+derived from that rule, never stored, so it cannot disagree with the subject rows.
+
+### OpportunityTarget
+One market conversation: a party being approached about this pursuit. Its stage is
+a **different axis** from the opportunity's status.
+- Id, OpportunityId
+- CompanyId? / PersonId? — exactly one, enforced by CHECK
+- ContactPersonId? — valid only for a company target
+- Stage (Identified → Approved → Contacted → Engaged → Interested → Advanced,
+  leaving to Passed | Withdrawn | Exhausted). **Deliberately no `Submitted`**: a
+  submission is an event at an instant, not a place a conversation rests.
+- OwnerUserId?, NextActionOn?, ClosedOn?, Notes?
+- Version, CreatedAt, UpdatedAt
+- One open target per party per opportunity, enforced by partial unique indexes.
+
+### OpportunityTargetEvent
+Append-only. Stage moves, responses received and outreach recorded, each with when
+it happened and who recorded it. This is where "they came back asking for more
+material" lives.
+
+### Submission
+An assertion that material went to a target. **AgencyOS records this; it did not
+send anything and cannot confirm delivery.**
+- Id, OpportunityId, OpportunityTargetId
+- SentAt — *when the agent says it went*, freely backdated
+- SentByUserId, Channel (Email | Portal | Courier | InPerson | Phone | Other)
+- Subject?, Notes?
+- ResponseExpectedBy? — the only thing that makes silence visible. Nothing is
+  stored to represent a non-response; it is derived from this date.
+- ExternalReference? — opaque; AgencyOS assigns it no meaning. The M10 seam.
+- Version, CreatedAt, UpdatedAt
+
+### SubmissionMaterial
+What went, **as it read at the time**: TitleAtSubmission, TypeAtSubmission,
+VersionLabelAtSubmission, alongside the live `MaterialId`. A material renamed since
+does not rewrite what was submitted, and the current title is returned beside the
+snapshot so the change is visible.
+
+### OpportunityPitch
+The commercial reading of one meeting or call.
+- Id, OpportunityId, OpportunityTargetId
+- InteractionId — **required and unique**. The pitch and its M2 interaction are
+  created in one command and one transaction, so one meeting cannot enter the
+  system twice.
+- Kind (Introductory | Formal | FollowUp | Incidental)
+- Outcome (NoDecision | FollowUpRequested | MoreMaterialRequested | Interested |
+  Passed) — **no offer-shaped outcomes**; an offer is a document with terms and
+  belongs to M7
+- Subject?, Notes?, Version, CreatedAt, UpdatedAt
+
+Participants, timestamp, type and detailed notes live on the interaction. The pitch
+does not restate them.
+
+### PitchMaterial
+What was shown, snapshotted exactly as `SubmissionMaterial` is.
+
+### OpportunityTaskLink
+Joins an ordinary M2 task to a pursuit, and optionally to a target.
+- Id, TaskItemId (unique — a task belongs to at most one pursuit)
+- OpportunityId, OpportunityTargetId?, LinkedAt
+
+A join table rather than another nullable id column on `TaskItem`: every milestone
+that adds a linkable thing would otherwise add another nullable column and another
+combination nothing validates.
+
 ## Temporal modeling
 
 Effective-date history rather than destructive overwrite, applied from M4 onward.
@@ -263,6 +366,15 @@ would invent a fact.
 M5 follows the same pattern: `Attachment` and `ProjectCompanyParticipation` are
 effective-dated with period check constraints, and status changes on projects,
 attachments and packages are append-only events beside the current value.
+
+M6 follows it again. `OpportunityEvent` and `OpportunityTargetEvent` are
+append-only beside the current status and stage, and `Opportunity.OpenedOn` /
+`ClosedOn` and `OpportunityTarget.ClosedOn` are `DateOnly` periods guarded by check
+constraints. `Submission.SentAt` is deliberately an instant rather than a business
+date, because it records a specific reported act — and it is freely backdated, so
+the submission timeline says when things happened rather than when they were
+typed. That makes it a business record and not an audit trail; the audit log
+remains the record of when each row was actually written.
 
 Rights and contractual relationships follow the same pattern when their milestones
 arrive.

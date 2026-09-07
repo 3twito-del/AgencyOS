@@ -61,8 +61,9 @@ public sealed partial class OpenApiContractTests
     /// The document must describe every implemented route: version identity and the
     /// release handshake from M1, the people slice from M2, search, saved views
     /// and synchronization from M3, talent, prospects, representation, credits and
-    /// materials from M4, and projects, source properties, roles, attachments and
-    /// packages from M5.
+    /// materials from M4, projects, source properties, roles, attachments and
+    /// packages from M5, and opportunities, targets, submissions and pitches from
+    /// M6.
     /// </summary>
     /// <remarks>
     /// A contract that silently stopped describing a route would still be valid
@@ -138,6 +139,23 @@ public sealed partial class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/packages/{packageId}/elements")]
     [InlineData("/api/v1/organizations/{organizationId}/credits/{creditId}/project")]
     [InlineData("/api/v1/organizations/{organizationId}/project-command-center")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunities")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunities/{opportunityId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/history")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/status")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/subjects")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/subjects/{subjectId}/remove")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunities/{opportunityId}/targets")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}/stage")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}/responses")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}/submissions")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunity-targets/{targetId}/pitches")]
+    [InlineData("/api/v1/organizations/{organizationId}/submissions")]
+    [InlineData("/api/v1/organizations/{organizationId}/submissions/{submissionId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/pitches")]
+    [InlineData("/api/v1/organizations/{organizationId}/pipeline")]
+    [InlineData("/api/v1/organizations/{organizationId}/opportunity-command-center")]
     public async Task Contract_DescribesTheImplementedSurface(string path)
     {
         using JsonDocument document = await GetContractAsync();

@@ -110,6 +110,25 @@ public static class AuditAction
     public const string MaterialLinkedToProject = "project.material.linked";
     public const string MaterialUnlinkedFromProject = "project.material.unlinked";
 
+    // ---- Opportunities and submissions (M6) ----
+
+    public const string OpportunityCreated = "opportunity.created";
+    public const string OpportunityUpdated = "opportunity.updated";
+    public const string OpportunityStatusChanged = "opportunity.status.changed";
+    public const string OpportunitySubjectAdded = "opportunity.subject.added";
+    public const string OpportunitySubjectRemoved = "opportunity.subject.removed";
+
+    public const string OpportunityTargetAdded = "opportunity.target.added";
+    public const string OpportunityTargetUpdated = "opportunity.target.updated";
+    public const string OpportunityTargetMoved = "opportunity.target.moved";
+    public const string OpportunityTargetEventRecorded = "opportunity.target.event";
+
+    public const string SubmissionRecorded = "submission.recorded";
+    public const string SubmissionAmended = "submission.amended";
+
+    public const string PitchRecorded = "pitch.recorded";
+    public const string PitchAmended = "pitch.amended";
+
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";
     public const string SavedViewDeleted = "savedview.deleted";

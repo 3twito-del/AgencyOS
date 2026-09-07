@@ -91,6 +91,7 @@ public sealed class SavedViewService
             // saved.
             [SavedViewTarget.Projects] = Permission.ProjectsRead,
             [SavedViewTarget.Packages] = Permission.PackagesRead,
+            [SavedViewTarget.Opportunities] = Permission.OpportunitiesRead,
         };
 
     /// <summary>Largest page a saved view returns.</summary>

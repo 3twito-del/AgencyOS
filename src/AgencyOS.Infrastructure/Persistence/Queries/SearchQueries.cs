@@ -3,6 +3,7 @@ using System.Globalization;
 using AgencyOS.Application.Search;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.Opportunities;
 using AgencyOS.Domain.People;
 using AgencyOS.Domain.Projects;
 using AgencyOS.Domain.Talent;
@@ -231,6 +232,27 @@ internal sealed class SearchQueries : ISearchQueries
                     : $"t.status NOT IN ({(int)PackageStatus.Closed}, {(int)PackageStatus.Abandoned})"));
         }
 
+        if (types.Contains(SearchEntityType.Opportunity))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Opportunity,
+                table: "opportunities",
+                idColumn: "id",
+                titleColumn: "name",
+
+                // Deliberately not strategy_notes, here or in the search vector. A
+                // caller without opportunities.strategy.read must not be able to
+                // confirm what a note says by searching for a phrase (ADR-0020).
+                subtitleExpression: "t.description",
+                statusColumn: "status",
+
+                // A cancelled or closed pursuit is history rather than part of the
+                // working set, so it is excluded unless asked for.
+                archivedPredicate: includeArchived
+                    ? "TRUE"
+                    : $"t.status NOT IN ({(int)OpportunityStatus.Closed}, {(int)OpportunityStatus.Cancelled})"));
+        }
+
         if (branches.Count == 0)
         {
             return new SearchResultModel([], HasMore: false);
@@ -328,6 +350,7 @@ internal sealed class SearchQueries : ISearchQueries
         SearchEntityType.Project => ((ProjectStatus)status).ToString(),
         SearchEntityType.SourceProperty => ((SourcePropertyType)status).ToString(),
         SearchEntityType.Package => ((PackageStatus)status).ToString(),
+        SearchEntityType.Opportunity => ((OpportunityStatus)status).ToString(),
         _ => status.ToString(CultureInfo.InvariantCulture),
     };
 }
