@@ -774,6 +774,30 @@ public sealed class ClientBoundaryTests
             reference => reference.Name == "AgencyOS.Domain" || reference.Name == "AgencyOS.Application");
     }
 
+    /// <summary>
+    /// The synchronization seam ADR-0013 names is real, not just described.
+    /// </summary>
+    /// <remarks>
+    /// The ADR says a future Rust engine could replace <c>IWriteQueue</c> and
+    /// <c>ISyncEngine</c> without touching the domain, the API contract or the UI.
+    /// That claim is only true if the interfaces exist and the UI actually binds to
+    /// them; a documented boundary nothing depends on is a boundary in name only.
+    /// </remarks>
+    [Fact]
+    public void TheSynchronizationSeamIsReal()
+    {
+        Assert.True(typeof(AgencyOS.Client.Sync.ISyncEngine).IsAssignableFrom(typeof(AgencyOS.Client.Sync.SyncEngine)));
+        Assert.True(typeof(AgencyOS.Client.Sync.IWriteQueue).IsAssignableFrom(typeof(LocalCache)));
+
+        // The offline surface takes the seam, not the implementation, so replacing
+        // the engine does not touch the UI.
+        Assert.Contains(
+            typeof(SyncStatusViewModel).GetConstructors(),
+            constructor => constructor
+                .GetParameters()
+                .Any(parameter => parameter.ParameterType == typeof(AgencyOS.Client.Sync.ISyncEngine)));
+    }
+
     [Fact]
     public void ClientDependsOnTheVersionedContracts()
     {

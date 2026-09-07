@@ -37,7 +37,7 @@ public sealed class LocalCacheUnusableException : Exception
 /// DPAPI-protected key (ADR-0015).
 /// </para>
 /// </remarks>
-public sealed class LocalCache : IDisposable
+public sealed class LocalCache : AgencyOS.Client.Sync.IWriteQueue, IDisposable
 {
     /// <summary>Name of the database file inside a cache directory.</summary>
     public const string DatabaseFileName = "cache.db";

@@ -78,7 +78,8 @@ public sealed record PendingChangeItem(
 /// </remarks>
 public sealed class SyncStatusViewModel : ViewModelBase
 {
-    private readonly SyncEngine _engine;
+    private readonly ISyncEngine _engine;
+    private readonly IWriteQueue _queue;
     private readonly LocalCache _cache;
     private readonly TimeProvider _time;
 
@@ -91,12 +92,21 @@ public sealed class SyncStatusViewModel : ViewModelBase
     private int _cachedCompanies;
     private int _cachedTasks;
 
-    public SyncStatusViewModel(SyncEngine engine, LocalCache cache, TimeProvider? time = null)
+    /// <summary>
+    /// Depends on the synchronization seam rather than a concrete engine.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="ISyncEngine"/> and <see cref="IWriteQueue"/> are the boundary
+    /// ADR-0013 names as replaceable by a future Rust engine. Binding the UI to
+    /// them rather than to the C# implementation is what keeps that reversible.
+    /// </remarks>
+    public SyncStatusViewModel(ISyncEngine engine, LocalCache cache, TimeProvider? time = null)
     {
         ArgumentNullException.ThrowIfNull(engine);
         ArgumentNullException.ThrowIfNull(cache);
 
         _engine = engine;
+        _queue = cache;
         _cache = cache;
         _time = time ?? TimeProvider.System;
 
@@ -265,7 +275,7 @@ public sealed class SyncStatusViewModel : ViewModelBase
     /// </remarks>
     public void Discard(Guid id)
     {
-        _cache.Remove(id);
+        _queue.Remove(id);
         Refresh();
     }
 
@@ -274,7 +284,7 @@ public sealed class SyncStatusViewModel : ViewModelBase
     {
         Pending.Clear();
 
-        foreach (QueuedCommand command in _cache.ReadAll())
+        foreach (QueuedCommand command in _queue.ReadAll())
         {
             if (command.State == QueuedState.Synced)
             {
@@ -292,7 +302,7 @@ public sealed class SyncStatusViewModel : ViewModelBase
                 command.ServerVersion));
         }
 
-        (int outstanding, int attention) = _cache.ReadQueueCounts();
+        (int outstanding, int attention) = _queue.ReadQueueCounts();
 
         OutstandingCount = outstanding;
         AttentionCount = attention;

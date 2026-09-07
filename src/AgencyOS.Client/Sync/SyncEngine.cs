@@ -54,7 +54,7 @@ public sealed record SyncOutcome(
 /// buys. The model also produced the rule below about exhausted attempts.
 /// </para>
 /// </remarks>
-public sealed class SyncEngine
+public sealed class SyncEngine : ISyncEngine
 {
     /// <summary>
     /// How many times a command is retried before it stops being tried
@@ -76,6 +76,7 @@ public sealed class SyncEngine
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     private readonly IAgencyOsApi _api;
+    private readonly IWriteQueue _queue;
     private readonly LocalCache _cache;
     private readonly TimeProvider _time;
 
@@ -85,6 +86,7 @@ public sealed class SyncEngine
         ArgumentNullException.ThrowIfNull(cache);
 
         _api = api;
+        _queue = cache;
         _cache = cache;
         _time = time ?? TimeProvider.System;
     }
@@ -117,26 +119,26 @@ public sealed class SyncEngine
         int failed = 0;
         int refused = 0;
 
-        foreach (QueuedCommand command in _cache.ReadOutstanding())
+        foreach (QueuedCommand command in _queue.ReadOutstanding())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             DateTimeOffset now = _time.GetUtcNow();
 
-            _cache.RecordAttempt(command.Id, QueuedState.Sending, now, countAttempt: false);
+            _queue.RecordAttempt(command.Id, QueuedState.Sending, now, countAttempt: false);
 
             try
             {
                 await SubmitAsync(command, cancellationToken).ConfigureAwait(false);
 
-                _cache.RecordAttempt(command.Id, QueuedState.Synced, _time.GetUtcNow());
+                _queue.RecordAttempt(command.Id, QueuedState.Synced, _time.GetUtcNow());
                 submitted++;
             }
             catch (AgencyOsApiException exception) when (exception.IsVersionConflict)
             {
                 // The record moved on. Nothing is discarded and nothing is
                 // applied: the user is shown what they meant and what it says now.
-                _cache.RecordAttempt(
+                _queue.RecordAttempt(
                     command.Id,
                     QueuedState.Conflict,
                     _time.GetUtcNow(),
@@ -152,7 +154,7 @@ public sealed class SyncEngine
                 // refuse again. Offline possession of a record was never
                 // permission to change it later; the server decides at execution
                 // time, and it has.
-                _cache.RecordAttempt(
+                _queue.RecordAttempt(
                     command.Id,
                     QueuedState.FailedPermanent,
                     _time.GetUtcNow(),
@@ -163,7 +165,7 @@ public sealed class SyncEngine
             }
             catch (Exception exception) when (exception is AgencyOsApiException or HttpRequestException or TaskCanceledException)
             {
-                _cache.RecordAttempt(
+                _queue.RecordAttempt(
                     command.Id,
                     NextRetryState(command),
                     _time.GetUtcNow(),
