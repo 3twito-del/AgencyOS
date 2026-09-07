@@ -148,7 +148,7 @@ Exit criteria:
 - see task on Command Center; **met**
 - full audit trail. **met**
 
-## M3 — Search, Views & Local Cache — **Done** (2026-09-07)
+## M3 — Search, Views & Local Cache — **Done** (2026-09-07) · promoted to ALPHA
 
 Implemented: ranked tenant-scoped search over PostgreSQL full text and trigram
 similarity; per-user saved views with a validated, versioned definition document;
@@ -192,6 +192,46 @@ Decisions recorded: `docs/adr/ADR-0013-synchronization-architecture.md`,
 `ADR-0015-local-cache-encryption.md`,
 `ADR-0016-observability-supersedes-0004.md` (which supersedes ADR-0004's deferral
 of OpenTelemetry, on the condition ADR-0004 itself named).
+
+ALPHA promotion evidence (authoritative, remote CI):
+
+Workflow **CI**, run
+[34113378373](https://github.com/3twito-del/AgencyOS/actions/runs/34113378373),
+commit `ca9d1ed`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `postgres:18.6`, server banner
+  `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 166 passed, 0 failed,
+  0 skipped - including migrations from a clean database through M0 + M1 + M2 +
+  M3, the search ranking against real full-text and trigram indexes, server-side
+  idempotency, version conflicts, and the change feed's ordering guarantee under
+  eight concurrent writers.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including the
+  WinUI 3 client, 0 warnings / 0 errors; 241 unit tests passed - among them the
+  780-interleaving offline-queue simulation and the DPAPI key provider, which is
+  Windows-only and therefore genuinely exercised here; OpenAPI 3.1.1 generated and
+  verified (27 paths, 22 schemas).
+
+Four earlier M3 commits also completed CI green (`2c13942`, `fb0ce09`, `59abd1f`,
+`1435256`), so the milestone is green across its whole series rather than only at
+its tip.
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
+
+Known limitations, recorded rather than implied:
+
+- Expired idempotency keys are not pruned. Retention is 30 days and the column is
+  indexed for a future reaper; ADR-0014 states this as a limitation rather than an
+  oversight.
+- A cache rebuilt from position zero replays a tenant's whole change history.
+  Feed compaction is the answer if rebuild time is ever measured to be a problem,
+  and is deliberately not built before then.
+- Relationships and interactions are not cached; they are read online. Caching
+  them would mean answering what an offline timeline means when half its inputs
+  are stale.
+- `ChangeKind.Removed` is defined, carried by the protocol and handled by the
+  client, but never emitted: AgencyOS archives rather than deletes. It exists so
+  that a future emitter does not break clients shipped before it.
 
 Deliver:
 - PostgreSQL full-text/trigram; **met**
