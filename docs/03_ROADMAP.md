@@ -31,7 +31,7 @@ Exit criteria:
 - version metadata generated; **met**
 - Nightly artifact can be produced. **met**
 
-## M1 — Identity, Organization & Audit — **Done** (2026-09-07); ALPHA promotion pending PostgreSQL 18.6 verification
+## M1 — Identity, Organization & Audit — **Done** (2026-09-07) · promoted to ALPHA
 
 Implemented: Organization, User, Membership and the role/permission model;
 development identity provider behind a replaceable seam, fenced to rings that
@@ -64,40 +64,30 @@ manual database seeding. The policy is the narrowest that works - the
 bootstrapping client's own platform, ring and version, latest equal to minimum -
 and compatibility and REVOKED enforcement are unchanged.
 
-Outstanding for ALPHA promotion - the single remaining gate:
+ALPHA promotion evidence (authoritative, remote CI):
 
-The suite passes against PostgreSQL 19 Beta 3, which is LAB evidence only. The
-18.6 ALPHA-baseline run via Testcontainers cannot be performed on this machine.
-Docker Desktop starts but its Linux engine does not:
+Repository `3twito-del/AgencyOS` (private). Workflow **CI**, run
+[34082661680](https://github.com/3twito-del/AgencyOS/actions/runs/34082661680),
+commit `bfa8204`, conclusion **success**.
 
-```
-wsl -d Ubuntu -e uname -r
-  WSL2 is not supported with your current machine configuration.
-  Please enable the "Virtual Machine Platform" optional component and ensure
-  virtualization is enabled in the BIOS.
-  Error code: Wsl/Service/CreateInstance/CreateVm/HCS/HCS_E_HYPERV_NOT_INSTALLED
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `docker.io/library/postgres:18.6`, reported healthy by `pg_isready`; server
+  banner `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 75 passed,
+  0 failed, 0 skipped - including the five `MigrationTests`, each of which
+  creates a fresh database and migrates from zero.
+- `Build and unit tests (Windows)` on windows-latest: full solution including the
+  WinUI 3 client, 0 warnings / 0 errors; 103 unit tests passed; OpenAPI 3.1.1
+  generated and verified (8 paths, 5 schemas); version metadata generated.
 
-(Get-CimInstance Win32_ComputerSystem).HypervisorPresent  ->  False
-Get-Service com.docker.service                            ->  Stopped (needs admin)
-docker pull postgres:18.6                                 ->  500 from the daemon
-```
+The PostgreSQL 18.6 ALPHA baseline gate is therefore satisfied, and remote CI is
+verified for the workflows that actually executed.
 
-Prerequisites, all requiring Administrator and a reboot: enable virtualization in
-firmware, enable the Virtual Machine Platform Windows feature, and allow
-`com.docker.service` to start. Once `docker info` succeeds, the existing
-Testcontainers path pins `postgres:18.6` automatically and the gate is closed by
-running `verify` with `AGENCYOS_TEST_POSTGRES` unset.
-
-Deliver:
-- Organization, User, Membership, Role/Permission foundations;
-- authentication placeholder suitable for later Entra/OIDC;
-- immutable audit model;
-- server-side policy authorization;
-- client/server version handshake.
-
-Exit criteria:
-- privileged mutations are authorized and audited; **met**
-- unsupported client version can be rejected. **met**
+Developer-environment limitation (not a promotion blocker): the Windows machine
+used for local development cannot run Docker/Testcontainers, because WSL2 needs
+the Virtual Machine Platform feature and firmware virtualization
+(`HCS_E_HYPERV_NOT_INSTALLED`, `HypervisorPresent=False`). Local runs therefore
+use PostgreSQL 19 Beta 3, which remains LAB evidence only. Authoritative
+PostgreSQL 18.6 verification happens in CI.
 
 ## M2 — People Vertical Slice
 Deliver:

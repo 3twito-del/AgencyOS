@@ -78,11 +78,16 @@ split.
 
 ## Verification status
 
-The workflow files are verified statically (valid YAML, expected job graph,
-pinned image) and the exact script targets they invoke are verified locally. They
-have never executed on GitHub, because this repository has no remote. That
-distinction is deliberate and should be preserved in reporting until a real run
-exists.
+The **CI** workflow has executed on GitHub against
+`3twito-del/AgencyOS` (private): run 34082661680 on commit `bfa8204`, both jobs
+green, with `docker.io/library/postgres:18.6` pulled and reported healthy. That
+run is the authoritative evidence for the PostgreSQL 18.6 ALPHA baseline gate.
+
+The **Nightly** workflow has not executed. It is triggered by schedule and manual
+dispatch only, so a push does not exercise it, and it was not dispatched manually
+because doing so would consume Windows runner minutes without adding evidence M1
+needs. Its artifact path therefore remains verified statically and locally only.
+That distinction should continue to be reported precisely.
 
 ## Evidence / metrics that would cause reconsideration
 
