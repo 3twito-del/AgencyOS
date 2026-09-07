@@ -39,6 +39,31 @@
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.11" />
   </ItemGroup>
 
+  <!--
+    Local client cache. SQLite is never canonical (CLAUDE.md section 2): it holds a
+    read-through copy and a durable write queue so the client is useful offline.
+    SQLCipher provides page-level encryption; the key is protected by Windows DPAPI
+    and never committed or derived from anything in the repository
+    (docs/adr/ADR-0015-local-cache-encryption.md).
+  -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.11" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.11" />
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
+  </ItemGroup>
+
+  <!--
+    Observability. ADR-0004 deferred OpenTelemetry until there was a distributed
+    failure path worth tracing; ADR-0016 records that M3 is that milestone. No
+    vendor and no collector: exporters are registered only when an OTLP endpoint is
+    configured, so the operational surface stays at zero until somebody looks.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.18.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.18.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.18.0" />
+  </ItemGroup>
+
   <!-- Test stack. -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

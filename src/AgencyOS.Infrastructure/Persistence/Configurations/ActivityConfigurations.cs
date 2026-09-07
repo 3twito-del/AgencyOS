@@ -175,6 +175,11 @@ public sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
 
+        // The optimistic concurrency token is an explicit column the client sees
+        // and sends back, not a hidden xmin: a client that never learns the token
+        // cannot be asked to prove what it saw (ADR-0014).
+        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
             .HasConversion(id => id.Value, value => new UserId(value))

@@ -127,7 +127,8 @@ internal static class PeopleSliceEndpoints
                         new PersonId(personId),
                         ToDetails(request.FirstName, request.LastName, request.DisplayName, request.MiddleName,
                             request.PreferredName, request.PrimaryCompanyId, request.Title, request.Email,
-                            request.Phone, request.Notes)),
+                            request.Phone, request.Notes),
+                        request.ExpectedVersion),
                     cancellationToken).ConfigureAwait(false);
 
                 PersonDetailModel? updated = await queries
@@ -247,7 +248,8 @@ internal static class PeopleSliceEndpoints
                             EndpointParsing.ParseEnum<CompanyType>(request.Type, nameof(request.Type)),
                             request.LegalName,
                             request.Website,
-                            request.Notes)),
+                            request.Notes),
+                        request.ExpectedVersion),
                     cancellationToken).ConfigureAwait(false);
 
                 CompanyDetailModel? updated = await queries
@@ -424,11 +426,17 @@ internal static class PeopleSliceEndpoints
         tenant.MapPost("/tasks/{taskId:guid}/complete", async (
                 Guid organizationId,
                 Guid taskId,
+                TaskTransitionRequest request,
                 CompleteTaskHandler handler,
                 CancellationToken cancellationToken) =>
             {
+                ArgumentNullException.ThrowIfNull(request);
+
                 await handler.HandleAsync(
-                    new CompleteTaskCommand(new OrganizationId(organizationId), new TaskItemId(taskId)),
+                    new CompleteTaskCommand(
+                        new OrganizationId(organizationId),
+                        new TaskItemId(taskId),
+                        request.ExpectedVersion),
                     cancellationToken).ConfigureAwait(false);
 
                 return Results.NoContent();
@@ -439,11 +447,17 @@ internal static class PeopleSliceEndpoints
         tenant.MapPost("/tasks/{taskId:guid}/reopen", async (
                 Guid organizationId,
                 Guid taskId,
+                TaskTransitionRequest request,
                 ReopenTaskHandler handler,
                 CancellationToken cancellationToken) =>
             {
+                ArgumentNullException.ThrowIfNull(request);
+
                 await handler.HandleAsync(
-                    new ReopenTaskCommand(new OrganizationId(organizationId), new TaskItemId(taskId)),
+                    new ReopenTaskCommand(
+                        new OrganizationId(organizationId),
+                        new TaskItemId(taskId),
+                        request.ExpectedVersion),
                     cancellationToken).ConfigureAwait(false);
 
                 return Results.NoContent();
@@ -511,7 +525,8 @@ internal static class PeopleSliceEndpoints
         model.Status,
         model.PrimaryCompanyId,
         model.PrimaryCompanyName,
-        model.UpdatedAt);
+        model.UpdatedAt,
+        model.Version);
 
     private static PersonDetailResponse Map(PersonDetailModel model) => new(
         Map(model.Summary),
@@ -530,7 +545,8 @@ internal static class PeopleSliceEndpoints
         model.Type,
         model.Status,
         model.Website,
-        model.UpdatedAt);
+        model.UpdatedAt,
+        model.Version);
 
     private static CompanyDetailResponse Map(CompanyDetailModel model) => new(
         Map(model.Summary),
@@ -552,7 +568,8 @@ internal static class PeopleSliceEndpoints
         model.Strength,
         model.StartedAt,
         model.EndedAt,
-        model.Notes);
+        model.Notes,
+        model.Version);
 
     private static TaskResponse Map(TaskModel model) => new(
         model.Id,
@@ -563,7 +580,8 @@ internal static class PeopleSliceEndpoints
         model.Subject is null ? null : Map(model.Subject),
         model.SourceInteractionId,
         model.CreatedAt,
-        model.CompletedAt);
+        model.CompletedAt,
+        model.Version);
 
     private static InteractionResponse Map(InteractionModel model) => new(
         model.Id,

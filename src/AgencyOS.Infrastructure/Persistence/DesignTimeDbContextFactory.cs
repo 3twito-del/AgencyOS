@@ -1,3 +1,4 @@
+using AgencyOS.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -27,6 +28,6 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Age
                 .UseNpgsql(connectionString, npgsql => npgsql.MigrationsAssembly(typeof(AgencyOsDbContext).Assembly.FullName))
                 .Options;
 
-        return new AgencyOsDbContext(options);
+        return new AgencyOsDbContext(options, new SystemClock());
     }
 }

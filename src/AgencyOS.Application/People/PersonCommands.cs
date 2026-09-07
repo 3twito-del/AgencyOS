@@ -40,10 +40,16 @@ public sealed record CreatePersonCommand(OrganizationId OrganizationId, PersonDe
 /// <param name="OrganizationId">Owning tenant.</param>
 /// <param name="PersonId">Person to update.</param>
 /// <param name="Details">Replacement descriptive fields.</param>
+/// <param name="ExpectedVersion">
+/// Version the caller observed. Refused with a concurrency conflict when the
+/// record has moved on, so a stale edit - typed offline an hour ago, or in a
+/// window somebody else has since saved over - cannot win by arriving last.
+/// </param>
 public sealed record UpdatePersonCommand(
     OrganizationId OrganizationId,
     PersonId PersonId,
-    PersonDetails Details);
+    PersonDetails Details,
+    int ExpectedVersion);
 
 /// <summary>Creates a person within a tenant.</summary>
 public sealed class CreatePersonHandler
@@ -186,6 +192,8 @@ public sealed class UpdatePersonHandler
         Person person =
             await _people.FindAsync(command.OrganizationId, command.PersonId, cancellationToken).ConfigureAwait(false)
             ?? throw new EntityNotFoundException(nameof(Person), command.PersonId.ToString());
+
+        person.RequireVersion(command.ExpectedVersion);
 
         if (command.Details.PrimaryCompanyId is { } companyId)
         {

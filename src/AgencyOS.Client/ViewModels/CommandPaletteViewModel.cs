@@ -114,17 +114,28 @@ public sealed class CommandPaletteViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsEmpty));
     }
 
-    /// <summary>The commands the M2 client actually implements.</summary>
+    /// <summary>The commands this build actually implements.</summary>
+    /// <remarks>
+    /// Only implemented commands are listed. A palette that offers actions the
+    /// build cannot perform teaches users to distrust it, so this list grows with
+    /// the milestone rather than ahead of it.
+    /// </remarks>
     public static IReadOnlyList<PaletteCommand> DefaultCommands() =>
     [
         new("go.command-center", "Go to Command Center", "Navigate", "Ctrl+1"),
         new("go.people", "Go to People", "Navigate", "Ctrl+2"),
         new("go.companies", "Go to Companies", "Navigate", "Ctrl+3"),
+        new("go.saved-views", "Go to Saved Views", "Navigate", "Ctrl+4"),
+        new("go.sync", "Go to Sync and Offline", "Navigate", "Ctrl+5"),
+        new("search.open", "Search everything", "Find", "Ctrl+K"),
         new("person.create", "New person", "Create", "Ctrl+N"),
         new("company.create", "New company", "Create"),
         new("interaction.record", "Record interaction", "Capture", "Ctrl+I"),
         new("task.create", "New task", "Create", "Ctrl+T"),
         new("relationship.create", "Connect two parties", "Create"),
+        new("view.save", "Save current view", "View"),
+        new("sync.now", "Synchronize now", "Sync", "F9"),
+        new("cache.reset", "Reset local cache", "Sync"),
         new("view.refresh", "Refresh", "View", "F5"),
     ];
 }

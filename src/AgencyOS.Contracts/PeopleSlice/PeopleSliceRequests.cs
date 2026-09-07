@@ -38,6 +38,10 @@ public sealed record CreatePersonRequest(
 /// separate operations.
 /// </remarks>
 /// <param name="FirstName">Given name.</param>
+/// <param name="ExpectedVersion">
+/// The version the caller observed. Required: an optional concurrency token is
+/// last-write-wins with extra steps. A mismatch is refused with 409.
+/// </param>
 /// <param name="LastName">Family name.</param>
 /// <param name="DisplayName">Explicit display name.</param>
 /// <param name="MiddleName">Middle name.</param>
@@ -49,6 +53,7 @@ public sealed record CreatePersonRequest(
 /// <param name="Notes">Unstructured judgment.</param>
 public sealed record UpdatePersonRequest(
     string FirstName,
+    int ExpectedVersion,
     string? LastName = null,
     string? DisplayName = null,
     string? MiddleName = null,
@@ -73,12 +78,14 @@ public sealed record CreateCompanyRequest(
 
 /// <param name="Name">Trading name.</param>
 /// <param name="Type">Kind of external body.</param>
+/// <param name="ExpectedVersion">The version the caller observed. Required.</param>
 /// <param name="LegalName">Registered legal name.</param>
 /// <param name="Website">Public website.</param>
 /// <param name="Notes">Unstructured judgment.</param>
 public sealed record UpdateCompanyRequest(
     string Name,
     string Type,
+    int ExpectedVersion,
     string? LegalName = null,
     string? Website = null,
     string? Notes = null);
@@ -140,6 +147,13 @@ public sealed record RecordInteractionRequest(
     IReadOnlyList<InteractionParticipantRequest> Participants,
     string? DetailedNotes = null,
     FollowUpTaskRequest? FollowUp = null);
+
+/// <summary>Transitions a task, guarded by the version the caller observed.</summary>
+/// <param name="ExpectedVersion">
+/// The version the caller observed. Required, so a task completed offline cannot
+/// silently overwrite a change somebody else made in the meantime.
+/// </param>
+public sealed record TaskTransitionRequest(int ExpectedVersion);
 
 /// <param name="Title">What needs doing.</param>
 /// <param name="DueAt">When it is due.</param>

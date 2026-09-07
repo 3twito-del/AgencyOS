@@ -22,3 +22,8 @@ obj/
 
 # AgencyOS build artifacts
 artifacts/
+
+# TLA+ toolchain output. The specification and its configuration are source;
+# the translator's backup and TLC's state directory are not.
+specs/states/
+specs/*.old

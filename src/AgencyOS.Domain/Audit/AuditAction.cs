@@ -42,4 +42,14 @@ public static class AuditAction
     public const string TaskCreated = "task.created";
     public const string TaskCompleted = "task.completed";
     public const string TaskReopened = "task.reopened";
+
+    // ---- Saved views (M3) ----
+    //
+    // A saved view holds no business fact, but it is stored user data and
+    // deleting it is destructive, so the lifecycle is audited like any other
+    // privileged operation.
+
+    public const string SavedViewCreated = "savedview.created";
+    public const string SavedViewUpdated = "savedview.updated";
+    public const string SavedViewDeleted = "savedview.deleted";
 }

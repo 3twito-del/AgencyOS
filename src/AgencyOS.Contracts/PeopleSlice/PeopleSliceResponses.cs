@@ -15,6 +15,7 @@ public sealed record PartyReferenceResponse(string Kind, Guid Id, string Name);
 /// <param name="PrimaryCompanyId">Principal company, when known.</param>
 /// <param name="PrimaryCompanyName">Principal company name, when known.</param>
 /// <param name="UpdatedAt">Last change instant, UTC.</param>
+/// <param name="Version">Optimistic concurrency token. Send it back as ExpectedVersion to change this record.</param>
 public sealed record PersonSummaryResponse(
     Guid Id,
     string DisplayName,
@@ -24,7 +25,8 @@ public sealed record PersonSummaryResponse(
     string Status,
     Guid? PrimaryCompanyId,
     string? PrimaryCompanyName,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    int Version);
 
 /// <param name="Person">Headline fields.</param>
 /// <param name="FirstName">Given name.</param>
@@ -51,6 +53,7 @@ public sealed record PersonDetailResponse(
 /// <param name="Status">Active or Archived.</param>
 /// <param name="Website">Public website.</param>
 /// <param name="UpdatedAt">Last change instant, UTC.</param>
+/// <param name="Version">Optimistic concurrency token. Send it back as ExpectedVersion to change this record.</param>
 public sealed record CompanySummaryResponse(
     Guid Id,
     string Name,
@@ -58,7 +61,8 @@ public sealed record CompanySummaryResponse(
     string Type,
     string Status,
     string? Website,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    int Version);
 
 /// <param name="Company">Headline fields.</param>
 /// <param name="Notes">Unstructured judgment.</param>
@@ -82,6 +86,7 @@ public sealed record CompanyDetailResponse(
 /// <param name="StartedAt">When it began.</param>
 /// <param name="EndedAt">When it ended.</param>
 /// <param name="Notes">Free-text context.</param>
+/// <param name="Version">Optimistic concurrency token. Send it back as ExpectedVersion to change this record.</param>
 public sealed record RelationshipResponse(
     Guid Id,
     PartyReferenceResponse From,
@@ -92,7 +97,8 @@ public sealed record RelationshipResponse(
     int? Strength,
     DateTimeOffset? StartedAt,
     DateTimeOffset? EndedAt,
-    string? Notes);
+    string? Notes,
+    int Version);
 
 /// <param name="Id">Task identifier.</param>
 /// <param name="Title">What needs doing.</param>
@@ -103,6 +109,7 @@ public sealed record RelationshipResponse(
 /// <param name="SourceInteractionId">Interaction it came out of, when it did.</param>
 /// <param name="CreatedAt">Creation instant, UTC.</param>
 /// <param name="CompletedAt">Completion instant, UTC. Always set when completed.</param>
+/// <param name="Version">Optimistic concurrency token. Send it back as ExpectedVersion to change this record.</param>
 public sealed record TaskResponse(
     Guid Id,
     string Title,
@@ -112,7 +119,8 @@ public sealed record TaskResponse(
     PartyReferenceResponse? Subject,
     Guid? SourceInteractionId,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? CompletedAt);
+    DateTimeOffset? CompletedAt,
+    int Version);
 
 /// <param name="Id">Interaction identifier.</param>
 /// <param name="Type">Kind of contact.</param>

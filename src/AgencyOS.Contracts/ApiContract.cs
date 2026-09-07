@@ -21,13 +21,17 @@ public static class ApiContract
     /// asserted by <c>AgencyOS.Tests.Unit</c> so the two cannot silently diverge.
     /// </para>
     /// <para>
-    /// Version 2 adds the M2 people slice. The addition is purely additive over
-    /// version 1, so the server declares support for the range 1-2 rather than
-    /// locking out a contract-1 client. This is the first real use of the range
-    /// the handshake has always negotiated.
+    /// Version 2 added the M2 people slice. Version 3 adds M3 search, saved views,
+    /// synchronization, and the optimistic concurrency token on existing records.
+    /// </para>
+    /// <para>
+    /// Both steps are additive, so the supported range stays open at 1. The
+    /// concurrency guarantee does not depend on the contract version: the version
+    /// token is a required field on guarded mutations, so a client that omits it
+    /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 2;
+    public const int Current = 3;
 
     /// <summary>
     /// The lowest contract version this build still serves.

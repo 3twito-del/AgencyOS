@@ -1,6 +1,10 @@
 using System;
+using System.IO;
 using System.Net.Http;
 using AgencyOS.Client;
+using AgencyOS.Client.Cache;
+using AgencyOS.Client.Sync;
+using AgencyOS.Contracts;
 
 namespace AgencyOS.Windows;
 
@@ -32,6 +36,9 @@ internal static class AppServices
 
     private static HttpClient? _http;
     private static IAgencyOsApi? _api;
+    private static LocalCache? _cache;
+    private static SyncEngine? _sync;
+    private static string? _cacheFailure;
 
     /// <summary>Gets the resolved connection settings, valid or not.</summary>
     public static AppConfiguration Settings => Configuration.Value;
@@ -61,6 +68,102 @@ internal static class AppServices
             _api = new AgencyOsApiClient(_http, session);
             return _api;
         }
+    }
+
+    /// <summary>
+    /// Gets the encrypted local cache, or null when there is none to open.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// One cache per channel, tenant and user, so a FORGE build can never read an
+    /// ALPHA cache and two users on one workstation never share a file
+    /// (<c>docs/05_RELEASE_RINGS.md</c>).
+    /// </para>
+    /// <para>
+    /// A cache that cannot be opened is not fatal. It holds nothing canonical, so
+    /// the client runs online-only and says why, rather than refusing to start.
+    /// </para>
+    /// </remarks>
+    public static LocalCache? Cache
+    {
+        get
+        {
+            if (_cache is not null || !Settings.IsValid)
+            {
+                return _cache;
+            }
+
+            try
+            {
+                LocalCacheIdentity identity = new(
+                    BuildInfo.Channel,
+                    Settings.OrganizationId,
+                    Settings.Subject ?? "unknown");
+
+                _cache = LocalCache.Open(CacheRoot, identity, new DpapiCacheKeyProvider());
+                _cacheFailure = null;
+            }
+            catch (LocalCacheUnusableException exception)
+            {
+                _cacheFailure = exception.Message;
+            }
+
+            return _cache;
+        }
+    }
+
+    /// <summary>Gets the synchronization engine, or null when there is no cache to fill.</summary>
+    public static SyncEngine? Sync
+    {
+        get
+        {
+            if (_sync is not null)
+            {
+                return _sync;
+            }
+
+            if (Api is not { } api || Cache is not { } cache)
+            {
+                return null;
+            }
+
+            _sync = new SyncEngine(api, cache);
+            return _sync;
+        }
+    }
+
+    /// <summary>Explains why the cache is unavailable, when it is.</summary>
+    public static string? CacheFailure => _cacheFailure;
+
+    /// <summary>Where caches live: per user, under local application data.</summary>
+    public static string CacheRoot => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "AgencyOS",
+        "cache");
+
+    /// <summary>
+    /// Deletes this identity's cache and everything queued in it.
+    /// </summary>
+    /// <remarks>
+    /// Safe because nothing here is canonical: the next synchronization rebuilds it
+    /// from the change feed. Queued commands go with it, which is why the surface
+    /// offering this states how many are outstanding first.
+    /// </remarks>
+    public static void ResetCache()
+    {
+        if (!Settings.IsValid)
+        {
+            return;
+        }
+
+        _cache?.Dispose();
+        _cache = null;
+        _sync = null;
+
+        LocalCache.Reset(
+            CacheRoot,
+            new LocalCacheIdentity(BuildInfo.Channel, Settings.OrganizationId, Settings.Subject ?? "unknown"),
+            new DpapiCacheKeyProvider());
     }
 
     private static AppConfiguration Read()

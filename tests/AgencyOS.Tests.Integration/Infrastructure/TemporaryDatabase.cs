@@ -62,7 +62,9 @@ public sealed class TemporaryDatabase : IAsyncDisposable
     }
 
     public AgencyOsDbContext CreateDbContext() =>
-        new(new DbContextOptionsBuilder<AgencyOsDbContext>().UseNpgsql(ConnectionString).Options);
+        new(
+            new DbContextOptionsBuilder<AgencyOsDbContext>().UseNpgsql(ConnectionString).Options,
+            new AgencyOS.Infrastructure.Time.SystemClock());
 
     /// <summary>Runs a scalar query against the throwaway database.</summary>
     public async Task<object?> ScalarAsync(string sql)

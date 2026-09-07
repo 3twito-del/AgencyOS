@@ -2,6 +2,10 @@ using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Infrastructure.Authorization;
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Idempotency;
+using AgencyOS.Application.SavedViews;
+using AgencyOS.Application.Search;
+using AgencyOS.Application.Sync;
 using AgencyOS.Infrastructure.Persistence;
 using AgencyOS.Infrastructure.Persistence.Queries;
 using AgencyOS.Infrastructure.Time;
@@ -58,6 +62,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IInteractionRepository, InteractionRepository>();
         services.AddScoped<ITaskRepository, TaskRepository>();
         services.AddScoped<IPeopleSliceQueries, PeopleSliceQueries>();
+
+        // Search, saved views and synchronization (M3).
+        services.AddScoped<ISearchQueries, SearchQueries>();
+        services.AddScoped<ISyncQueries, SyncQueries>();
+        services.AddScoped<ISavedViewRepository, SavedViewRepository>();
+        services.AddScoped<IIdempotencyStore, IdempotencyStore>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 

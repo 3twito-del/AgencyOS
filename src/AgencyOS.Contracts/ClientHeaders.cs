@@ -17,4 +17,14 @@ public static class ClientHeaders
     public const string ApiContractVersion = "X-AgencyOS-Api-Contract";
     public const string BuildId = "X-AgencyOS-Build-Id";
     public const string CorrelationId = "X-AgencyOS-Correlation-Id";
+
+    /// <summary>
+    /// Carries the client's idempotency key for a mutating request.
+    /// </summary>
+    /// <remarks>
+    /// Generated before the first submission and kept across every retry, restart
+    /// and reconnect, so a replay is recognizable as one. See
+    /// <c>docs/adr/ADR-0014-concurrency-and-idempotency.md</c>.
+    /// </remarks>
+    public const string IdempotencyKey = "X-AgencyOS-Idempotency-Key";
 }

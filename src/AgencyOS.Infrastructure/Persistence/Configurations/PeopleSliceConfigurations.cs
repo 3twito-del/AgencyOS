@@ -62,6 +62,11 @@ public sealed class PersonConfiguration : IEntityTypeConfiguration<Person>
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
 
+        // The optimistic concurrency token is an explicit column the client sees
+        // and sends back, not a hidden xmin: a client that never learns the token
+        // cannot be asked to prove what it saw (ADR-0014).
+        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
             .HasConversion(id => id.Value, value => new UserId(value))
@@ -111,6 +116,11 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
+
+        // The optimistic concurrency token is an explicit column the client sees
+        // and sends back, not a hidden xmin: a client that never learns the token
+        // cannot be asked to prove what it saw (ADR-0014).
+        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -194,6 +204,11 @@ public sealed class ProfessionalRelationshipConfiguration : IEntityTypeConfigura
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
+
+        // The optimistic concurrency token is an explicit column the client sees
+        // and sends back, not a hidden xmin: a client that never learns the token
+        // cannot be asked to prove what it saw (ADR-0014).
+        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")

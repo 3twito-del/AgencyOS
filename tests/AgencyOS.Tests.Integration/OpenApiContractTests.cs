@@ -57,9 +57,15 @@ public sealed class OpenApiContractTests
     }
 
     /// <summary>
-    /// The document must describe the M1 surface, including version identity and
-    /// the release handshake.
+    /// The document must describe every implemented route: version identity and the
+    /// release handshake from M1, the people slice from M2, and search, saved views
+    /// and synchronization from M3.
     /// </summary>
+    /// <remarks>
+    /// A contract that silently stopped describing a route would still be valid
+    /// OpenAPI, and a client generated from it would simply not know the route
+    /// exists. Listing them is the only way that failure is visible.
+    /// </remarks>
     [Theory]
     [InlineData("/version")]
     [InlineData("/api/v1/release/handshake")]
@@ -81,7 +87,12 @@ public sealed class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/tasks/{taskId}/complete")]
     [InlineData("/api/v1/organizations/{organizationId}/tasks/{taskId}/reopen")]
     [InlineData("/api/v1/organizations/{organizationId}/command-center")]
-    public async Task Contract_DescribesTheM1Surface(string path)
+    [InlineData("/api/v1/organizations/{organizationId}/search")]
+    [InlineData("/api/v1/organizations/{organizationId}/saved-views")]
+    [InlineData("/api/v1/organizations/{organizationId}/saved-views/{savedViewId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/sync/changes")]
+    [InlineData("/api/v1/organizations/{organizationId}/sync/head")]
+    public async Task Contract_DescribesTheImplementedSurface(string path)
     {
         using JsonDocument document = await GetContractAsync();
 

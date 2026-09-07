@@ -31,7 +31,8 @@ public sealed record CreateCompanyCommand(OrganizationId OrganizationId, Company
 public sealed record UpdateCompanyCommand(
     OrganizationId OrganizationId,
     CompanyId CompanyId,
-    CompanyDetails Details);
+    CompanyDetails Details,
+    int ExpectedVersion);
 
 /// <summary>Creates an external company record within a tenant.</summary>
 public sealed class CreateCompanyHandler
@@ -127,6 +128,8 @@ public sealed class UpdateCompanyHandler
             await _companies.FindAsync(command.OrganizationId, command.CompanyId, cancellationToken)
                 .ConfigureAwait(false)
             ?? throw new EntityNotFoundException(nameof(Company), command.CompanyId.ToString());
+
+        company.RequireVersion(command.ExpectedVersion);
 
         company.Update(
             command.Details.Name,

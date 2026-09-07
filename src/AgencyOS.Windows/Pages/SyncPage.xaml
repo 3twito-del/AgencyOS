@@ -1,0 +1,108 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.SyncPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer>
+        <Grid Padding="16" RowSpacing="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Sync and Offline" Style="{StaticResource TitleTextBlockStyle}" />
+
+            <StackPanel Grid.Row="1" Spacing="6">
+                <ProgressBar x:Name="Busy" IsIndeterminate="True" Visibility="Collapsed" />
+
+                <InfoBar
+                    x:Name="StatusBar"
+                    Severity="Success"
+                    IsOpen="True"
+                    IsClosable="False"
+                    Title="Status" />
+
+                <InfoBar
+                    x:Name="CacheBar"
+                    Severity="Warning"
+                    IsOpen="False"
+                    IsClosable="False"
+                    Title="The local cache is unavailable"
+                    Message="This build is running online-only. Nothing has been lost: the cache holds no data that is not on the server." />
+
+                <InfoBar
+                    x:Name="ConflictBar"
+                    Severity="Warning"
+                    IsOpen="False"
+                    IsClosable="False"
+                    Title="Some changes need your decision"
+                    Message="A record changed while you were away. Nothing has been applied or discarded." />
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                <Button Content="Synchronize now" Click="OnSyncClick" Style="{StaticResource AccentButtonStyle}" />
+                <Button Content="Refresh" Click="OnRefreshClick" />
+                <Button x:Name="ResetButton" Content="Reset local cache…" Click="OnResetClick" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="3" Text="Waiting to send" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+            <InfoBar
+                Grid.Row="4"
+                x:Name="QueueEmpty"
+                Severity="Informational"
+                IsOpen="False"
+                IsClosable="False"
+                Title="Nothing is waiting"
+                Message="Every change you have made has reached the server." />
+
+            <ListView
+                Grid.Row="5"
+                x:Name="QueueList"
+                MinHeight="200"
+                SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="4,8" ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="{Binding Description}" />
+                                <TextBlock
+                                    Text="{Binding Explanation}"
+                                    Opacity="0.7"
+                                    TextWrapping="Wrap"
+                                    Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+
+                            <TextBlock
+                                Grid.Column="1"
+                                Text="{Binding State}"
+                                VerticalAlignment="Center"
+                                Opacity="0.6"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <StackPanel Grid.Row="6" Spacing="6">
+                <Button Content="Discard selected change" Click="OnDiscardClick" />
+
+                <TextBlock
+                    x:Name="CacheText"
+                    Opacity="0.6"
+                    TextWrapping="Wrap"
+                    Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

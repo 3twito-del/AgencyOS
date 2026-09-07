@@ -26,11 +26,17 @@ public sealed record CreateTaskCommand(
 
 /// <param name="OrganizationId">Owning tenant.</param>
 /// <param name="TaskId">Task to transition.</param>
-public sealed record CompleteTaskCommand(OrganizationId OrganizationId, TaskItemId TaskId);
+public sealed record CompleteTaskCommand(
+    OrganizationId OrganizationId,
+    TaskItemId TaskId,
+    int ExpectedVersion);
 
 /// <param name="OrganizationId">Owning tenant.</param>
 /// <param name="TaskId">Task to transition.</param>
-public sealed record ReopenTaskCommand(OrganizationId OrganizationId, TaskItemId TaskId);
+public sealed record ReopenTaskCommand(
+    OrganizationId OrganizationId,
+    TaskItemId TaskId,
+    int ExpectedVersion);
 
 /// <summary>Creates a standalone task.</summary>
 /// <remarks>
@@ -145,6 +151,8 @@ public sealed class CompleteTaskHandler
             await _tasks.FindAsync(command.OrganizationId, command.TaskId, cancellationToken).ConfigureAwait(false)
             ?? throw new EntityNotFoundException(nameof(TaskItem), command.TaskId.ToString());
 
+        task.RequireVersion(command.ExpectedVersion);
+
         task.Complete(actor, _clock.UtcNow);
 
         _audit.Record(
@@ -193,6 +201,8 @@ public sealed class ReopenTaskHandler
         TaskItem task =
             await _tasks.FindAsync(command.OrganizationId, command.TaskId, cancellationToken).ConfigureAwait(false)
             ?? throw new EntityNotFoundException(nameof(TaskItem), command.TaskId.ToString());
+
+        task.RequireVersion(command.ExpectedVersion);
 
         task.Reopen(_clock.UtcNow);
 

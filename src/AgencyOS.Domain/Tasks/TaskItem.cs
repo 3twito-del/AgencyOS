@@ -90,6 +90,32 @@ public sealed class TaskItem
 
     public UserId? CompletedBy { get; private set; }
 
+    /// <summary>
+    /// Optimistic concurrency token, incremented on every mutation.
+    /// </summary>
+    /// <remarks>
+    /// An explicit column rather than PostgreSQL's <c>xmin</c>: a concurrency
+    /// token is part of the client contract and must outlive the storage engine.
+    /// See <c>docs/adr/ADR-0014-concurrency-and-idempotency.md</c>.
+    /// </remarks>
+    public int Version { get; private set; }
+
+    /// <summary>
+    /// Fails unless the caller observed the current version.
+    /// </summary>
+    /// <remarks>
+    /// This is what turns a blind overwrite into a detected conflict. A client
+    /// that has been offline sends the version it last saw; if the record moved
+    /// on, the write is refused rather than silently applied.
+    /// </remarks>
+    public void RequireVersion(int expectedVersion)
+    {
+        if (expectedVersion != Version)
+        {
+            throw new ConcurrencyConflictException(GetType().Name, Id.ToString(), expectedVersion, Version);
+        }
+    }
+
     /// <summary>The party this task concerns, when it concerns one.</summary>
     public RelationshipEndpoint? Subject
     {
@@ -145,6 +171,7 @@ public sealed class TaskItem
             CreatedBy = createdBy,
             CompletedAt = null,
             CompletedBy = null,
+            Version = 1,
         };
     }
 
@@ -160,6 +187,7 @@ public sealed class TaskItem
         CompletedAt = now;
         CompletedBy = completedBy;
         UpdatedAt = now;
+        Version++;
     }
 
     /// <summary>
@@ -181,5 +209,6 @@ public sealed class TaskItem
         CompletedAt = null;
         CompletedBy = null;
         UpdatedAt = now;
+        Version++;
     }
 }

@@ -1,0 +1,241 @@
+using System.Data.Common;
+using System.Globalization;
+using AgencyOS.Application.Search;
+using AgencyOS.Domain.Companies;
+using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.People;
+using AgencyOS.Domain.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
+
+namespace AgencyOS.Infrastructure.Persistence.Queries;
+
+/// <summary>
+/// Ranked search across people, companies and tasks.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Hand-written SQL rather than LINQ. The ranking combines a full-text match, a
+/// prefix match and a trigram similarity into one comparable score, and none of
+/// those have an expression-tree equivalent. <c>CLAUDE.md</c> allows manual SQL
+/// where it is justified; a ranking function that has to be read and argued about
+/// is a clearer artifact as SQL than as a provider-specific function chain.
+/// </para>
+/// <para>
+/// The score is deliberately banded so results from different tables sort
+/// sensibly against each other: an exact name match scores 1.0, a prefix 0.9, a
+/// full-text hit lands in 0.5-0.8 and a fuzzy hit in 0.2-0.6. The bands are the
+/// same formula for all three types, so a company never outranks a person merely
+/// for being a company.
+/// </para>
+/// <para>
+/// The query is fully parameterized. User text reaches the database only as a
+/// parameter, and the prefix <c>tsquery</c> is built by
+/// <c>agencyos_prefix_tsquery</c>, a database function that quotes every token so
+/// that a query containing <c>&amp;</c> or <c>!</c> is text rather than tsquery
+/// syntax.
+/// </para>
+/// </remarks>
+internal sealed class SearchQueries : ISearchQueries
+{
+    /// <summary>
+    /// One ranked branch of the union.
+    /// </summary>
+    /// <remarks>
+    /// The three branches differ only in table, columns and type code, so the
+    /// scoring expression is written once and formatted per branch. Writing it
+    /// three times is how the three quietly stop agreeing.
+    /// </remarks>
+    private const string BranchTemplate = """
+        SELECT
+            {typeCode} AS entity_type,
+            t.{idColumn} AS id,
+            t.{titleColumn} AS title,
+            {subtitleExpression} AS subtitle,
+            t.{statusColumn} AS status,
+            (GREATEST(
+                CASE
+                    WHEN lower(t.{titleColumn}) = lower(q.raw) THEN 1.0
+                    WHEN starts_with(lower(t.{titleColumn}), lower(q.raw)) THEN 0.9
+                    ELSE 0.0
+                END,
+                CASE
+                    WHEN q.tsq IS NOT NULL AND t.search_vector @@ q.tsq
+                        THEN 0.5 + LEAST(ts_rank(t.search_vector, q.tsq), 1.0) * 0.3
+                    ELSE 0.0
+                END,
+                CASE
+                    WHEN t.{titleColumn} % q.raw
+                        THEN 0.2 + similarity(t.{titleColumn}, q.raw) * 0.4
+                    ELSE 0.0
+                END
+            ))::double precision AS score,
+            CASE
+                WHEN lower(t.{titleColumn}) = lower(q.raw) THEN 1
+                WHEN starts_with(lower(t.{titleColumn}), lower(q.raw)) THEN 2
+                WHEN q.tsq IS NOT NULL AND t.search_vector @@ q.tsq THEN 3
+                ELSE 4
+            END AS matched_on
+        FROM {table} t
+        CROSS JOIN q
+        WHERE t.organization_id = @organization_id
+          AND ({archivedPredicate})
+          AND (
+              starts_with(lower(t.{titleColumn}), lower(q.raw))
+              OR (q.tsq IS NOT NULL AND t.search_vector @@ q.tsq)
+              OR t.{titleColumn} % q.raw
+          )
+        """;
+
+    private readonly AgencyOsDbContext _context;
+
+    public SearchQueries(AgencyOsDbContext context) => _context = context;
+
+    public async Task<SearchResultModel> SearchAsync(
+        OrganizationId organizationId,
+        string query,
+        IReadOnlySet<SearchEntityType> types,
+        bool includeArchived,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(types);
+
+        List<string> branches = [];
+
+        if (types.Contains(SearchEntityType.Person))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Person,
+                table: "people",
+                idColumn: "id",
+                titleColumn: "display_name",
+                subtitleExpression: "COALESCE(t.title, t.email)",
+                statusColumn: "status",
+                archivedPredicate: includeArchived ? "TRUE" : $"t.status = {(int)PersonStatus.Active}"));
+        }
+
+        if (types.Contains(SearchEntityType.Company))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Company,
+                table: "companies",
+                idColumn: "id",
+                titleColumn: "name",
+                subtitleExpression: "COALESCE(t.legal_name, t.website)",
+                statusColumn: "status",
+                archivedPredicate: includeArchived ? "TRUE" : $"t.status = {(int)CompanyStatus.Active}"));
+        }
+
+        if (types.Contains(SearchEntityType.Task))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Task,
+                table: "tasks",
+                idColumn: "id",
+                titleColumn: "title",
+                subtitleExpression: "t.notes",
+                statusColumn: "state",
+
+                // A completed task is the task equivalent of archived: still a
+                // record, not part of what needs attention.
+                archivedPredicate: includeArchived ? "TRUE" : $"t.state = {(int)TaskState.Open}"));
+        }
+
+        if (branches.Count == 0)
+        {
+            return new SearchResultModel([], HasMore: false);
+        }
+
+        // One row beyond the page, so "is there more" is answered by the same
+        // query rather than by a second count that can disagree with it.
+        int limit = take + 1;
+
+        string sql = string.Create(
+            CultureInfo.InvariantCulture,
+            $"""
+            WITH q AS (
+                SELECT @query::text AS raw, agencyos_prefix_tsquery(@query) AS tsq
+            )
+            SELECT entity_type, id, title, subtitle, status, score, matched_on
+            FROM (
+            {string.Join("\n    UNION ALL\n", branches)}
+            ) hits
+            ORDER BY score DESC, title ASC, id ASC
+            OFFSET {skip} LIMIT {limit};
+            """);
+
+        List<SearchHitModel> hits = [];
+
+        DbConnection connection = _context.Database.GetDbConnection();
+
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        await using (DbCommand command = connection.CreateCommand())
+        {
+            command.CommandText = sql;
+            command.Transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            command.Parameters.Add(new NpgsqlParameter("organization_id", organizationId.Value));
+            command.Parameters.Add(new NpgsqlParameter("query", query));
+
+            await using DbDataReader reader =
+                await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                SearchEntityType type = (SearchEntityType)reader.GetInt32(0);
+
+                hits.Add(new SearchHitModel(
+                    type,
+                    reader.GetGuid(1),
+                    reader.GetString(2),
+                    reader.IsDBNull(3) ? null : reader.GetString(3),
+                    DescribeStatus(type, reader.GetInt32(4)),
+                    reader.GetDouble(5),
+                    (SearchMatchKind)reader.GetInt32(6)));
+            }
+        }
+
+        bool hasMore = hits.Count > take;
+
+        if (hasMore)
+        {
+            hits.RemoveAt(hits.Count - 1);
+        }
+
+        return new SearchResultModel(hits, hasMore);
+    }
+
+    private static string Branch(
+        int typeCode,
+        string table,
+        string idColumn,
+        string titleColumn,
+        string subtitleExpression,
+        string statusColumn,
+        string archivedPredicate)
+    {
+        return BranchTemplate
+            .Replace("{typeCode}", typeCode.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace("{table}", table, StringComparison.Ordinal)
+            .Replace("{idColumn}", idColumn, StringComparison.Ordinal)
+            .Replace("{titleColumn}", titleColumn, StringComparison.Ordinal)
+            .Replace("{subtitleExpression}", subtitleExpression, StringComparison.Ordinal)
+            .Replace("{statusColumn}", statusColumn, StringComparison.Ordinal)
+            .Replace("{archivedPredicate}", archivedPredicate, StringComparison.Ordinal);
+    }
+
+    /// <summary>Turns a stored status code back into the name the contract uses.</summary>
+    private static string DescribeStatus(SearchEntityType type, int status) => type switch
+    {
+        SearchEntityType.Person => ((PersonStatus)status).ToString(),
+        SearchEntityType.Company => ((CompanyStatus)status).ToString(),
+        SearchEntityType.Task => ((TaskState)status).ToString(),
+        _ => status.ToString(CultureInfo.InvariantCulture),
+    };
+}

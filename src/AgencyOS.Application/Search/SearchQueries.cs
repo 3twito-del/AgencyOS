@@ -1,0 +1,73 @@
+using AgencyOS.Domain.Organizations;
+
+namespace AgencyOS.Application.Search;
+
+/// <summary>What a search hit is.</summary>
+public enum SearchEntityType
+{
+    Person = 1,
+    Company = 2,
+    Task = 3,
+}
+
+/// <summary>Why a row matched, so a ranked list can explain itself.</summary>
+/// <remarks>
+/// Surfaced to the user. A ranked list nobody can account for is the kind of
+/// number <c>docs/03_ROADMAP.md</c> warns against: when "Sara Klein" outranks
+/// "Sarah" for the query <c>sarah</c>, the answer should be visible rather than
+/// inferred from the order.
+/// </remarks>
+public enum SearchMatchKind
+{
+    /// <summary>The primary name is exactly the query, ignoring case.</summary>
+    Exact = 1,
+
+    /// <summary>The primary name starts with the query.</summary>
+    Prefix = 2,
+
+    /// <summary>A full-text lexeme matched, including a trailing prefix term.</summary>
+    FullText = 3,
+
+    /// <summary>Trigram similarity matched: a typo, or a name spelled differently.</summary>
+    Similar = 4,
+}
+
+/// <param name="Type">What kind of record this is.</param>
+/// <param name="Id">Identifier of the record.</param>
+/// <param name="Title">Primary line: a person's display name, a company's name, a task's title.</param>
+/// <param name="Subtitle">Secondary line, when there is useful context.</param>
+/// <param name="Status">Lifecycle status, so archived hits are visibly archived.</param>
+/// <param name="Score">Relevance in 0..1. Comparable across types by construction.</param>
+/// <param name="MatchedOn">Why it matched.</param>
+public sealed record SearchHitModel(
+    SearchEntityType Type,
+    Guid Id,
+    string Title,
+    string? Subtitle,
+    string Status,
+    double Score,
+    SearchMatchKind MatchedOn);
+
+/// <param name="Hits">The page of results.</param>
+/// <param name="HasMore">Whether a further page exists.</param>
+public sealed record SearchResultModel(IReadOnlyList<SearchHitModel> Hits, bool HasMore);
+
+/// <summary>
+/// Ranked, tenant-scoped search across the M3 record types.
+/// </summary>
+/// <remarks>
+/// Implemented in infrastructure against PostgreSQL full text and trigram
+/// indexes. Deliberately unauthorized: <see cref="SearchService"/> decides which
+/// types the caller may see, so there is one place to look for that rule.
+/// </remarks>
+public interface ISearchQueries
+{
+    Task<SearchResultModel> SearchAsync(
+        OrganizationId organizationId,
+        string query,
+        IReadOnlySet<SearchEntityType> types,
+        bool includeArchived,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default);
+}

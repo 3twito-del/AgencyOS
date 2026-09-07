@@ -111,9 +111,11 @@ public sealed class PeopleSliceTests
             timeline.Select(e => e.OccurredAt));
 
         // 7. Complete it, and the Command Center agrees.
-        using (HttpResponseMessage completed = await client.PostAsync(
+        // Transitions carry the version the caller observed (M3, ADR-0014). A
+        // task created moments ago is at version 1.
+        using (HttpResponseMessage completed = await client.PostAsJsonAsync(
             $"/api/v1/organizations/{tenant}/tasks/{recorded.FollowUpTaskId}/complete",
-            content: null))
+            new TaskTransitionRequest(1)))
         {
             Assert.Equal(HttpStatusCode.NoContent, completed.StatusCode);
         }
@@ -202,8 +204,9 @@ public sealed class PeopleSliceTests
 
         Guid taskId = (await created.Content.ReadFromJsonAsync<CreatedId>())!.Id;
 
-        using (HttpResponseMessage complete = await client.PostAsync(
-            $"/api/v1/organizations/{tenant}/tasks/{taskId}/complete", null))
+        using (HttpResponseMessage complete = await client.PostAsJsonAsync(
+            $"/api/v1/organizations/{tenant}/tasks/{taskId}/complete",
+            new TaskTransitionRequest(1)))
         {
             Assert.Equal(HttpStatusCode.NoContent, complete.StatusCode);
         }
@@ -215,8 +218,10 @@ public sealed class PeopleSliceTests
         Assert.Equal("Completed", completed.State);
         Assert.NotNull(completed.CompletedAt);
 
-        using (HttpResponseMessage reopen = await client.PostAsync(
-            $"/api/v1/organizations/{tenant}/tasks/{taskId}/reopen", null))
+        // Completing advanced the task to version 2, which reopening must present.
+        using (HttpResponseMessage reopen = await client.PostAsJsonAsync(
+            $"/api/v1/organizations/{tenant}/tasks/{taskId}/reopen",
+            new TaskTransitionRequest(completed.Version)))
         {
             Assert.Equal(HttpStatusCode.NoContent, reopen.StatusCode);
         }

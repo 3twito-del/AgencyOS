@@ -76,7 +76,10 @@ public sealed partial class CommandCenterPage : Page, IPaletteCommandTarget
             return;
         }
 
-        await _viewModel.CompleteAsync(task.Id).ConfigureAwait(true);
+        // The version shown on the row, not one re-read first: sending a
+        // freshly fetched version would agree with the server by construction,
+        // including with a change this user never saw.
+        await _viewModel.CompleteAsync(task.Id, task.Version).ConfigureAwait(true);
         Render();
     }
 

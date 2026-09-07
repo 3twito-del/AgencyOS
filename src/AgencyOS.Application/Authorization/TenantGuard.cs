@@ -65,6 +65,27 @@ public sealed class TenantGuard
     }
 
     /// <summary>
+    /// Determines whether the acting user holds the permission in the tenant,
+    /// without refusing when they do not.
+    /// </summary>
+    /// <remarks>
+    /// For the one case where absence of a permission is a filter rather than a
+    /// refusal: search narrows to the types the caller may read. Authentication is
+    /// still required, so this is never a way to ask questions anonymously.
+    /// </remarks>
+    public async Task<bool> HasPermissionAsync(
+        string permission,
+        OrganizationId organizationId,
+        CancellationToken cancellationToken = default)
+    {
+        UserId actor = _execution.UserId ?? throw new NotAuthenticatedException();
+
+        return await _permissions
+            .HasPermissionAsync(actor, permission, organizationId, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Confirms an endpoint names a party that exists, is active, and belongs to
     /// this tenant.
     /// </summary>

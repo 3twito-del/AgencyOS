@@ -7,6 +7,7 @@ using AgencyOS.Domain.People;
 using AgencyOS.Domain.Relationships;
 using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
+using static AgencyOS.Infrastructure.Persistence.Queries.PeopleSliceProjection;
 
 namespace AgencyOS.Infrastructure.Persistence.Queries;
 
@@ -541,81 +542,5 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
             .ConfigureAwait(false);
 
         return new PartyNameLookup(people, companies);
-    }
-
-    // -------------------------------------------------------------- mapping
-
-    private static PersonSummaryModel ToSummary(Person person, Dictionary<Guid, string> companyNames)
-    {
-        Guid? companyId = person.PrimaryCompanyId?.Value;
-
-        return new PersonSummaryModel(
-            person.Id.Value,
-            person.DisplayName,
-            person.Title,
-            person.Email,
-            person.Phone,
-            person.Status.ToString(),
-            companyId,
-            companyId is { } id && companyNames.TryGetValue(id, out string? name) ? name : null,
-            person.UpdatedAt);
-    }
-
-    private static CompanySummaryModel ToSummary(Company company) => new(
-        company.Id.Value,
-        company.Name,
-        company.LegalName,
-        company.Type.ToString(),
-        company.Status.ToString(),
-        company.Website,
-        company.UpdatedAt);
-
-    private static RelationshipModel ToModel(ProfessionalRelationship relationship, PartyNameLookup names) => new(
-        relationship.Id.Value,
-        names.Reference(relationship.From),
-        names.Reference(relationship.To),
-        relationship.Type.ToString(),
-        relationship.Direction.ToString(),
-        relationship.Status.ToString(),
-        relationship.Strength,
-        relationship.StartedAt,
-        relationship.EndedAt,
-        relationship.Notes);
-
-    private static TaskModel ToModel(TaskItem task, PartyNameLookup names) => new(
-        task.Id.Value,
-        task.Title,
-        task.State.ToString(),
-        task.Priority.ToString(),
-        task.DueAt,
-        task.Subject is { } subject ? names.Reference(subject) : null,
-        task.SourceInteractionId?.Value,
-        task.CreatedAt,
-        task.CompletedAt);
-
-    private static InteractionModel ToModel(Interaction interaction, PartyNameLookup names) => new(
-        interaction.Id.Value,
-        interaction.Type.ToString(),
-        interaction.OccurredAt,
-        interaction.Summary,
-        interaction.DetailedNotes,
-        [.. interaction.Participants.Select(p => names.Reference(p.Party))]);
-
-    /// <summary>Resolves party identifiers to display names for one request.</summary>
-    private sealed record PartyNameLookup(
-        Dictionary<Guid, string> People,
-        Dictionary<Guid, string> Companies)
-    {
-        public string Describe(RelationshipEndpoint endpoint)
-        {
-            Dictionary<Guid, string> source = endpoint.IsPerson ? People : Companies;
-
-            // A name that cannot be resolved is shown as unknown rather than as an
-            // error: a timeline is still useful when one party has been archived.
-            return source.TryGetValue(endpoint.Id, out string? name) ? name : "(unknown)";
-        }
-
-        public PartyReference Reference(RelationshipEndpoint endpoint) =>
-            new(endpoint.Kind.ToString(), endpoint.Id, Describe(endpoint));
     }
 }

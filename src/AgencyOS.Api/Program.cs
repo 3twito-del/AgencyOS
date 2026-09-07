@@ -14,15 +14,20 @@ using AgencyOS.Api.Endpoints;
 using AgencyOS.Api.Health;
 using AgencyOS.Api.Http;
 using AgencyOS.Api.Middleware;
+using AgencyOS.Api.Observability;
 using AgencyOS.Api.Provisioning;
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Audit;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Application.Companies;
 using AgencyOS.Application.Directory;
+using AgencyOS.Application.Idempotency;
 using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
+using AgencyOS.Application.SavedViews;
+using AgencyOS.Application.Search;
+using AgencyOS.Application.Sync;
 using AgencyOS.Application.Tasks;
 using AgencyOS.Application.Memberships;
 using AgencyOS.Application.Organizations;
@@ -35,6 +40,9 @@ using AgencyOS.Infrastructure.DependencyInjection;
 using AgencyOS.Infrastructure.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -127,6 +135,17 @@ builder.Services.AddScoped<CreateTaskHandler>();
 builder.Services.AddScoped<CompleteTaskHandler>();
 builder.Services.AddScoped<ReopenTaskHandler>();
 
+// Search, saved views and synchronization (M3). Each service applies its own
+// tenant-scoped authorization, so no endpoint can read across a tenant by
+// forgetting a check.
+builder.Services.AddScoped<SearchService>();
+builder.Services.AddScoped<SavedViewService>();
+builder.Services.AddScoped<SyncService>();
+
+// The server half of the offline write queue. A key the client alone checks is a
+// client that can be wrong twice (ADR-0014).
+builder.Services.AddScoped<IdempotencyCoordinator>();
+
 // ---------------------------------------------------------------------------
 // Authentication and authorization
 // ---------------------------------------------------------------------------
@@ -186,6 +205,56 @@ builder.Services.AddOpenApi("v1", options =>
     });
 });
 
+// ---------------------------------------------------------------------------
+// Observability
+//
+// ADR-0004 deferred OpenTelemetry in M0 and named the condition that would change
+// the answer: the first cross-process call. ADR-0016 records that M3 is that
+// milestone - a queued command can be captured on Monday, submitted on Wednesday
+// and replayed idempotently, which no single log line explains.
+//
+// No collector and no vendor. The exporter is registered only when an OTLP
+// endpoint is configured, so an ordinary deployment carries the instrumentation
+// and exports nowhere.
+// ---------------------------------------------------------------------------
+string? otlpEndpoint =
+    builder.Configuration["AgencyOS:Telemetry:OtlpEndpoint"]
+    ?? Environment.GetEnvironmentVariable("AGENCYOS_OTLP_ENDPOINT");
+
+builder.Services
+    .AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(
+        serviceName: "agencyos-api",
+        serviceVersion: BuildInfo.Version,
+        serviceInstanceId: BuildInfo.BuildId))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddSource(AgencyOsTelemetry.SourceName)
+
+            // Npgsql publishes its own activity source; subscribing to it by name
+            // is exactly what its instrumentation helper does, without a package
+            // whose AddNpgsql collides with EF Core's.
+            .AddSource("Npgsql")
+            .AddAspNetCoreInstrumentation();
+
+        if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+        {
+            tracing.AddOtlpExporter(otlp => otlp.Endpoint = new Uri(otlpEndpoint));
+        }
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddMeter(AgencyOsTelemetry.SourceName)
+            .AddAspNetCoreInstrumentation();
+
+        if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+        {
+            metrics.AddOtlpExporter(otlp => otlp.Endpoint = new Uri(otlpEndpoint));
+        }
+    });
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<AgencyOsExceptionHandler>();
 
@@ -225,14 +294,16 @@ app.MapAgencyOsApi(bootstrapGate);
 
 app.Logger.LogInformation(
     "AgencyOS API starting. version={Version} channel={Channel} buildId={BuildId} commit={GitCommit} "
-        + "apiContract={ApiContractVersion} authentication={AuthenticationMode} bootstrap={BootstrapEnabled}",
+        + "apiContract={ApiContractVersion} authentication={AuthenticationMode} bootstrap={BootstrapEnabled} "
+        + "telemetryExport={TelemetryExport}",
     BuildInfo.Version,
     BuildInfo.Channel,
     BuildInfo.BuildId,
     BuildInfo.GitCommit,
     ApiContract.Current,
     authenticationMode,
-    bootstrapGate is not null);
+    bootstrapGate is not null,
+    string.IsNullOrWhiteSpace(otlpEndpoint) ? "none" : otlpEndpoint);
 
 app.Run();
 

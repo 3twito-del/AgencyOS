@@ -18,10 +18,21 @@
                 <muxc:NavigationViewItem Content="Command Center" Tag="command-center" AccessKey="1" />
                 <muxc:NavigationViewItem Content="People" Tag="people" AccessKey="2" />
                 <muxc:NavigationViewItem Content="Companies" Tag="companies" AccessKey="3" />
+                <muxc:NavigationViewItem Content="Saved Views" Tag="saved-views" AccessKey="4" />
+                <muxc:NavigationViewItem Content="Sync and Offline" Tag="sync" AccessKey="5" />
             </muxc:NavigationView.MenuItems>
 
             <muxc:NavigationView.PaneFooter>
                 <StackPanel Padding="12,8" Spacing="4">
+                    <!--
+                        Connection state belongs where the user can always see it.
+                        An application that is quietly offline is one that loses
+                        somebody's afternoon.
+                    -->
+                    <TextBlock
+                        x:Name="SyncText"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
                     <TextBlock
                         x:Name="ConnectionText"
                         Style="{StaticResource CaptionTextBlockStyle}"
@@ -36,6 +47,116 @@
 
             <Grid>
                 <Frame x:Name="ContentFrame" />
+
+                <!--
+                    Global search. Ctrl+K, keyboard-first, and explicit about
+                    whether it reached the server or fell back to the cache
+                    (docs/12_WINDOWS_NATIVE.md).
+                -->
+                <Grid
+                    x:Name="SearchLayer"
+                    Visibility="Collapsed"
+                    Background="{ThemeResource SystemControlPageBackgroundMediumAltMediumBrush}">
+
+                    <Border
+                        Width="640"
+                        MaxHeight="520"
+                        Margin="0,72,0,0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8">
+
+                        <Grid RowSpacing="6" Padding="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <TextBox
+                                x:Name="SearchQuery"
+                                Grid.Row="0"
+                                PlaceholderText="Search people, companies and tasks…"
+                                TextChanged="OnSearchQueryChanged"
+                                KeyDown="OnSearchKeyDown" />
+
+                            <StackPanel Grid.Row="1" Spacing="4">
+                                <ProgressBar x:Name="SearchBusy" IsIndeterminate="True" Visibility="Collapsed" />
+
+                                <InfoBar
+                                    x:Name="SearchOfflineBar"
+                                    Severity="Warning"
+                                    IsOpen="False"
+                                    IsClosable="False"
+                                    Title="Showing cached results"
+                                    Message="The server could not be reached. These are local matches on a possibly stale copy, not ranked results." />
+
+                                <InfoBar
+                                    x:Name="SearchEmptyBar"
+                                    Severity="Informational"
+                                    IsOpen="False"
+                                    IsClosable="False"
+                                    Title="Nothing matched" />
+
+                                <InfoBar
+                                    x:Name="SearchErrorBar"
+                                    Severity="Error"
+                                    IsOpen="False"
+                                    IsClosable="False"
+                                    Title="Search failed" />
+                            </StackPanel>
+
+                            <ListView
+                                x:Name="SearchResults"
+                                Grid.Row="2"
+                                SelectionMode="Single"
+                                IsItemClickEnabled="True"
+                                ItemClick="OnSearchItemClick">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnSpacing="12" Padding="4,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" Spacing="1">
+                                                <TextBlock Text="{Binding Title}" />
+                                                <TextBlock
+                                                    Text="{Binding Subtitle}"
+                                                    Opacity="0.65"
+                                                    Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{Binding Type}"
+                                                VerticalAlignment="Center"
+                                                Opacity="0.6"
+                                                Style="{StaticResource CaptionTextBlockStyle}" />
+
+                                            <!--
+                                                Why it matched. A ranked list that
+                                                cannot account for its own order is
+                                                a number nobody can explain.
+                                            -->
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                Text="{Binding MatchedOn}"
+                                                VerticalAlignment="Center"
+                                                Opacity="0.45"
+                                                Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Grid>
+                    </Border>
+                </Grid>
 
                 <!-- Command palette. Keyboard-first, per docs/12_WINDOWS_NATIVE.md. -->
                 <Grid

@@ -6,6 +6,7 @@ using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.Releases;
 using AgencyOS.Infrastructure.Persistence;
+using AgencyOS.Infrastructure.Time;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -86,7 +87,7 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
                 .UseNpgsql(ConnectionString)
                 .Options;
 
-        return new AgencyOsDbContext(options);
+        return new AgencyOsDbContext(options, new SystemClock());
     }
 
     /// <summary>
@@ -100,7 +101,7 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
                 .AddInterceptors(new AuditAppendOnlyInterceptor())
                 .Options;
 
-        return new AgencyOsDbContext(options);
+        return new AgencyOsDbContext(options, new SystemClock());
     }
 
     /// <summary>Registers a user directly, as a first-run bootstrap would.</summary>

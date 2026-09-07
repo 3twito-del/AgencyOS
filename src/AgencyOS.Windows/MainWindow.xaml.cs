@@ -1,6 +1,9 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts;
+using AgencyOS.Contracts.Search;
 using AgencyOS.Windows.Pages;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -22,10 +25,36 @@ namespace AgencyOS.Windows;
 public sealed partial class MainWindow : Window
 {
     private readonly CommandPaletteViewModel _palette = new();
+    private readonly SearchViewModel? _search;
+    private readonly SyncStatusViewModel? _sync;
+
+    /// <summary>
+    /// Cancels the previous search when the user keeps typing.
+    /// </summary>
+    /// <remarks>
+    /// Without this, results arrive out of order and the list settles on whichever
+    /// request happened to finish last rather than on what was typed.
+    /// </remarks>
+    private CancellationTokenSource? _searchCancellation;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        if (AppServices.Api is { } api)
+        {
+            _search = new SearchViewModel(api, AppServices.Cache);
+            _search.PropertyChanged += (_, _) => RenderSearch();
+            SearchResults.ItemsSource = _search.Results;
+        }
+
+        if (AppServices.Sync is { } engine && AppServices.Cache is { } cache)
+        {
+            _sync = new SyncStatusViewModel(engine, cache);
+            _sync.PropertyChanged += (_, _) => RenderSync();
+        }
+
+        RenderSync();
 
         ConnectionText.Text = AppServices.Settings.Describe();
         BuildText.Text = $"{BuildInfo.Version} · {BuildInfo.Channel} · contract v{ApiContract.Current}";
@@ -56,6 +85,30 @@ public sealed partial class MainWindow : Window
         AddAccelerator(VirtualKey.Number3, VirtualKeyModifiers.Control, (_, args) =>
         {
             SelectMenu(2);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.Number4, VirtualKeyModifiers.Control, (_, args) =>
+        {
+            SelectMenu(3);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.Number5, VirtualKeyModifiers.Control, (_, args) =>
+        {
+            SelectMenu(4);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.K, VirtualKeyModifiers.Control, (_, args) =>
+        {
+            ToggleSearch();
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.F9, VirtualKeyModifiers.None, (sender, args) =>
+        {
+            _ = SynchronizeAsync();
             args.Handled = true;
         });
     }
@@ -93,6 +146,8 @@ public sealed partial class MainWindow : Window
         {
             "people" => typeof(PeoplePage),
             "companies" => typeof(CompaniesPage),
+            "saved-views" => typeof(SavedViewsPage),
+            "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
         };
 
@@ -190,6 +245,22 @@ public sealed partial class MainWindow : Window
                 SelectMenu(2);
                 return;
 
+            case "go.saved-views":
+                SelectMenu(3);
+                return;
+
+            case "go.sync":
+                SelectMenu(4);
+                return;
+
+            case "search.open":
+                ToggleSearch();
+                return;
+
+            case "sync.now":
+                _ = SynchronizeAsync();
+                return;
+
             default:
                 if (ContentFrame.Content is IPaletteCommandTarget target)
                 {
@@ -198,6 +269,205 @@ public sealed partial class MainWindow : Window
 
                 return;
         }
+    }
+
+    // -------------------------------------------------------- global search
+
+    private void ToggleSearch()
+    {
+        bool showing = SearchLayer.Visibility == Visibility.Collapsed;
+
+        SearchLayer.Visibility = showing ? Visibility.Visible : Visibility.Collapsed;
+
+        if (!showing)
+        {
+            return;
+        }
+
+        SearchQuery.Text = string.Empty;
+
+        if (_search is not null)
+        {
+            _search.Query = string.Empty;
+            _search.Results.Clear();
+        }
+
+        RenderSearch();
+        SearchQuery.Focus(FocusState.Programmatic);
+    }
+
+    private void OnSearchQueryChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_search is null)
+        {
+            SearchErrorBar.Message = AppServices.Settings.Describe();
+            SearchErrorBar.IsOpen = true;
+            return;
+        }
+
+        _search.Query = SearchQuery.Text;
+        _ = RunSearchAsync();
+    }
+
+    private async Task RunSearchAsync()
+    {
+        if (_search is null)
+        {
+            return;
+        }
+
+        CancellationTokenSource cancellation = new();
+        CancellationTokenSource? previous = Interlocked.Exchange(ref _searchCancellation, cancellation);
+
+        previous?.Cancel();
+        previous?.Dispose();
+
+        try
+        {
+            await _search.SearchAsync(cancellation.Token).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a later keystroke. Not a failure worth showing.
+        }
+
+        RenderSearch();
+    }
+
+    private void OnSearchKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case VirtualKey.Escape:
+                SearchLayer.Visibility = Visibility.Collapsed;
+                e.Handled = true;
+                break;
+
+            case VirtualKey.Down:
+                MoveSearchSelection(1);
+                e.Handled = true;
+                break;
+
+            case VirtualKey.Up:
+                MoveSearchSelection(-1);
+                e.Handled = true;
+                break;
+
+            case VirtualKey.Enter:
+                OpenSelectedSearchResult();
+                e.Handled = true;
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private void MoveSearchSelection(int delta)
+    {
+        if (_search is null || _search.Results.Count == 0)
+        {
+            return;
+        }
+
+        int next = SearchResults.SelectedIndex + delta;
+
+        if (next < 0)
+        {
+            next = _search.Results.Count - 1;
+        }
+        else if (next >= _search.Results.Count)
+        {
+            next = 0;
+        }
+
+        SearchResults.SelectedIndex = next;
+    }
+
+    private void OnSearchItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is SearchHit hit)
+        {
+            OpenHit(hit);
+        }
+    }
+
+    private void OpenSelectedSearchResult()
+    {
+        if (SearchResults.SelectedItem is SearchHit hit)
+        {
+            OpenHit(hit);
+        }
+    }
+
+    /// <summary>
+    /// Navigates to the record a hit points at.
+    /// </summary>
+    /// <remarks>
+    /// A hit carries its own type and identity, so opening it is a navigation
+    /// rather than a guess. Tasks live on the Command Center, which is where a
+    /// task is actually acted on.
+    /// </remarks>
+    private void OpenHit(SearchHit hit)
+    {
+        SearchLayer.Visibility = Visibility.Collapsed;
+
+        switch (hit.Type)
+        {
+            case "Person":
+                SelectMenu(1);
+                break;
+
+            case "Company":
+                SelectMenu(2);
+                break;
+
+            default:
+                SelectMenu(0);
+                break;
+        }
+    }
+
+    private void RenderSearch()
+    {
+        if (_search is null)
+        {
+            return;
+        }
+
+        SearchBusy.Visibility = _search.IsLoading ? Visibility.Visible : Visibility.Collapsed;
+        SearchOfflineBar.IsOpen = _search.IsOffline;
+        SearchEmptyBar.IsOpen = _search.IsEmpty;
+        SearchErrorBar.IsOpen = _search.HasError;
+        SearchErrorBar.Message = _search.ErrorMessage ?? string.Empty;
+    }
+
+    // ------------------------------------------------- synchronization state
+
+    private async Task SynchronizeAsync()
+    {
+        if (_sync is null)
+        {
+            return;
+        }
+
+        await _sync.SynchronizeAsync().ConfigureAwait(true);
+        RenderSync();
+    }
+
+    /// <summary>Keeps the always-visible status line honest about where the client stands.</summary>
+    private void RenderSync()
+    {
+        if (_sync is null)
+        {
+            SyncText.Text = AppServices.CacheFailure is null
+                ? "Online only - no local cache."
+                : "Online only - the local cache is unavailable.";
+
+            return;
+        }
+
+        SyncText.Text = _sync.StatusLine;
     }
 }
 

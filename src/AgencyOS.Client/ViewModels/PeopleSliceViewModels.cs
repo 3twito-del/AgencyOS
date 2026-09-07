@@ -192,10 +192,18 @@ public sealed class CommandCenterViewModel : ViewModelBase
         }, cancellationToken);
 
     /// <summary>Completes a task and refreshes, so the buckets stay truthful.</summary>
-    public Task CompleteAsync(Guid taskId, CancellationToken cancellationToken = default) =>
+    /// <param name="taskId">Task to complete.</param>
+    /// <param name="expectedVersion">
+    /// The version shown to the user. Sending it is what stops a completion made
+    /// from a stale list quietly overwriting somebody else's change.
+    /// </param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    public Task CompleteAsync(Guid taskId, int expectedVersion, CancellationToken cancellationToken = default) =>
         RunAsync(async token =>
         {
-            await _api.CompleteTaskAsync(taskId, token).ConfigureAwait(true);
+            await _api
+                .CompleteTaskAsync(taskId, new TaskTransitionRequest(expectedVersion), null, token)
+                .ConfigureAwait(true);
 
             CommandCenterResponse view = await _api.GetCommandCenterAsync(token).ConfigureAwait(true);
             _view = view;
@@ -370,7 +378,7 @@ public sealed class RecordInteractionViewModel : ViewModelBase
                     ? new FollowUpTaskRequest(FollowUpTitle, FollowUpDueAt, FollowUpPriority)
                     : null);
 
-            result = await _api.RecordInteractionAsync(request, token).ConfigureAwait(true);
+            result = await _api.RecordInteractionAsync(request, null, token).ConfigureAwait(true);
         }, cancellationToken).ConfigureAwait(true);
 
         return result;

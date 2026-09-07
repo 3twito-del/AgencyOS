@@ -72,6 +72,32 @@ public sealed class ProfessionalRelationship
 
     public UserId? EndedBy { get; private set; }
 
+    /// <summary>
+    /// Optimistic concurrency token, incremented on every mutation.
+    /// </summary>
+    /// <remarks>
+    /// An explicit column rather than PostgreSQL's <c>xmin</c>: a concurrency
+    /// token is part of the client contract and must outlive the storage engine.
+    /// See <c>docs/adr/ADR-0014-concurrency-and-idempotency.md</c>.
+    /// </remarks>
+    public int Version { get; private set; }
+
+    /// <summary>
+    /// Fails unless the caller observed the current version.
+    /// </summary>
+    /// <remarks>
+    /// This is what turns a blind overwrite into a detected conflict. A client
+    /// that has been offline sends the version it last saw; if the record moved
+    /// on, the write is refused rather than silently applied.
+    /// </remarks>
+    public void RequireVersion(int expectedVersion)
+    {
+        if (expectedVersion != Version)
+        {
+            throw new ConcurrencyConflictException(GetType().Name, Id.ToString(), expectedVersion, Version);
+        }
+    }
+
     /// <summary>The party the relationship runs from.</summary>
     public RelationshipEndpoint From => FromPersonId.HasValue
         ? RelationshipEndpoint.ForPerson(FromPersonId.Value)
@@ -136,6 +162,7 @@ public sealed class ProfessionalRelationship
             CreatedAt = now,
             UpdatedAt = now,
             CreatedBy = createdBy,
+            Version = 1,
         };
 
         relationship.AssignFrom(from);
@@ -161,6 +188,7 @@ public sealed class ProfessionalRelationship
         EndedAt = endedAt;
         EndedBy = endedBy;
         UpdatedAt = now;
+        Version++;
     }
 
     /// <summary>Records or revises the subjective strength of the relationship.</summary>
@@ -173,6 +201,7 @@ public sealed class ProfessionalRelationship
 
         Strength = strength;
         UpdatedAt = now;
+        Version++;
     }
 
     /// <summary>Determines whether this relationship touches the given party.</summary>

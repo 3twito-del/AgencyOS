@@ -25,6 +25,16 @@
     </PackageReference>
   </ItemGroup>
 
+  <!--
+    Tracing and metrics for the M3 failure paths (ADR-0016). The exporter package
+    is referenced but only registered when an OTLP endpoint is configured.
+  -->
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="../AgencyOS.Application/AgencyOS.Application.csproj" />
     <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />

@@ -1,5 +1,8 @@
+using AgencyOS.Api.Observability;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Application.Provisioning;
+using AgencyOS.Application.SavedViews;
+using AgencyOS.Domain.Idempotency;
 using AgencyOS.Domain.Common;
 using AgencyOS.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics;
@@ -35,6 +38,22 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             PermissionDeniedException => (StatusCodes.Status403Forbidden, "Permission denied"),
             EntityNotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             SystemAlreadyInitializedException => (StatusCodes.Status409Conflict, "Already initialized"),
+
+            // The record moved while the caller was looking at it. A first-class
+            // outcome with its own UI, not an error: the caller is told what they
+            // had and what it is now, and decides.
+            ConcurrencyConflictException => (StatusCodes.Status409Conflict, "Version conflict"),
+
+            // A key still being processed. Retrying is correct; executing
+            // alongside the first attempt is the duplicate the key exists to
+            // prevent.
+            IdempotencyInProgressException => (StatusCodes.Status409Conflict, "Request in progress"),
+
+            // Two different commands wearing one key. Serving either answer would
+            // be wrong, so neither is served.
+            IdempotencyConflictException => (StatusCodes.Status422UnprocessableEntity, "Idempotency key reused"),
+
+            SavedViewNameInUseException => (StatusCodes.Status409Conflict, "Name already used"),
             DomainException => (StatusCodes.Status400BadRequest, "Invalid request"),
 
             // Reaching this means a defense-in-depth layer fired. It is a defect,
@@ -83,6 +102,37 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
         if (exception is PermissionDeniedException denied)
         {
             problem.Extensions["requiredPermission"] = denied.Permission;
+        }
+
+        // A machine-readable code, because three different conditions answer 409
+        // and a client that has to distinguish them by title string is a client
+        // that breaks when the wording improves.
+        string? code = exception switch
+        {
+            ConcurrencyConflictException => "version_conflict",
+            IdempotencyInProgressException => "idempotency_in_progress",
+            IdempotencyConflictException => "idempotency_key_reused",
+            SavedViewNameInUseException => "saved_view_name_in_use",
+            _ => null,
+        };
+
+        if (code is not null)
+        {
+            problem.Extensions["code"] = code;
+        }
+
+        if (exception is ConcurrencyConflictException conflict)
+        {
+            AgencyOsTelemetry.VersionConflicts.Add(
+                1,
+                new KeyValuePair<string, object?>("entityType", conflict.EntityType));
+
+            // Both versions, so the client can say "you had 3, it is now 5"
+            // rather than "something changed".
+            problem.Extensions["entityType"] = conflict.EntityType;
+            problem.Extensions["entityId"] = conflict.EntityId;
+            problem.Extensions["expectedVersion"] = conflict.ExpectedVersion;
+            problem.Extensions["actualVersion"] = conflict.ActualVersion;
         }
 
         httpContext.Response.StatusCode = status;

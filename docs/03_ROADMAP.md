@@ -12,7 +12,9 @@ GitHub Actions CI and nightly workflows, ADR-0001 through ADR-0004.
 
 Decisions recorded: `docs/adr/ADR-0001-repository-structure.md`,
 `ADR-0002-sdk-pinning-and-ring-defaults.md`, `ADR-0003-ci-and-nightly-artifact.md`,
-`ADR-0004-structured-logging-without-telemetry-export.md`.
+`ADR-0004-structured-logging-without-telemetry-export.md` (its deferral of
+OpenTelemetry is superseded by ADR-0016 in M3, on the condition it named; its
+logging choices stand).
 
 Deliver:
 - monorepo/repository structure;
@@ -146,14 +148,58 @@ Exit criteria:
 - see task on Command Center; **met**
 - full audit trail. **met**
 
-## M3 — Search, Views & Local Cache
+## M3 — Search, Views & Local Cache — **Done** (2026-09-07)
+
+Implemented: ranked tenant-scoped search over PostgreSQL full text and trigram
+similarity; per-user saved views with a validated, versioned definition document;
+an encrypted local SQLite cache with an explicit schema version; a durable
+offline write queue over a closed allow-list of reversible commands; and a
+commit-ordered change feed the cache synchronizes from.
+
+Search combines an exact, prefix, full-text and trigram arm into one comparable
+banded score, and every hit says which arm matched it. User text reaches the
+database only as a parameter, and the prefix `tsquery` is built by a database
+function that quotes every token, so a query containing `&` or `!` is words
+rather than operators.
+
+Concurrency is an explicit `version` integer on each record, required on guarded
+mutations rather than optional - an optional concurrency token is last-write-wins
+with extra steps. Idempotency is enforced server-side by reserve-execute-store,
+so a retry after a lost response replays the original answer instead of acting
+twice. Both properties are modelled in `specs/OfflineWriteQueue.tla` and checked
+by TLC (1024 distinct states, depth 15, no invariant violated), and the same
+invariants are asserted against the implementation over all 780 failure
+interleavings of length four.
+
+The change feed takes positions from a per-tenant counter row held under its row
+lock until commit, so sequence order equals commit order and a client that has
+read to position N cannot later discover a gap below it. A first sync and an
+incremental sync are the same query; the migration backfills one entry per
+existing record.
+
+The local cache is never canonical. It is encrypted with SQLCipher under a
+DPAPI-protected key, isolated per channel, tenant and user, and its operations are
+deliberately not audited - the commands its queue submits are audited by the
+server when they actually run.
+
+API contract version 2 -> 3. The change is additive, so the supported range stays
+open at 1. The concurrency guarantee does not depend on the contract version: the
+version token is a required field, so a client that omits it is refused rather
+than silently privileged.
+
+Decisions recorded: `docs/adr/ADR-0013-synchronization-architecture.md`,
+`ADR-0014-concurrency-and-idempotency.md`,
+`ADR-0015-local-cache-encryption.md`,
+`ADR-0016-observability-supersedes-0004.md` (which supersedes ADR-0004's deferral
+of OpenTelemetry, on the condition ADR-0004 itself named).
+
 Deliver:
-- PostgreSQL full-text/trigram;
-- saved views;
-- local SQLite cache;
-- offline read;
-- queued safe writes;
-- conflict handling design.
+- PostgreSQL full-text/trigram; **met**
+- saved views; **met**
+- local SQLite cache; **met** (encrypted, versioned, never canonical)
+- offline read; **met**
+- queued safe writes; **met** (closed allow-list, server-enforced idempotency)
+- conflict handling design. **met** (a first-class user-visible state, not an error)
 
 ## M4 — Talent & Representation
 Deliver:

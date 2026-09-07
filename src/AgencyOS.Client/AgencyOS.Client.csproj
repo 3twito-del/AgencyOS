@@ -21,4 +21,15 @@
     <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
   </ItemGroup>
 
+  <!--
+    The local cache. SQLite here is a cache and a durable outbox, never a second
+    source of truth; nothing in this project can reach PostgreSQL, and a unit test
+    asserts that the server and EF Core assemblies stay out.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
+
 </Project>

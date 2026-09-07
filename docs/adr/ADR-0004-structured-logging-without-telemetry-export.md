@@ -1,6 +1,10 @@
 # ADR-0004: Structured JSON logging now, OpenTelemetry export when there is something to trace
 
-Status: Accepted
+Status: Superseded in part by ADR-0016 (2026-09-07)
+
+Its deferral of OpenTelemetry no longer holds: M3 introduced the first
+cross-process failure path, which is exactly the condition this decision named
+for reconsideration. Its structured-logging choices stand unchanged.
 Date: 2026-09-06
 
 ## Context

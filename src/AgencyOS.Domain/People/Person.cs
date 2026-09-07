@@ -65,6 +65,32 @@ public sealed class Person
 
     public UserId CreatedBy { get; private set; }
 
+    /// <summary>
+    /// Optimistic concurrency token, incremented on every mutation.
+    /// </summary>
+    /// <remarks>
+    /// An explicit column rather than PostgreSQL's <c>xmin</c>: a concurrency
+    /// token is part of the client contract and must outlive the storage engine.
+    /// See <c>docs/adr/ADR-0014-concurrency-and-idempotency.md</c>.
+    /// </remarks>
+    public int Version { get; private set; }
+
+    /// <summary>
+    /// Fails unless the caller observed the current version.
+    /// </summary>
+    /// <remarks>
+    /// This is what turns a blind overwrite into a detected conflict. A client
+    /// that has been offline sends the version it last saw; if the record moved
+    /// on, the write is refused rather than silently applied.
+    /// </remarks>
+    public void RequireVersion(int expectedVersion)
+    {
+        if (expectedVersion != Version)
+        {
+            throw new ConcurrencyConflictException(GetType().Name, Id.ToString(), expectedVersion, Version);
+        }
+    }
+
     public static Person Create(
         OrganizationId organizationId,
         string firstName,
@@ -101,6 +127,7 @@ public sealed class Person
             CreatedAt = now,
             UpdatedAt = now,
             CreatedBy = createdBy,
+            Version = 1,
         };
     }
 
@@ -141,6 +168,7 @@ public sealed class Person
         Phone = Ensure.OptionalMax(phone, nameof(phone), 64);
         Notes = notes;
         UpdatedAt = now;
+        Version++;
     }
 
     public void Archive(DateTimeOffset now)
@@ -152,6 +180,7 @@ public sealed class Person
 
         Status = PersonStatus.Archived;
         UpdatedAt = now;
+        Version++;
     }
 
     public void Restore(DateTimeOffset now)
@@ -163,6 +192,7 @@ public sealed class Person
 
         Status = PersonStatus.Active;
         UpdatedAt = now;
+        Version++;
     }
 
     /// <summary>

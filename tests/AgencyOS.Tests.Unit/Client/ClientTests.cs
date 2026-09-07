@@ -3,6 +3,9 @@ using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
+using AgencyOS.Contracts.SavedViews;
+using AgencyOS.Contracts.Search;
+using AgencyOS.Contracts.Sync;
 using Xunit;
 
 namespace AgencyOS.Tests.Unit.Client;
@@ -29,6 +32,23 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
     public Exception? NextFailure { get; set; }
 
     public int CompletedTasks { get; private set; }
+
+    /// <summary>Search results the fake returns, in the order given.</summary>
+    public List<SearchHit> SearchHits { get; } = [];
+
+    public List<SavedViewResponse> SavedViews { get; } = [];
+
+    /// <summary>Change-feed pages the fake serves, one per call.</summary>
+    public Queue<SyncChangesResponse> SyncPages { get; } = [];
+
+    /// <summary>Idempotency keys presented on every mutating call, in order.</summary>
+    public List<string?> IdempotencyKeys { get; } = [];
+
+    /// <summary>Failures queued per call, so a retry can be made to behave differently.</summary>
+    public Queue<Exception> Failures { get; } = [];
+
+    /// <summary>Mutating calls that actually reached the fake, by idempotency key.</summary>
+    public Dictionary<string, int> Effects { get; } = [];
 
     public Task<HandshakeResponse> HandshakeAsync(CancellationToken cancellationToken = default) =>
         throw new NotSupportedException();
@@ -58,12 +78,52 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
 
     public Task<PersonDetailResponse> CreatePersonAsync(
         CreatePersonRequest request,
-        CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        PersonSummaryResponse summary = new(
+            Guid.NewGuid(),
+            request.DisplayName ?? request.FirstName,
+            request.Title,
+            request.Email,
+            request.Phone,
+            "Active",
+            request.PrimaryCompanyId,
+            null,
+            DateTimeOffset.UtcNow,
+            1);
+
+        People.Add(summary);
+
+        return Task.FromResult(new PersonDetailResponse(
+            summary, request.FirstName, null, request.LastName, null, request.Notes, DateTimeOffset.UtcNow, []));
+    }
 
     public Task<PersonDetailResponse> UpdatePersonAsync(
         Guid personId,
         UpdatePersonRequest request,
-        CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        PersonSummaryResponse summary = new(
+            personId,
+            request.DisplayName ?? request.FirstName,
+            request.Title,
+            request.Email,
+            request.Phone,
+            "Active",
+            request.PrimaryCompanyId,
+            null,
+            DateTimeOffset.UtcNow,
+            request.ExpectedVersion + 1);
+
+        return Task.FromResult(new PersonDetailResponse(
+            summary, request.FirstName, null, request.LastName, null, request.Notes, DateTimeOffset.UtcNow, []));
+    }
 
     public Task<IReadOnlyList<TimelineEntryResponse>> GetPersonTimelineAsync(
         Guid personId,
@@ -84,7 +144,46 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
 
     public Task<CompanyDetailResponse> CreateCompanyAsync(
         CreateCompanyRequest request,
-        CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        CompanySummaryResponse summary = new(
+            Guid.NewGuid(),
+            request.Name,
+            request.LegalName,
+            request.Type,
+            "Active",
+            request.Website,
+            DateTimeOffset.UtcNow,
+            1);
+
+        Companies.Add(summary);
+
+        return Task.FromResult(new CompanyDetailResponse(summary, request.Notes, DateTimeOffset.UtcNow, [], []));
+    }
+
+    public Task<CompanyDetailResponse> UpdateCompanyAsync(
+        Guid companyId,
+        UpdateCompanyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        CompanySummaryResponse summary = new(
+            companyId,
+            request.Name,
+            request.LegalName,
+            request.Type,
+            "Active",
+            request.Website,
+            DateTimeOffset.UtcNow,
+            request.ExpectedVersion + 1);
+
+        return Task.FromResult(new CompanyDetailResponse(summary, request.Notes, DateTimeOffset.UtcNow, [], []));
+    }
 
     public Task<IReadOnlyList<TimelineEntryResponse>> GetCompanyTimelineAsync(
         Guid companyId,
@@ -100,9 +199,10 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
 
     public Task<RecordInteractionResponse> RecordInteractionAsync(
         RecordInteractionRequest request,
+        string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
-        Throw();
+        Submit(idempotencyKey);
         LastInteraction = request;
 
         return Task.FromResult(new RecordInteractionResponse(
@@ -115,21 +215,164 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
         CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<TaskResponse>>([]);
 
-    public Task<Guid> CreateTaskAsync(CreateTaskRequest request, CancellationToken cancellationToken = default) =>
-        Task.FromResult(Guid.NewGuid());
-
-    public Task CompleteTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
+    public Task<Guid> CreateTaskAsync(
+        CreateTaskRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
     {
+        Submit(idempotencyKey);
+        return Task.FromResult(Guid.NewGuid());
+    }
+
+    public Task CompleteTaskAsync(
+        Guid taskId,
+        TaskTransitionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
         CompletedTasks++;
         return Task.CompletedTask;
     }
 
-    public Task ReopenTaskAsync(Guid taskId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task ReopenTaskAsync(
+        Guid taskId,
+        TaskTransitionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+        return Task.CompletedTask;
+    }
 
     public Task<CommandCenterResponse> GetCommandCenterAsync(CancellationToken cancellationToken = default)
     {
         Throw();
         return Task.FromResult(CommandCenter);
+    }
+
+    // ---- Search, saved views and synchronization (M3) ----
+
+    public Task<SearchResponse> SearchAsync(
+        string query,
+        IReadOnlyList<string>? types = null,
+        bool includeArchived = false,
+        int skip = 0,
+        int take = 25,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new SearchResponse(query, [.. SearchHits], skip, take, HasMore: false));
+    }
+
+    public Task<IReadOnlyList<SavedViewResponse>> ListSavedViewsAsync(CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.FromResult<IReadOnlyList<SavedViewResponse>>([.. SavedViews]);
+    }
+
+    public Task<SavedViewResponse> CreateSavedViewAsync(
+        CreateSavedViewRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        SavedViewResponse created = new(
+            Guid.NewGuid(),
+            request.Name,
+            request.Definition.Target,
+            request.Definition,
+            request.Definition.DefinitionVersion,
+            1,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow);
+
+        SavedViews.Add(created);
+
+        return Task.FromResult(created);
+    }
+
+    public Task<SavedViewResponse> UpdateSavedViewAsync(
+        Guid savedViewId,
+        UpdateSavedViewRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        int index = SavedViews.FindIndex(x => x.Id == savedViewId);
+        SavedViewResponse existing = SavedViews[index];
+
+        if (existing.Version != request.ExpectedVersion)
+        {
+            throw new AgencyOsApiException(
+                System.Net.HttpStatusCode.Conflict,
+                "Version conflict",
+                "The saved view changed.",
+                "version_conflict",
+                request.ExpectedVersion,
+                existing.Version);
+        }
+
+        SavedViewResponse updated = existing with
+        {
+            Name = request.Name,
+            Definition = request.Definition,
+            Target = request.Definition.Target,
+            Version = existing.Version + 1,
+            UpdatedAt = DateTimeOffset.UtcNow,
+        };
+
+        SavedViews[index] = updated;
+
+        return Task.FromResult(updated);
+    }
+
+    public Task DeleteSavedViewAsync(Guid savedViewId, CancellationToken cancellationToken = default)
+    {
+        Throw();
+        SavedViews.RemoveAll(x => x.Id == savedViewId);
+        return Task.CompletedTask;
+    }
+
+    public Task<SyncChangesResponse> ReadSyncChangesAsync(
+        long cursor,
+        int? take = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        if (SyncPages.Count == 0)
+        {
+            return Task.FromResult(new SyncChangesResponse(cursor, false, [], [], [], []));
+        }
+
+        return Task.FromResult(SyncPages.Dequeue());
+    }
+
+    /// <summary>
+    /// Records a mutating call and applies the next queued failure, if any.
+    /// </summary>
+    /// <remarks>
+    /// Effects are counted per idempotency key, which is what lets a test assert
+    /// the property the model checks: a command retried after a lost response
+    /// takes effect once, not twice.
+    /// </remarks>
+    private void Submit(string? idempotencyKey)
+    {
+        IdempotencyKeys.Add(idempotencyKey);
+
+        if (Failures.Count > 0)
+        {
+            throw Failures.Dequeue();
+        }
+
+        Throw();
+
+        if (idempotencyKey is not null)
+        {
+            Effects[idempotencyKey] = Effects.GetValueOrDefault(idempotencyKey) + 1;
+        }
     }
 
     private void Throw()
@@ -240,10 +483,10 @@ public sealed class ViewModelStateTests
     }
 
     private static PersonSummaryResponse Person(string name) =>
-        new(Guid.NewGuid(), name, null, null, null, "Active", null, null, DateTimeOffset.UtcNow);
+        new(Guid.NewGuid(), name, null, null, null, "Active", null, null, DateTimeOffset.UtcNow, 1);
 
     private static TaskResponse Task(string title) =>
-        new(Guid.NewGuid(), title, "Open", "Normal", null, null, null, DateTimeOffset.UtcNow, null);
+        new(Guid.NewGuid(), title, "Open", "Normal", null, null, null, DateTimeOffset.UtcNow, null, 1);
 }
 
 /// <summary>The interaction-plus-follow-up capture workflow.</summary>

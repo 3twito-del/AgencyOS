@@ -19,6 +19,7 @@ public sealed record PartyReference(string Kind, Guid Id, string Name);
 /// <param name="PrimaryCompanyId">Principal company, when known.</param>
 /// <param name="PrimaryCompanyName">Principal company name, when known.</param>
 /// <param name="UpdatedAt">Last change instant.</param>
+/// <param name="Version">Optimistic concurrency token as read.</param>
 public sealed record PersonSummaryModel(
     Guid Id,
     string DisplayName,
@@ -28,7 +29,8 @@ public sealed record PersonSummaryModel(
     string Status,
     Guid? PrimaryCompanyId,
     string? PrimaryCompanyName,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    int Version);
 
 /// <param name="Summary">Headline fields.</param>
 /// <param name="FirstName">Given name.</param>
@@ -55,6 +57,7 @@ public sealed record PersonDetailModel(
 /// <param name="Status">Lifecycle status.</param>
 /// <param name="Website">Public website.</param>
 /// <param name="UpdatedAt">Last change instant.</param>
+/// <param name="Version">Optimistic concurrency token as read.</param>
 public sealed record CompanySummaryModel(
     Guid Id,
     string Name,
@@ -62,7 +65,8 @@ public sealed record CompanySummaryModel(
     string Type,
     string Status,
     string? Website,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    int Version);
 
 /// <param name="Summary">Headline fields.</param>
 /// <param name="Notes">Unstructured judgment.</param>
@@ -86,6 +90,7 @@ public sealed record CompanyDetailModel(
 /// <param name="StartedAt">When it began.</param>
 /// <param name="EndedAt">When it ended.</param>
 /// <param name="Notes">Free-text context.</param>
+/// <param name="Version">Optimistic concurrency token as read.</param>
 public sealed record RelationshipModel(
     Guid Id,
     PartyReference From,
@@ -96,7 +101,8 @@ public sealed record RelationshipModel(
     int? Strength,
     DateTimeOffset? StartedAt,
     DateTimeOffset? EndedAt,
-    string? Notes);
+    string? Notes,
+    int Version);
 
 /// <param name="Id">Task identifier.</param>
 /// <param name="Title">What needs doing.</param>
@@ -107,6 +113,7 @@ public sealed record RelationshipModel(
 /// <param name="SourceInteractionId">Interaction it came out of.</param>
 /// <param name="CreatedAt">Creation instant.</param>
 /// <param name="CompletedAt">Completion instant.</param>
+/// <param name="Version">Optimistic concurrency token as read.</param>
 public sealed record TaskModel(
     Guid Id,
     string Title,
@@ -116,7 +123,8 @@ public sealed record TaskModel(
     PartyReference? Subject,
     Guid? SourceInteractionId,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? CompletedAt);
+    DateTimeOffset? CompletedAt,
+    int Version);
 
 /// <param name="Id">Interaction identifier.</param>
 /// <param name="Type">Kind of contact.</param>
