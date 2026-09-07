@@ -83,16 +83,29 @@ public sealed class WriteQueueSimulationTests : IDisposable
     [Fact]
     public void EveryInterleaving_UpholdsTheModelsInvariants()
     {
+        // One cache for the whole run. A scenario needs an isolated queue entry,
+        // not an isolated database: states are per command, and each scenario
+        // removes its own at the end so the next starts with an empty outstanding
+        // set. Opening 780 encrypted databases instead would be minutes of disk
+        // work on a CI runner to prove nothing extra.
+        using LocalCache cache = LocalCache.Open(
+            _root,
+            new LocalCacheIdentity("LAB", Guid.NewGuid(), "sim@example.invalid"),
+            Key);
+
         int sequences = 0;
 
         foreach (Outcome[] script in Scripts(maximumLength: 4))
         {
             sequences++;
-            Simulate(script);
+            Simulate(cache, script);
         }
 
         // 5 + 25 + 125 + 625: every sequence of one to four outcomes.
         Assert.Equal(780, sequences);
+
+        // Every scenario cleaned up after itself, so no state leaked between them.
+        Assert.Empty(cache.ReadAll());
     }
 
     /// <summary>
@@ -102,15 +115,8 @@ public sealed class WriteQueueSimulationTests : IDisposable
     /// The invariants are named for their counterparts in the TLA+ module so that a
     /// failure here points straight at the property it broke.
     /// </remarks>
-    private void Simulate(Outcome[] script)
+    private static void Simulate(LocalCache cache, Outcome[] script)
     {
-        string directory = Path.Combine(_root, Guid.NewGuid().ToString("N"));
-
-        using LocalCache cache = LocalCache.Open(
-            directory,
-            new LocalCacheIdentity("LAB", Guid.NewGuid(), "sim@example.invalid"),
-            Key);
-
         QueuedCommand queued = cache.Enqueue(
             QueuedOperation.UpdatePerson,
             "Rename Sarah Klein",
@@ -233,6 +239,8 @@ public sealed class WriteQueueSimulationTests : IDisposable
                 break;
             }
         }
+
+        cache.Remove(queued.Id);
     }
 
     private static readonly QueuedState[] ModelStates =
