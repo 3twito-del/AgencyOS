@@ -787,7 +787,7 @@ Deliver:
   reachable only by accepting an offer)
 - F# pilot where advantageous. **met** (adopted; pure kernel behind one boundary)
 
-## M8 — Contracts, Rights, Options & Obligations — **Done** (2026-09-08)
+## M8 — Contracts, Rights, Options & Obligations — **Done** (2026-09-08) · promoted to ALPHA
 
 Implemented: the contract as a legal instrument anchored to an accepted offer;
 drafting versions carrying a reference to a document AgencyOS has never seen;
@@ -875,6 +875,36 @@ Everything in M8 is **online-only**. Nothing cached, nothing queued, cache schem
 unchanged at version 2. `docs/13_OFFLINE_CLASSIFICATION.md` records why, including
 what a cached privileged field would mean after the permission behind it is
 revoked.
+
+ALPHA promotion evidence (authoritative, remote CI):
+
+Workflow **CI**, run
+[34170253067](https://github.com/3twito-del/AgencyOS/actions/runs/34170253067),
+commit `6a29198`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `postgres:18.6`, server banner
+  `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 400 passed, 0 failed,
+  0 skipped - including migrations from a clean database through M0 + M1 + M2 +
+  M3 + M4 + M5 + M6 + M7 + M8, the whole contract workflow from agreed terms to
+  an executed instrument, execution unreachable by any status command, the
+  frozen terms of a recorded version refused by both the domain and the trigger,
+  a breach refused without a determination, an option past its deadline that
+  stays available, a business-day rule stored and absent from the deadline list,
+  a superseded grant that still says what it said, and the proof that a phrase
+  appearing only in privileged content surfaces nothing in search.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including
+  the F# rules kernel and the WinUI 3 client, **0 warnings / 0 errors**; 2254
+  unit tests passed - among them the exhaustive 64-pair contract status
+  enumeration, the 30-pair option matrix and the 25-pair obligation matrix, the
+  grant-period and deadline-resolution properties, the reconciliation outcomes,
+  and the proof that every commercial contract term code matches its negotiated
+  counterpart; OpenAPI 3.1.1 generated and verified (138 paths, 106 schemas).
+
+The migration was also applied, rolled back and re-applied cleanly before the
+commit, so the expand path has a proven reverse.
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
 
 Known limitations, recorded rather than implied:
 
