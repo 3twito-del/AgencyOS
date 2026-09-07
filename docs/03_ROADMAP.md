@@ -502,7 +502,7 @@ Deliver:
 - Package; **met** (facts and hopes held apart)
 - company participation. **met** (a distinct model, with the reasoning recorded)
 
-## M6 — Opportunities, Targets, Submissions & Pitches — **Implemented** (2026-09-07)
+## M6 — Opportunities, Targets, Submissions & Pitches — **Done** (2026-09-07) · promoted to ALPHA
 
 Implemented: the pursuit as a first-class record, distinct from what it is about;
 targets as individual market conversations; submissions and pitches as recorded
@@ -592,6 +592,28 @@ Defects found by tests written for this milestone:
 - **The first generated migration placed its raw SQL after `Up`'s closing brace.**
   Caught before it was committed; the migration was regenerated from a restored
   snapshot.
+
+ALPHA promotion evidence (authoritative, remote CI):
+
+Workflow **CI**, run
+[34145263389](https://github.com/3twito-del/AgencyOS/actions/runs/34145263389),
+commit `6bc1338`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `postgres:18.6`, server banner
+  `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 310 passed, 0 failed,
+  0 skipped - including migrations from a clean database through M0 + M1 + M2 +
+  M3 + M4 + M5 + M6, the one-open-target-per-party index under eight concurrent
+  clients racing the same buyer, cross-tenant refusals on opportunity subjects
+  and targets, strategy redaction across detail, saved views and search, and the
+  filter round-trip against the new accept-list.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including the
+  WinUI 3 client, **0 warnings / 0 errors**; 459 unit tests passed - among them
+  the exhaustive 25-pair opportunity status enumeration and the full 81-pair
+  target stage matrix; OpenAPI 3.1.1 generated and verified (93 paths, 71
+  schemas).
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
 
 Known limitations, recorded rather than implied:
 
