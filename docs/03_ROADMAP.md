@@ -642,7 +642,7 @@ Deliver:
 - outcomes; **met** (restrained; stops before the deal boundary)
 - follow-up workflows. **met** (linked M2 tasks, created with the activity)
 
-## M7 — Deal Engine: Offers, Negotiation & Agreed Terms — **Implemented** (2026-09-07)
+## M7 — Deal Engine: Offers, Negotiation & Agreed Terms — **Done** (2026-09-07) · promoted to ALPHA
 
 Implemented: the deal as a negotiation container anchored to an M6 target; offers
 as immutable commercial snapshots; counters as offers rather than edits; structured
@@ -736,6 +736,30 @@ Defects found by tests written for this milestone:
   Removed; every offer now goes through the draft path.
 - **Two navigation shortcuts collided** on Ctrl+9. The palette uniqueness tests
   written in M4 and M5 caught it.
+
+ALPHA promotion evidence (authoritative, remote CI):
+
+Workflow **CI**, run
+[34154128075](https://github.com/3twito-del/AgencyOS/actions/runs/34154128075),
+commit `1dc6b43`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `postgres:18.6`, server banner
+  `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 356 passed, 0 failed,
+  0 skipped - including migrations from a clean database through M0 + M1 + M2 +
+  M3 + M4 + M5 + M6 + M7, the one-open-offer index under eight concurrent
+  counters, the accept-versus-counter race, eight clients racing to open one
+  negotiation, offer immutability through every editing path, economics
+  redaction across detail, offers, saved views and search, and the refusal of
+  comparison without `deals.economics.read`.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including
+  the F# rules kernel and the WinUI 3 client, **0 warnings / 0 errors**; 1404
+  unit tests passed - among them the exhaustive 25-pair deal status enumeration,
+  the 49-pair offer matrix, 610 generated offer-comparison property cases, the
+  chain-validity properties and the fifteen C#-to-F# boundary mappings; OpenAPI
+  3.1.1 generated and verified (110 paths, 84 schemas).
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
 
 Known limitations, recorded rather than implied:
 
