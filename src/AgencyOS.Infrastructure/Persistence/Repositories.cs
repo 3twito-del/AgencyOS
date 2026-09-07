@@ -3,6 +3,7 @@ using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.Provisioning;
 using AgencyOS.Domain.Releases;
 using Microsoft.EntityFrameworkCore;
 
@@ -109,6 +110,22 @@ internal sealed class AuditRepository : IAuditRepository
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }
+}
+
+internal sealed class SystemInitializationRepository : ISystemInitializationRepository
+{
+    private readonly AgencyOsDbContext _context;
+
+    public SystemInitializationRepository(AgencyOsDbContext context) => _context = context;
+
+    public Task<bool> IsInitializedAsync(CancellationToken cancellationToken = default) =>
+        _context.SystemInitializations.AsNoTracking().AnyAsync(cancellationToken);
+
+    public Task<SystemInitialization?> FindAsync(CancellationToken cancellationToken = default) =>
+        _context.SystemInitializations.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+
+    public void Add(SystemInitialization initialization) =>
+        _context.SystemInitializations.Add(initialization);
 }
 
 internal sealed class ReleasePolicyRepository : IReleasePolicyRepository

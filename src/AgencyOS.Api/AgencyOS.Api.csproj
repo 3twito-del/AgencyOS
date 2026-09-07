@@ -5,6 +5,26 @@
     <RootNamespace>AgencyOS.Api</RootNamespace>
   </PropertyGroup>
 
+  <!--
+    OpenAPI document generation is opt-in rather than on every build: the
+    generator constructs the application host, which is unnecessary cost for an
+    ordinary inner-loop build. scripts/Invoke-AgencyOS.ps1 contract turns it on
+    explicitly, so contract generation is a deliberate, verifiable step.
+  -->
+  <PropertyGroup>
+    <OpenApiGenerateDocuments Condition="'$(OpenApiGenerateDocumentsOnBuild)' == 'true'">true</OpenApiGenerateDocuments>
+    <OpenApiGenerateDocumentsOnBuild Condition="'$(OpenApiGenerateDocumentsOnBuild)' == ''">false</OpenApiGenerateDocumentsOnBuild>
+    <OpenApiDocumentsDirectory>$(MSBuildThisFileDirectory)..\..\artifacts\openapi</OpenApiDocumentsDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="../AgencyOS.Application/AgencyOS.Application.csproj" />
     <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />

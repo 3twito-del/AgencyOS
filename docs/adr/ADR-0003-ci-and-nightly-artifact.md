@@ -1,7 +1,13 @@
 # ADR-0003: GitHub Actions on Windows runners, driven by one script
 
-Status: Accepted
+Status: Partially superseded by ADR-0008
 Date: 2026-09-06
+
+> **Revision, 2026-09-07.** The single-`windows-latest`-job topology decided here
+> is superseded by `ADR-0008-ci-topology-and-postgres-provisioning.md`. M1's
+> database suite requires a pinned PostgreSQL 18.6 server, which a Windows runner
+> cannot host as a service container. The decision that CI and local engineering
+> share one PowerShell entrypoint stands, and is carried forward.
 
 ## Context
 

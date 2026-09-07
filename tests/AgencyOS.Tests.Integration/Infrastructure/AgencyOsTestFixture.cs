@@ -203,12 +203,22 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
     }
 }
 
-/// <summary>Hosts the API against the test database.</summary>
+/// <summary>Hosts the API against a given database.</summary>
 public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
 {
     private readonly string _connectionString;
+    private readonly string? _bootstrapToken;
 
-    public AgencyOsApiFactory(string connectionString) => _connectionString = connectionString;
+    /// <param name="connectionString">Database the host should use.</param>
+    /// <param name="bootstrapToken">
+    /// Bootstrap token to configure, or <see langword="null"/> to leave first-run
+    /// initialization disabled so the route is never mapped.
+    /// </param>
+    public AgencyOsApiFactory(string connectionString, string? bootstrapToken = null)
+    {
+        _connectionString = connectionString;
+        _bootstrapToken = bootstrapToken;
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -216,6 +226,11 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
 
         builder.UseSetting("ConnectionStrings:AgencyOS", _connectionString);
         builder.UseEnvironment("Development");
+
+        if (_bootstrapToken is not null)
+        {
+            builder.UseSetting("AgencyOS:Bootstrap:Token", _bootstrapToken);
+        }
     }
 }
 

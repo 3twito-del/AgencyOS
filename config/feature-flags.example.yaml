@@ -5,6 +5,7 @@ flags:
     nightly: true
     alpha: false
     beta: false
+    rc: false
     stable: false
 
   ai_briefings:
@@ -13,6 +14,7 @@ flags:
     nightly: false
     alpha: false
     beta: false
+    rc: false
     stable: false
 
   local_ai:
@@ -21,4 +23,5 @@ flags:
     nightly: false
     alpha: false
     beta: false
+    rc: false
     stable: false

@@ -34,6 +34,17 @@ channels:
     min_supported_policy: compatibility_window
     real_data: production_like
 
+  # RC is production-candidate behavior with no feature additions except critical
+  # fixes (docs/05_RELEASE_ENGINEERING.md). It gets its own package identity and
+  # its own endpoint and database environments, like every other ring: side-by-side
+  # isolation is what keeps a ring from reaching another ring's data.
+  rc:
+    package_identity: AgencyOS.Rc
+    endpoint_environment: rc
+    database_environment: rc
+    min_supported_policy: compatibility_window
+    real_data: production_like
+
   stable:
     package_identity: AgencyOS
     endpoint_environment: production

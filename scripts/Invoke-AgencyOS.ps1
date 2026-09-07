@@ -23,7 +23,7 @@
 #>
 param(
     [Parameter(Position=0)]
-    [ValidateSet("doctor","build","test","verify","verify-fast","version","ci","nightly")]
+    [ValidateSet("doctor","build","test","test-unit","test-integration","verify","verify-fast","version","contract","ci","nightly")]
     [string]$Target = "doctor",
 
     [ValidateSet("forge","lab","nightly","alpha","beta","rc","stable")]
@@ -103,13 +103,15 @@ function Write-PostgresStatus {
     }
 
     if (Test-DockerRunning) {
-        Write-Host "[OK] Docker is running; integration tests will use Testcontainers"
+        Write-Host "[OK] Docker is running; integration tests will use Testcontainers (postgres:18.6, ALPHA baseline)"
         return
     }
 
     Write-Host "[WARN] No PostgreSQL test target. Integration tests will FAIL, not skip."
     Write-Host "       Set AGENCYOS_TEST_POSTGRES to a server the suite may create databases on,"
-    Write-Host "       or start Docker so a container can be used."
+    Write-Host "       or start Docker, which runs the suite against postgres:18.6 - the ALPHA"
+    Write-Host "       baseline in config/version-policy.yaml, and the only evidence that counts"
+    Write-Host "       for ALPHA promotion."
 }
 
 function Invoke-Doctor {
@@ -183,6 +185,89 @@ function Invoke-Test {
     if ($LASTEXITCODE -ne 0) { throw "Tests failed." }
 }
 
+# Runs only the unit suite. Needs no database, so CI can run it on any agent.
+function Invoke-TestUnit {
+    $project = Join-Path $root "tests/AgencyOS.Tests.Unit/AgencyOS.Tests.Unit.csproj"
+    $config = Get-Configuration "Debug"
+    Write-Section "Unit Tests ($config)"
+
+    dotnet test $project --nologo -c $config @(Get-MetadataArgs)
+    if ($LASTEXITCODE -ne 0) { throw "Unit tests failed." }
+}
+
+# Runs only the integration suite. Builds just this project's dependency graph,
+# which excludes the WinUI client, so it runs on a non-Windows agent too.
+function Invoke-TestIntegration {
+    $project = Join-Path $root "tests/AgencyOS.Tests.Integration/AgencyOS.Tests.Integration.csproj"
+    $config = Get-Configuration "Debug"
+    Write-Section "Integration Tests ($config)"
+
+    dotnet test $project --nologo -c $config @(Get-MetadataArgs)
+    if ($LASTEXITCODE -ne 0) { throw "Integration tests failed." }
+}
+
+# Generates the machine-readable API contract and verifies it.
+#
+# Generation constructs the application host. The bootstrap endpoint is mapped
+# only when a token is configured, so a throwaway token is supplied for the
+# duration of generation to keep the published contract complete. It is restored
+# afterwards and never persisted.
+function Invoke-Contract {
+    Write-Section "API Contract (OpenAPI)"
+
+    $api = Join-Path $root "src/AgencyOS.Api/AgencyOS.Api.csproj"
+    $outputDirectory = Join-Path $root "artifacts/openapi"
+    $document = Join-Path $outputDirectory "AgencyOS.Api.json"
+
+    if (Test-Path $outputDirectory) { Remove-Item $outputDirectory -Recurse -Force }
+
+    $previousToken = $env:AGENCYOS_BOOTSTRAP_TOKEN
+    $env:AGENCYOS_BOOTSTRAP_TOKEN = "contract-generation-only-" + [Guid]::NewGuid().ToString("N")
+
+    try {
+        dotnet build $api --nologo -p:OpenApiGenerateDocumentsOnBuild=true
+        if ($LASTEXITCODE -ne 0) { throw "OpenAPI document generation failed." }
+    }
+    finally {
+        $env:AGENCYOS_BOOTSTRAP_TOKEN = $previousToken
+    }
+
+    if (-not (Test-Path $document)) {
+        throw "No OpenAPI document was produced at $document."
+    }
+
+    $contract = Get-Content $document -Raw | ConvertFrom-Json
+
+    if (-not $contract.openapi.StartsWith("3.1")) {
+        throw "Expected an OpenAPI 3.1 document; the generator emitted $($contract.openapi)."
+    }
+
+    # The contract is only useful if it actually describes the surface. A silently
+    # truncated document would still be valid OpenAPI.
+    $required = @(
+        "/version",
+        "/api/v1/release/handshake",
+        "/api/v1/system/status",
+        "/api/v1/system/bootstrap",
+        "/api/v1/organizations",
+        "/api/v1/organizations/{id}",
+        "/api/v1/organizations/{id}/memberships",
+        "/api/v1/audit"
+    )
+
+    $paths = @($contract.paths.PSObject.Properties.Name)
+
+    foreach ($path in $required) {
+        if ($paths -notcontains $path) {
+            throw "The OpenAPI document is missing the required path '$path'."
+        }
+    }
+
+    Write-Host ""
+    Write-Host "[OK] OpenAPI $($contract.openapi); $($paths.Count) paths; $($contract.components.schemas.PSObject.Properties.Name.Count) schemas"
+    Write-Host "     $document"
+}
+
 function Invoke-VerifyFast {
     Invoke-Build
 
@@ -198,6 +283,7 @@ function Invoke-Verify {
     Invoke-Doctor
     Invoke-Build
     Invoke-Test
+    Invoke-Contract
 
     Write-Section "Git Status"
     if (Test-GitRepository) {
@@ -211,6 +297,7 @@ function Invoke-Ci {
     Invoke-Doctor
     Invoke-Build
     Invoke-Test
+    Invoke-Contract
     Invoke-Version
 }
 
@@ -236,9 +323,15 @@ function Invoke-Nightly {
     dotnet build $solution --nologo -c $config @stamp
     if ($LASTEXITCODE -ne 0) { throw "Nightly build failed." }
 
-    Write-Section "Nightly: Tests"
-    dotnet test $solution --nologo -c $config --no-build @stamp
-    if ($LASTEXITCODE -ne 0) { throw "Nightly tests failed." }
+    # Unit tests only. The database suite gates this build in its own CI job
+    # (.github/workflows/nightly.yml), because PostgreSQL is provisioned by a
+    # Linux service container that a Windows runner cannot host. Running it here
+    # as well would either duplicate the gate or, worse, silently skip when no
+    # database happened to be reachable.
+    Write-Section "Nightly: Unit Tests"
+    $unitProject = Join-Path $root "tests/AgencyOS.Tests.Unit/AgencyOS.Tests.Unit.csproj"
+    dotnet test $unitProject --nologo -c $config --no-build @stamp
+    if ($LASTEXITCODE -ne 0) { throw "Nightly unit tests failed." }
 
     Write-Section "Nightly: Publish API"
     dotnet publish (Join-Path $root "src/AgencyOS.Api/AgencyOS.Api.csproj") --nologo -c $config --no-build -o (Join-Path $output "api") @stamp
@@ -267,6 +360,9 @@ try {
         "verify-fast" { Invoke-VerifyFast }
         "verify"      { Invoke-Verify }
         "version"     { Invoke-Version }
+        "test-unit"        { Invoke-TestUnit }
+        "test-integration" { Invoke-TestIntegration }
+        "contract"         { Invoke-Contract }
         "ci"          { Invoke-Ci }
         "nightly"     { Invoke-Nightly }
     }

@@ -1,7 +1,6 @@
 using AgencyOS.Infrastructure.Persistence;
 using AgencyOS.Tests.Integration.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Xunit;
 
 namespace AgencyOS.Tests.Integration;
@@ -20,7 +19,8 @@ public sealed class MigrationTests
     [Fact]
     public async Task Migrations_ApplyToACleanDatabase()
     {
-        await using CleanDatabase clean = await CleanDatabase.CreateAsync(_fixture.ConnectionString);
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
 
         await using AgencyOsDbContext context = clean.CreateDbContext();
         await context.Database.MigrateAsync();
@@ -35,12 +35,22 @@ public sealed class MigrationTests
     [Fact]
     public async Task Migrations_CreateEveryExpectedTable()
     {
-        await using CleanDatabase clean = await CleanDatabase.CreateAsync(_fixture.ConnectionString);
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
 
-        await using AgencyOsDbContext context = clean.CreateDbContext();
-        await context.Database.MigrateAsync();
+        await clean.MigrateAsync();
 
-        foreach (string table in new[] { "users", "organizations", "memberships", "audit_events", "release_policies" })
+        string[] tables =
+        [
+            "users",
+            "organizations",
+            "memberships",
+            "audit_events",
+            "release_policies",
+            "system_initialization",
+        ];
+
+        foreach (string table in tables)
         {
             // Cast to text: Npgsql cannot read the regclass type as an object.
             object? result = await clean.ScalarAsync($"SELECT to_regclass('public.{table}')::text");
@@ -56,10 +66,10 @@ public sealed class MigrationTests
     [Fact]
     public async Task Migrations_InstallTheAuditAppendOnlyTriggers()
     {
-        await using CleanDatabase clean = await CleanDatabase.CreateAsync(_fixture.ConnectionString);
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
 
-        await using AgencyOsDbContext context = clean.CreateDbContext();
-        await context.Database.MigrateAsync();
+        await clean.MigrateAsync();
 
         object? rowTrigger = await clean.ScalarAsync(
             "SELECT tgname FROM pg_trigger WHERE tgrelid = 'audit_events'::regclass AND tgname = 'audit_events_append_only'");
@@ -70,86 +80,35 @@ public sealed class MigrationTests
         Assert.Equal("audit_events_no_truncate", truncateTrigger);
     }
 
+    /// <summary>
+    /// The initialization singleton is a database guarantee, not an application
+    /// convention: the check constraint is what stops a second bootstrap row.
+    /// </summary>
+    [Fact]
+    public async Task Migrations_ConstrainSystemInitializationToASingleRow()
+    {
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
+
+        await clean.MigrateAsync();
+
+        object? constraint = await clean.ScalarAsync(
+            "SELECT conname FROM pg_constraint WHERE conname = 'ck_system_initialization_singleton'");
+
+        Assert.Equal("ck_system_initialization_singleton", constraint);
+    }
+
     /// <summary>Re-running migrations must be a no-op, not an error.</summary>
     [Fact]
     public async Task Migrations_AreIdempotent()
     {
-        await using CleanDatabase clean = await CleanDatabase.CreateAsync(_fixture.ConnectionString);
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
 
-        await using (AgencyOsDbContext first = clean.CreateDbContext())
-        {
-            await first.Database.MigrateAsync();
-        }
+        await clean.MigrateAsync();
+        await clean.MigrateAsync();
 
-        await using AgencyOsDbContext second = clean.CreateDbContext();
-        await second.Database.MigrateAsync();
-
-        Assert.Empty(await second.Database.GetPendingMigrationsAsync());
-    }
-
-    /// <summary>A throwaway database on the same server as the suite's fixture.</summary>
-    private sealed class CleanDatabase : IAsyncDisposable
-    {
-        private readonly string _serverConnectionString;
-        private readonly string _databaseName;
-
-        private CleanDatabase(string serverConnectionString, string databaseName, string connectionString)
-        {
-            _serverConnectionString = serverConnectionString;
-            _databaseName = databaseName;
-            ConnectionString = connectionString;
-        }
-
-        public string ConnectionString { get; }
-
-        public static async Task<CleanDatabase> CreateAsync(string templateConnectionString)
-        {
-            string name = $"agencyos_migr_{Guid.NewGuid():N}";
-
-            NpgsqlConnectionStringBuilder admin = new(templateConnectionString) { Database = "postgres" };
-
-            await using (NpgsqlConnection connection = new(admin.ConnectionString))
-            {
-                await connection.OpenAsync();
-                await using NpgsqlCommand command = connection.CreateCommand();
-                command.CommandText = $"CREATE DATABASE \"{name}\"";
-                await command.ExecuteNonQueryAsync();
-            }
-
-            NpgsqlConnectionStringBuilder target = new(templateConnectionString) { Database = name };
-            return new CleanDatabase(admin.ConnectionString, name, target.ConnectionString);
-        }
-
-        public AgencyOsDbContext CreateDbContext() =>
-            new(new DbContextOptionsBuilder<AgencyOsDbContext>().UseNpgsql(ConnectionString).Options);
-
-        public async Task<object?> ScalarAsync(string sql)
-        {
-            await using NpgsqlConnection connection = new(ConnectionString);
-            await connection.OpenAsync();
-
-            await using NpgsqlCommand command = connection.CreateCommand();
-            command.CommandText = sql;
-            return await command.ExecuteScalarAsync();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            NpgsqlConnection.ClearAllPools();
-
-            try
-            {
-                await using NpgsqlConnection connection = new(_serverConnectionString);
-                await connection.OpenAsync();
-
-                await using NpgsqlCommand command = connection.CreateCommand();
-                command.CommandText = $"DROP DATABASE IF EXISTS \"{_databaseName}\" WITH (FORCE)";
-                await command.ExecuteNonQueryAsync();
-            }
-            catch (NpgsqlException)
-            {
-                // Teardown must never fail a run.
-            }
-        }
+        await using AgencyOsDbContext context = clean.CreateDbContext();
+        Assert.Empty(await context.Database.GetPendingMigrationsAsync());
     }
 }

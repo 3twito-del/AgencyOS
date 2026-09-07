@@ -1,9 +1,23 @@
 # AgencyOS continuous integration.
 #
-# Runs on windows-latest because AgencyOS.Windows is a WinUI 3 client and cannot
-# build on a non-Windows agent (docs/12_WINDOWS_NATIVE.md). All steps go through
-# scripts/Invoke-AgencyOS.ps1 so CI and local engineering share one entrypoint
-# (CLAUDE.md section 8).
+# Two jobs, split by what each can actually prove:
+#
+#   windows-build     builds the whole solution including the WinUI 3 client,
+#                     which cannot build on a non-Windows agent
+#                     (docs/12_WINDOWS_NATIVE.md), and runs everything that does
+#                     not need a database.
+#
+#   integration-tests runs the database suite against the exact ALPHA baseline
+#                     image, pinned in config/version-policy.yaml.
+#
+# Both call scripts/Invoke-AgencyOS.ps1, so CI and local engineering run the same
+# commands (CLAUDE.md section 8). pwsh is preinstalled on both runner images.
+#
+# PostgreSQL is provisioned by an explicitly pinned service container rather than
+# by whatever a runner image happens to ship. Linux service containers are not
+# available to Windows runners, which is why the database suite runs on Ubuntu.
+# Nothing about the database suite is Windows-specific: it exercises the API host
+# and the schema, neither of which involves the Windows client.
 
 name: CI
 
@@ -17,8 +31,8 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
-    name: Build and test
+  windows-build:
+    name: Build and unit tests (Windows)
     runs-on: windows-latest
 
     steps:
@@ -33,32 +47,76 @@ jobs:
         with:
           global-json-file: global.json
 
-      # Integration tests run against a real PostgreSQL server and fail rather
-      # than skip without one (docs/11_TESTING_AND_FORMAL_METHODS.md). Linux
-      # service containers are not available to a Windows runner, so this uses the
-      # PostgreSQL that ships stopped on the GitHub Windows image.
-      #
-      # NOTE: unverified locally - this repository has no remote yet, so this step
-      # has never executed. Confirm the service name and credentials against
-      # actions/runner-images on the first CI run.
-      - name: Start PostgreSQL
-        id: postgres
-        shell: pwsh
-        run: |
-          $service = Get-Service -Name 'postgresql*' -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $service) {
-              throw 'No PostgreSQL service found on this runner. Integration tests require one.'
-          }
+      - name: Restore tools
+        run: dotnet tool restore
 
-          Set-Service -Name $service.Name -StartupType Manual
-          Start-Service -Name $service.Name
-          Write-Host "Started $($service.Name)."
-
-          "AGENCYOS_TEST_POSTGRES=Host=localhost;Port=5432;Username=postgres;Password=root;Database=postgres" |
-              Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Verify
+      - name: Build
         shell: pwsh
         env:
           CI: 'true'
-        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 ci
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 build
+
+      - name: Unit tests
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 test-unit
+
+      - name: API contract
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 contract
+
+      - name: Version metadata
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 version
+
+      - name: Upload API contract
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-contract
+          path: artifacts/openapi/*.json
+          if-no-files-found: error
+
+  integration-tests:
+    name: Integration tests (PostgreSQL 18.6)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # The ALPHA real-data baseline. Pinned exactly; never "latest".
+        image: postgres:18.6
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # The suite creates and drops its own databases on this server, so it needs
+      # a connection string rather than a prepared schema.
+      - name: Integration tests
+        shell: pwsh
+        env:
+          CI: 'true'
+          AGENCYOS_TEST_POSTGRES: 'Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=postgres'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 test-integration

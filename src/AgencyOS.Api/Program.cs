@@ -11,12 +11,15 @@
 using AgencyOS.Api.Authentication;
 using AgencyOS.Api.Authorization;
 using AgencyOS.Api.Endpoints;
+using AgencyOS.Api.Health;
 using AgencyOS.Api.Http;
 using AgencyOS.Api.Middleware;
+using AgencyOS.Api.Provisioning;
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Audit;
 using AgencyOS.Application.Memberships;
 using AgencyOS.Application.Organizations;
+using AgencyOS.Application.Provisioning;
 using AgencyOS.Application.Releases;
 using AgencyOS.Contracts;
 using AgencyOS.Domain.Authorization;
@@ -76,6 +79,20 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 builder.Services.AddAgencyOSInfrastructure(connectionString);
 
+// ---------------------------------------------------------------------------
+// First-run initialization
+//
+// The gate exists only when a token is configured. Constructing it validates the
+// token's strength, so a weak bootstrap credential fails startup rather than
+// sitting quietly in a deployment.
+// ---------------------------------------------------------------------------
+string? bootstrapToken =
+    builder.Configuration["AgencyOS:Bootstrap:Token"]
+    ?? Environment.GetEnvironmentVariable("AGENCYOS_BOOTSTRAP_TOKEN");
+
+BootstrapTokenGate? bootstrapGate =
+    string.IsNullOrWhiteSpace(bootstrapToken) ? null : new BootstrapTokenGate(bootstrapToken);
+
 // Application composition. The host decides which capabilities it uses; the
 // infrastructure assembly only provides them.
 builder.Services.AddHttpContextAccessor();
@@ -83,6 +100,7 @@ builder.Services.AddScoped<IExecutionContext, HttpExecutionContext>();
 builder.Services.AddScoped<AuditRecorder>();
 builder.Services.AddScoped<CreateOrganizationHandler>();
 builder.Services.AddScoped<GrantMembershipHandler>();
+builder.Services.AddScoped<BootstrapSystemHandler>();
 builder.Services.AddScoped<ClientCompatibilityService>();
 
 // ---------------------------------------------------------------------------
@@ -110,9 +128,42 @@ foreach (string permission in Permission.All)
             .AddRequirements(new PermissionRequirement(permission)));
 }
 
+// ---------------------------------------------------------------------------
+// Health
+//
+// Liveness and readiness are separate endpoints with separate meanings. Only the
+// readiness endpoint runs checks; see PostgresReadinessCheck for why conflating
+// them is harmful.
+// ---------------------------------------------------------------------------
+builder.Services
+    .AddHealthChecks()
+    .AddCheck<PostgresReadinessCheck>(
+        "postgres",
+        tags: [HealthResponseWriter.ReadyTag]);
+
+// ---------------------------------------------------------------------------
+// API contract
+//
+// The machine-readable contract required by CLAUDE.md principle 6. No UI is
+// registered: the requirement is the document, not a browser experience.
+// ---------------------------------------------------------------------------
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info.Title = "AgencyOS API";
+        document.Info.Version = "v1";
+        document.Info.Description =
+            $"AgencyOS versioned domain API. API contract version {ApiContract.Current}. "
+                + "Clients present release identity headers on every request and are refused "
+                + "for mutations when revoked or incompatible (docs/06_FORCED_UPDATE_PROTOCOL.md).";
+
+        return Task.CompletedTask;
+    });
+});
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<AgencyOsExceptionHandler>();
-builder.Services.AddHealthChecks();
 
 WebApplication app = builder.Build();
 
@@ -126,27 +177,38 @@ app.UseMiddleware<ClientCompatibilityMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Liveness. Runs no checks: the process being able to answer is the answer.
+// A database outage must not cause an orchestrator to restart healthy instances.
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
-    ResponseWriter = static (context, report) =>
-    {
-        context.Response.ContentType = "application/json; charset=utf-8";
-        return context.Response.WriteAsJsonAsync(new HealthResponse(report.Status.ToString()));
-    },
+    Predicate = static _ => false,
+    ResponseWriter = HealthResponseWriter.WriteAsync,
+});
+
+// Readiness. Fails when canonical PostgreSQL cannot be reached, so traffic is
+// routed away from an instance that cannot serve it.
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = static registration => registration.Tags.Contains(HealthResponseWriter.ReadyTag),
+    ResponseWriter = HealthResponseWriter.WriteAsync,
 });
 
 app.MapGet("/version", static () => VersionResponse.Current());
 
-app.MapAgencyOsApi();
+app.MapOpenApi();
+
+app.MapAgencyOsApi(bootstrapGate);
 
 app.Logger.LogInformation(
-    "AgencyOS API starting. version={Version} channel={Channel} buildId={BuildId} commit={GitCommit} apiContract={ApiContractVersion} authentication={AuthenticationMode}",
+    "AgencyOS API starting. version={Version} channel={Channel} buildId={BuildId} commit={GitCommit} "
+        + "apiContract={ApiContractVersion} authentication={AuthenticationMode} bootstrap={BootstrapEnabled}",
     BuildInfo.Version,
     BuildInfo.Channel,
     BuildInfo.BuildId,
     BuildInfo.GitCommit,
     ApiContract.Current,
-    authenticationMode);
+    authenticationMode,
+    bootstrapGate is not null);
 
 app.Run();
 

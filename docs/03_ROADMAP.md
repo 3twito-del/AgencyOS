@@ -31,7 +31,7 @@ Exit criteria:
 - version metadata generated; **met**
 - Nightly artifact can be produced. **met**
 
-## M1 — Identity, Organization & Audit — **Done** (2026-09-07)
+## M1 — Identity, Organization & Audit — **Done** (2026-09-07); ALPHA promotion pending PostgreSQL 18.6 verification
 
 Implemented: Organization, User, Membership and the role/permission model;
 development identity provider behind a replaceable seam, fenced to rings that
@@ -47,9 +47,19 @@ Decisions recorded: `docs/adr/ADR-0005-release-handshake-contract.md`,
 `ADR-0006-audit-append-only-enforcement.md`,
 `ADR-0007-identity-and-authorization-model.md`.
 
-Deferred: first-run bootstrap of the initial organization and owner; OpenAPI
-document generation; database readiness probe. See the M1 limitations in the
-implementation report.
+Closure pass (2026-09-07): first-run bootstrap gated by an out-of-band token, an
+uninitialized-system check and a database singleton; OpenAPI 3.1 document
+generated and verified; liveness and readiness separated, with readiness bound to
+canonical PostgreSQL; RC added to `config/release-channels.yaml` completing the
+seven-ring model; CI PostgreSQL provisioning made explicit with a pinned
+`postgres:18.6` service container.
+
+Additional decisions: `docs/adr/ADR-0008-ci-topology-and-postgres-provisioning.md`,
+`ADR-0009-first-run-bootstrap.md`.
+
+Outstanding for ALPHA promotion: the suite has been verified against PostgreSQL
+19 Beta 3 (LAB evidence). Verification against the 18.6 ALPHA baseline requires a
+running Docker daemon and has not yet been performed.
 
 Deliver:
 - Organization, User, Membership, Role/Permission foundations;

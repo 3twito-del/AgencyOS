@@ -47,7 +47,14 @@ FORGE -> LAB -> NIGHTLY -> ALPHA -> BETA -> RC -> STABLE
 - AgencyOS.Lab
 - AgencyOS.Nightly
 - AgencyOS.Alpha
-- AgencyOS.Stable
+- AgencyOS.Beta
+- AgencyOS.Rc
+- AgencyOS (STABLE)
+
+The STABLE identity is the unadorned `AgencyOS`, because it is the installation an
+operator ends up with. `config/release-channels.yaml` is authoritative for these
+values; MSIX identity is immutable once shipped, so they are settled here rather
+than at packaging time.
 
 Each must have isolated:
 - package identity;

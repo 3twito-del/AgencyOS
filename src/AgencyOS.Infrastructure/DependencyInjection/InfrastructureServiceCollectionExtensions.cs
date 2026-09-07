@@ -47,6 +47,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IMembershipRepository, MembershipRepository>();
         services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped<IReleasePolicyRepository, ReleasePolicyRepository>();
+        services.AddScoped<ISystemInitializationRepository, SystemInitializationRepository>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 

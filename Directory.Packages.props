@@ -29,6 +29,16 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4" />
   </ItemGroup>
 
+  <!--
+    API contract. ASP.NET Core's built-in OpenAPI support; no third-party
+    generator and no UI, because the requirement is a machine-readable contract
+    (CLAUDE.md principle 6).
+  -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.11" />
+  </ItemGroup>
+
   <!-- Test stack. -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

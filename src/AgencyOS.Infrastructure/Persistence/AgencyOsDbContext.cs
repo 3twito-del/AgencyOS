@@ -3,6 +3,7 @@ using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.Provisioning;
 using AgencyOS.Domain.Releases;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,12 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
 
     public DbSet<ReleasePolicy> ReleasePolicies => Set<ReleasePolicy>();
+
+    /// <summary>
+    /// The one-time initialization record. A singleton enforced by the database,
+    /// not by convention.
+    /// </summary>
+    public DbSet<SystemInitialization> SystemInitializations => Set<SystemInitialization>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

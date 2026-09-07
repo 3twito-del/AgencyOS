@@ -1,4 +1,5 @@
 using AgencyOS.Application.Authorization;
+using AgencyOS.Application.Provisioning;
 using AgencyOS.Domain.Common;
 using AgencyOS.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics;
@@ -33,6 +34,7 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             NotAuthenticatedException => (StatusCodes.Status401Unauthorized, "Authentication required"),
             PermissionDeniedException => (StatusCodes.Status403Forbidden, "Permission denied"),
             EntityNotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            SystemAlreadyInitializedException => (StatusCodes.Status409Conflict, "Already initialized"),
             DomainException => (StatusCodes.Status400BadRequest, "Invalid request"),
 
             // Reaching this means a defense-in-depth layer fired. It is a defect,

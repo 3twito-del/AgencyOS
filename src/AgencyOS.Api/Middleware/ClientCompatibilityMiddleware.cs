@@ -88,7 +88,17 @@ internal sealed class ClientCompatibilityMiddleware
 
         // The handshake itself must stay reachable, otherwise a client that needs
         // to be told to update could never be told.
-        return !request.Path.StartsWithSegments("/api/v1/release", StringComparison.OrdinalIgnoreCase);
+        if (request.Path.StartsWithSegments("/api/v1/release", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // First-run initialization is exempt of necessity: an uninitialized system
+        // has no release policy rows, so every client would evaluate as ungoverned
+        // and be refused, making the system impossible to initialize. Bootstrap is
+        // gated by the out-of-band token and by the database singleton instead, and
+        // it is the only mutation reachable in that state.
+        return !request.Path.StartsWithSegments("/api/v1/system", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task WriteRefusalAsync(HttpContext context, ReleaseDecision decision)

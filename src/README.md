@@ -45,6 +45,7 @@ Modules present after M1:
 | Authorization | `Authorization/` | `Authorization/` | `Authorization/` |
 | Audit | `Audit/` | `Audit/` | `Persistence/` |
 | ReleasePolicy | `Releases/` | `Releases/` | `Persistence/` |
+| Provisioning | `Provisioning/` | `Provisioning/` | `Persistence/` |
 
 ## Where enforcement lives
 
@@ -57,6 +58,20 @@ duplication was worth it.
 | Audit immutability | domain type with no mutator; save interceptor; database triggers (`ADR-0006`) |
 | Authorization | endpoint policy as an early gate; scoped check inside the command handler, which is authoritative (`ADR-0007`) |
 | Client compatibility | handshake response tells the client; middleware refuses the mutation regardless (`ADR-0005`) |
+| First-run bootstrap | out-of-band token; uninitialized-system check; database singleton with a CHECK constraint (`ADR-0009`) |
+
+## Operational surface
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | Liveness. Runs no checks; a database outage must not cause instance restarts. |
+| `GET /health/ready` | Readiness. Fails when canonical PostgreSQL is unreachable. |
+| `GET /version` | Build identity presented to the release authority. |
+| `GET /openapi/v1.json` | The versioned OpenAPI 3.1 contract. |
+
+`scripts/Invoke-AgencyOS.ps1 contract` regenerates the contract into
+`artifacts/openapi/` and fails if it is not OpenAPI 3.1 or does not describe the
+expected surface.
 
 ## What is deliberately absent
 
@@ -67,3 +82,6 @@ orchestration. Those arrive at the milestones that need them, and not before -
 
 Identity is a development scheme that trusts a header. The host refuses to start
 if it is configured on a ring that permits real data.
+
+First-run initialization exists but is inert unless a bootstrap token is
+configured: with none, the route is not mapped at all.

@@ -1,10 +1,13 @@
 using AgencyOS.Api.Authorization;
+using AgencyOS.Api.Provisioning;
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Memberships;
 using AgencyOS.Application.Organizations;
+using AgencyOS.Application.Provisioning;
 using AgencyOS.Application.Releases;
 using AgencyOS.Contracts.Audit;
 using AgencyOS.Contracts.Organizations;
+using AgencyOS.Contracts.Provisioning;
 using AgencyOS.Contracts.Releases;
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Authorization;
@@ -12,6 +15,7 @@ using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.Provisioning;
 using AgencyOS.Domain.Releases;
 
 namespace AgencyOS.Api.Endpoints;
@@ -26,15 +30,95 @@ namespace AgencyOS.Api.Endpoints;
 /// </remarks>
 internal static class ApiEndpoints
 {
-    public static IEndpointRouteBuilder MapAgencyOsApi(this IEndpointRouteBuilder app)
+    /// <summary>Maps the versioned API surface.</summary>
+    /// <param name="app">Route builder.</param>
+    /// <param name="bootstrapGate">
+    /// The first-run token gate, or <see langword="null"/> when no bootstrap token
+    /// is configured. When null the bootstrap route is never mapped, so a
+    /// deployment that has not deliberately enabled first-run initialization has
+    /// no such endpoint at all.
+    /// </param>
+    public static IEndpointRouteBuilder MapAgencyOsApi(
+        this IEndpointRouteBuilder app,
+        BootstrapTokenGate? bootstrapGate)
     {
         RouteGroupBuilder api = app.MapGroup("/api/v1");
 
+        MapSystem(api, bootstrapGate);
         MapRelease(api);
         MapOrganizations(api);
         MapAudit(api);
 
         return app;
+    }
+
+    private static void MapSystem(RouteGroupBuilder api, BootstrapTokenGate? bootstrapGate)
+    {
+        // Anonymous and always available: a client needs to know whether to offer
+        // first-run setup, and the answer is a single boolean that reveals nothing
+        // an unauthenticated caller could act on.
+        api.MapGet("/system/status", async (
+                ISystemInitializationRepository initialization,
+                CancellationToken cancellationToken) =>
+            {
+                bool initialized = await initialization
+                    .IsInitializedAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return Results.Ok(new SystemStatusResponse(initialized));
+            })
+            .AllowAnonymous()
+            .WithName("GetSystemStatus");
+
+        if (bootstrapGate is null)
+        {
+            // No token configured: the route does not exist.
+            return;
+        }
+
+        api.MapPost("/system/bootstrap", async (
+                HttpRequest request,
+                BootstrapRequest body,
+                BootstrapSystemHandler handler,
+                CancellationToken cancellationToken) =>
+            {
+                if (!bootstrapGate.IsSatisfiedBy(request))
+                {
+                    // Deliberately indistinguishable from a wrong token: no hint
+                    // about whether the system is already initialized is given to a
+                    // caller that has not proved possession of the token.
+                    return Results.Problem(
+                        statusCode: StatusCodes.Status401Unauthorized,
+                        title: "Bootstrap token required",
+                        detail: $"Present a valid {BootstrapHeaders.Token} header.");
+                }
+
+                OrganizationType type = ParseEnum<OrganizationType>(
+                    body.OrganizationType,
+                    nameof(body.OrganizationType));
+
+                BootstrapSystemResult result = await handler
+                    .HandleAsync(
+                        new BootstrapSystemCommand(
+                            body.OrganizationName,
+                            body.OrganizationLegalName,
+                            type,
+                            body.OwnerSubject,
+                            body.OwnerDisplayName,
+                            body.OwnerEmail),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                return Results.Created(
+                    $"/api/v1/organizations/{result.OrganizationId.Value}",
+                    new BootstrapResponse(
+                        result.OrganizationId.Value,
+                        result.OwnerUserId.Value,
+                        result.MembershipId.Value,
+                        result.InitializedAt));
+            })
+            .AllowAnonymous()
+            .WithName("BootstrapSystem");
     }
 
     private static void MapRelease(RouteGroupBuilder api)

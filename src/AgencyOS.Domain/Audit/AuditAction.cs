@@ -17,4 +17,7 @@ public static class AuditAction
     public const string MembershipRevoked = "membership.revoked";
 
     public const string UserRegistered = "user.registered";
+
+    /// <summary>First-run initialization. Occurs at most once in a system's life.</summary>
+    public const string SystemBootstrapped = "system.bootstrapped";
 }

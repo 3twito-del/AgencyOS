@@ -2,6 +2,7 @@ using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.Provisioning;
 using AgencyOS.Domain.Releases;
 
 namespace AgencyOS.Application.Abstractions;
@@ -64,6 +65,25 @@ public interface IAuditRepository
     Task<IReadOnlyList<AuditEvent>> ListRecentAsync(
         int limit,
         CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Access to the one-time system initialization record.
+/// </summary>
+/// <remarks>
+/// There is no way to clear initialization. Un-initializing a system would mean
+/// discarding the authority chain the audit trail explains, so it is not
+/// expressible here; a fresh system is a fresh database.
+/// </remarks>
+public interface ISystemInitializationRepository
+{
+    /// <summary>Determines whether the system has been initialized.</summary>
+    Task<bool> IsInitializedAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Reads the initialization record, or <see langword="null"/> when absent.</summary>
+    Task<SystemInitialization?> FindAsync(CancellationToken cancellationToken = default);
+
+    void Add(SystemInitialization initialization);
 }
 
 public interface IReleasePolicyRepository
