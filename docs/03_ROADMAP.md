@@ -364,7 +364,7 @@ Deliver:
 - Material; **met** (metadata only; local paths refused)
 - team/representation history. **met** (append-only events; team is the lead)
 
-## M5 — Projects & Packaging — **Done** (2026-09-07)
+## M5 — Projects & Packaging — **Done** (2026-09-07) · promoted to ALPHA
 
 Implemented: the canonical project, with operational status and creative stage
 modelled separately; source properties; roles that exist independently of whoever
@@ -456,11 +456,27 @@ Three defects found by tests written for this milestone:
   stray `ProjectId1` foreign keys to the first generated migration. Caught before
   the migration was committed.
 
-Local verification: whole solution builds with 0 warnings / 0 errors; 376 unit and
-255 integration tests pass; OpenAPI 3.1.1 generated and gated (76 paths, 56
-schemas), with no two paths differing only by parameter name. Local runs use
-PostgreSQL 19 Beta 3, which remains LAB evidence only - ALPHA promotion requires
-remote CI on `postgres:18.6`.
+ALPHA promotion evidence (authoritative, remote CI):
+
+Workflow **CI**, run
+[34133029249](https://github.com/3twito-del/AgencyOS/actions/runs/34133029249),
+commit `a59d4f0`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `postgres:18.6`, server banner
+  `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 276 passed, 0 failed,
+  0 skipped - including migrations from a clean database through M0 + M1 + M2 +
+  M3 + M4 + M5, the exclusive-role index under eight concurrent attachments to
+  one showrunner job, cross-tenant refusals on package elements and credit links,
+  saved views over the new targets, and the filter round-trip that the mapping
+  defect escaped twice.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including the
+  WinUI 3 client, **0 warnings / 0 errors**; 376 unit tests passed - among them the
+  exhaustive project, attachment and package transition enumerations and the full
+  5 x 7 x 7 stage matrix; OpenAPI 3.1.1 generated and verified (76 paths, 56
+  schemas).
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
 
 Known limitations, recorded rather than implied:
 
