@@ -1,0 +1,52 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordSignatureDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record a signature"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="480">
+            <!--
+                The permanent statement. AgencyOS implements no electronic
+                signature, holds no certificate and verifies nothing: this records
+                that a person says a party signed (ADR-0022).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Recorded, not verified"
+                     Message="AgencyOS records that somebody signed. It performs no electronic signature and verifies nothing cryptographically." />
+
+            <ComboBox x:Name="PartyBox" Header="Who signed" HorizontalAlignment="Stretch"
+                      DisplayMemberPath="DisplayName" SelectionChanged="OnRequiredChanged" />
+
+            <CalendarDatePicker x:Name="SignedPicker" Header="Signed on"
+                                PlaceholderText="The day they signed"
+                                DateChanged="OnDateChanged" />
+
+            <ComboBox x:Name="MethodBox" Header="How" HorizontalAlignment="Stretch">
+                <ComboBoxItem Content="Wet signature" Tag="Wet" IsSelected="True" />
+                <ComboBoxItem Content="Electronic" Tag="Electronic" />
+                <ComboBoxItem Content="Counterpart" Tag="Counterpart" />
+                <ComboBoxItem Content="Other" Tag="Other" />
+            </ComboBox>
+
+            <TextBox x:Name="ReferenceBox" Header="Where the signed copy lives"
+                     PlaceholderText="Reference, if there is one" />
+
+            <TextBox x:Name="NotesBox" Header="Notes" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="60" />
+
+            <!--
+                Shown when this is the last required signature, because that is the
+                moment the agreement becomes executed and the date is taken from
+                the signature rather than from today.
+            -->
+            <InfoBar x:Name="LastSignatureBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                     Title="This completes execution"
+                     Message="Every other required signature is already recorded. Recording this one marks the contract fully executed, dated from the last signature rather than from today." />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

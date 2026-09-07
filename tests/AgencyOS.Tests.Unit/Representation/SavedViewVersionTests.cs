@@ -46,7 +46,7 @@ public sealed class SavedViewVersionTests
     /// <summary>A version from the future is refused rather than guessed at.</summary>
     [Theory]
     [InlineData(0)]
-    [InlineData(6)]
+    [InlineData(7)]
     [InlineData(99)]
     public void AnUnknownVersion_IsRefused(int version)
     {
@@ -70,7 +70,28 @@ public sealed class SavedViewVersionTests
     public void TheUnderstoodRange_CoversEveryVersionEverShipped()
     {
         Assert.Equal(1, SavedViewDefinition.MinimumUnderstoodVersion);
-        Assert.Equal(5, SavedViewDefinition.CurrentDefinitionVersion);
+        Assert.Equal(6, SavedViewDefinition.CurrentDefinitionVersion);
+    }
+
+    /// <summary>
+    /// A contracts view is a version 6 document, and claiming an earlier version
+    /// while naming it is refused.
+    /// </summary>
+    [Fact]
+    public void AContractsView_ArrivedInVersionSix()
+    {
+        new SavedViewDefinition(
+                6,
+                SavedViewTarget.Contracts,
+                new SavedViewFilters(ContractStatus: "UnderReview"))
+            .Validate();
+
+        SavedViewDefinition backdated = new(
+            5,
+            SavedViewTarget.Contracts,
+            new SavedViewFilters(ContractStatus: "UnderReview"));
+
+        Assert.Throws<DomainException>(backdated.Validate);
     }
 
     /// <summary>

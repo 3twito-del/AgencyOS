@@ -1,4 +1,4 @@
-# Frontier Architecture
+﻿# Frontier Architecture
 
 ## 1. Logical topology
 
@@ -73,6 +73,13 @@ negotiation-chain validation, term-value parsing and offer comparison. Pure - no
 package references but FSharp.Core, and no EF Core, HTTP, logging, clock or
 filesystem. C# owns the domain, application, API and client; F# owns rules, not
 architecture.
+
+**Extended in M8**, in the same assembly rather than a second one. The contract,
+option and obligation state machines, grant periods, deadline resolution and
+negotiated-against-drafted reconciliation live beside the M7 rules because they are
+the same kind of thing and share the comparison the offer thread already used. A
+second F# project for aesthetic separation would have split one coherent kernel and
+duplicated the term vocabulary across the seam (ADR-0022).
 
 The boundary is one class (`DealRules`). Everything crossing it is a primitive, a
 plain array or a `[<CLIMutable>]` record; discriminated unions, options and F# lists

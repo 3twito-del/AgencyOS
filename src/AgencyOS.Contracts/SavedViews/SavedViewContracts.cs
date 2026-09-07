@@ -1,4 +1,4 @@
-namespace AgencyOS.Contracts.SavedViews;
+﻿namespace AgencyOS.Contracts.SavedViews;
 
 /// <summary>
 /// The filters a saved view applies.
@@ -23,6 +23,19 @@ namespace AgencyOS.Contracts.SavedViews;
 /// <param name="ProspectStage">Restricts prospects to one stage.</param>
 /// <param name="OwnerUserId">Restricts prospects to one internal owner.</param>
 /// <param name="FollowUpWithinDays">Only prospects needing attention within this many days.</param>
+/// <param name="ContractKind">Restricts contracts to one kind of instrument.</param>
+/// <param name="ContractStatus">Restricts contracts to one status.</param>
+/// <param name="DealId">Only contracts arising from this negotiation.</param>
+/// <param name="ContractPartyCompanyId">Only contracts with this company as a party.</param>
+/// <param name="ContractPartyPersonId">Only contracts with this person as a party.</param>
+/// <param name="AwaitingSignature">Only contracts with a required signature outstanding.</param>
+/// <param name="EffectiveOnly">Only contracts in force today.</param>
+/// <param name="ExecutedAfter">Only contracts executed on or after this date.</param>
+/// <param name="ExecutedBefore">Only contracts executed on or before this date.</param>
+/// <param name="HasUnresolvedReconciliation">
+/// Only contracts whose newest version differs from what was agreed. A count of
+/// differences, never a claim that any of them is a problem.
+/// </param>
 public sealed record SavedViewFiltersModel(
     string? Status = null,
     Guid? CompanyId = null,
@@ -69,7 +82,22 @@ public sealed record SavedViewFiltersModel(
     bool HasOpenOffer = false,
     bool TermsAgreedOnly = false,
     DateOnly? OpenedAfter = null,
-    DateOnly? OpenedBefore = null);
+    DateOnly? OpenedBefore = null,
+
+    // M8. The same rule again, and one more with it: nothing here narrows by what
+    // a clause says or by anything a person classified as privileged, because a
+    // saved view is a query somebody else may run and its predicate would tell
+    // them what it matched.
+    string? ContractKind = null,
+    string? ContractStatus = null,
+    Guid? DealId = null,
+    Guid? ContractPartyCompanyId = null,
+    Guid? ContractPartyPersonId = null,
+    bool AwaitingSignature = false,
+    bool EffectiveOnly = false,
+    DateOnly? ExecutedAfter = null,
+    DateOnly? ExecutedBefore = null,
+    bool HasUnresolvedReconciliation = false);
 
 /// <param name="Field">Field to order by. Must be sortable for the target.</param>
 /// <param name="Direction">Ascending or Descending.</param>
@@ -136,7 +164,8 @@ public sealed record SavedViewResultsResponse(
     IReadOnlyList<AgencyOS.Contracts.Projects.ProjectSummaryResponse> Projects,
     IReadOnlyList<AgencyOS.Contracts.Projects.PackageSummaryResponse> Packages,
     IReadOnlyList<AgencyOS.Contracts.Opportunities.OpportunitySummaryResponse> Opportunities,
-    IReadOnlyList<AgencyOS.Contracts.Deals.DealSummaryResponse> Deals);
+    IReadOnlyList<AgencyOS.Contracts.Deals.DealSummaryResponse> Deals,
+    IReadOnlyList<AgencyOS.Contracts.Legal.ContractSummaryResponse> Contracts);
 
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>

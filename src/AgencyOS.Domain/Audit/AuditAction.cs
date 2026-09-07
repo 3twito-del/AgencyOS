@@ -150,6 +150,42 @@ public static class AuditAction
     public const string OfferWithdrawn = "offer.withdrawn";
     public const string OfferExpired = "offer.expired";
 
+    // ---- Contracts, rights and obligations (M8) ----
+
+    public const string ContractOpened = "contract.opened";
+    public const string ContractUpdated = "contract.updated";
+    public const string ContractStatusChanged = "contract.status.changed";
+    public const string ContractPartyAdded = "contract.party.added";
+    public const string ContractVersionRecorded = "contract.version.recorded";
+    public const string ContractTermChanged = "contract.term.changed";
+    public const string ContractRelationshipRecorded = "contract.relationship.recorded";
+
+    /// <summary>A party's signature, and with it any advance in execution state.</summary>
+    public const string ContractSignatureRecorded = "contract.signature.recorded";
+
+    public const string ContractEffectiveDateRecorded = "contract.effective.recorded";
+
+    public const string RightsGrantRecorded = "rights.grant.recorded";
+    public const string RightsGrantSuperseded = "rights.grant.superseded";
+    public const string RightsGrantEnded = "rights.grant.ended";
+
+    public const string OptionRecorded = "option.recorded";
+    public const string OptionExercised = "option.exercised";
+    public const string OptionDeclined = "option.declined";
+    public const string OptionWaived = "option.waived";
+    public const string OptionExpired = "option.expired";
+    public const string OptionCancelled = "option.cancelled";
+
+    public const string ObligationRecorded = "obligation.recorded";
+    public const string ObligationSatisfied = "obligation.satisfied";
+    public const string ObligationWaived = "obligation.waived";
+    public const string ObligationBreachRecorded = "obligation.breach.recorded";
+    public const string ObligationReinstated = "obligation.reinstated";
+    public const string ObligationCancelled = "obligation.cancelled";
+
+    public const string NoticeRequirementRecorded = "notice.requirement.recorded";
+    public const string NoticeRecorded = "notice.recorded";
+
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";
     public const string SavedViewDeleted = "savedview.deleted";

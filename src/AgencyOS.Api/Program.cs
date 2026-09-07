@@ -1,4 +1,4 @@
-// AgencyOS API host.
+﻿// AgencyOS API host.
 //
 // Governing documents:
 //   docs/02_ARCHITECTURE.md           - modular monolith, HTTPS/OpenAPI boundary
@@ -26,6 +26,7 @@ using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
@@ -182,6 +183,18 @@ builder.Services.AddScoped<DealRedaction>();
 builder.Services.AddScoped<DealQueryService>();
 builder.Services.AddScoped<DealHandler>();
 builder.Services.AddScoped<OfferHandler>();
+
+// Contracts, rights, options and obligations (M8). ContractRedaction holds the
+// one implementation of what a caller may see of an instrument - its terms, the
+// economics inside them, and content a person classified as privileged - so every
+// read path applies the identical rule (ADR-0021, ADR-0022).
+builder.Services.AddScoped<ContractRedaction>();
+builder.Services.AddScoped<ContractQueryService>();
+builder.Services.AddScoped<ContractHandler>();
+builder.Services.AddScoped<ContractVersionHandler>();
+builder.Services.AddScoped<RightsHandler>();
+builder.Services.AddScoped<OptionHandler>();
+builder.Services.AddScoped<ObligationHandler>();
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();
 builder.Services.AddScoped<ChangeTalentDisciplineHandler>();

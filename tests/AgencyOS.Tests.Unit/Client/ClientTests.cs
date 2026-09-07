@@ -1,8 +1,9 @@
-using System.Reflection;
+﻿using System.Reflection;
 using AgencyOS.Client;
 using AgencyOS.Client.Cache;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Projects;
@@ -379,7 +380,8 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             [],
             [],
             [],
-            [.. Deals]));
+            [.. Deals],
+            [.. Contracts]));
     }
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
@@ -2051,6 +2053,486 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
         request.Value.Kind == "Money"
             ? MoneyTerm(request.Code, request.Value.Amount ?? 0m, request.Value.Currency ?? "USD")
             : StructuralTerm(request.Code, request.Value.Text ?? string.Empty);
+
+    // ---- Contracts, rights, options and obligations (M8) ----
+
+    public List<ContractSummaryResponse> Contracts { get; } = [];
+
+    public Dictionary<Guid, ContractDetailResponse> ContractDetails { get; } = [];
+
+    public List<ContractHistoryEntryResponse> ContractHistory { get; } = [];
+
+    public List<RightsGrantResponse> RightsGrants { get; } = [];
+
+    public List<ContractOptionResponse> ContractOptions { get; } = [];
+
+    public List<ObligationResponse> Obligations { get; } = [];
+
+    public List<LegalDeadlineResponse> LegalDeadlines { get; } = [];
+
+    /// <summary>The reconciliation the fake hands back, so a diff can be simulated.</summary>
+    public ReconciliationResponse? Reconciliation { get; set; }
+
+    /// <summary>The filter the last contract list call actually sent.</summary>
+    public (string? Status, string? Kind, bool Awaiting, bool Effective, bool Differing, string? Search)
+        LastContractFilter
+    { get; private set; }
+
+    public ContractCommandCenterResponse LegalCommandCenter { get; set; } =
+        new([], [], [], [], [], [], [], [], [], 0, 0, 0);
+
+    public Task<IReadOnlyList<ContractSummaryResponse>> ListContractsAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? dealId = null,
+        bool awaitingSignature = false,
+        bool effectiveOnly = false,
+        bool hasUnresolvedReconciliation = false,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        LastContractFilter =
+            (status, kind, awaitingSignature, effectiveOnly, hasUnresolvedReconciliation, search);
+
+        IEnumerable<ContractSummaryResponse> contracts = Contracts;
+
+        if (status is { Length: > 0 })
+        {
+            contracts = contracts.Where(x => x.Status == status);
+        }
+
+        if (awaitingSignature)
+        {
+            contracts = contracts.Where(x => x.OutstandingSignatureCount > 0);
+        }
+
+        if (effectiveOnly)
+        {
+            contracts = contracts.Where(x => x.IsEffective);
+        }
+
+        if (hasUnresolvedReconciliation)
+        {
+            contracts = contracts.Where(x => x.UnresolvedDifferenceCount > 0);
+        }
+
+        return Task.FromResult<IReadOnlyList<ContractSummaryResponse>>([.. contracts]);
+    }
+
+    public Task<ContractDetailResponse> GetContractAsync(
+        Guid contractId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(ContractDetails[contractId]);
+    }
+
+    public Task<IReadOnlyList<ContractHistoryEntryResponse>> GetContractHistoryAsync(
+        Guid contractId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult<IReadOnlyList<ContractHistoryEntryResponse>>([.. ContractHistory]);
+    }
+
+    public Task<ContractDetailResponse> CreateContractAsync(
+        CreateContractRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(ContractDetails.Values.First());
+    }
+
+    public Task UpdateContractAsync(
+        Guid contractId,
+        UpdateContractRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task ChangeContractStatusAsync(
+        Guid contractId,
+        ChangeContractStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task RecordContractEffectiveDateAsync(
+        Guid contractId,
+        RecordEffectiveDateRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task<AddContractPartyResponse> AddContractPartyAsync(
+        Guid contractId,
+        AddContractPartyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new AddContractPartyResponse(Guid.NewGuid()));
+    }
+
+    public Task<RecordSignatureResponse> RecordContractSignatureAsync(
+        Guid contractId,
+        RecordSignatureRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new RecordSignatureResponse(Guid.NewGuid(), "PartiallyExecuted", 1));
+    }
+
+    public Task RecordContractRelationshipAsync(
+        Guid contractId,
+        RecordContractRelationshipRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task<RecordContractVersionResponse> RecordContractVersionAsync(
+        Guid contractId,
+        RecordContractVersionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new RecordContractVersionResponse(Guid.NewGuid(), 1));
+    }
+
+    public Task<ContractVersionResponse> GetContractVersionAsync(
+        Guid versionId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(
+            ContractDetails.Values.SelectMany(x => x.Versions).First(x => x.Id == versionId));
+    }
+
+    public Task ChangeContractTermAsync(
+        Guid versionId,
+        ChangeContractTermRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task FinaliseContractVersionAsync(
+        Guid versionId,
+        FinaliseContractVersionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task<ReconciliationResponse> ReconcileContractVersionAsync(
+        Guid contractId,
+        Guid versionId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(Reconciliation!);
+    }
+
+    public Task<IReadOnlyList<RightsGrantResponse>> ListRightsGrantsAsync(
+        Guid? contractId = null,
+        Guid? projectId = null,
+        bool currentOnly = true,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        IEnumerable<RightsGrantResponse> grants = RightsGrants;
+
+        if (currentOnly)
+        {
+            grants = grants.Where(x => x.Status == "Active");
+        }
+
+        return Task.FromResult<IReadOnlyList<RightsGrantResponse>>([.. grants]);
+    }
+
+    public Task<RecordRightsGrantResponse> RecordRightsGrantAsync(
+        Guid contractId,
+        RecordRightsGrantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new RecordRightsGrantResponse(Guid.NewGuid()));
+    }
+
+    public Task EndRightsGrantAsync(
+        Guid grantId,
+        EndRightsGrantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<ContractOptionResponse>> ListContractOptionsAsync(
+        Guid? contractId = null,
+        string? status = null,
+        bool exercisableOnly = false,
+        bool pastDeadlineOnly = false,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        IEnumerable<ContractOptionResponse> options = ContractOptions;
+
+        if (status is { Length: > 0 })
+        {
+            options = options.Where(x => x.Status == status);
+        }
+
+        if (exercisableOnly)
+        {
+            options = options.Where(x => x.IsExercisable);
+        }
+
+        if (pastDeadlineOnly)
+        {
+            options = options.Where(x => x.IsPastDeadline);
+        }
+
+        return Task.FromResult<IReadOnlyList<ContractOptionResponse>>([.. options]);
+    }
+
+    public Task<RecordOptionResponse> RecordContractOptionAsync(
+        Guid contractId,
+        RecordOptionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new RecordOptionResponse(Guid.NewGuid()));
+    }
+
+    public Task<ResolveOptionResponse> ResolveContractOptionAsync(
+        Guid optionId,
+        ResolveOptionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new ResolveOptionResponse(optionId, request.Outcome));
+    }
+
+    public Task<IReadOnlyList<ObligationResponse>> ListObligationsAsync(
+        Guid? contractId = null,
+        string? status = null,
+        bool outstandingOnly = false,
+        bool overdueOnly = false,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        IEnumerable<ObligationResponse> obligations = Obligations;
+
+        if (status is { Length: > 0 })
+        {
+            obligations = obligations.Where(x => x.Status == status);
+        }
+
+        if (outstandingOnly)
+        {
+            obligations = obligations.Where(x => x.Status == "Pending");
+        }
+
+        if (overdueOnly)
+        {
+            obligations = obligations.Where(x => x.IsPastDue);
+        }
+
+        return Task.FromResult<IReadOnlyList<ObligationResponse>>([.. obligations]);
+    }
+
+    public Task<RecordObligationResponse> RecordObligationAsync(
+        Guid contractId,
+        RecordObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new RecordObligationResponse(Guid.NewGuid()));
+    }
+
+    public Task<ResolveObligationResponse> ResolveObligationAsync(
+        Guid obligationId,
+        ResolveObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new ResolveObligationResponse(obligationId, request.Outcome));
+    }
+
+    public Task<RecordNoticeRequirementResponse> RecordNoticeRequirementAsync(
+        Guid contractId,
+        RecordNoticeRequirementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new RecordNoticeRequirementResponse(Guid.NewGuid()));
+    }
+
+    public Task<RecordNoticeResponse> RecordNoticeAsync(
+        Guid contractId,
+        RecordNoticeRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new RecordNoticeResponse(Guid.NewGuid()));
+    }
+
+    public Task<CreateContractTaskResponse> CreateContractTaskAsync(
+        Guid contractId,
+        CreateContractTaskRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(new CreateContractTaskResponse(Guid.NewGuid()));
+    }
+
+    public Task<IReadOnlyList<LegalDeadlineResponse>> ListLegalDeadlinesAsync(
+        int? withinDays = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult<IReadOnlyList<LegalDeadlineResponse>>([.. LegalDeadlines]);
+    }
+
+    public Task<ContractCommandCenterResponse> GetLegalCommandCenterAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(LegalCommandCenter);
+    }
+
+    public Task<IReadOnlyList<ContractTermDefinitionResponse>> ListContractTermsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult<IReadOnlyList<ContractTermDefinitionResponse>>([]);
+    }
+
+    /// <summary>A contract summary with only the fields a test cares about set.</summary>
+    internal static ContractSummaryResponse Contract(
+        string title,
+        string status = "Draft",
+        int outstandingSignatures = 0,
+        bool effective = false,
+        int? differences = null,
+        DateOnly? nextDeadline = null,
+        Guid? id = null) =>
+        new(
+            id ?? Guid.NewGuid(),
+            title,
+            null,
+            "LongForm",
+            status,
+            Guid.NewGuid(),
+            "A negotiation",
+            Guid.NewGuid(),
+            null,
+            "Northgate Pictures",
+            Guid.NewGuid(),
+            null,
+            status == "Executed" ? new DateOnly(2027, 5, 1) : null,
+            effective ? new DateOnly(2027, 5, 1) : null,
+            null,
+            effective,
+            1,
+            1,
+            "Execution copy",
+            Guid.NewGuid(),
+            outstandingSignatures,
+            2,
+            0,
+            0,
+            0,
+            0,
+            nextDeadline,
+            nextDeadline is null ? null : "Delivery",
+            differences,
+            DateTimeOffset.UtcNow,
+            1);
+
+    /// <summary>A term the caller may read the value of.</summary>
+    internal static ContractTermResponse ContractTerm(
+        string code,
+        string value,
+        bool economic = false) =>
+        new(
+            code,
+            code,
+            "Text",
+            economic,
+            true,
+            null,
+            null,
+            null,
+            null,
+            value,
+            null,
+            null,
+            null,
+            value,
+            null,
+            1,
+            null);
 
     private void Throw()
     {

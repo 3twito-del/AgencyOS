@@ -1,4 +1,4 @@
-using AgencyOS.Api.Authorization;
+﻿using AgencyOS.Api.Authorization;
 using AgencyOS.Api.Middleware;
 using AgencyOS.Api.Provisioning;
 using AgencyOS.Application.Abstractions;
@@ -57,6 +57,7 @@ internal static class ApiEndpoints
         M5Endpoints.MapProjects(api);
         M6Endpoints.MapOpportunities(api);
         M7Endpoints.MapDeals(api);
+        M8Endpoints.MapContracts(api);
 
         // Idempotency is applied to the whole versioned surface and skipped for
         // reads. Opting in per endpoint would mean a mutation added later is

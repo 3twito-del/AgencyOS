@@ -1,9 +1,10 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
@@ -626,6 +627,229 @@ public interface IAgencyOsApi
 
     /// <summary>The supported commercial terms, so a term editor need not hard-code them.</summary>
     Task<IReadOnlyList<DealTermDefinitionResponse>> ListDealTermsAsync(
+        CancellationToken cancellationToken = default);
+
+    // ---- Contracts, rights, options and obligations (M8) ----
+
+    /// <param name="status">Restrict to one status.</param>
+    /// <param name="kind">Restrict to one kind of instrument.</param>
+    /// <param name="dealId">Only contracts papering this negotiation.</param>
+    /// <param name="awaitingSignature">Only contracts with a required signature outstanding.</param>
+    /// <param name="effectiveOnly">Only contracts in force today.</param>
+    /// <param name="hasUnresolvedReconciliation">
+    /// Only contracts whose newest version differs from what was agreed.
+    /// </param>
+    /// <param name="search">Substring match on title and reference.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    Task<IReadOnlyList<ContractSummaryResponse>> ListContractsAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? dealId = null,
+        bool awaitingSignature = false,
+        bool effectiveOnly = false,
+        bool hasUnresolvedReconciliation = false,
+        string? search = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ContractDetailResponse> GetContractAsync(
+        Guid contractId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ContractHistoryEntryResponse>> GetContractHistoryAsync(
+        Guid contractId,
+        CancellationToken cancellationToken = default);
+
+    Task<ContractDetailResponse> CreateContractAsync(
+        CreateContractRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task UpdateContractAsync(
+        Guid contractId,
+        UpdateContractRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Moves a contract through its drafting lifecycle.
+    /// </summary>
+    /// <remarks>
+    /// Cannot reach execution. A contract becomes partially or fully executed by
+    /// recording the signatures it requires, and nothing else produces those
+    /// statuses.
+    /// </remarks>
+    Task ChangeContractStatusAsync(
+        Guid contractId,
+        ChangeContractStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task RecordContractEffectiveDateAsync(
+        Guid contractId,
+        RecordEffectiveDateRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<AddContractPartyResponse> AddContractPartyAsync(
+        Guid contractId,
+        AddContractPartyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records that a party signed. AgencyOS verifies nothing.
+    /// </summary>
+    Task<RecordSignatureResponse> RecordContractSignatureAsync(
+        Guid contractId,
+        RecordSignatureRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task RecordContractRelationshipAsync(
+        Guid contractId,
+        RecordContractRelationshipRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records a drafting version. It does not upload the document.
+    /// </summary>
+    Task<RecordContractVersionResponse> RecordContractVersionAsync(
+        Guid contractId,
+        RecordContractVersionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ContractVersionResponse> GetContractVersionAsync(
+        Guid versionId,
+        CancellationToken cancellationToken = default);
+
+    Task ChangeContractTermAsync(
+        Guid versionId,
+        ChangeContractTermRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task FinaliseContractVersionAsync(
+        Guid versionId,
+        FinaliseContractVersionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Compares a drafting version against the offer the contract papers.
+    /// </summary>
+    /// <remarks>
+    /// Requires <c>contracts.terms.read</c> and <c>deals.economics.read</c>, and is
+    /// refused without either, unlike every other read, which redacts. A comparison
+    /// with the terms stripped out would report that the draft matched what was
+    /// agreed when it did not.
+    /// </remarks>
+    Task<ReconciliationResponse> ReconcileContractVersionAsync(
+        Guid contractId,
+        Guid versionId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<RightsGrantResponse>> ListRightsGrantsAsync(
+        Guid? contractId = null,
+        Guid? projectId = null,
+        bool currentOnly = true,
+        CancellationToken cancellationToken = default);
+
+    Task<RecordRightsGrantResponse> RecordRightsGrantAsync(
+        Guid contractId,
+        RecordRightsGrantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task EndRightsGrantAsync(
+        Guid grantId,
+        EndRightsGrantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ContractOptionResponse>> ListContractOptionsAsync(
+        Guid? contractId = null,
+        string? status = null,
+        bool exercisableOnly = false,
+        bool pastDeadlineOnly = false,
+        CancellationToken cancellationToken = default);
+
+    Task<RecordOptionResponse> RecordContractOptionAsync(
+        Guid contractId,
+        RecordOptionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records what became of an option.
+    /// </summary>
+    /// <remarks>
+    /// Every outcome is an act somebody performed, expiry included. Nothing lapses
+    /// because a date passed.
+    /// </remarks>
+    Task<ResolveOptionResponse> ResolveContractOptionAsync(
+        Guid optionId,
+        ResolveOptionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ObligationResponse>> ListObligationsAsync(
+        Guid? contractId = null,
+        string? status = null,
+        bool outstandingOnly = false,
+        bool overdueOnly = false,
+        CancellationToken cancellationToken = default);
+
+    Task<RecordObligationResponse> RecordObligationAsync(
+        Guid contractId,
+        RecordObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records what became of an obligation.
+    /// </summary>
+    /// <remarks>
+    /// Breach requires a reason and never follows from a due date passing. Past due
+    /// is a fact the server derives; breach is a determination a person makes.
+    /// </remarks>
+    Task<ResolveObligationResponse> ResolveObligationAsync(
+        Guid obligationId,
+        ResolveObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<RecordNoticeRequirementResponse> RecordNoticeRequirementAsync(
+        Guid contractId,
+        RecordNoticeRequirementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records that a notice passed between the parties. AgencyOS sends nothing.
+    /// </summary>
+    Task<RecordNoticeResponse> RecordNoticeAsync(
+        Guid contractId,
+        RecordNoticeRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<CreateContractTaskResponse> CreateContractTaskAsync(
+        Guid contractId,
+        CreateContractTaskRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LegalDeadlineResponse>> ListLegalDeadlinesAsync(
+        int? withinDays = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ContractCommandCenterResponse> GetLegalCommandCenterAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>The supported contract terms, so a term editor need not hard-code them.</summary>
+    Task<IReadOnlyList<ContractTermDefinitionResponse>> ListContractTermsAsync(
         CancellationToken cancellationToken = default);
 }
 
@@ -1826,6 +2050,448 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
     public Task<IReadOnlyList<DealTermDefinitionResponse>> ListDealTermsAsync(
         CancellationToken cancellationToken = default) =>
         GetListAsync<DealTermDefinitionResponse>("/api/v1/deal-terms", cancellationToken);
+
+    // ---- Contracts, rights, options and obligations (M8) ----
+
+    public Task<IReadOnlyList<ContractSummaryResponse>> ListContractsAsync(
+        string? status = null,
+        string? kind = null,
+        Guid? dealId = null,
+        bool awaitingSignature = false,
+        bool effectiveOnly = false,
+        bool hasUnresolvedReconciliation = false,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query.Add($"status={Uri.EscapeDataString(status)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(kind))
+        {
+            query.Add($"kind={Uri.EscapeDataString(kind)}");
+        }
+
+        if (dealId is { } deal)
+        {
+            query.Add($"dealId={deal}");
+        }
+
+        if (awaitingSignature)
+        {
+            query.Add("awaitingSignature=true");
+        }
+
+        if (effectiveOnly)
+        {
+            query.Add("effectiveOnly=true");
+        }
+
+        if (hasUnresolvedReconciliation)
+        {
+            query.Add("hasUnresolvedReconciliation=true");
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query.Add($"search={Uri.EscapeDataString(search)}");
+        }
+
+        string uri = $"{TenantRoot}/contracts";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<ContractSummaryResponse>(uri, cancellationToken);
+    }
+
+    public Task<ContractDetailResponse> GetContractAsync(
+        Guid contractId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ContractDetailResponse>($"{TenantRoot}/contracts/{contractId}", cancellationToken);
+
+    public Task<IReadOnlyList<ContractHistoryEntryResponse>> GetContractHistoryAsync(
+        Guid contractId,
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<ContractHistoryEntryResponse>(
+            $"{TenantRoot}/contracts/{contractId}/history", cancellationToken);
+
+    public Task<ContractDetailResponse> CreateContractAsync(
+        CreateContractRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateContractRequest, ContractDetailResponse>(
+            HttpMethod.Post, $"{TenantRoot}/contracts", request, idempotencyKey, cancellationToken);
+
+    public Task UpdateContractAsync(
+        Guid contractId,
+        UpdateContractRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Put,
+            $"{TenantRoot}/contracts/{contractId}",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ChangeContractStatusAsync(
+        Guid contractId,
+        ChangeContractStatusRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/status",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task RecordContractEffectiveDateAsync(
+        Guid contractId,
+        RecordEffectiveDateRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/effective-date",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<AddContractPartyResponse> AddContractPartyAsync(
+        Guid contractId,
+        AddContractPartyRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<AddContractPartyRequest, AddContractPartyResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/parties",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RecordSignatureResponse> RecordContractSignatureAsync(
+        Guid contractId,
+        RecordSignatureRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordSignatureRequest, RecordSignatureResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/signatures",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task RecordContractRelationshipAsync(
+        Guid contractId,
+        RecordContractRelationshipRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/relationships",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RecordContractVersionResponse> RecordContractVersionAsync(
+        Guid contractId,
+        RecordContractVersionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordContractVersionRequest, RecordContractVersionResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/versions",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ContractVersionResponse> GetContractVersionAsync(
+        Guid versionId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ContractVersionResponse>(
+            $"{TenantRoot}/contract-versions/{versionId}", cancellationToken);
+
+    public Task ChangeContractTermAsync(
+        Guid versionId,
+        ChangeContractTermRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/contract-versions/{versionId}/terms",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task FinaliseContractVersionAsync(
+        Guid versionId,
+        FinaliseContractVersionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/contract-versions/{versionId}/record",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ReconciliationResponse> ReconcileContractVersionAsync(
+        Guid contractId,
+        Guid versionId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ReconciliationResponse>(
+            $"{TenantRoot}/contracts/{contractId}/versions/{versionId}/reconciliation",
+            cancellationToken);
+
+    public Task<IReadOnlyList<RightsGrantResponse>> ListRightsGrantsAsync(
+        Guid? contractId = null,
+        Guid? projectId = null,
+        bool currentOnly = true,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (contractId is { } contract)
+        {
+            query.Add($"contractId={contract}");
+        }
+
+        if (projectId is { } project)
+        {
+            query.Add($"projectId={project}");
+        }
+
+        if (!currentOnly)
+        {
+            query.Add("currentOnly=false");
+        }
+
+        string uri = $"{TenantRoot}/rights-grants";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<RightsGrantResponse>(uri, cancellationToken);
+    }
+
+    public Task<RecordRightsGrantResponse> RecordRightsGrantAsync(
+        Guid contractId,
+        RecordRightsGrantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordRightsGrantRequest, RecordRightsGrantResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/rights-grants",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task EndRightsGrantAsync(
+        Guid grantId,
+        EndRightsGrantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/rights-grants/{grantId}/end",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<ContractOptionResponse>> ListContractOptionsAsync(
+        Guid? contractId = null,
+        string? status = null,
+        bool exercisableOnly = false,
+        bool pastDeadlineOnly = false,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (contractId is { } contract)
+        {
+            query.Add($"contractId={contract}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query.Add($"status={Uri.EscapeDataString(status)}");
+        }
+
+        if (exercisableOnly)
+        {
+            query.Add("exercisableOnly=true");
+        }
+
+        if (pastDeadlineOnly)
+        {
+            query.Add("pastDeadlineOnly=true");
+        }
+
+        string uri = $"{TenantRoot}/contract-options";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<ContractOptionResponse>(uri, cancellationToken);
+    }
+
+    public Task<RecordOptionResponse> RecordContractOptionAsync(
+        Guid contractId,
+        RecordOptionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordOptionRequest, RecordOptionResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/options",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ResolveOptionResponse> ResolveContractOptionAsync(
+        Guid optionId,
+        ResolveOptionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<ResolveOptionRequest, ResolveOptionResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contract-options/{optionId}/resolve",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<ObligationResponse>> ListObligationsAsync(
+        Guid? contractId = null,
+        string? status = null,
+        bool outstandingOnly = false,
+        bool overdueOnly = false,
+        CancellationToken cancellationToken = default)
+    {
+        List<string> query = [];
+
+        if (contractId is { } contract)
+        {
+            query.Add($"contractId={contract}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query.Add($"status={Uri.EscapeDataString(status)}");
+        }
+
+        if (outstandingOnly)
+        {
+            query.Add("outstandingOnly=true");
+        }
+
+        if (overdueOnly)
+        {
+            query.Add("overdueOnly=true");
+        }
+
+        string uri = $"{TenantRoot}/obligations";
+
+        if (query.Count > 0)
+        {
+            uri += "?" + string.Join("&", query);
+        }
+
+        return GetListAsync<ObligationResponse>(uri, cancellationToken);
+    }
+
+    public Task<RecordObligationResponse> RecordObligationAsync(
+        Guid contractId,
+        RecordObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordObligationRequest, RecordObligationResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/obligations",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ResolveObligationResponse> ResolveObligationAsync(
+        Guid obligationId,
+        ResolveObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<ResolveObligationRequest, ResolveObligationResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/obligations/{obligationId}/resolve",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RecordNoticeRequirementResponse> RecordNoticeRequirementAsync(
+        Guid contractId,
+        RecordNoticeRequirementRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordNoticeRequirementRequest, RecordNoticeRequirementResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/notice-requirements",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RecordNoticeResponse> RecordNoticeAsync(
+        Guid contractId,
+        RecordNoticeRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordNoticeRequest, RecordNoticeResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/notices",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<CreateContractTaskResponse> CreateContractTaskAsync(
+        Guid contractId,
+        CreateContractTaskRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateContractTaskRequest, CreateContractTaskResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/tasks",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<LegalDeadlineResponse>> ListLegalDeadlinesAsync(
+        int? withinDays = null,
+        CancellationToken cancellationToken = default)
+    {
+        string uri = $"{TenantRoot}/legal/deadlines";
+
+        if (withinDays is { } days)
+        {
+            uri += $"?withinDays={days.ToString(CultureInfo.InvariantCulture)}";
+        }
+
+        return GetListAsync<LegalDeadlineResponse>(uri, cancellationToken);
+    }
+
+    public Task<ContractCommandCenterResponse> GetLegalCommandCenterAsync(
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ContractCommandCenterResponse>(
+            $"{TenantRoot}/legal/command-center", cancellationToken);
+
+    public Task<IReadOnlyList<ContractTermDefinitionResponse>> ListContractTermsAsync(
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<ContractTermDefinitionResponse>(
+            "/api/v1/contract-terms/catalog", cancellationToken);
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
         long cursor,

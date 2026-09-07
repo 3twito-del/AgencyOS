@@ -1,0 +1,48 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ResolveObligationDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record what happened"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="480">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       TextWrapping="Wrap" />
+            <TextBlock x:Name="DueText" Opacity="0.75" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <ComboBox x:Name="OutcomeBox" Header="What happened" HorizontalAlignment="Stretch"
+                      SelectionChanged="OnOutcomeChanged">
+                <ComboBoxItem Content="It was done" Tag="Satisfied" IsSelected="True" />
+                <ComboBoxItem Content="It was waived" Tag="Waived" />
+                <ComboBoxItem Content="We are recording a breach" Tag="Breached" />
+                <ComboBoxItem Content="It was cancelled" Tag="Cancelled" />
+                <ComboBoxItem Content="Reinstate it" Tag="Reinstated" />
+            </ComboBox>
+
+            <!--
+                The distinction the milestone exists to protect. A date going by is
+                a fact AgencyOS derives and shows; a breach is a legal
+                determination a person makes, and it needs the reasoning behind it
+                on the record (ADR-0022).
+            -->
+            <InfoBar x:Name="BreachBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                     Title="A breach is a determination, not a date"
+                     Message="Past due means a date went by, and AgencyOS already shows that. Recording a breach asserts a legal conclusion, so it needs the reasoning behind it." />
+
+            <CalendarDatePicker x:Name="OccurredPicker" Header="When"
+                                PlaceholderText="The day it happened"
+                                DateChanged="OnDateChanged" />
+
+            <TextBox x:Name="ReasonBox" Header="Reason" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70" TextChanged="OnReasonChanged" />
+
+            <CheckBox x:Name="FollowUpBox" Content="Create a follow-up task" />
+            <TextBox x:Name="FollowUpTitleBox" PlaceholderText="Follow-up title" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

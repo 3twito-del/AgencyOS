@@ -1,4 +1,4 @@
-# Offline Classification
+﻿# Offline Classification
 
 Every AgencyOS command and query is classified for offline behaviour. The
 classification is deliberate and narrow: the offline write queue is a safety
@@ -17,7 +17,7 @@ must be **defined and proven**, not merely plausible. See
 `docs/adr/ADR-0013-synchronization-architecture.md`,
 `ADR-0014-concurrency-and-idempotency.md` and `specs/OfflineWriteQueue.tla`.
 
-## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5, M6 and M7)
+## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5, M6, M7 and M8)
 
 | Command | Why it is safe |
 |---|---|
@@ -146,6 +146,41 @@ is an agreement the agency believes it has and the counterparty does not. Neithe
 is a conflict later synchronization can repair, because the damage happened outside
 the system.
 
+## ONLINE_ONLY (all M8 mutations)
+
+| Command | Why it is not queued |
+|---|---|
+| CreateContract | Anchors to an accepted offer, and M7 can lawfully unwind an acceptance while the write sits in a queue. |
+| UpdateContract / ChangeContractStatus | Version-guarded, and the legality of a transition depends on state a stale client cannot see. |
+| RecordEffectiveDate | Refused after termination, which a queued client may not know has happened. |
+| AddContractParty | Uniqueness of the signature row depends on the party set, and two clients adding offline would both believe they succeeded. |
+| **RecordSignature** | **The most consequential act in the milestone.** It is the only route to execution, and a queued signature would mark a contract fully executed hours after the fact, dated from a signature the agency has already told somebody about. |
+| RecordContractVersion | Version numbers are a sequence, and two clients recording offline would both claim the same number. The draft is also what reconciliation compares against. |
+| ChangeContractTerm / FinaliseContractVersion | Legality depends on the version still being a draft, which a stale client cannot know. |
+| RecordRightsGrant (including supersession) | Supersession names a specific predecessor row and its version. Replaying that against a grant somebody else already superseded is not a conflict to merge. |
+| EndRightsGrant | As above. |
+| RecordOption / ResolveOption | An exercise, a decline or a waiver describes what a specific party did on a specific day. Recording it against an option that has since been resolved is a false statement, not a merge conflict. |
+| RecordObligation / ResolveObligation | **Breach especially.** A queued breach determination would assert a legal conclusion about a duty that may have been satisfied while the laptop was shut. |
+| RecordNoticeRequirement / RecordNotice | A notice is an assertion that something passed between the parties. Held for four hours it is an assertion nobody can date. |
+| CreateContractTask | Additive and idempotency-keyed, and excluded for the reason below. |
+
+### Why even the additive M8 commands are ONLINE_ONLY
+
+`CreateContract` and `CreateContractTask` would qualify on the reasoning M4, M5 and
+M6 used: additive, idempotency-keyed, no uniqueness two offline clients could both
+violate.
+
+They are excluded, and the case is stronger than it was for negotiations. M7's
+argument was that a queued offer is a number somebody has already repeated on a
+call. M8's is that a queued legal act is a **position the agency has taken**. A
+signature recorded offline is an executed agreement the counterparty may not have;
+a breach recorded offline is a determination that may already be wrong. Neither is
+a conflict later synchronization can repair, because the consequence happened
+outside the system.
+
+There is also no offline legal capture surface to serve. Admitting these commands
+would widen the queue for a workflow that does not exist.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |
@@ -155,7 +190,7 @@ the system.
 | Tasks list | M3 |
 | Talent and client list, with representation status, lead and scopes | M4 |
 
-M5, M6 and M7 add nothing to this table. See below.
+M5, M6, M7 and M8 add nothing to this table. See below.
 
 M4 extends the change feed with a talent entry keyed by **person**, because the
 cached talent row denormalizes representation status and a representation change
@@ -230,6 +265,41 @@ need a further answer about revocation before they could be cached at all.
 
 The cache schema therefore stays at **version 2**. M7 adds no migration.
 
+### Deliberately not cached: contracts
+
+**M8 caches nothing, and the reasoning compounds rather than repeats.**
+
+A stale negotiation misleads about money. A stale contract misleads about what the
+agency is bound to. An executed date, an effective date, an outstanding signature
+or an option deadline read from a four-hour-old copy is exactly the kind of fact
+somebody acts on immediately and does not re-check.
+
+Three of M8's guarantees would also not survive caching:
+
+- **Derived facts.** Execution state, outstanding signatures, effectiveness today,
+  overdue obligations and the difference count are computed at read time from the
+  rows that decide them. A cached copy would be a projection of a projection,
+  stale in a way the user could not inspect - and the whole point of deriving them
+  was that two facts which can disagree should not exist.
+- **Three permission gates.** Terms need `contracts.terms.read`, their figures need
+  `deals.economics.read`, and analysis, strategy and privileged rows need
+  `contracts.privileged.read`. A cached copy would outlive every one of them. A
+  device still holding privileged legal analysis after the grant is revoked is a
+  leak with no server-side remedy, and privilege is the worst content in the system
+  to leak.
+- **Honest absence.** A deadline that could not be resolved is absent rather than
+  guessed. A cached copy taken before the anchor event happened, read after it did,
+  would show a gap that is no longer true - and the reader has no way to tell which
+  kind of absence they are looking at.
+
+The condition for revisiting is the one the slate, the pipeline and the
+negotiations set, plus a fourth: a stated rule about which contracts a user needs
+away from a connection, a bounded set, a surface that makes staleness impossible to
+miss, and an answer about what a cached privileged field means after the permission
+behind it is withdrawn.
+
+The cache schema therefore stays at **version 2**. M8 adds no migration.
+
 ### Also deliberately not cached
 
 - **Client overview** — composes tasks, interactions, credits, materials and
@@ -256,6 +326,18 @@ The cache schema therefore stays at **version 2**. M7 adds no migration.
   what the agency will settle for.
 - **Offer comparison** — computed by the rules kernel from two offers. A cached
   diff would be a stale answer about money presented as a current one.
+- **Contracts, drafting versions, terms, rights grants, options, obligations,
+  notices, the legal deadline list and the legal command centre** — derived,
+  permission-gated, or facts about legal position, and usually all three.
+- **Legal analysis and contract strategy notes** — the most sensitive content in
+  the system, and permission-dependent. Not cached, and the condition for
+  revisiting includes answering what a cached privileged field means once the
+  permission is revoked.
+- **Reconciliation** — computed by the rules kernel from an accepted offer and a
+  drafting version. A cached comparison would be a stale answer about whether the
+  paper matches the deal, presented as a current one.
+- **The document itself** — AgencyOS has never held one. There is nothing to cache
+  and, until M10, nothing to say about caching it.
 
 ## How the client behaves offline
 

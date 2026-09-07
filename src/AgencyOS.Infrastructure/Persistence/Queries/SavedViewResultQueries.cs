@@ -1,7 +1,9 @@
-using AgencyOS.Application.Directory;
+﻿using AgencyOS.Application.Directory;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Deals;
+using AgencyOS.Domain.Legal;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
@@ -42,19 +44,22 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
     private readonly IProjectQueries _projects;
     private readonly IOpportunityQueries _opportunities;
     private readonly IDealQueries _deals;
+    private readonly IContractQueries _contracts;
 
     public SavedViewResultQueries(
         AgencyOsDbContext context,
         IRepresentationQueries representation,
         IProjectQueries projects,
         IOpportunityQueries opportunities,
-        IDealQueries deals)
+        IDealQueries deals,
+        IContractQueries contracts)
     {
         _context = context;
         _representation = representation;
         _projects = projects;
         _opportunities = opportunities;
         _deals = deals;
+        _contracts = contracts;
     }
 
     public async Task<SavedViewResultModel> RunAsync(
@@ -102,6 +107,10 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
             SavedViewTarget.Deals =>
                 await RunDealsAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Contracts =>
+                await RunContractsAsync(organizationId, definition, limit, cancellationToken)
                     .ConfigureAwait(false),
 
             _ => SavedViewResultModel.Empty(definition.Target),
@@ -474,6 +483,47 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ConfigureAwait(false);
 
         return SavedViewResultModel.OfDeals(deals);
+    }
+
+    /// <summary>
+    /// Runs a saved contract view through the same projection the list endpoint
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately not a second query. A saved view that assembled contract
+    /// summaries its own way would derive execution, effectiveness and difference
+    /// counts differently from the list, and the two would disagree in front of the
+    /// same person (ADR-0021, ADR-0022).
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunContractsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        ContractFilter filter = new(
+            Parse<ContractStatus>(filters.ContractStatus),
+            Parse<ContractKind>(filters.ContractKind),
+            filters.OwnerUserId is { } owner ? new UserId(owner) : null,
+            filters.DealId is { } deal ? new DealId(deal) : null,
+            filters.ContractPartyCompanyId,
+            filters.ContractPartyPersonId,
+            filters.TalentProfileId,
+            filters.ProjectId,
+            filters.AwaitingSignature,
+            filters.EffectiveOnly,
+            filters.HasUnresolvedReconciliation,
+            filters.ExecutedAfter,
+            filters.ExecutedBefore,
+            filters.TextContains);
+
+        IReadOnlyList<ContractSummaryModel> contracts = await _contracts
+            .ListContractsAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfContracts(contracts);
     }
 
     private async Task<Dictionary<Guid, string>> LoadCompanyNamesAsync(

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
 namespace AgencyOS.Api.Observability;
@@ -215,4 +215,119 @@ public static class AgencyOsTelemetry
         Meter.CreateCounter<long>(
             "agencyos.concurrency.conflicts",
             description: "Writes refused because the caller's version was stale.");
+
+    // ---- Contracts, rights and obligations (M8) ----
+    //
+    // The M7 rule applies unchanged, and one more with it. No counter carries a
+    // term value, a compensation figure or a currency amount, because telemetry is
+    // exported to places holding none of the permissions that guard the economics.
+    // No counter carries a clause, a summary or anything a person classified as
+    // privileged either: a metric tagged with legal analysis would be that analysis
+    // leaving the permission boundary through the back door (ADR-0021, ADR-0022).
+
+    /// <summary>Contracts opened against an agreed negotiation.</summary>
+    public static Counter<long> ContractsOpened { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.contract.opened",
+            description: "Contracts opened against a negotiation whose terms are agreed.");
+
+    /// <summary>Contract lifecycle moves a caller requested.</summary>
+    /// <remarks>
+    /// Drafting moves only. Reaching PartiallyExecuted or Executed is a consequence
+    /// of recording a signature, and is counted by the signature counters instead.
+    /// </remarks>
+    public static Counter<long> ContractStatusChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.contract.status.changes",
+            description: "Contracts moved through their drafting lifecycle.");
+
+    /// <summary>Drafting versions recorded.</summary>
+    /// <remarks>
+    /// Counts versions, never documents. AgencyOS holds no document in M8, so this
+    /// counts the milestones a person recorded about files it has never seen.
+    /// </remarks>
+    public static Counter<long> ContractVersionsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.contract.version.recorded",
+            description: "Drafting versions recorded against a contract.");
+
+    /// <summary>Signatures recorded.</summary>
+    /// <remarks>
+    /// Counts assertions that a party signed. Nothing here is verified: AgencyOS
+    /// implements no electronic signature and holds no certificate.
+    /// </remarks>
+    public static Counter<long> SignaturesRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.contract.signature.recorded",
+            description: "Signatures recorded against a contract party.");
+
+    /// <summary>Contracts that became fully executed.</summary>
+    /// <remarks>
+    /// The most consequential act in the milestone, counted separately because it
+    /// is the moment an agreement stops being paper somebody is drafting.
+    /// </remarks>
+    public static Counter<long> ContractsExecuted { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.contract.executed",
+            description: "Contracts whose last required signature was recorded.");
+
+    /// <summary>Reconciliations computed.</summary>
+    /// <remarks>
+    /// Tagged only with whether the draft matched. The count of differences is
+    /// deliberately absent: it is a shape of the economics, and a rising number on
+    /// a named contract would tell an observer something the permissions do not.
+    /// </remarks>
+    public static Counter<long> Reconciliations { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.contract.reconciliations",
+            description: "Negotiated-against-drafted comparisons computed by the rules kernel.");
+
+    /// <summary>Rights grants recorded.</summary>
+    public static Counter<long> RightsGrantsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.rights.grant.recorded",
+            description: "Grants recorded from a contract version.");
+
+    /// <summary>Options recorded.</summary>
+    public static Counter<long> OptionsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.option.recorded",
+            description: "Elections recorded from a contract version.");
+
+    /// <summary>Options resolved.</summary>
+    /// <remarks>
+    /// Every outcome is an act somebody recorded, expiry included. Nothing in
+    /// AgencyOS resolves an option because a date passed (ADR-0022).
+    /// </remarks>
+    public static Counter<long> OptionsResolved { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.option.resolved",
+            description: "Options exercised, declined, waived, expired or cancelled.");
+
+    /// <summary>Obligations recorded.</summary>
+    public static Counter<long> ObligationsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.obligation.recorded",
+            description: "Duties recorded from a contract version.");
+
+    /// <summary>Obligations resolved.</summary>
+    /// <remarks>
+    /// The breach tag is worth watching on its own: it is the one outcome that
+    /// records a legal determination rather than an event, and it never follows
+    /// from a due date passing.
+    /// </remarks>
+    public static Counter<long> ObligationsResolved { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.obligation.resolved",
+            description: "Obligations satisfied, waived, breached, reinstated or cancelled.");
+
+    /// <summary>Notices recorded as given or received.</summary>
+    /// <remarks>
+    /// AgencyOS sends nothing. This counts assertions that a notice passed between
+    /// the parties, exactly as the offer counter counts assertions about offers.
+    /// </remarks>
+    public static Counter<long> NoticesRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.notice.recorded",
+            description: "Notices recorded as given or received. AgencyOS transmits none.");
 }

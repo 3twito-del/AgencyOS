@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AgencyOS.Client.ViewModels;
@@ -124,11 +124,19 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
         });
 
+        // Contracts takes Ctrl+Shift+K because the single-digit accelerators are
+        // exhausted and Ctrl+K already opens search.
+        AddAccelerator(VirtualKey.K, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
+        {
+            SelectMenu(9);
+            args.Handled = true;
+        });
+
         // Sync moves to F8 rather than Ctrl+0, which several keyboard layouts
         // intercept for zoom.
         AddAccelerator(VirtualKey.F8, VirtualKeyModifiers.None, (_, args) =>
         {
-            SelectMenu(9);
+            SelectMenu(11);
             args.Handled = true;
         });
 
@@ -184,6 +192,7 @@ public sealed partial class MainWindow : Window
             "packages" => typeof(PackagesPage),
             "pipeline" => typeof(PipelinePage),
             "deals" => typeof(DealsPage),
+            "contracts" => typeof(ContractsPage),
             "saved-views" => typeof(SavedViewsPage),
             "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
@@ -307,12 +316,16 @@ public sealed partial class MainWindow : Window
                 SelectMenu(8);
                 return;
 
-            case "go.saved-views":
+            case "go.contracts":
                 SelectMenu(9);
                 return;
 
-            case "go.sync":
+            case "go.saved-views":
                 SelectMenu(10);
+                return;
+
+            case "go.sync":
+                SelectMenu(11);
                 return;
 
             case "search.open":

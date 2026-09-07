@@ -1,7 +1,8 @@
-using AgencyOS.Application.Abstractions;
+﻿using AgencyOS.Application.Abstractions;
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Deals;
+using AgencyOS.Domain.Legal;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Interactions;
 using AgencyOS.Domain.Memberships;
@@ -180,6 +181,38 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     public DbSet<OfferEvent> OfferEvents => Set<OfferEvent>();
 
     public DbSet<DealTaskLink> DealTaskLinks => Set<DealTaskLink>();
+
+    // ---- Contracts, rights, options and obligations (M8) ----
+
+    public DbSet<Contract> Contracts => Set<Contract>();
+
+    public DbSet<ContractEvent> ContractEvents => Set<ContractEvent>();
+
+    public DbSet<ContractParty> ContractParties => Set<ContractParty>();
+
+    public DbSet<ContractSignature> ContractSignatures => Set<ContractSignature>();
+
+    public DbSet<ContractVersion> ContractVersions => Set<ContractVersion>();
+
+    public DbSet<ContractTerm> ContractTerms => Set<ContractTerm>();
+
+    public DbSet<RightsGrant> RightsGrants => Set<RightsGrant>();
+
+    public DbSet<ContractOption> ContractOptions => Set<ContractOption>();
+
+    public DbSet<OptionEvent> OptionEvents => Set<OptionEvent>();
+
+    public DbSet<Obligation> Obligations => Set<Obligation>();
+
+    public DbSet<ObligationEvent> ObligationEvents => Set<ObligationEvent>();
+
+    public DbSet<NoticeRequirement> NoticeRequirements => Set<NoticeRequirement>();
+
+    public DbSet<NoticeRecord> NoticeRecords => Set<NoticeRecord>();
+
+    public DbSet<ContractRelationship> ContractRelationships => Set<ContractRelationship>();
+
+    public DbSet<ContractTaskLink> ContractTaskLinks => Set<ContractTaskLink>();
 
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.

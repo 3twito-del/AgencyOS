@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Canonical local and CI engineering entrypoint for AgencyOS.
 
@@ -314,7 +314,35 @@ function Invoke-Contract {
         "/api/v1/organizations/{organizationId}/offers/{offerId}/record",
         "/api/v1/organizations/{organizationId}/offers/{offerId}/answer",
         "/api/v1/organizations/{organizationId}/deal-pipeline",
-        "/api/v1/organizations/{organizationId}/deal-command-center"
+        "/api/v1/organizations/{organizationId}/deal-command-center",
+        "/api/v1/contract-terms/catalog",
+        "/api/v1/organizations/{organizationId}/contracts",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/history",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/status",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/effective-date",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/parties",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/signatures",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/relationships",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/versions",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/rights-grants",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/options",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/obligations",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/notice-requirements",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/notices",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/tasks",
+        "/api/v1/organizations/{organizationId}/contracts/{contractId}/versions/{versionId}/reconciliation",
+        "/api/v1/organizations/{organizationId}/contract-versions/{versionId}",
+        "/api/v1/organizations/{organizationId}/contract-versions/{versionId}/terms",
+        "/api/v1/organizations/{organizationId}/contract-versions/{versionId}/record",
+        "/api/v1/organizations/{organizationId}/rights-grants",
+        "/api/v1/organizations/{organizationId}/rights-grants/{grantId}/end",
+        "/api/v1/organizations/{organizationId}/contract-options",
+        "/api/v1/organizations/{organizationId}/contract-options/{optionId}/resolve",
+        "/api/v1/organizations/{organizationId}/obligations",
+        "/api/v1/organizations/{organizationId}/obligations/{obligationId}/resolve",
+        "/api/v1/organizations/{organizationId}/legal/deadlines",
+        "/api/v1/organizations/{organizationId}/legal/command-center"
     )
 
     $paths = @($contract.paths.PSObject.Properties.Name)

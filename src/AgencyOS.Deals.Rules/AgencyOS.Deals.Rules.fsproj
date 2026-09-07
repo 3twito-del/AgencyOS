@@ -37,6 +37,10 @@
     <Compile Include="Terms.fs" />
     <Compile Include="Negotiation.fs" />
     <Compile Include="Comparison.fs" />
+    <Compile Include="Contracts.fs" />
+    <Compile Include="Rights.fs" />
+    <Compile Include="Deadlines.fs" />
+    <Compile Include="Reconciliation.fs" />
     <Compile Include="Rules.fs" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-using AgencyOS.Application.Abstractions;
+﻿using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Audit;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Application.Representations;
@@ -108,6 +108,13 @@ public sealed class SavedViewService
             // separate grant applied when the results are projected, so a saved
             // view cannot widen what its owner may see.
             [SavedViewTarget.Deals] = Permission.DealsRead,
+
+            // Same again for the paper. Reading that a contract exists is
+            // contracts.read; what it says needs contracts.terms.read, and what
+            // counsel thinks of it needs contracts.privileged.read. Both are
+            // applied where the results are projected, so a saved view cannot
+            // widen what its owner may see (ADR-0022).
+            [SavedViewTarget.Contracts] = Permission.ContractsRead,
         };
 
     /// <summary>Largest page a saved view returns.</summary>

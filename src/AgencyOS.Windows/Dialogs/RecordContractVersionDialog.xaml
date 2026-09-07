@@ -1,0 +1,57 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordContractVersionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record a drafting version"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="600">
+        <StackPanel Spacing="10" MinWidth="500">
+            <!--
+                The permanent statement about what this screen does. AgencyOS
+                records where a document is, and has never seen the file: there is
+                no upload, no copy and no hash, and saying otherwise would be a
+                claim the system cannot support (ADR-0022).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="A reference, not the document"
+                     Message="AgencyOS records that this version exists and where it lives. It does not store the file, and it cannot confirm that the reference still points at the same document." />
+
+            <TextBox x:Name="LabelBox" Header="Label"
+                     PlaceholderText="Counsel markup, execution copy"
+                     TextChanged="OnRequiredChanged" />
+
+            <ComboBox x:Name="DirectionBox" Header="Direction" HorizontalAlignment="Stretch"
+                      SelectionChanged="OnDirectionChanged">
+                <ComboBoxItem Content="Received from the other side" Tag="Inbound" IsSelected="True" />
+                <ComboBoxItem Content="Sent by us" Tag="Outbound" />
+                <ComboBoxItem Content="Prepared internally" Tag="Internal" />
+            </ComboBox>
+
+            <CalendarDatePicker x:Name="ReceivedPicker" Header="Received on"
+                                PlaceholderText="When it arrived" />
+
+            <CalendarDatePicker x:Name="SentPicker" Header="Sent on"
+                                PlaceholderText="When it went out" Visibility="Collapsed" />
+
+            <TextBox x:Name="ReferenceBox" Header="Where it lives"
+                     PlaceholderText="Matter reference, document identifier or link" />
+
+            <TextBox x:Name="SourceSystemBox" Header="Which system"
+                     PlaceholderText="The system that reference belongs to" />
+
+            <TextBox x:Name="FileNameBox" Header="File name"
+                     PlaceholderText="As a person would recognise it" />
+
+            <TextBox x:Name="NotesBox" Header="What changed"
+                     PlaceholderText="Factually, for the drafting history"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="70" />
+
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                       Text="Terms are transcribed onto the version after it is recorded, and can be corrected until it is finalised. Once finalised they are frozen: a correction means recording the next version." />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

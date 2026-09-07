@@ -1,4 +1,4 @@
-using AgencyOS.Application.Abstractions;
+﻿using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Deals;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
@@ -6,6 +6,7 @@ using AgencyOS.Application.Authorization;
 using AgencyOS.Infrastructure.Authorization;
 using AgencyOS.Application.Directory;
 using AgencyOS.Application.Idempotency;
+using AgencyOS.Application.Legal;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Application.Representations;
 using AgencyOS.Application.Search;
@@ -102,6 +103,16 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IOfferRepository, OfferRepository>();
         services.AddScoped<IDealTaskLinkRepository, DealTaskLinkRepository>();
         services.AddScoped<IDealQueries, DealQueries>();
+
+        // Contracts, rights, options and obligations (M8).
+        services.AddScoped<IContractRepository, ContractRepository>();
+        services.AddScoped<IContractVersionRepository, ContractVersionRepository>();
+        services.AddScoped<IRightsGrantRepository, RightsGrantRepository>();
+        services.AddScoped<IContractOptionRepository, ContractOptionRepository>();
+        services.AddScoped<IObligationRepository, ObligationRepository>();
+        services.AddScoped<INoticeRepository, NoticeRepository>();
+        services.AddScoped<IContractTaskLinkRepository, ContractTaskLinkRepository>();
+        services.AddScoped<IContractQueries, ContractQueries>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 

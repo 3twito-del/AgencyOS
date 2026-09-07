@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
 
   <!--
     AgencyOS version metadata.
@@ -12,7 +12,7 @@
   <PropertyGroup>
     <VersionPrefix>0.1.0</VersionPrefix>
     <AgencyOSChannel Condition="'$(AgencyOSChannel)' == ''">forge</AgencyOSChannel>
-    <AgencyOSApiContractVersion>7</AgencyOSApiContractVersion>
+    <AgencyOSApiContractVersion>8</AgencyOSApiContractVersion>
   </PropertyGroup>
 
 </Project>

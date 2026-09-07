@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AgencyOS.Tests.Integration.Infrastructure;
@@ -63,7 +63,8 @@ public sealed partial class OpenApiContractTests
     /// and synchronization from M3, talent, prospects, representation, credits and
     /// materials from M4, projects, source properties, roles, attachments and
     /// packages from M5, opportunities, targets, submissions and pitches from M6,
-    /// and deals, offers and the term catalog from M7.
+    /// and deals, offers and the term catalog from M7, and contracts, versions,
+    /// reconciliation, rights, options, obligations and notices from M8.
     /// </summary>
     /// <remarks>
     /// A contract that silently stopped describing a route would still be valid
@@ -173,6 +174,34 @@ public sealed partial class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/offers/{offerId}/answer")]
     [InlineData("/api/v1/organizations/{organizationId}/deal-pipeline")]
     [InlineData("/api/v1/organizations/{organizationId}/deal-command-center")]
+    [InlineData("/api/v1/contract-terms/catalog")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/history")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/status")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/effective-date")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/parties")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/signatures")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/relationships")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/versions")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/rights-grants")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/options")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/obligations")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/notice-requirements")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/notices")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/tasks")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/versions/{versionId}/reconciliation")]
+    [InlineData("/api/v1/organizations/{organizationId}/contract-versions/{versionId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/contract-versions/{versionId}/terms")]
+    [InlineData("/api/v1/organizations/{organizationId}/contract-versions/{versionId}/record")]
+    [InlineData("/api/v1/organizations/{organizationId}/rights-grants")]
+    [InlineData("/api/v1/organizations/{organizationId}/rights-grants/{grantId}/end")]
+    [InlineData("/api/v1/organizations/{organizationId}/contract-options")]
+    [InlineData("/api/v1/organizations/{organizationId}/contract-options/{optionId}/resolve")]
+    [InlineData("/api/v1/organizations/{organizationId}/obligations")]
+    [InlineData("/api/v1/organizations/{organizationId}/obligations/{obligationId}/resolve")]
+    [InlineData("/api/v1/organizations/{organizationId}/legal/deadlines")]
+    [InlineData("/api/v1/organizations/{organizationId}/legal/command-center")]
     public async Task Contract_DescribesTheImplementedSurface(string path)
     {
         using JsonDocument document = await GetContractAsync();

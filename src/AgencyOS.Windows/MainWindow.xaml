@@ -1,4 +1,4 @@
-<Window
+﻿<Window
     x:Class="AgencyOS.Windows.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -24,6 +24,7 @@
                 <muxc:NavigationViewItem Content="Packages" Tag="packages" AccessKey="7" />
                 <muxc:NavigationViewItem Content="Pipeline" Tag="pipeline" AccessKey="8" />
                 <muxc:NavigationViewItem Content="Deals" Tag="deals" AccessKey="0" />
+                <muxc:NavigationViewItem Content="Contracts" Tag="contracts" AccessKey="C" />
                 <muxc:NavigationViewItem Content="Saved Views" Tag="saved-views" AccessKey="9" />
                 <muxc:NavigationViewItem Content="Sync and Offline" Tag="sync" AccessKey="S" />
             </muxc:NavigationView.MenuItems>

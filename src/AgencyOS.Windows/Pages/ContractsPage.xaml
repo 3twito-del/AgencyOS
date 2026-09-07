@@ -1,0 +1,555 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.ContractsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="16" ColumnSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="460" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Contracts" Style="{StaticResource TitleTextBlockStyle}" />
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                <ComboBox x:Name="StatusBox" MinWidth="150" SelectionChanged="OnFilterChanged">
+                    <ComboBoxItem Content="Any status" Tag="" IsSelected="True" />
+                    <ComboBoxItem Content="Draft" Tag="Draft" />
+                    <ComboBoxItem Content="Under review" Tag="UnderReview" />
+                    <ComboBoxItem Content="Approved for execution" Tag="ApprovedForExecution" />
+                    <ComboBoxItem Content="Partially executed" Tag="PartiallyExecuted" />
+                    <ComboBoxItem Content="Executed" Tag="Executed" />
+                    <ComboBoxItem Content="Abandoned" Tag="Abandoned" />
+                    <ComboBoxItem Content="Superseded" Tag="Superseded" />
+                    <ComboBoxItem Content="Terminated" Tag="Terminated" />
+                </ComboBox>
+
+                <ComboBox x:Name="KindBox" PlaceholderText="Any kind" MinWidth="170"
+                          SelectionChanged="OnFilterChanged">
+                    <ComboBoxItem Content="Any kind" Tag="" IsSelected="True" />
+                    <ComboBoxItem Content="Long form" Tag="LongForm" />
+                    <ComboBoxItem Content="Short form" Tag="ShortForm" />
+                    <ComboBoxItem Content="Side letter" Tag="SideLetter" />
+                    <ComboBoxItem Content="Amendment" Tag="Amendment" />
+                    <ComboBoxItem Content="Rider" Tag="Rider" />
+                    <ComboBoxItem Content="Loan-out" Tag="LoanOut" />
+                    <ComboBoxItem Content="Services agreement" Tag="ServicesAgreement" />
+                    <ComboBoxItem Content="Other" Tag="Other" />
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <CheckBox x:Name="AwaitingBox" Content="Awaiting signature" Click="OnFilterChanged" />
+                    <CheckBox x:Name="EffectiveBox" Content="In force" Click="OnFilterChanged" />
+                    <CheckBox x:Name="DifferencesBox" Content="Differs from agreed"
+                              Click="OnFilterChanged" />
+                </StackPanel>
+
+                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Title or reference"
+                                QuerySubmitted="OnSearchSubmitted" />
+                <ProgressBar x:Name="ListBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False"
+                         Title="Could not load contracts" />
+                <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
+                         Title="Nothing here"
+                         Message="No contracts match these filters." />
+                <TextBlock x:Name="SummaryText" Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
+
+            <ListView Grid.Row="3" x:Name="ContractList" SelectionMode="Single"
+                      SelectionChanged="OnContractSelected">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="4,6" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding Title}" />
+                                <TextBlock Text="{Binding CounterpartyDisplayName}" Opacity="0.7"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock Text="{Binding Kind}" Opacity="0.5"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+
+        <Grid Grid.Column="1" RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Spacing="4">
+                <TextBlock x:Name="DetailTitle" Style="{StaticResource SubtitleTextBlockStyle}"
+                           Text="Select a contract" />
+                <TextBlock x:Name="DetailStanding" Opacity="0.75"
+                           Style="{StaticResource CaptionTextBlockStyle}" />
+
+                <!--
+                    Says what the four dates mean and keeps them apart. Signature,
+                    execution, effectiveness and termination are separate facts,
+                    and a screen that collapsed them would be wrong in the way that
+                    matters most (ADR-0022).
+                -->
+                <TextBlock x:Name="DatesText" Opacity="0.75" TextWrapping="Wrap"
+                           Style="{StaticResource CaptionTextBlockStyle}" />
+
+                <InfoBar x:Name="ReconciliationBar" Severity="Informational" IsOpen="False"
+                         IsClosable="False" Title="Draft against agreed terms" />
+
+                <InfoBar x:Name="UnresolvedBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                         Title="Some deadlines cannot be worked out yet"
+                         Message="These clauses hang off an event that has not happened, or count business days AgencyOS has no calendar for. They have no date rather than a guessed one." />
+
+                <TextBlock x:Name="AnalysisText" TextWrapping="Wrap" Opacity="0.85"
+                           Visibility="Collapsed" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Spacing="8">
+                <InfoBar x:Name="DetailBar" Severity="Error" IsOpen="False" IsClosable="True" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="NewButton" Content="New contract" Click="OnNewClick" />
+                    <Button x:Name="VersionButton" Content="Record version"
+                            Click="OnRecordVersionClick" IsEnabled="False" />
+                    <Button x:Name="ReconcileButton" Content="Reconcile"
+                            Click="OnReconcileClick" IsEnabled="False" />
+                    <Button x:Name="SignatureButton" Content="Record signature"
+                            Click="OnRecordSignatureClick" IsEnabled="False" />
+                    <Button x:Name="NoticeButton" Content="Record notice"
+                            Click="OnRecordNoticeClick" IsEnabled="False" />
+                </StackPanel>
+            </StackPanel>
+
+            <TabView Grid.Row="2" x:Name="DetailTabs" IsAddTabButtonVisible="False"
+                     CanDragTabs="False" CanReorderTabs="False">
+                <TabViewItem Header="Versions" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <!--
+                                Permanent, and the same sentence the record dialog
+                                carries: AgencyOS holds a reference, never the file.
+                            -->
+                            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                                     Title="References, not documents"
+                                     Message="AgencyOS records that each version exists and where it lives. It does not store the files and cannot confirm a reference still points at the same document." />
+
+                            <ListView x:Name="VersionList" SelectionMode="Single"
+                                      SelectionChanged="OnVersionSelected">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" Text="{Binding VersionNumber}"
+                                                       Opacity="0.5" VerticalAlignment="Center"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding Label}" />
+                                                <TextBlock Text="{Binding Notes}" Opacity="0.7"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding Direction}" Opacity="0.7"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                                <TextBlock Text="{Binding Status}" Opacity="0.5"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Terms" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <TextBlock x:Name="TermsCaption" Opacity="0.7"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="Select a version to see the terms read out of it." />
+                            <ListView x:Name="TermList" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding DisplayName}" />
+                                                <TextBlock Text="{Binding ClauseReference}" Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="1" Text="{Binding DisplayValue}"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Reconciliation" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <!--
+                                The comparison reports what differs and never
+                                whether a difference is acceptable. Whether a
+                                changed term is a problem is a legal question about
+                                a document AgencyOS has not read (ADR-0022).
+                            -->
+                            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                                     Title="What differs, not what matters"
+                                     Message="This shows how the draft differs from the terms that were agreed. It does not say whether a difference is acceptable: that is a legal judgement." />
+
+                            <InfoBar x:Name="ReconcileError" Severity="Error" IsOpen="False"
+                                     IsClosable="False" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <CheckBox x:Name="DifferencesOnlyBox" Content="Differences only"
+                                          IsChecked="True" Click="OnDifferencesOnlyChanged" />
+                                <TextBlock x:Name="ReconcileCaption" Opacity="0.75"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Text="Reconcile a version to see what the draft did to what was agreed." />
+                            </StackPanel>
+
+                            <Grid ColumnSpacing="10" Padding="4,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="130" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="Term" Opacity="0.6"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock Grid.Column="1" Text="Agreed" Opacity="0.6"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock Grid.Column="2" Text="In the draft" Opacity="0.6"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock Grid.Column="3" Text="Result" Opacity="0.6"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </Grid>
+
+                            <ListView x:Name="ReconcileList" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="140" />
+                                                <ColumnDefinition Width="140" />
+                                                <ColumnDefinition Width="130" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Negotiated.DisplayValue}"
+                                                       Opacity="0.7" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Contracted.DisplayValue}" />
+                                            <TextBlock Grid.Column="3" Text="{Binding Result}"
+                                                       Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Parties" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <TextBlock x:Name="PartiesCaption" Opacity="0.7"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                            <ListView x:Name="PartyList" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding DisplayName}" />
+                                                <TextBlock Text="{Binding Role}" Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="1" Text="{Binding SignedOn}"
+                                                       Opacity="0.7" VerticalAlignment="Center"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Rights" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <!--
+                                A grant row means the contract records this grant.
+                                It is not a finding that the grantor held the right
+                                and not a clearance (ADR-0022).
+                            -->
+                            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                                     Title="What the contract says was granted"
+                                     Message="These are the grants the instrument records. AgencyOS has not verified title and this is not a clearance." />
+
+                            <ListView x:Name="RightsList" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding RightType}" />
+                                                <TextBlock Text="{Binding Medium}" Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding Territory}" Opacity="0.7"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                                <TextBlock Text="{Binding PeriodKind}" Opacity="0.5"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Options" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="ResolveOptionButton" Content="Record outcome"
+                                        Click="OnResolveOptionClick" IsEnabled="False" />
+                                <TextBlock x:Name="OptionsCaption" Opacity="0.7"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+
+                            <ListView x:Name="OptionList" SelectionMode="Single"
+                                      SelectionChanged="OnOptionSelected">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding Subject}" />
+                                                <TextBlock Text="{Binding Kind}" Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding DeadlineOn}" Opacity="0.7"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                                <TextBlock Text="{Binding Status}" Opacity="0.5"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Obligations" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <!--
+                                Past due and breached are different columns and
+                                different facts, and the wording never merges them.
+                            -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="ResolveObligationButton" Content="Record outcome"
+                                        Click="OnResolveObligationClick" IsEnabled="False" />
+                                <TextBlock x:Name="ObligationsCaption" Opacity="0.7"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+
+                            <ListView x:Name="ObligationList" SelectionMode="Single"
+                                      SelectionChanged="OnObligationSelected">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding Description}"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding ObligorDisplayName}"
+                                                           Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding DueOn}" Opacity="0.7"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                                <TextBlock Text="{Binding Status}" Opacity="0.5"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Notices" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                                     Title="Recorded, not sent"
+                                     Message="AgencyOS does not send notices. These are notices somebody recorded as given or received, and delivery is not something the system can confirm." />
+
+                            <TextBlock Text="Required by the contract" Opacity="0.6"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                            <ListView x:Name="NoticeRequirementList" SelectionMode="None"
+                                      MaxHeight="220">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Description}"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Grid.Column="1" Text="{Binding DueOn}"
+                                                       Opacity="0.7" VerticalAlignment="Center"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock Text="Recorded as given or received" Opacity="0.6"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                            <ListView x:Name="NoticeList" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding Summary}"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding Direction}" Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding OccurredOn}"
+                                                       Opacity="0.7" VerticalAlignment="Center"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Tasks" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Padding="4">
+                            <!--
+                                Obligations do not become tasks automatically. A
+                                list that carried every duty on every contract
+                                would stop being read (ADR-0022).
+                            -->
+                            <TextBlock Opacity="0.7" TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="Tasks are created deliberately from an obligation or an option. AgencyOS does not turn every duty into one." />
+
+                            <ListView x:Name="TaskList" SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="4,6">
+                                            <TextBlock Text="{Binding Title}" />
+                                            <TextBlock Text="{Binding Priority}" Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <TabViewItem Header="Activity" IsClosable="False">
+                    <ScrollViewer>
+                        <ListView x:Name="HistoryList" SelectionMode="None" Padding="4">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Padding="4,6">
+                                        <TextBlock Text="{Binding Summary}" />
+                                        <TextBlock Text="{Binding Detail}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                </TabViewItem>
+            </TabView>
+        </Grid>
+    </Grid>
+</Page>

@@ -1,4 +1,4 @@
-namespace AgencyOS.Contracts;
+﻿namespace AgencyOS.Contracts;
 
 /// <summary>
 /// The versioned API contract identity shared by the AgencyOS server and its clients.
@@ -39,13 +39,24 @@ public static class ApiContract
     /// and pitches carried by one M2 interaction each.
     /// </para>
     /// <para>
+    /// Version 7 adds the M7 deal engine: negotiations, the offer thread with its
+    /// typed commercial terms, and agreed terms reached only by accepting an offer.
+    /// </para>
+    /// <para>
+    /// Version 8 adds the M8 legal layer: contracts anchored to an accepted offer,
+    /// drafting versions with transcribed terms, negotiated-against-drafted
+    /// reconciliation, rights grants, options, obligations, notice requirements and
+    /// recorded notices. It records document references rather than documents, and
+    /// implements no electronic signature.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 7;
+    public const int Current = 8;
 
     /// <summary>
     /// The lowest contract version this build still serves.

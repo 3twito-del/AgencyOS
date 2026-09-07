@@ -27,6 +27,15 @@ public enum SavedViewTarget
     // Added in definition version 5. What is actually being negotiated, and where
     // each negotiation stands.
     Deals = 9,
+
+    // Added in definition version 6. The papered side: what is drafted, signed,
+    // effective, and what still needs somebody.
+    //
+    // Options and obligations deliberately did not become targets of their own.
+    // They are worked from the command centre and their own filtered endpoints,
+    // and three more targets before anybody has asked to save such a list would be
+    // twenty-five filter fields nothing reads (ADR-0022).
+    Contracts = 10,
 }
 
 /// <summary>Sort direction for a saved view.</summary>
@@ -102,6 +111,18 @@ public sealed record SavedViewSort(string Field, SavedViewSortDirection Directio
 /// <param name="TermsAgreedOnly">Only negotiations whose commercial terms are settled.</param>
 /// <param name="OpenedAfter">Only negotiations opened on or after this date.</param>
 /// <param name="OpenedBefore">Only negotiations opened on or before this date.</param>
+/// <param name="ContractKind">Restricts contracts to one kind of instrument.</param>
+/// <param name="ContractStatus">Restricts contracts to one status.</param>
+/// <param name="DealId">Only contracts arising from this negotiation.</param>
+/// <param name="ContractPartyCompanyId">Only contracts with this company as a party.</param>
+/// <param name="ContractPartyPersonId">Only contracts with this person as a party.</param>
+/// <param name="AwaitingSignature">Only contracts with a required signature outstanding.</param>
+/// <param name="EffectiveOnly">Only contracts in force today.</param>
+/// <param name="ExecutedAfter">Only contracts executed on or after this date.</param>
+/// <param name="ExecutedBefore">Only contracts executed on or before this date.</param>
+/// <param name="HasUnresolvedReconciliation">
+/// Only contracts whose latest recorded version differs from what was negotiated.
+/// </param>
 public sealed record SavedViewFilters(
     string? Status = null,
     Guid? CompanyId = null,
@@ -149,7 +170,21 @@ public sealed record SavedViewFilters(
     bool HasOpenOffer = false,
     bool TermsAgreedOnly = false,
     DateOnly? OpenedAfter = null,
-    DateOnly? OpenedBefore = null);
+    DateOnly? OpenedBefore = null,
+
+    // M8. Nothing economic here either, for the reason the deal filters give: a
+    // saved view is a query somebody else may run, and one narrowing by a
+    // compensation figure tells its reader that figure.
+    string? ContractKind = null,
+    string? ContractStatus = null,
+    Guid? DealId = null,
+    Guid? ContractPartyCompanyId = null,
+    Guid? ContractPartyPersonId = null,
+    bool AwaitingSignature = false,
+    bool EffectiveOnly = false,
+    DateOnly? ExecutedAfter = null,
+    DateOnly? ExecutedBefore = null,
+    bool HasUnresolvedReconciliation = false);
 
 /// <summary>
 /// A saved view's query, as a versioned, validated document.
@@ -178,7 +213,7 @@ public sealed record SavedViewDefinition(
 {
     /// <summary>The definition schema version this build writes and understands.</summary>
     /// <summary>Definition schema this build writes.</summary>
-    public const int CurrentDefinitionVersion = 5;
+    public const int CurrentDefinitionVersion = 6;
 
     /// <summary>
     /// The oldest definition schema this build still understands.
@@ -214,6 +249,7 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Packages] = 3,
             [SavedViewTarget.Opportunities] = 4,
             [SavedViewTarget.Deals] = 5,
+            [SavedViewTarget.Contracts] = 6,
         };
 
     /// <summary>Fields a view may sort by, per target.</summary>
@@ -238,6 +274,11 @@ public sealed record SavedViewDefinition(
             // ordering by compensation reveals the ordering of the compensation.
             [SavedViewTarget.Deals] =
                 Freeze("Name", "UpdatedAt", "OpenedOn", "Status", "Kind"),
+
+            // Dates and status, nothing economic - ordering by a figure reveals
+            // the ordering of the figures.
+            [SavedViewTarget.Contracts] =
+                Freeze("Title", "UpdatedAt", "Status", "Kind", "ExecutedOn", "EffectiveOn"),
         };
 
     /// <summary>Validates the document, failing with a message that says what is wrong.</summary>
@@ -397,6 +438,22 @@ public sealed record SavedViewDefinition(
             nameof(SavedViewFilters.TermsAgreedOnly),
             nameof(SavedViewFilters.OpenedAfter),
             nameof(SavedViewFilters.OpenedBefore)),
+
+        [SavedViewTarget.Contracts] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.OwnerUserId),
+            nameof(SavedViewFilters.TalentProfileId),
+            nameof(SavedViewFilters.ProjectId),
+            nameof(SavedViewFilters.ContractKind),
+            nameof(SavedViewFilters.ContractStatus),
+            nameof(SavedViewFilters.DealId),
+            nameof(SavedViewFilters.ContractPartyCompanyId),
+            nameof(SavedViewFilters.ContractPartyPersonId),
+            nameof(SavedViewFilters.AwaitingSignature),
+            nameof(SavedViewFilters.EffectiveOnly),
+            nameof(SavedViewFilters.ExecutedAfter),
+            nameof(SavedViewFilters.ExecutedBefore),
+            nameof(SavedViewFilters.HasUnresolvedReconciliation)),
     };
 
     /// <summary>Every filter the document could carry, by name.</summary>

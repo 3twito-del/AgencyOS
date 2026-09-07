@@ -1,0 +1,58 @@
+﻿<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordNoticeDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record a notice"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="480">
+            <!--
+                The permanent statement, and the reason the title says Record. There
+                is no outbound transport in AgencyOS and no delivery confirmation:
+                this stores an assertion that a notice passed (ADR-0022).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Recorded, not sent"
+                     Message="AgencyOS does not send notices. This records that one was given or received, and it cannot confirm that anything reached anybody." />
+
+            <ComboBox x:Name="DirectionBox" Header="Direction" HorizontalAlignment="Stretch"
+                      SelectionChanged="OnPartyChanged">
+                <ComboBoxItem Content="We gave it" Tag="Given" IsSelected="True" />
+                <ComboBoxItem Content="We received it" Tag="Received" />
+            </ComboBox>
+
+            <ComboBox x:Name="SenderBox" Header="From" HorizontalAlignment="Stretch"
+                      DisplayMemberPath="DisplayName" SelectionChanged="OnPartyChanged" />
+
+            <ComboBox x:Name="RecipientBox" Header="To" HorizontalAlignment="Stretch"
+                      DisplayMemberPath="DisplayName" SelectionChanged="OnPartyChanged" />
+
+            <CalendarDatePicker x:Name="OccurredPicker" Header="When"
+                                PlaceholderText="The day it passed"
+                                DateChanged="OnDateChanged" />
+
+            <ComboBox x:Name="MethodBox" Header="How" HorizontalAlignment="Stretch">
+                <ComboBoxItem Content="Written" Tag="Written" IsSelected="True" />
+                <ComboBoxItem Content="Email" Tag="Email" />
+                <ComboBoxItem Content="Courier" Tag="Courier" />
+                <ComboBoxItem Content="Registered post" Tag="RegisteredPost" />
+                <ComboBoxItem Content="Hand delivery" Tag="HandDelivery" />
+                <ComboBoxItem Content="Other" Tag="Other" />
+            </ComboBox>
+
+            <ComboBox x:Name="RequirementBox" Header="Against which requirement"
+                      PlaceholderText="Not against a recorded requirement"
+                      HorizontalAlignment="Stretch" DisplayMemberPath="Description" />
+
+            <TextBox x:Name="ReferenceBox" Header="Where a copy lives"
+                     PlaceholderText="Reference, if there is one" />
+
+            <TextBox x:Name="SummaryBox" Header="What it said" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

@@ -43,7 +43,15 @@ public static class RolePermissions
         // deals.economics.read nor deals.strategy.read is granted, so what a deal
         // pays and what the agency privately intends stay out of reach.
         Permission.DealsRead,
-        Permission.OffersRead);
+        Permission.OffersRead,
+
+        // An observer sees that a contract exists and where it stands, its rights
+        // and its obligations. Neither contracts.terms.read nor
+        // contracts.privileged.read is granted, so the clauses themselves and
+        // anything counsel wrote stay out of reach.
+        Permission.ContractsRead,
+        Permission.RightsRead,
+        Permission.ObligationsRead);
 
     /// <summary>
     /// The day-to-day operational role: everything needed to run the M2 workflow,
@@ -85,7 +93,15 @@ public static class RolePermissions
         Permission.OffersRead,
         Permission.OffersWrite,
         Permission.DealEconomicsRead,
-        Permission.DealStrategyRead);
+        Permission.DealStrategyRead,
+        Permission.ContractsRead,
+        Permission.ContractsWrite,
+        Permission.ContractTermsRead,
+        Permission.ContractPrivilegedRead,
+        Permission.RightsRead,
+        Permission.RightsWrite,
+        Permission.ObligationsRead,
+        Permission.ObligationsWrite);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,

@@ -29,6 +29,10 @@ public enum SearchEntityType
     // anything else, and a deal that could only be reached through its pursuit
     // would be one nobody finds.
     Deal = 10,
+
+    // Added in M8. "Where is the Northgate paper" is asked constantly, and a
+    // contract reachable only through its deal is one nobody finds.
+    Contract = 11,
 }
 
 /// <summary>Why a row matched, so a ranked list can explain itself.</summary>

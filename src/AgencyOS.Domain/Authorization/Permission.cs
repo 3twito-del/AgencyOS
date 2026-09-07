@@ -167,6 +167,43 @@ public static class Permission
     /// </remarks>
     public const string DealStrategyRead = "deals.strategy.read";
 
+    // ---- Contracts, rights and obligations (M8) ----
+    //
+    // More grants than any previous milestone, because M8 holds the most varied
+    // sensitivities the system has seen: whether a contract exists, what it says,
+    // what it pays, and what counsel thinks of it are four different questions with
+    // four different readerships (ADR-0022).
+
+    public const string ContractsRead = "contracts.read";
+    public const string ContractsWrite = "contracts.write";
+
+    /// <summary>Reading the structured terms drafted into a contract.</summary>
+    /// <remarks>
+    /// Separate from <see cref="ContractsRead"/> because knowing an agreement
+    /// exists and being able to read its clauses are different things. The money
+    /// inside those terms is gated again by <see cref="DealEconomicsRead"/>, which
+    /// is the same grant M7 uses: it is the same economics, and a parallel grant
+    /// would drift from it.
+    /// </remarks>
+    public const string ContractTermsRead = "contracts.terms.read";
+
+    /// <summary>Reading legal analysis and anything classified privileged.</summary>
+    /// <remarks>
+    /// Gates content a person has explicitly marked as legal strategy or
+    /// attorney-client privileged. AgencyOS never infers that classification:
+    /// privilege is a legal status with legal consequences, and guessing would be
+    /// wrong in both directions.
+    /// </remarks>
+    public const string ContractPrivilegedRead = "contracts.privileged.read";
+
+    /// <summary>Reading rights grants and the options over them.</summary>
+    public const string RightsRead = "rights.read";
+    public const string RightsWrite = "rights.write";
+
+    /// <summary>Reading obligations, notice requirements and recorded notices.</summary>
+    public const string ObligationsRead = "obligations.read";
+    public const string ObligationsWrite = "obligations.write";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -212,5 +249,13 @@ public static class Permission
         OffersWrite,
         DealEconomicsRead,
         DealStrategyRead,
+        ContractsRead,
+        ContractsWrite,
+        ContractTermsRead,
+        ContractPrivilegedRead,
+        RightsRead,
+        RightsWrite,
+        ObligationsRead,
+        ObligationsWrite,
     };
 }

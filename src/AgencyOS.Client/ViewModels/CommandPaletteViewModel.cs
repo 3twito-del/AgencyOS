@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -171,6 +171,28 @@ public sealed class CommandPaletteViewModel : ViewModelBase
         new("go.negotiations", "Open negotiations", "Deals"),
         new("go.terms.agreed", "Open terms agreed", "Deals"),
         new("go.deals.awaiting", "Open deals awaiting a response", "Deals"),
+
+        // Contracts (M8). "Record" throughout again, and for two reasons now:
+        // AgencyOS neither transmits a notice nor verifies a signature, so every
+        // verb here describes writing down what somebody says happened (ADR-0022).
+        new("go.contracts", "Go to Contracts", "Navigate", "Ctrl+Shift+K"),
+        new("contract.create", "Create contract", "Contracts"),
+        new("contract.open", "Open contract", "Contracts"),
+        new("contract.version.record", "Record contract version", "Contracts", "Ctrl+Shift+V"),
+        new("contract.reconcile", "Reconcile draft against agreed terms", "Contracts", "Ctrl+Shift+R"),
+        new("contract.party.add", "Add contract party", "Contracts"),
+        new("contract.signature.record", "Record signature", "Contracts", "Ctrl+Shift+G"),
+        new("contract.effective.record", "Record effective date", "Contracts"),
+        new("contract.status.change", "Change contract status", "Contracts"),
+        new("rights.grant.record", "Record rights grant", "Contracts"),
+        new("option.record", "Record option", "Contracts"),
+        new("option.resolve", "Record option outcome", "Contracts"),
+        new("obligation.record", "Record obligation", "Contracts"),
+        new("obligation.resolve", "Record obligation outcome", "Contracts"),
+        new("notice.record", "Record notice given or received", "Contracts"),
+        new("go.legal.deadlines", "Open legal deadlines", "Contracts"),
+        new("go.legal.command-center", "Open legal command center", "Contracts"),
+        new("go.contracts.awaiting", "Open contracts awaiting signature", "Contracts"),
         new("view.save", "Save current view", "View"),
         new("view.run", "Run selected view", "View"),
         new("sync.now", "Synchronize now", "Sync", "F9"),

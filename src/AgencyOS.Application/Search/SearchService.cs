@@ -1,4 +1,4 @@
-using AgencyOS.Application.Authorization;
+﻿using AgencyOS.Application.Authorization;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Organizations;
 
@@ -57,6 +57,11 @@ public sealed class SearchService
             // there is nothing here a reader of the pipeline should not see.
             [SearchEntityType.Opportunity] = Permission.OpportunitiesRead,
             [SearchEntityType.Deal] = Permission.DealsRead,
+
+            // Reading that a contract exists is contracts.read. What it says
+            // is guarded separately and is not indexed at all, so a hit here
+            // reveals a title and nothing else (ADR-0022).
+            [SearchEntityType.Contract] = Permission.ContractsRead,
         };
 
     private readonly ISearchQueries _queries;

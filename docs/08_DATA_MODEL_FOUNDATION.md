@@ -1,4 +1,4 @@
-# Data Model Foundation
+﻿# Data Model Foundation
 
 ## Principles
 
@@ -427,6 +427,173 @@ option exercise, obligation or notice period — those are M8. No invoice,
 receivable, payment, commission or ledger row — those are M9. And no `DealId` on
 any M6 row: the link runs the other way.
 
+## M8 entities - contracts, rights, options and obligations
+
+Implemented in M8.
+`docs/adr/ADR-0022-contract-model-reconciliation-and-legal-honesty.md` records why
+the shape is this one.
+
+### Contract
+One legal instrument, papering a negotiation whose commercial terms are agreed.
+- Id, Title, Reference?, Kind (LongForm | ShortForm | SideLetter | Amendment |
+  Rider | LoanOut | ServicesAgreement | Other)
+- Status (Draft -> UnderReview -> ApprovedForExecution -> PartiallyExecuted ->
+  Executed, with Abandoned, Superseded and Terminated as terminal states).
+  **PartiallyExecuted and Executed are unreachable by any status command**: they
+  follow from recording signatures and nothing else.
+- DealId + AcceptedOfferId - **required and fixed at creation**, as one composite
+  foreign key over (organization, deal, accepted offer), so a contract cannot paper
+  an offer from another negotiation. The offer being *accepted* is a handler check
+  rather than a constraint, because M7 can lawfully unwind an acceptance.
+- OwnerUserId, Summary?, LegalAnalysis?, StrategyNotes?
+- Privilege (Ordinary | Confidential | LegalStrategy | AttorneyClientPrivileged) -
+  **assigned by a person, never inferred**
+- ExecutedOn?, EffectiveOn?, TerminatedOn? - **three distinct dates**, plus a
+  fourth per signature. Effectiveness may precede execution and there is no
+  constraint ordering them, because retroactive effectiveness is ordinary.
+- Version, CreatedAt, UpdatedAt, CreatedBy
+
+Several contracts may paper one deal: a long form, a side letter and an amendment
+are three instruments about one negotiation.
+
+Execution state, outstanding signatures, effectiveness today and the difference
+count are **not** columns. Each is derived from the rows that decide it.
+
+### ContractEvent
+Append-only. One row per contract change, naming the transition that caused it.
+Distinct from the audit trail: the audit log answers who did what under which
+permission, and this answers what happened to the instrument (ADR-0012).
+
+### ContractParty
+Who is party to the instrument.
+- Id, ContractId, Role (Artist | Producer | Studio | Network | Employer | Lender |
+  LoanOut | Licensor | Licensee | Guarantor | Agency | Other)
+- PersonId? | CompanyId? | ExternalName? - **exactly one**, by check constraint.
+  Where AgencyOS knows the party, the identifier is used.
+- Provenance?, IsRequiredSignatory, Notes?
+
+**Role is not type.** The studio on one paper is the licensee on another, and both
+are the same company record.
+
+Every row that names a party points at it through a foreign key over
+(organization, contract, party), so nothing can reach a party on another
+instrument.
+
+### ContractSignature
+A record that a party signed: ContractPartyId, SignedOn, Method (Wet | Electronic |
+Counterpart | Other), ExternalReference?, RecordedAt, RecordedBy. Unique per
+(contract, party).
+
+**No certificate, no key, no hash, no verification.** AgencyOS implements no
+electronic signature; this stores a person's assertion.
+
+### ContractVersion
+One drafting state of a contract.
+- Id, ContractId, VersionNumber (unique per contract), Label, Direction (Inbound |
+  Outbound | Internal), Status (Draft -> Recorded -> Superseded)
+- ReceivedOn?, SentOn?, RecordedAt, RecordedBy
+- ExternalReference?, SourceSystem?, DisplayFileName?, MediaType? - **a reference
+  to where the document lives, and no content hash**, because AgencyOS has never
+  seen the bytes. `HoldsDocument` is a property returning false, surfaced through
+  the API so a client states the truth. M10 brings the repository these fields
+  point into.
+- Notes?, Version, UpdatedAt
+
+### ContractTerm
+One term read out of a drafting version.
+- Id, ContractVersionId, Code (`ContractTermCode`), ValueKind
+- The identical typed-column arc `OfferTerm` uses, with the identical CHECK, the
+  identical `numeric` money columns and the identical currency rule. A second money
+  representation would have made reconciliation a conversion.
+- ClauseReference?, Label?, Notes?, Sequence
+- Privilege - assigned, never inferred
+- Unique per (version, code), so reconciliation joins unambiguously.
+
+The commercial half of `ContractTermCode` shares its integer values with
+`DealTermCode`, and `ContractTermCatalog` derives that half from `DealTermCatalog`
+rather than retyping it.
+
+Terms are immutable once the version is recorded: the aggregate refuses, and a
+PostgreSQL trigger refuses independently. It is the only trigger M8 adds.
+
+### RightsGrant
+What the contract records as granted. **Not** a chain of title, not a
+verification that the grantor held it, and not a clearance.
+- Id, ContractId, ContractVersionId, ClauseReference?
+- GrantorPartyId, GranteePartyId (distinct, by check constraint)
+- RightType, Medium, Territory (Worldwide | UnitedStates | NorthAmerica |
+  Specified, with the clause's own words for the last) - **no geopolitical
+  ontology**
+- Exclusivity (Exclusive | SoleExclusive | NonExclusive)
+- PeriodKind (Perpetual | Fixed | OpenEnded | **Unstated**), StartsOn?, EndsOn?,
+  shape-checked per kind. An unstated period never covers a date and never overlaps
+  another: a contract that says nothing is recorded as saying nothing rather than
+  as running forever.
+- SourcePropertyId?, ProjectId?, Reservations?, Notes?
+- Status (Active | Superseded | Ended), SupersededByGrantId?
+
+Amendments **supersede** rather than overwrite, so what the agency believed it held
+before the amendment stays answerable.
+
+### DeadlineRule
+A value object carried by options, obligations and notice requirements, mapped into
+the owner's own row as a prefixed column group.
+- Kind (Absolute | Relative | Unstructured), On?, Anchor?, Offset?, Unit?, Before,
+  Basis (CalendarDays | **BusinessDays**), Description?
+
+Resolution is a pure function and returns nothing in three cases the system can
+name: no structured rule, an anchor event that has not happened, or business days,
+for which AgencyOS holds no calendar. **A rule that did not resolve has no date**,
+is absent from every work queue, and the surface says which of the three applies.
+
+### ContractOption
+An election the contract creates: Kind (Employment | Renewal | Sequel | Extension |
+Purchase | Rights | Other), HolderPartyId, Subject, Deadline (a `DeadlineRule`),
+ResolvedDeadlineOn? (a cache of the pure function), WindowOpensOn?, ExerciseMethod?,
+EconomicsTermId?, Status (Available | Exercised | Declined | Expired | Waived |
+Cancelled), ResolvedOn?.
+
+**Nothing lapses on its own.** An option past its deadline stays Available until
+somebody records that it lapsed; `IsPastDeadline` is derived and shown, `Expired`
+is an act. An exercise is never inferred from a payment.
+
+### Obligation
+What a party must do: ObligorPartyId, ObligeePartyId (distinct), Kind, Description,
+Due (a `DeadlineRule`), ResolvedDueOn?, Status (Pending | Satisfied | Waived |
+Breached | Cancelled), ResolvedOn?, RelatedOptionId?, RelatedRightsGrantId?,
+Privilege.
+
+**Past due is a date; breach is a determination.** `IsPastDue` is derived.
+`Breached` requires a stated reason and is refused without one.
+
+### NoticeRequirement and NoticeRecord
+A requirement is what the contract demands: parties, description, a `DeadlineRule`,
+a method and a reference to where the notice address is recorded (never a copy of
+the address).
+
+A record is an assertion that a notice passed: direction, parties, OccurredOn,
+method, an optional requirement it answers, and an optional external reference.
+**AgencyOS does not send notices** and there is no delivery-status column, because
+the system has no way to know one.
+
+### ContractRelationship
+How one instrument relates to another: AmendmentOf | Supersedes | SideLetterTo |
+Restates | RelatedTo. **An amendment is a separate executed agreement**, not
+version five of the paper it changes.
+
+### ContractTaskLink
+Joins an ordinary M2 task to a contract, and optionally to an obligation or an
+option. Unique on the task, on the M6 and M7 precedent. Obligations do **not**
+become tasks automatically.
+
+### Deliberately absent
+No deadlines table - every date is read from the row that carries it, and one would
+need a source identifier no foreign key could constrain. No stored difference
+count, execution flag or effectiveness flag. No document bytes, no content hash and
+no local file path. No commission, invoice, receivable, payment, allocation or
+ledger row - those are M9. No document repository, ingestion, mail transport or
+e-signature - those are M10.
+
 ## Temporal modeling
 
 Effective-date history rather than destructive overwrite, applied from M4 onward.
@@ -466,5 +633,14 @@ recorded offer's commercial snapshot cannot be changed at all, enforced by the
 aggregate and independently by a PostgreSQL trigger. A correction is another offer
 superseding it, so both readings survive.
 
-Rights and contractual relationships follow the same pattern when their milestones
-arrive.
+M8 follows all three. `ContractEvent`, `OptionEvent` and `ObligationEvent` are
+append-only beside the current status; the four contract dates are `DateOnly`
+business dates and every one of them is freely backdated, because a signature is
+routinely recorded days after it was given; and historical immutability applies
+again to `contract_terms`, whose values are frozen once the version they were read
+out of is recorded.
+
+M8 adds a fourth idea: a date that **does not exist yet**. An effective-dated row
+says when something started; a `DeadlineRule` says how a date would be worked out,
+and admits when it cannot be. The two are different, and the second is what keeps a
+legal calendar honest.

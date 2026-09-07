@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Deals;
@@ -567,18 +567,74 @@ public sealed class DealClientTests
     }
 
     /// <summary>
-    /// The palette never offers to send an offer, because AgencyOS cannot.
+    /// The palette never offers to do something AgencyOS cannot do.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The guarantee is about the verb, not the noun. AgencyOS transmits nothing,
+    /// signs nothing and executes nothing: every command that touches an outward
+    /// act is named for writing down what somebody says happened, so a user reading
+    /// the palette never expects the system to perform the act itself (ADR-0021,
+    /// ADR-0022).
+    /// </para>
+    /// <para>
+    /// M8 makes signatures and notices real subjects, so the assertion moved from
+    /// "the word sign never appears" to "no command title begins with a verb that
+    /// promises the act". "Record signature" is honest; "Sign contract" would not
+    /// be.
+    /// </para>
+    /// </remarks>
     [Fact]
     public void ThePalette_NeverOffersToSendAnything()
     {
         CommandPaletteViewModel palette = new();
 
+        string[] forbidden =
+        [
+            "Send ", "Sign ", "Execute ", "Transmit ", "Deliver ", "Email ", "Upload ",
+        ];
+
         foreach (PaletteCommand command in palette.AllCommands)
         {
             Assert.DoesNotContain("Send offer", command.Title, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("Sign", command.Title, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("Execute", command.Title, StringComparison.OrdinalIgnoreCase);
+
+            foreach (string verb in forbidden)
+            {
+                Assert.False(
+                    command.Title.StartsWith(verb, StringComparison.OrdinalIgnoreCase),
+                    $"'{command.Title}' promises an act AgencyOS does not perform.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Every consequential legal command is named for recording, not for doing.
+    /// </summary>
+    /// <remarks>
+    /// The M8 half of the guarantee above, stated positively. A signature, a notice
+    /// and an option outcome are all assertions somebody makes about the world, and
+    /// the palette says so before anybody clicks (ADR-0022).
+    /// </remarks>
+    [Fact]
+    public void TheLegalCommands_AreNamedForRecording()
+    {
+        CommandPaletteViewModel palette = new();
+
+        string[] mustRecord =
+        [
+            "contract.signature.record",
+            "contract.version.record",
+            "notice.record",
+            "rights.grant.record",
+            "option.record",
+            "obligation.record",
+        ];
+
+        foreach (string id in mustRecord)
+        {
+            PaletteCommand command = Assert.Single(palette.AllCommands, x => x.Id == id);
+
+            Assert.StartsWith("Record", command.Title, StringComparison.Ordinal);
         }
     }
 

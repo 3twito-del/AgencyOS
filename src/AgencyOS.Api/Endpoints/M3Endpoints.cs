@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using AgencyOS.Api.Authorization;
 using AgencyOS.Api.Observability;
 using AgencyOS.Application.Directory;
@@ -152,7 +152,8 @@ internal static class M3Endpoints
                     [.. results.Projects.Select(M5Endpoints.MapProjectSummary)],
                     [.. results.Packages.Select(M5Endpoints.MapPackageSummary)],
                     [.. results.Opportunities.Select(M6Endpoints.MapOpportunitySummary)],
-                    [.. results.Deals.Select(M7Endpoints.MapDealSummary)]));
+                    [.. results.Deals.Select(M7Endpoints.MapDealSummary)],
+                    [.. results.Contracts.Select(M8Endpoints.MapContractSummary)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("RunSavedView");
@@ -382,7 +383,17 @@ internal static class M3Endpoints
         HasOpenOffer: filters.HasOpenOffer,
         TermsAgreedOnly: filters.TermsAgreedOnly,
         OpenedAfter: filters.OpenedAfter,
-        OpenedBefore: filters.OpenedBefore);
+        OpenedBefore: filters.OpenedBefore,
+        ContractKind: filters.ContractKind,
+        ContractStatus: filters.ContractStatus,
+        DealId: filters.DealId,
+        ContractPartyCompanyId: filters.ContractPartyCompanyId,
+        ContractPartyPersonId: filters.ContractPartyPersonId,
+        AwaitingSignature: filters.AwaitingSignature,
+        EffectiveOnly: filters.EffectiveOnly,
+        ExecutedAfter: filters.ExecutedAfter,
+        ExecutedBefore: filters.ExecutedBefore,
+        HasUnresolvedReconciliation: filters.HasUnresolvedReconciliation);
 
     /// <inheritdoc cref="ToFilters"/>
     internal static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
@@ -427,7 +438,17 @@ internal static class M3Endpoints
         HasOpenOffer: filters.HasOpenOffer,
         TermsAgreedOnly: filters.TermsAgreedOnly,
         OpenedAfter: filters.OpenedAfter,
-        OpenedBefore: filters.OpenedBefore);
+        OpenedBefore: filters.OpenedBefore,
+        ContractKind: filters.ContractKind,
+        ContractStatus: filters.ContractStatus,
+        DealId: filters.DealId,
+        ContractPartyCompanyId: filters.ContractPartyCompanyId,
+        ContractPartyPersonId: filters.ContractPartyPersonId,
+        AwaitingSignature: filters.AwaitingSignature,
+        EffectiveOnly: filters.EffectiveOnly,
+        ExecutedAfter: filters.ExecutedAfter,
+        ExecutedBefore: filters.ExecutedBefore,
+        HasUnresolvedReconciliation: filters.HasUnresolvedReconciliation);
 
     // --------------------------------------------------------------- mapping
 

@@ -1,9 +1,10 @@
-using System.Data.Common;
+﻿using System.Data.Common;
 using System.Globalization;
 using AgencyOS.Application.Search;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.Deals;
+using AgencyOS.Domain.Legal;
 using AgencyOS.Domain.Opportunities;
 using AgencyOS.Domain.People;
 using AgencyOS.Domain.Projects;
@@ -277,6 +278,35 @@ internal sealed class SearchQueries : ISearchQueries
                     : $"t.status NOT IN ({(int)DealStatus.NoDeal}, {(int)DealStatus.Cancelled})"));
         }
 
+        if (types.Contains(SearchEntityType.Contract))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Contract,
+                table: "contracts",
+                idColumn: "id",
+                titleColumn: "title",
+
+                // The factual summary and nothing else. legal_analysis and
+                // strategy_notes are absent here and from the search vector, and no
+                // term value is indexed anywhere. A caller without
+                // contracts.privileged.read must not be able to confirm that
+                // counsel wrote something by searching for a phrase and watching a
+                // contract surface, and one without deals.economics.read must not
+                // be able to confirm a figure the same way. A redaction that leaves
+                // a search hit behind is not a redaction (ADR-0021, ADR-0022).
+                subtitleExpression: "t.summary",
+                statusColumn: "status",
+
+                // An abandoned or superseded instrument is history rather than part
+                // of the working set. A terminated one is deliberately still
+                // included: what an ended agreement said is exactly what somebody
+                // searches for afterwards.
+                archivedPredicate: includeArchived
+                    ? "TRUE"
+                    : $"t.status NOT IN ({(int)ContractStatus.Abandoned}, "
+                        + $"{(int)ContractStatus.Superseded})"));
+        }
+
         if (branches.Count == 0)
         {
             return new SearchResultModel([], HasMore: false);
@@ -376,6 +406,7 @@ internal sealed class SearchQueries : ISearchQueries
         SearchEntityType.Package => ((PackageStatus)status).ToString(),
         SearchEntityType.Opportunity => ((OpportunityStatus)status).ToString(),
         SearchEntityType.Deal => ((DealStatus)status).ToString(),
+        SearchEntityType.Contract => ((ContractStatus)status).ToString(),
         _ => status.ToString(CultureInfo.InvariantCulture),
     };
 }

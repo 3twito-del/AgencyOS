@@ -1,5 +1,6 @@
-using AgencyOS.Application.Directory;
+﻿using AgencyOS.Application.Directory;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Representations;
@@ -25,6 +26,7 @@ namespace AgencyOS.Application.SavedViews;
 /// <param name="Packages">Matching packages, when the target is Packages.</param>
 /// <param name="Opportunities">Matching pursuits, when the target is Opportunities.</param>
 /// <param name="Deals">Matching negotiations, when the target is Deals.</param>
+/// <param name="Contracts">Matching contracts, when the target is Contracts.</param>
 public sealed record SavedViewResultModel(
     SavedViewTarget Target,
     IReadOnlyList<PersonSummaryModel> People,
@@ -35,10 +37,11 @@ public sealed record SavedViewResultModel(
     IReadOnlyList<ProjectSummaryModel> Projects,
     IReadOnlyList<PackageSummaryModel> Packages,
     IReadOnlyList<OpportunitySummaryModel> Opportunities,
-    IReadOnlyList<DealSummaryModel> Deals)
+    IReadOnlyList<DealSummaryModel> Deals,
+    IReadOnlyList<ContractSummaryModel> Contracts)
 {
     public static SavedViewResultModel Empty(SavedViewTarget target) =>
-        new(target, [], [], [], [], [], [], [], [], []);
+        new(target, [], [], [], [], [], [], [], [], [], []);
 
     // One factory per target, so a query names only the list it filled. Building
     // these positionally meant every target's call site had to grow by an empty
@@ -73,6 +76,16 @@ public sealed record SavedViewResultModel(
     public static SavedViewResultModel OfDeals(IReadOnlyList<DealSummaryModel> deals) =>
         Empty(SavedViewTarget.Deals) with { Deals = deals };
 
+    /// <summary>A contract result set.</summary>
+    /// <remarks>
+    /// The summaries carry no drafted term and no privileged prose, so a saved view
+    /// cannot become a second route to content its owner may not read. What a
+    /// contract says is redacted where it is projected, not here (ADR-0022).
+    /// </remarks>
+    public static SavedViewResultModel OfContracts(
+        IReadOnlyList<ContractSummaryModel> contracts) =>
+        Empty(SavedViewTarget.Contracts) with { Contracts = contracts };
+
     /// <summary>Gets how many rows the view returned, whatever its target.</summary>
     public int Count =>
         People.Count
@@ -83,7 +96,8 @@ public sealed record SavedViewResultModel(
         + Projects.Count
         + Packages.Count
         + Opportunities.Count
-        + Deals.Count;
+        + Deals.Count
+        + Contracts.Count;
 }
 
 /// <summary>

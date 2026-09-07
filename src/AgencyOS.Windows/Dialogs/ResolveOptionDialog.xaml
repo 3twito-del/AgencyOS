@@ -1,0 +1,48 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ResolveOptionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record what happened"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="480">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       TextWrapping="Wrap" />
+            <TextBlock x:Name="DeadlineText" Opacity="0.75" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <ComboBox x:Name="OutcomeBox" Header="What happened" HorizontalAlignment="Stretch"
+                      SelectionChanged="OnOutcomeChanged">
+                <ComboBoxItem Content="The holder exercised it" Tag="Exercised" IsSelected="True" />
+                <ComboBoxItem Content="The holder declined it" Tag="Declined" />
+                <ComboBoxItem Content="The holder gave it up" Tag="Waived" />
+                <ComboBoxItem Content="Its deadline passed" Tag="Expired" />
+                <ComboBoxItem Content="It was cancelled" Tag="Cancelled" />
+            </ComboBox>
+
+            <!--
+                Nothing lapses on its own. An option past its deadline stays
+                Available until a person records that it lapsed, because expiry is
+                a legal position somebody takes, not a consequence of a clock
+                (ADR-0022).
+            -->
+            <InfoBar x:Name="ExpiryBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                     Title="Expiry is something you are recording"
+                     Message="AgencyOS never lapses an option by itself. This records that the stated deadline passed without the holder acting, dated from the deadline the contract set." />
+
+            <CalendarDatePicker x:Name="OccurredPicker" Header="When"
+                                PlaceholderText="The day it happened"
+                                DateChanged="OnDateChanged" />
+
+            <TextBox x:Name="ReasonBox" Header="Reason" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70" />
+
+            <CheckBox x:Name="FollowUpBox" Content="Create a follow-up task" />
+            <TextBox x:Name="FollowUpTitleBox" PlaceholderText="Follow-up title" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

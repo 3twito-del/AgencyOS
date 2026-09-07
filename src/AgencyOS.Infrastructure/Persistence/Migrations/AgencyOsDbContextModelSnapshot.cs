@@ -773,6 +773,1200 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     b.ToTable("interaction_participants", (string)null);
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Legal.Contract", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AcceptedOfferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("accepted_offer_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("DealId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deal_id");
+
+                    b.Property<DateOnly?>("EffectiveOn")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_on");
+
+                    b.Property<DateOnly?>("ExecutedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("executed_on");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("LegalAnalysis")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("legal_analysis");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<int>("Privilege")
+                        .HasColumnType("integer")
+                        .HasColumnName("privilege");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("reference");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StrategyNotes")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("strategy_notes");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("summary");
+
+                    b.Property<DateOnly?>("TerminatedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("terminated_on");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcceptedOfferId")
+                        .HasDatabaseName("ix_contracts_accepted_offer");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("OrganizationId", "AcceptedOfferId");
+
+                    b.HasIndex("OrganizationId", "DealId")
+                        .HasDatabaseName("ix_contracts_organization_deal");
+
+                    b.HasIndex("OrganizationId", "OwnerUserId")
+                        .HasDatabaseName("ix_contracts_organization_owner");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_contracts_organization_status");
+
+                    b.HasIndex("OrganizationId", "UpdatedAt")
+                        .HasDatabaseName("ix_contracts_organization_updated");
+
+                    b.ToTable("contracts", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("detail");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.Property<int?>("Transition")
+                        .HasColumnType("integer")
+                        .HasColumnName("transition");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId", "RecordedAt")
+                        .HasDatabaseName("ix_contract_events_contract_recorded");
+
+                    b.ToTable("contract_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ClauseReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("clause_reference");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_version_id");
+
+                    b.Property<Guid?>("EconomicsTermId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("economics_term_id");
+
+                    b.Property<string>("ExerciseMethod")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("exercise_method");
+
+                    b.Property<Guid>("HolderPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("holder_party_id");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid?>("NoticeRequirementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("notice_requirement_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<DateOnly?>("ResolvedDeadlineOn")
+                        .HasColumnType("date")
+                        .HasColumnName("resolved_deadline_on");
+
+                    b.Property<DateOnly?>("ResolvedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("resolved_on");
+
+                    b.Property<Guid?>("SourcePropertyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_property_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("subject");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.Property<DateOnly?>("WindowOpensOn")
+                        .HasColumnType("date")
+                        .HasColumnName("window_opens_on");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_contract_options_contract");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "ContractVersionId");
+
+                    b.HasIndex("OrganizationId", "HolderPartyId");
+
+                    b.HasIndex("OrganizationId", "ResolvedDeadlineOn")
+                        .HasDatabaseName("ix_contract_options_organization_deadline");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_contract_options_organization_status");
+
+                    b.ToTable("contract_options", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractParty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<string>("ExternalName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("external_name");
+
+                    b.Property<bool>("IsRequiredSignatory")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_required_signatory");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("person_id");
+
+                    b.Property<string>("Provenance")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("provenance");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_contract_parties_contract");
+
+                    b.HasIndex("OrganizationId", "CompanyId")
+                        .HasDatabaseName("ix_contract_parties_organization_company");
+
+                    b.HasIndex("OrganizationId", "PersonId")
+                        .HasDatabaseName("ix_contract_parties_organization_person");
+
+                    b.ToTable("contract_parties", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractRelationship", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<Guid>("RelatedContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_contract_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RelatedContractId")
+                        .HasDatabaseName("ix_contract_relationships_related");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "RelatedContractId");
+
+                    b.HasIndex("ContractId", "RelatedContractId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("ux_contract_relationships_pair_kind");
+
+                    b.ToTable("contract_relationships", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractSignature", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_party_id");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("external_reference");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer")
+                        .HasColumnName("method");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<DateOnly>("SignedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("signed_on");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId", "ContractPartyId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_contract_signatures_contract_party");
+
+                    b.HasIndex("OrganizationId", "ContractPartyId");
+
+                    b.ToTable("contract_signatures", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractTaskLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid?>("ContractOptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_option_id");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("linked_at");
+
+                    b.Property<Guid?>("ObligationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("obligation_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("TaskItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("task_item_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_contract_task_links_contract");
+
+                    b.HasIndex("TaskItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_contract_task_links_task");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "ContractOptionId");
+
+                    b.HasIndex("OrganizationId", "ObligationId");
+
+                    b.HasIndex("OrganizationId", "TaskItemId");
+
+                    b.ToTable("contract_task_links", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractTerm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<bool?>("BooleanValue")
+                        .HasColumnType("boolean")
+                        .HasColumnName("boolean_value");
+
+                    b.Property<string>("ClauseReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("clause_reference");
+
+                    b.Property<int>("Code")
+                        .HasColumnType("integer")
+                        .HasColumnName("code");
+
+                    b.Property<Guid>("ContractVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_version_id");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<DateOnly?>("DateValue")
+                        .HasColumnType("date")
+                        .HasColumnName("date_value");
+
+                    b.Property<long?>("IntegerValue")
+                        .HasColumnType("bigint")
+                        .HasColumnName("integer_value");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("label");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<decimal?>("NumericValue")
+                        .HasColumnType("numeric(19,6)")
+                        .HasColumnName("numeric_value");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Privilege")
+                        .HasColumnType("integer")
+                        .HasColumnName("privilege");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<string>("TextValue")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("text_value");
+
+                    b.Property<int?>("Unit")
+                        .HasColumnType("integer")
+                        .HasColumnName("unit");
+
+                    b.Property<int>("ValueKind")
+                        .HasColumnType("integer")
+                        .HasColumnName("value_kind");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("ContractVersionId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("ux_contract_terms_version_code");
+
+                    b.ToTable("contract_terms", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer")
+                        .HasColumnName("direction");
+
+                    b.Property<string>("DisplayFileName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("display_file_name");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("external_reference");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("label");
+
+                    b.Property<string>("MediaType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("media_type");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateOnly?>("ReceivedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("received_on");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<DateOnly?>("SentOn")
+                        .HasColumnType("date")
+                        .HasColumnName("sent_on");
+
+                    b.Property<string>("SourceSystem")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("source_system");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_number");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId", "VersionNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ux_contract_versions_contract_number");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_contract_versions_organization_status");
+
+                    b.ToTable("contract_versions", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.NoticeRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer")
+                        .HasColumnName("direction");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("external_reference");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer")
+                        .HasColumnName("method");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid?>("NoticeRequirementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("notice_requirement_id");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("RecipientPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipient_party_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<Guid>("SenderPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_party_id");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("summary");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId", "OccurredOn")
+                        .HasDatabaseName("ix_notice_records_contract_occurred");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "NoticeRequirementId");
+
+                    b.ToTable("notice_records", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.NoticeRequirement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AddressReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("address_reference");
+
+                    b.Property<string>("ClauseReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("clause_reference");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_version_id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer")
+                        .HasColumnName("method");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("ObligorPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("obligor_party_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("RecipientPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipient_party_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<Guid?>("RelatedObligationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_obligation_id");
+
+                    b.Property<Guid?>("RelatedOptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_option_id");
+
+                    b.Property<DateOnly?>("ResolvedDueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("resolved_due_on");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_notice_requirements_contract");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "ContractVersionId");
+
+                    b.HasIndex("OrganizationId", "ObligorPartyId");
+
+                    b.HasIndex("OrganizationId", "ResolvedDueOn")
+                        .HasDatabaseName("ix_notice_requirements_organization_due");
+
+                    b.ToTable("notice_requirements", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.Obligation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ClauseReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("clause_reference");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_version_id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("ObligeePartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("obligee_party_id");
+
+                    b.Property<Guid>("ObligorPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("obligor_party_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Privilege")
+                        .HasColumnType("integer")
+                        .HasColumnName("privilege");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<Guid?>("RelatedOptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_option_id");
+
+                    b.Property<Guid?>("RelatedRightsGrantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_rights_grant_id");
+
+                    b.Property<DateOnly?>("ResolvedDueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("resolved_due_on");
+
+                    b.Property<DateOnly?>("ResolvedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("resolved_on");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_obligations_contract");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "ContractVersionId");
+
+                    b.HasIndex("OrganizationId", "ObligorPartyId");
+
+                    b.HasIndex("OrganizationId", "RelatedOptionId");
+
+                    b.HasIndex("OrganizationId", "RelatedRightsGrantId");
+
+                    b.HasIndex("OrganizationId", "ResolvedDueOn")
+                        .HasDatabaseName("ix_obligations_organization_due");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_obligations_organization_status");
+
+                    b.ToTable("obligations", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ObligationEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("ObligationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("obligation_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.Property<int?>("Transition")
+                        .HasColumnType("integer")
+                        .HasColumnName("transition");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ObligationId", "RecordedAt")
+                        .HasDatabaseName("ix_obligation_events_obligation_recorded");
+
+                    b.ToTable("obligation_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.OptionEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractOptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_option_id");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_status");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_status");
+
+                    b.Property<int?>("Transition")
+                        .HasColumnType("integer")
+                        .HasColumnName("transition");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractOptionId", "RecordedAt")
+                        .HasDatabaseName("ix_option_events_option_recorded");
+
+                    b.ToTable("option_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.RightsGrant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ClauseReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("clause_reference");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_version_id");
+
+                    b.Property<DateOnly?>("EndsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("ends_on");
+
+                    b.Property<int>("Exclusivity")
+                        .HasColumnType("integer")
+                        .HasColumnName("exclusivity");
+
+                    b.Property<Guid>("GranteePartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grantee_party_id");
+
+                    b.Property<Guid>("GrantorPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grantor_party_id");
+
+                    b.Property<int>("Medium")
+                        .HasColumnType("integer")
+                        .HasColumnName("medium");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("PeriodKind")
+                        .HasColumnType("integer")
+                        .HasColumnName("period_kind");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<string>("Reservations")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("reservations");
+
+                    b.Property<int>("RightType")
+                        .HasColumnType("integer")
+                        .HasColumnName("right_type");
+
+                    b.Property<Guid?>("SourcePropertyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_property_id");
+
+                    b.Property<DateOnly?>("StartsOn")
+                        .HasColumnType("date")
+                        .HasColumnName("starts_on");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("SupersededByGrantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("superseded_by_grant_id");
+
+                    b.Property<int>("Territory")
+                        .HasColumnType("integer")
+                        .HasColumnName("territory");
+
+                    b.Property<string>("TerritoryDetail")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("territory_detail");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_rights_grants_contract");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "ContractVersionId");
+
+                    b.HasIndex("OrganizationId", "GrantorPartyId");
+
+                    b.HasIndex("OrganizationId", "ProjectId")
+                        .HasDatabaseName("ix_rights_grants_organization_project");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_rights_grants_organization_status");
+
+                    b.HasIndex("OrganizationId", "RightType", "Medium")
+                        .HasDatabaseName("ix_rights_grants_organization_right_medium");
+
+                    b.ToTable("rights_grants", (string)null);
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Memberships.Membership", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3391,6 +4585,441 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Legal.Contract", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Deals.Offer", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "AcceptedOfferId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Deals.Deal", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "DealId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany("Events")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractOption", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractParty", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "HolderPartyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("AgencyOS.Domain.Legal.DeadlineRule", "Deadline", b1 =>
+                        {
+                            b1.Property<Guid>("ContractOptionId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int?>("Anchor")
+                                .HasColumnType("integer")
+                                .HasColumnName("deadline_anchor");
+
+                            b1.Property<int>("Basis")
+                                .HasColumnType("integer")
+                                .HasColumnName("deadline_basis");
+
+                            b1.Property<bool>("Before")
+                                .HasColumnType("boolean")
+                                .HasColumnName("deadline_before");
+
+                            b1.Property<string>("Description")
+                                .HasMaxLength(1000)
+                                .HasColumnType("character varying(1000)")
+                                .HasColumnName("deadline_description");
+
+                            b1.Property<int>("Kind")
+                                .HasColumnType("integer")
+                                .HasColumnName("deadline_kind");
+
+                            b1.Property<int?>("Offset")
+                                .HasColumnType("integer")
+                                .HasColumnName("deadline_offset");
+
+                            b1.Property<DateOnly?>("On")
+                                .HasColumnType("date")
+                                .HasColumnName("deadline_on");
+
+                            b1.Property<int?>("Unit")
+                                .HasColumnType("integer")
+                                .HasColumnName("deadline_unit");
+
+                            b1.HasKey("ContractOptionId");
+
+                            b1.ToTable("contract_options");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ContractOptionId");
+                        });
+
+                    b.Navigation("Deadline")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractParty", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany("Parties")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Companies.Company", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CompanyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.People.Person", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "PersonId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractRelationship", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "RelatedContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractSignature", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany("Signatures")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractParty", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractPartyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractTaskLink", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractOption", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractOptionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AgencyOS.Domain.Legal.Obligation", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ObligationId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AgencyOS.Domain.Tasks.TaskItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "TaskItemId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractTerm", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.ContractVersion", null)
+                        .WithMany("Terms")
+                        .HasForeignKey("ContractVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractVersion", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.NoticeRecord", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.NoticeRequirement", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "NoticeRequirementId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.NoticeRequirement", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractParty", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ObligorPartyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("AgencyOS.Domain.Legal.DeadlineRule", "Due", b1 =>
+                        {
+                            b1.Property<Guid>("NoticeRequirementId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int?>("Anchor")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_anchor");
+
+                            b1.Property<int>("Basis")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_basis");
+
+                            b1.Property<bool>("Before")
+                                .HasColumnType("boolean")
+                                .HasColumnName("due_before");
+
+                            b1.Property<string>("Description")
+                                .HasMaxLength(1000)
+                                .HasColumnType("character varying(1000)")
+                                .HasColumnName("due_description");
+
+                            b1.Property<int>("Kind")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_kind");
+
+                            b1.Property<int?>("Offset")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_offset");
+
+                            b1.Property<DateOnly?>("On")
+                                .HasColumnType("date")
+                                .HasColumnName("due_on");
+
+                            b1.Property<int?>("Unit")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_unit");
+
+                            b1.HasKey("NoticeRequirementId");
+
+                            b1.ToTable("notice_requirements");
+
+                            b1.WithOwner()
+                                .HasForeignKey("NoticeRequirementId");
+                        });
+
+                    b.Navigation("Due")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.Obligation", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractParty", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ObligorPartyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractOption", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "RelatedOptionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.Legal.RightsGrant", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "RelatedRightsGrantId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.OwnsOne("AgencyOS.Domain.Legal.DeadlineRule", "Due", b1 =>
+                        {
+                            b1.Property<Guid>("ObligationId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int?>("Anchor")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_anchor");
+
+                            b1.Property<int>("Basis")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_basis");
+
+                            b1.Property<bool>("Before")
+                                .HasColumnType("boolean")
+                                .HasColumnName("due_before");
+
+                            b1.Property<string>("Description")
+                                .HasMaxLength(1000)
+                                .HasColumnType("character varying(1000)")
+                                .HasColumnName("due_description");
+
+                            b1.Property<int>("Kind")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_kind");
+
+                            b1.Property<int?>("Offset")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_offset");
+
+                            b1.Property<DateOnly?>("On")
+                                .HasColumnType("date")
+                                .HasColumnName("due_on");
+
+                            b1.Property<int?>("Unit")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_unit");
+
+                            b1.HasKey("ObligationId");
+
+                            b1.ToTable("obligations");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ObligationId");
+                        });
+
+                    b.Navigation("Due")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ObligationEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Obligation", null)
+                        .WithMany("Events")
+                        .HasForeignKey("ObligationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.OptionEvent", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.ContractOption", null)
+                        .WithMany("Events")
+                        .HasForeignKey("ContractOptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.RightsGrant", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractParty", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "GrantorPartyId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Projects.Project", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ProjectId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Memberships.Membership", b =>
                 {
                     b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
@@ -3941,6 +5570,30 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Interactions.Interaction", b =>
                 {
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.Contract", b =>
+                {
+                    b.Navigation("Events");
+
+                    b.Navigation("Parties");
+
+                    b.Navigation("Signatures");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractOption", b =>
+                {
+                    b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.ContractVersion", b =>
+                {
+                    b.Navigation("Terms");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Legal.Obligation", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Opportunities.Opportunity", b =>

@@ -1,4 +1,4 @@
-# Roadmap
+﻿# Roadmap
 
 Status legend: **Done** · **In progress** · **Not started**.
 Milestones with no status marker are Not started.
@@ -787,15 +787,126 @@ Deliver:
   reachable only by accepting an offer)
 - F# pilot where advantageous. **met** (adopted; pure kernel behind one boundary)
 
-## M8 — Contracts, Rights & Obligations
+## M8 — Contracts, Rights, Options & Obligations — **Done** (2026-09-08)
+
+Implemented: the contract as a legal instrument anchored to an accepted offer;
+drafting versions carrying a reference to a document AgencyOS has never seen;
+transcribed contract terms in the same vocabulary M7 negotiates in;
+negotiated-against-drafted reconciliation; rights grants that supersede rather than
+overwrite; options, obligations and notice requirements with deadline rules that
+resolve honestly or not at all; signatures as the only route to execution.
+
+**Four dates, never collapsed.** Signature, execution, effectiveness and
+termination are four separate facts. Executed is derived from the last required
+signature and dated from the day it was given, not the day it was typed in.
+Effective is recorded separately and may precede execution, so there is
+deliberately no constraint ordering the two: an agreement effective as of January
+and signed in March is ordinary, and a check forbidding it would force somebody to
+record a date the contract does not state.
+
+**Execution follows from signatures and from nothing else.** `SignatureRecorded`
+and `ExecutionCompleted` are marked not caller-requestable in the F# kernel, the
+status route refuses them by name, and there is no arbitrary status PATCH anywhere
+in the milestone. A contract cannot claim execution with nobody's signature behind
+it.
+
+**AgencyOS records where a document is, and says so.** A drafting version carries
+an external reference, a source system and a filename, and **no content hash**,
+because the system has never seen the bytes and a hash it did not compute would be
+a claim about identity it cannot support. `HoldsDocument` is published as `false`
+through the API and shown on the Windows page, so a client states the truth rather
+than letting a reader assume. Nothing copies files, persists local paths as
+canonical data, or builds a shadow blob store.
+
+**Reconciliation reports what differs and never whether it matters.** It is built
+on the same F# comparison the M7 offer thread uses, because it is the same
+operation, and it produces five factual outcomes — Matched, Changed,
+MissingFromContract, AddedInContract, NotComparable — with a direction that reports
+movement, never merit. There is no Favourable, Unfavourable, Material or Risk:
+whether a change is acceptable is a legal question about a document AgencyOS has
+not read. The comparison is a stateless projection and the difference count is
+recomputed on every read, because a stored count would be right until the next
+version was recorded and wrong afterwards.
+
+**One vocabulary and one money system.** `ContractTermCode` shares its integer
+values with `DealTermCode`, and the commercial half of the catalog is derived from
+`DealTermCatalog` rather than retyped. `contract_terms` has the same column shape,
+the same value-kind CHECK and the same `numeric` money columns as `offer_terms`. A
+second money representation would have made reconciliation a conversion.
+
+**Deadlines resolve honestly or not at all.** A rule is a stated date, an offset
+from an anchor event, or the clause's own words. Resolution returns nothing in
+three cases the system can name: no structured rule, an anchor that has not
+happened, or **business days**, for which AgencyOS holds no calendar. Business-day
+rules are stored faithfully and then decline to produce a date, because counting
+them as calendar days would put a deadline in a lawyer's calendar that looks
+authoritative and is wrong. A rule that did not resolve is absent from every work
+queue rather than guessed onto a day, and the client shows which of the three
+reasons applies.
+
+**Nothing lapses, exercises or breaches on its own.** An option past its deadline
+stays Available until somebody records that it lapsed — `IsPastDeadline` is derived
+and shown, `Expired` is an act. An exercise is never inferred from a payment. An
+obligation past its date is past due, which is a fact about a date; **breach is a
+determination a person makes**, requires a stated reason, and is refused without
+one. That distinction is carried through the domain, the API, the client and the
+dialogs, and is tested at each level.
+
+**Privilege is assigned, never inferred.** The default is Ordinary, so nothing
+becomes privileged by accident. Three redaction rules apply separately — terms need
+`contracts.terms.read`, their figures need `deals.economics.read`, and analysis,
+strategy and privileged rows need `contracts.privileged.read` — and everything is
+removed rather than marked, with no count of what was withheld. **The search vector
+indexes title, reference and factual summary only**, so a phrase appearing solely
+in privileged content surfaces nothing: a redaction that leaves a search hit behind
+is not a redaction.
+
+**An amendment is a separate instrument**, linked through
+`contract_relationships`, with its own parties, drafts and execution state. It is
+not version five of the paper it changes.
+
+**Temporal is not adopted.** M8 has no durable multi-step process, nothing to retry
+or compensate, and performs no scheduled action; the four questions and their
+answers are recorded in ADR-0022. **No TLA+ either**: the state machines are finite
+and small, and are proved by enumerating every state and trigger pair, which is a
+stronger artifact than a model of the same table.
+
+Everything in M8 is **online-only**. Nothing cached, nothing queued, cache schema
+unchanged at version 2. `docs/13_OFFLINE_CLASSIFICATION.md` records why, including
+what a cached privileged field would mean after the permission behind it is
+revoked.
+
+Known limitations, recorded rather than implied:
+
+- Business-day deadlines are stored and unusable until a holiday calendar exists.
+  The clause keeps its stated intent and produces no date; that is the honest
+  state, and it is visible on the surface rather than hidden.
+- AgencyOS holds no document. Every version is a reference to a file somebody else
+  stores, and the system cannot confirm the reference still points at the same
+  thing. M10 brings the repository.
+- No electronic signature and no verification of any kind. A signature row is an
+  assertion that a party signed.
+- Territory is four coarse values plus the clause's own words. There is no
+  geopolitical model and no attempt at one.
+- Reconciliation compares terms that were transcribed. A term nobody typed is a
+  term the comparison cannot see, and the count is only as complete as the
+  transcription.
+- Nothing about commissions, invoices, receivables, payments, allocations or the
+  ledger, and no money reconciliation of any kind — all M9.
+
 Deliver:
-- Contract;
-- clauses/terms;
-- options;
-- rights;
-- expirations;
-- reminders/approvals;
-- document versioning.
+- Contract; **met** (anchored to a deal and its accepted offer by composite key;
+  several per deal)
+- clauses/terms; **met** (transcribed per version, frozen once recorded, in the M7
+  vocabulary)
+- options; **met** (never exercised or lapsed automatically)
+- rights; **met** (recorded as the contract states them; superseded, never
+  overwritten)
+- expirations; **met** (deadline rules that resolve honestly or refuse)
+- reminders/approvals; **met** (derived legal deadlines and a work queue; tasks
+  linked deliberately, never automatically)
+- document versioning. **met as reference versioning** (drafting versions with
+  external references; AgencyOS holds no document until M10, and says so)
 
 ## M9 — Finance
 Deliver:

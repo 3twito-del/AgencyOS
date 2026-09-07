@@ -1,0 +1,79 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreateContractDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Open a contract"
+    PrimaryButtonText="Open"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="480">
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                       Text="A contract papers a negotiation whose commercial terms are already agreed. The accepted offer it names is what every draft is later reconciled against, and it cannot be changed afterwards." />
+
+            <TextBox x:Name="DealIdBox" Header="Deal" PlaceholderText="Negotiation identifier"
+                     TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="OfferIdBox" Header="Accepted offer"
+                     PlaceholderText="The agreed offer this papers"
+                     TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="TitleBox" Header="Title"
+                     PlaceholderText="Northgate Pictures - Writer Agreement"
+                     TextChanged="OnRequiredChanged" />
+
+            <ComboBox x:Name="KindBox" Header="Kind" HorizontalAlignment="Stretch">
+                <ComboBoxItem Content="Long form" Tag="LongForm" IsSelected="True" />
+                <ComboBoxItem Content="Short form" Tag="ShortForm" />
+                <ComboBoxItem Content="Side letter" Tag="SideLetter" />
+                <ComboBoxItem Content="Amendment" Tag="Amendment" />
+                <ComboBoxItem Content="Rider" Tag="Rider" />
+                <ComboBoxItem Content="Loan-out" Tag="LoanOut" />
+                <ComboBoxItem Content="Services agreement" Tag="ServicesAgreement" />
+                <ComboBoxItem Content="Other" Tag="Other" />
+            </ComboBox>
+
+            <!--
+                An amendment is a separate executed instrument, not a later draft
+                of the paper it changes. The note says so where somebody is about
+                to pick the wrong one (ADR-0022).
+            -->
+            <InfoBar x:Name="AmendmentBar" Severity="Informational" IsOpen="False" IsClosable="False"
+                     Title="An amendment is its own agreement"
+                     Message="Record it as a separate contract and then link it to the one it changes. It is not a further drafting version of the original." />
+
+            <TextBox x:Name="OwnerIdBox" Header="Owner" PlaceholderText="Internal owner identifier"
+                     TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="ReferenceBox" Header="Reference" PlaceholderText="Internal handle, if any" />
+
+            <TextBox x:Name="SummaryBox" Header="Summary" PlaceholderText="What this instrument is"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
+
+            <ComboBox x:Name="PrivilegeBox" Header="Sensitivity" HorizontalAlignment="Stretch">
+                <ComboBoxItem Content="Ordinary" Tag="Ordinary" IsSelected="True" />
+                <ComboBoxItem Content="Confidential" Tag="Confidential" />
+                <ComboBoxItem Content="Legal strategy" Tag="LegalStrategy" />
+                <ComboBoxItem Content="Attorney-client privileged" Tag="AttorneyClientPrivileged" />
+            </ComboBox>
+
+            <!--
+                Privilege is assigned by a person and never guessed. The note says
+                what marking it actually does, so it is a deliberate choice rather
+                than a dropdown somebody scrolls past (ADR-0022).
+            -->
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                       Text="Marking this as legal strategy or privileged hides the analysis and strategy fields from colleagues without contracts.privileged.read. AgencyOS never decides this for itself." />
+
+            <TextBox x:Name="AnalysisBox" Header="Legal analysis"
+                     PlaceholderText="What counsel thinks. Privileged."
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
+
+            <TextBox x:Name="StrategyBox" Header="Strategy notes"
+                     PlaceholderText="Our position on the paper"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>
