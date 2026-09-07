@@ -49,6 +49,17 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             return false;
         }
 
+        if (exception is SystemAlreadyInitializedException)
+        {
+            // Reaching this means the bootstrap token is still configured on an
+            // already-initialized deployment. Nothing was mutated - the handler
+            // refuses, and the database singleton would refuse after it - but the
+            // secret has outlived its single use and should be removed.
+            _logger.LogWarning(
+                "Bootstrap was attempted on an initialized system. No state was changed. "
+                    + "The bootstrap token is still configured for this deployment and should be removed.");
+        }
+
         if (status >= StatusCodes.Status500InternalServerError)
         {
             _logger.LogError(exception, "Unhandled integrity failure on {Path}.", httpContext.Request.Path.Value);

@@ -2,10 +2,12 @@ using AgencyOS.Application.Abstractions;
 using AgencyOS.Application.Audit;
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Authorization;
+using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.Provisioning;
+using AgencyOS.Domain.Releases;
 
 namespace AgencyOS.Application.Provisioning;
 
@@ -36,14 +38,21 @@ public sealed record BootstrapSystemCommand(
 /// <param name="OwnerUserId">Identifier of the created owner.</param>
 /// <param name="MembershipId">Identifier of the ownership membership.</param>
 /// <param name="InitializedAt">When initialization completed.</param>
+/// <param name="ReleasePolicyPlatform">Platform the initial release policy governs.</param>
+/// <param name="ReleasePolicyRing">Ring the initial release policy governs.</param>
+/// <param name="ReleasePolicyVersion">The single client version the initial policy admits.</param>
 public sealed record BootstrapSystemResult(
     OrganizationId OrganizationId,
     UserId OwnerUserId,
     MembershipId MembershipId,
-    DateTimeOffset InitializedAt);
+    DateTimeOffset InitializedAt,
+    string ReleasePolicyPlatform,
+    string ReleasePolicyRing,
+    string ReleasePolicyVersion);
 
 /// <summary>
-/// Creates the first organization and its owner, once, on an uninitialized system.
+/// Creates the first organization, its owner, and the release policy that makes
+/// the instance usable - once, on an uninitialized system.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -63,6 +72,14 @@ public sealed record BootstrapSystemResult(
 /// operation, including creating a second organization, goes through the ordinary
 /// permission checks - bootstrap widens nothing.
 /// </para>
+/// <para>
+/// <strong>Atomicity.</strong> Every component - user, organization, membership,
+/// initialization record, release policy and the audit records describing them -
+/// is added to one unit of work and committed by a single
+/// <see cref="IUnitOfWork.SaveChangesAsync"/>. EF Core wraps a single save in one
+/// transaction, so the outcome is all or nothing. A partially initialized system
+/// is not a state this handler can produce.
+/// </para>
 /// </remarks>
 public sealed class BootstrapSystemHandler
 {
@@ -70,6 +87,9 @@ public sealed class BootstrapSystemHandler
     private readonly IOrganizationRepository _organizations;
     private readonly IMembershipRepository _memberships;
     private readonly IUserRepository _users;
+    private readonly IReleasePolicyRepository _releasePolicies;
+    private readonly IExecutionContext _execution;
+    private readonly IApiContractPolicy _apiContract;
     private readonly AuditRecorder _audit;
     private readonly IClock _clock;
     private readonly IUnitOfWork _unitOfWork;
@@ -79,6 +99,9 @@ public sealed class BootstrapSystemHandler
         IOrganizationRepository organizations,
         IMembershipRepository memberships,
         IUserRepository users,
+        IReleasePolicyRepository releasePolicies,
+        IExecutionContext execution,
+        IApiContractPolicy apiContract,
         AuditRecorder audit,
         IClock clock,
         IUnitOfWork unitOfWork)
@@ -87,6 +110,9 @@ public sealed class BootstrapSystemHandler
         _organizations = organizations;
         _memberships = memberships;
         _users = users;
+        _releasePolicies = releasePolicies;
+        _execution = execution;
+        _apiContract = apiContract;
         _audit = audit;
         _clock = clock;
         _unitOfWork = unitOfWork;
@@ -101,6 +127,27 @@ public sealed class BootstrapSystemHandler
         if (await _initialization.IsInitializedAsync(cancellationToken).ConfigureAwait(false))
         {
             throw new SystemAlreadyInitializedException();
+        }
+
+        // The initial release policy is derived from the client performing the
+        // bootstrap, because that is the one build we know is meant to use this
+        // instance. Without an identity there is nothing to admit, and the
+        // alternative - a permissive default - would leave the first system in the
+        // least governed state of its life.
+        ClientIdentity client = _execution.Client
+            ?? throw new DomainException(
+                "First-run initialization requires the calling client to present its identity headers "
+                    + "(platform, channel, client version and API contract version). The initial release "
+                    + "policy is derived from them.");
+
+        if (client.ApiContractVersion < _apiContract.Minimum
+            || client.ApiContractVersion > _apiContract.Maximum)
+        {
+            // Initializing here would publish a policy that immediately locks out
+            // the client that just created the system.
+            throw new DomainException(
+                $"The bootstrapping client speaks API contract {client.ApiContractVersion}, outside this "
+                    + $"server's supported range {_apiContract.Minimum}-{_apiContract.Maximum}.");
         }
 
         DateTimeOffset now = _clock.UtcNow;
@@ -122,6 +169,8 @@ public sealed class BootstrapSystemHandler
 
         _organizations.Add(organization);
 
+        // The creator owns what they create, otherwise a new organization would be
+        // immediately unadministrable.
         Membership ownership = Membership.Grant(
             organization.Id,
             owner.Id,
@@ -133,8 +182,29 @@ public sealed class BootstrapSystemHandler
 
         _initialization.Add(SystemInitialization.Record(organization.Id, owner.Id, now));
 
+        // The narrowest policy that works: exactly one platform, one ring, and one
+        // version - the bootstrapping build. Latest equals minimum, so nothing
+        // older is admitted and there is no wildcard to widen later by accident.
+        // Publishing a further version is an ordinary authorized operation.
+        ReleasePolicy releasePolicy = ReleasePolicy.Create(
+            platform: client.Platform,
+            ring: client.Ring,
+            latestVersion: client.Version.Text,
+            minimumSupportedVersion: client.Version.Text,
+            apiContractMinimum: _apiContract.Minimum,
+            apiContractMaximum: _apiContract.Maximum,
+            now: now,
+            behindPolicy: UpdatePolicy.Recommended,
+            securityEpoch: 1,
+            killSwitch: false,
+            revokedVersions: []);
+
+        _releasePolicies.Add(releasePolicy);
+
+        string ringName = ReleaseRingNames.ToWireName(client.Ring);
+
         // Bootstrap is the most consequential single operation the system has: it
-        // is where authority comes from. It is audited as three records so the
+        // is where authority comes from. It is audited as separate records so the
         // resulting state is explainable from the trail alone.
         _audit.Record(
             AuditAction.SystemBootstrapped,
@@ -147,6 +217,9 @@ public sealed class BootstrapSystemHandler
                 OrganizationName = organization.Name,
                 OwnerUserId = owner.Id.ToString(),
                 OwnerSubject = owner.ExternalSubject,
+                ReleasePolicyPlatform = client.Platform,
+                ReleasePolicyRing = ringName,
+                ReleasePolicyVersion = client.Version.Text,
             },
             reason: "First-run initialization.");
 
@@ -181,10 +254,33 @@ public sealed class BootstrapSystemHandler
                 Reason = "First-run owner.",
             });
 
+        _audit.Record(
+            AuditAction.ReleasePolicyPublished,
+            entityType: nameof(ReleasePolicy),
+            entityId: $"{client.Platform}/{ringName}",
+            organizationId: organization.Id,
+            semanticDelta: new
+            {
+                Platform = client.Platform,
+                Ring = ringName,
+                LatestVersion = releasePolicy.LatestVersion,
+                MinimumSupportedVersion = releasePolicy.MinimumSupportedVersion,
+                ApiContractMinimum = releasePolicy.ApiContractMinimum,
+                ApiContractMaximum = releasePolicy.ApiContractMaximum,
+            },
+            reason: "First-run initialization: admits only the bootstrapping build.");
+
         // One transaction. Either the system is initialized with a complete,
-        // audited starting state, or it is untouched.
+        // audited, immediately usable starting state, or it is untouched.
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        return new BootstrapSystemResult(organization.Id, owner.Id, ownership.Id, now);
+        return new BootstrapSystemResult(
+            organization.Id,
+            owner.Id,
+            ownership.Id,
+            now,
+            client.Platform,
+            ringName,
+            client.Version.Text);
     }
 }

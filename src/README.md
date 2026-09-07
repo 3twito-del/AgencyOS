@@ -85,3 +85,21 @@ if it is configured on a ring that permits real data.
 
 First-run initialization exists but is inert unless a bootstrap token is
 configured: with none, the route is not mapped at all.
+
+## First run
+
+`POST /api/v1/system/bootstrap` initializes an empty system in one transaction:
+the first organization, the first user, an owner membership, the initialization
+singleton, and the initial release policy that makes the instance usable. All of
+it is audited. Nothing partial can be left behind.
+
+The initial policy is the narrowest one that works - the bootstrapping client's
+own platform, ring and version, with latest equal to minimum - so only that build
+is admitted. Publishing a policy for anything else is an ordinary authorized
+operation.
+
+**Remove the bootstrap token from the deployment once initialization has
+succeeded.** It grants exactly one irreversible act and has no further use. A
+repeat attempt is refused and changes nothing, and the server logs a warning
+saying the token is still configured. See
+`docs/adr/ADR-0009-first-run-bootstrap.md`.

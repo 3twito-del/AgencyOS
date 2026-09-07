@@ -40,6 +40,37 @@ It is constrained three ways, independently:
 A failed token check returns 401 without revealing whether the system is already
 initialized.
 
+**Initialization also publishes the initial release policy.** Without it the
+instance is initialized but unusable: an uninitialized release-policy table means
+every client evaluates as ungoverned, so every protected mutation is refused. The
+owner bootstrap just created could not create anything. That is a first-run
+correctness defect, not an operator-tooling gap, so the policy is part of
+initialization rather than a follow-up step.
+
+The policy is derived from the client performing the bootstrap, because that is
+the one build known to be intended for this instance:
+
+- platform and ring: exactly the ones the client presented;
+- `latestVersion` and `minimumSupportedVersion`: both set to the bootstrapping
+  client's own version, so nothing older is admitted and no range exists to widen
+  by accident;
+- contract range: the server's own supported range, never the caller's claim;
+- no revocations, no kill switch, no deadline.
+
+Because the policy is derived from the client identity, bootstrap requires the
+ordinary client identity headers and refuses without them. It also refuses a
+client whose contract version lies outside the server's supported range, since
+initializing would publish a policy that locks out the very client that just
+created the system.
+
+**Atomicity.** The user, organization, membership, initialization record, release
+policy and all five audit records are added to one unit of work and committed by
+a single `SaveChangesAsync`. EF Core wraps a single save in one transaction, so
+the outcome is all or nothing; a partially initialized system is not a state this
+handler can produce. No explicit transaction is opened, because introducing one
+would mean widening `IUnitOfWork` with transaction control for a guarantee the
+single save already provides.
+
 Bootstrap is exempt from client-compatibility enforcement. It has to be: an
 uninitialized system holds no release policy rows, so every client evaluates as
 ungoverned and every mutation is refused - including the one that would make the
@@ -68,15 +99,28 @@ Leaving bootstrap subject to compatibility enforcement would be strictly more
 consistent and would make the system unbootstrappable. The exemption is narrow -
 one route, gated by a token, on a system with no data to endanger.
 
+A permissive initial policy - a wildcard version range, or a minimum of `0.0.0` -
+would have made first run easier and would have put the system in the least
+governed state of its entire life at the exact moment it holds its first data.
+Deriving the policy from the bootstrapping client costs nothing and produces the
+narrowest possible admission set.
+
 ## Consequences
 
 - A deployment that does not set a bootstrap token cannot be initialized over
   HTTP. That is the intended default.
-- The token grants exactly one irreversible act. It should be rotated or removed
-  after first run; nothing enforces that yet.
-- Bootstrap does not seed release policy rows, so a freshly bootstrapped system
-  still refuses ordinary mutations until a policy is published. That is correct
-  but not obvious, and is a candidate for the operator tooling in M15.
+- The token grants exactly one irreversible act, and **the deployment secret
+  should be removed once initialization has succeeded.** Nothing enforces that,
+  by choice: token rotation infrastructure is not an M1 concern. What does exist
+  is a loud signal - a repeat attempt on an initialized system logs a warning
+  saying the token is still configured and should be removed. The attempt itself
+  changes nothing.
+- A bootstrapped instance is immediately usable by the client that bootstrapped
+  it, and by no other build. A second platform, ring or version needs a policy
+  published through the ordinary authorized path.
+- Because the initial policy pins one exact version, the first client update
+  requires publishing a policy first. That is the conservative direction to fail
+  in: a stale build is refused rather than silently admitted.
 - No session or credential is issued. The owner authenticates through the
   configured identity provider like anyone else.
 

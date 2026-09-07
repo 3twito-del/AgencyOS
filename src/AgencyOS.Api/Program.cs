@@ -100,6 +100,7 @@ builder.Services.AddScoped<IExecutionContext, HttpExecutionContext>();
 builder.Services.AddScoped<AuditRecorder>();
 builder.Services.AddScoped<CreateOrganizationHandler>();
 builder.Services.AddScoped<GrantMembershipHandler>();
+builder.Services.AddSingleton<IApiContractPolicy, ServerApiContractPolicy>();
 builder.Services.AddScoped<BootstrapSystemHandler>();
 builder.Services.AddScoped<ClientCompatibilityService>();
 

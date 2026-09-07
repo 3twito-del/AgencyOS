@@ -57,9 +57,36 @@ seven-ring model; CI PostgreSQL provisioning made explicit with a pinned
 Additional decisions: `docs/adr/ADR-0008-ci-topology-and-postgres-provisioning.md`,
 `ADR-0009-first-run-bootstrap.md`.
 
-Outstanding for ALPHA promotion: the suite has been verified against PostgreSQL
-19 Beta 3 (LAB evidence). Verification against the 18.6 ALPHA baseline requires a
-running Docker daemon and has not yet been performed.
+Promotion pass (2026-09-07): first-run initialization now publishes the initial
+release policy in the same transaction as the organization, owner and
+initialization record, so a bootstrapped instance is immediately usable without
+manual database seeding. The policy is the narrowest that works - the
+bootstrapping client's own platform, ring and version, latest equal to minimum -
+and compatibility and REVOKED enforcement are unchanged.
+
+Outstanding for ALPHA promotion - the single remaining gate:
+
+The suite passes against PostgreSQL 19 Beta 3, which is LAB evidence only. The
+18.6 ALPHA-baseline run via Testcontainers cannot be performed on this machine.
+Docker Desktop starts but its Linux engine does not:
+
+```
+wsl -d Ubuntu -e uname -r
+  WSL2 is not supported with your current machine configuration.
+  Please enable the "Virtual Machine Platform" optional component and ensure
+  virtualization is enabled in the BIOS.
+  Error code: Wsl/Service/CreateInstance/CreateVm/HCS/HCS_E_HYPERV_NOT_INSTALLED
+
+(Get-CimInstance Win32_ComputerSystem).HypervisorPresent  ->  False
+Get-Service com.docker.service                            ->  Stopped (needs admin)
+docker pull postgres:18.6                                 ->  500 from the daemon
+```
+
+Prerequisites, all requiring Administrator and a reboot: enable virtualization in
+firmware, enable the Virtual Machine Platform Windows feature, and allow
+`com.docker.service` to start. Once `docker info` succeeds, the existing
+Testcontainers path pins `postgres:18.6` automatically and the gate is closed by
+running `verify` with `AGENCYOS_TEST_POSTGRES` unset.
 
 Deliver:
 - Organization, User, Membership, Role/Permission foundations;

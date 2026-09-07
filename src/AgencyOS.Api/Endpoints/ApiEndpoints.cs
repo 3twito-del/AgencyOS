@@ -115,7 +115,10 @@ internal static class ApiEndpoints
                         result.OrganizationId.Value,
                         result.OwnerUserId.Value,
                         result.MembershipId.Value,
-                        result.InitializedAt));
+                        result.InitializedAt,
+                        result.ReleasePolicyPlatform,
+                        result.ReleasePolicyRing,
+                        result.ReleasePolicyVersion));
             })
             .AllowAnonymous()
             .WithName("BootstrapSystem");

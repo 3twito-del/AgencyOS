@@ -20,4 +20,7 @@ public static class AuditAction
 
     /// <summary>First-run initialization. Occurs at most once in a system's life.</summary>
     public const string SystemBootstrapped = "system.bootstrapped";
+
+    /// <summary>A release policy was published for a platform and ring.</summary>
+    public const string ReleasePolicyPublished = "release.policy.published";
 }

@@ -41,11 +41,21 @@ public sealed record BootstrapRequest(
 /// <param name="OwnerUserId">The user granted ownership.</param>
 /// <param name="MembershipId">The ownership membership.</param>
 /// <param name="InitializedAt">When initialization completed, UTC.</param>
+/// <param name="ReleasePolicyPlatform">Platform the initial release policy governs.</param>
+/// <param name="ReleasePolicyRing">Release ring the initial release policy governs.</param>
+/// <param name="ReleasePolicyVersion">
+/// The single client version the initial policy admits. Latest and minimum
+/// supported are both set to it, so nothing older is accepted and no wildcard
+/// range exists to widen by accident.
+/// </param>
 public sealed record BootstrapResponse(
     Guid OrganizationId,
     Guid OwnerUserId,
     Guid MembershipId,
-    DateTimeOffset InitializedAt);
+    DateTimeOffset InitializedAt,
+    string ReleasePolicyPlatform,
+    string ReleasePolicyRing,
+    string ReleasePolicyVersion);
 
 /// <summary>Reports whether the system has been initialized.</summary>
 /// <param name="Initialized">Whether first-run initialization has completed.</param>
