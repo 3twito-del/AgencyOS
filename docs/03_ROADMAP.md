@@ -1531,7 +1531,7 @@ Deliver:
 - research workflows. **met** (a case organized around a question, gathering
   sources, signals, theses, predictions and tasks; no findings of its own)
 
-## M12 — AI Runtime — **Done** (2026-09-09)
+## M12 — AI Runtime — **Done** (2026-09-09) · promoted to ALPHA
 
 Implemented: the first milestone in which something other than a person proposes
 a change to business truth. A language model reads the record, reasons over it,
@@ -1681,6 +1681,59 @@ each proved to arrive as fenced data that cannot close its own fence and never
 reaches the system role. What happens after that is the model's business, and the
 milestone's entire answer is that it does not matter — which is an argument, not a
 measurement.
+
+**The Windows surface has been compiled, not operated.** It builds with zero
+warnings and its view models are unit-tested against a fake server. Nobody has sat
+in front of the approval dialog and decided a real proposal.
+
+### Promotion to ALPHA
+
+Promoted on CI run 34287167037, commit `9e075d5`, against the ALPHA baseline:
+
+- **656 integration tests** against `postgres:18.6`, the promotion gate.
+  Thirty-six are M12's, and four of those issue SQL directly rather than going
+  through the API.
+- **3,691 unit tests**, and the whole solution built on Windows with **zero
+  warnings and zero errors**.
+- **OpenAPI 3.1.1 at 257 paths and 183 schemas**, contract version 12, additive.
+- **Three TLA+ specifications model-checked**, no error found. M12 adds
+  `AiApproval`, because it introduces the first protocol in AgencyOS with a real
+  interval in it — between a person approving and the action running.
+
+**No part of the promotion touched a network.** The suite runs entirely against
+`FakeModelProvider`, so CI needs no credential, no external service and no
+allowance for somebody else's rate limit. That is the point: a milestone whose
+promotion depended on a provider being reachable would be a milestone that goes
+red for reasons unrelated to the code, and it would make the prompt-injection
+suite untestable.
+
+The migration was applied, rolled back to M11 and re-applied — as a test, not a
+manual step — so the expand path has a proven reverse that will keep being proved.
+
+### What the promotion evidence does not cover
+
+**No agency has used this, and no model has been called.** Every run above was
+answered by a deterministic fake doing exactly what a test told it. The gateway's
+capability checks, timeout handling and failure categories are correct against
+that fake; a real provider will fail in ways this build has not seen, and the
+first one connected should be connected in FORGE against synthetic data.
+
+**The approval window is a guess.** Thirty minutes is defensible — long enough to
+read a proposal, short enough that the world has not moved — and nobody has yet
+had an approval expire under them while they were thinking. Whether it is right is
+a question about how people work, and the answer will come from use.
+
+**The prompt-injection corpus proves the envelope, not safety.** Fifteen payloads,
+each proved to arrive as fenced data that cannot close its own fence and never
+reaches the system role. The claim is not that a model resists them; it is that
+the registry and the approval make it not matter. That is an argument supported by
+tests, not a measurement.
+
+**One canonical write is not a proven write surface.** `task.create` exercises the
+whole protocol, and it is reversible and low-consequence precisely so that it
+could. Nothing here establishes that the protocol is adequate for a payment, an
+offer or a send — and the milestone deliberately does not put any of them behind
+a model request.
 
 **The Windows surface has been compiled, not operated.** It builds with zero
 warnings and its view models are unit-tested against a fake server. Nobody has sat
