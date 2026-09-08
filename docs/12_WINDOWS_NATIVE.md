@@ -142,3 +142,23 @@ has not happened yet, and anything already approved stays.
 ### Offline
 
 The whole surface is ONLINE_ONLY. Nothing is cached and nothing is queued.
+
+### Not in the Command Center, and not a saved view
+
+Both were considered and both were declined.
+
+**The Command Center** computes nothing locally — every bucket, count and ordering
+comes from the server's own query, so what a user sees is what the system believes.
+Adding pending approvals would mean either breaking that rule by composing two
+queries on the client, or widening a cross-cutting server query for one milestone.
+Neither is worth it while an approval lapses in thirty minutes: a count on a page
+people leave open would tell somebody something is waiting after it stopped being
+decidable, which is worse than not showing it. The AI page loads its own and is one
+keystroke away.
+
+**Saved views** filter lists of business records that colleagues share. A run is
+private to the person who started it and there is no filter over them worth saving,
+because there is no audience to save it for.
+
+Both are revisitable if approvals ever become long-lived. Neither is a deferral of
+something the milestone needed.
