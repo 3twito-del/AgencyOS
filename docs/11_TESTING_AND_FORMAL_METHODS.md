@@ -65,6 +65,19 @@ Two specifications exist and both are model-checked by
 and pinned by SHA-256; a checksum mismatch or an unreachable release fails loudly,
 because a formal check that quietly skips itself is worse than none.
 
+**The pin accepts more than one hash, each with what was verified about it.** A
+GitHub release asset is mutable, and the v1.8.0 jar was re-published on 2026-09-08
+during M11 — the pin caught it, which is the mechanism working rather than
+failing. The two builds were compared entry by entry: 2,223 entries each,
+identical CRCs on all of them except `META-INF/MANIFEST.MF`, which differs only in
+a build timestamp and the release tag, with the same `X-Git-Revision`
+`b123b22654942bd7f8b1bcadcc47da4ee2cf4c0e` in both.
+
+Adding a third hash means doing that comparison again and writing down what it
+showed. Copying whatever the download produced today is the one thing this is
+built to prevent, and an unrecognized checksum still fails with the known-good
+list in the message.
+
 - **`specs/OfflineWriteQueue.tla`** (M3) — the offline write queue. Checks that a
   queued command has at most one effect however often it is retried.
   *2853 states generated, 1024 distinct, no error found.*

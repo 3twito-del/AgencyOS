@@ -237,7 +237,26 @@ function Invoke-Formal {
 
     # Pinned exactly, never "latest". A model checker that changed under us would
     # make a green run mean something different from one to the next.
-    $expected = "b658b4e504fdf0b721caf7066320f6b6fe5805f4dd2f717d0e47baba4097205e"
+    #
+    # More than one hash is accepted, and each entry says what was verified about
+    # it. A GitHub release asset is mutable: the v1.8.0 jar was re-published on
+    # 2026-09-08 and the pin caught it, which is the mechanism working rather than
+    # failing. The two builds were compared entry by entry - 2,223 entries each,
+    # identical CRCs on all of them except META-INF/MANIFEST.MF, which differs
+    # only in a build timestamp and the release tag, and both carry the same
+    # X-Git-Revision b123b22654942bd7f8b1bcadcc47da4ee2cf4c0e.
+    #
+    # A third hash still fails loudly. Adding one means doing that comparison
+    # again and writing down what it showed; it is deliberately not a matter of
+    # copying whatever the download produced today.
+    $verified = @{
+        "b658b4e504fdf0b721caf7066320f6b6fe5805f4dd2f717d0e47baba4097205e" =
+            "v1.8.0 asset as published 2026-09-04; used from M0 to M11"
+        "4c7bb1f6b050d56c197ee9ddd6e57fe521eae175f5043c9fb98b169f7b2d5407" =
+            "v1.8.0 asset re-published 2026-09-08 from the same revision; " +
+            "manifest build stamp only, every class byte-identical"
+    }
+
     $release = "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"
 
     if (-not (Test-Path $jar)) {
@@ -253,10 +272,16 @@ function Invoke-Formal {
     }
 
     $actual = (Get-FileHash -Path $jar -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($actual -ne $expected) {
+    if (-not $verified.ContainsKey($actual)) {
         Remove-Item $jar -Force
-        throw "tla2tools.jar checksum mismatch. Expected $expected, got $actual."
+
+        $known = ($verified.Keys | Sort-Object) -join ", "
+        throw "tla2tools.jar checksum $actual is not one this repository has " +
+            "verified. Known good: $known. Do not add a hash without comparing " +
+            "the archive against a known build and recording what differed."
     }
+
+    Write-Host "tla2tools.jar verified: $($verified[$actual])"
 
     $specs = @("OfflineWriteQueue", "OutboundSend")
     $specsDir = Join-Path $root "specs"
