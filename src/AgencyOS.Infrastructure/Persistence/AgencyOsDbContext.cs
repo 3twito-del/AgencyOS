@@ -1,4 +1,5 @@
 ﻿using AgencyOS.Application.Abstractions;
+using AgencyOS.Domain.Ai;
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Deals;
@@ -324,6 +325,18 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     public DbSet<ResearchCaseLink> ResearchCaseLinks => Set<ResearchCaseLink>();
 
     public DbSet<IntelligenceEvent> IntelligenceEvents => Set<IntelligenceEvent>();
+
+    // ---- AI runtime (M12) ----
+
+    public DbSet<AgentRun> AgentRuns => Set<AgentRun>();
+
+    public DbSet<AgentRunStep> AgentRunSteps => Set<AgentRunStep>();
+
+    public DbSet<AiToolRequest> AiToolRequests => Set<AiToolRequest>();
+
+    public DbSet<AiApproval> AiApprovals => Set<AiApproval>();
+
+    public DbSet<AiProviderPolicy> AiProviderPolicies => Set<AiProviderPolicy>();
 
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.

@@ -17,6 +17,8 @@ using AgencyOS.Api.Middleware;
 using AgencyOS.Api.Observability;
 using AgencyOS.Api.Provisioning;
 using AgencyOS.Application.Abstractions;
+using AgencyOS.Application.Ai;
+using AgencyOS.Infrastructure.Ai;
 using AgencyOS.Application.Audit;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Application.Companies;
@@ -276,6 +278,16 @@ builder.Services.AddScoped<PredictionHandler>();
 builder.Services.AddScoped<WatchlistHandler>();
 builder.Services.AddScoped<TalentRadarHandler>();
 builder.Services.AddScoped<ResearchCaseHandler>();
+
+// AI runtime (M12). The model is untrusted input rather than a trusted
+// component: context assembly decides what it may see, the tool registry decides
+// what it may ask for, and an approval decides what actually happens. It
+// influences none of the three (ADR-0031).
+builder.Services.Configure<AiOptions>(builder.Configuration.GetSection(AiOptions.Section));
+builder.Services.AddScoped<ModelDataPolicy>();
+builder.Services.AddScoped<AgentRuntime>();
+builder.Services.AddScoped<AgentRunHandler>();
+builder.Services.AddScoped<AiApprovalHandler>();
 
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();

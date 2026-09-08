@@ -5,6 +5,9 @@ using AgencyOS.Application.Documents;
 using AgencyOS.Application.Intelligence;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
+using AgencyOS.Application.Ai;
+using AgencyOS.Application.Ai.Tools;
+using AgencyOS.Infrastructure.Ai;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Infrastructure.Authorization;
 using AgencyOS.Application.Directory;
@@ -177,6 +180,38 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IIntelligenceEventRepository, IntelligenceEventRepository>();
         services.AddScoped<IIntelligenceQueries, IntelligenceQueries>();
         services.AddScoped<IIntelligenceSubjectValidator, IntelligenceSubjectLabels>();
+
+        // ---- AI runtime (M12) ----
+
+        services.AddScoped<IAgentRunRepository, AgentRunRepository>();
+        services.AddScoped<IAiToolRequestRepository, AiToolRequestRepository>();
+        services.AddScoped<IAiApprovalRepository, AiApprovalRepository>();
+        services.AddScoped<IAiProviderPolicyRepository, AiProviderPolicyRepository>();
+
+        services.AddScoped<IAiContextAssembler, AiContextAssembler>();
+        services.AddScoped<IAiToolRegistry, AiToolRegistry>();
+        services.AddScoped<IModelGateway, ModelGateway>();
+
+        // Registered explicitly, one line each. There is no scanning and no
+        // attribute discovery: a tool exists because somebody wrote it down here,
+        // and this list is what a reviewer reads to know what a model can ask for
+        // (§8, §32).
+        services.AddScoped<IAiTool, PersonGetTool>();
+        services.AddScoped<IAiTool, CompanyGetTool>();
+        services.AddScoped<IAiTool, RelationshipIntelligenceTool>();
+        services.AddScoped<IAiTool, SignalsSearchTool>();
+        services.AddScoped<IAiTool, AgencySearchTool>();
+        services.AddScoped<IAiTool, ResearchCaseGetTool>();
+        services.AddScoped<IAiTool, DealGetTool>();
+        services.AddScoped<IAiTool, ContractGetTool>();
+        services.AddScoped<IAiTool, ReceivablesListTool>();
+        services.AddScoped<IAiTool, TaskCreateTool>();
+
+        // The deterministic provider is registered in every environment, not only
+        // in tests. A build whose composition differs between CI and production is
+        // a build whose tests exercise something else (§74).
+        services.AddSingleton<FakeModelProvider>();
+        services.AddSingleton<IModelProvider>(sp => sp.GetRequiredService<FakeModelProvider>());
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 
