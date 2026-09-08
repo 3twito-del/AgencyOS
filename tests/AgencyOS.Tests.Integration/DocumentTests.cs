@@ -833,6 +833,69 @@ public sealed class DocumentTests
     }
 
     /// <summary>
+    /// A saved view is a second route to the same records, and never a way around
+    /// their permissions.
+    /// </summary>
+    /// <remarks>
+    /// The one that matters about saved views. A view is a query somebody else may
+    /// run, so a view that returned rows its runner could not otherwise open would
+    /// be a permission system with a hole in the shape of a bookmark (ADR-0025).
+    /// </remarks>
+    [Fact]
+    public async Task ASavedView_ReturnsOnlyWhatItsRunnerMayRead()
+    {
+        SeededActor owner = await _fixture.SeedActorAsync(AgencyRole.Owner, "m10-view-owner");
+        SeededActor member = await SeedIntoAsync(owner, AgencyRole.Member, "m10-view-member");
+
+        Actor privileged = Actor.For(_fixture, owner);
+        Actor ordinary = Actor.For(_fixture, member, owner);
+
+        string marker = "viewmarker" + Guid.NewGuid().ToString("N")[..8];
+
+        await UploadAsync(
+            ordinary, Bytes("Ordinary."), "ordinary.txt", "text/plain",
+            $"{marker} ordinary", "Statement", "Internal");
+
+        await UploadAsync(
+            privileged, Bytes("Counsel."), "counsel.txt", "text/plain",
+            $"{marker} counsel", "Statement", "Privileged");
+
+        // The identical definition, saved by each of them. A saved view belongs to
+        // whoever saved it, so this is two views over one query rather than one
+        // view run twice - and the point survives: the definition is the same and
+        // the results are not.
+        SavedViewDefinitionModel definition = new(
+            8,
+            "Documents",
+            new SavedViewFiltersModel(TextContains: marker));
+
+        SavedViewResponse memberView = await PostAsync<SavedViewResponse>(
+            ordinary,
+            "saved-views",
+            new CreateSavedViewRequest($"Everything {marker}", definition));
+
+        SavedViewResponse ownerView = await PostAsync<SavedViewResponse>(
+            privileged,
+            "saved-views",
+            new CreateSavedViewRequest($"Everything {marker}", definition));
+
+        SavedViewResultsResponse asMember = await GetAsync<SavedViewResultsResponse>(
+            ordinary, $"saved-views/{memberView.Id}/results");
+
+        Assert.Contains(asMember.Documents, x => x.Title == $"{marker} ordinary");
+        Assert.DoesNotContain(asMember.Documents, x => x.Title == $"{marker} counsel");
+
+        // The count is narrowed too. A view reporting "2 documents" while showing
+        // one would disclose the privileged document through its count.
+        Assert.Single(asMember.Documents);
+
+        SavedViewResultsResponse asOwner = await GetAsync<SavedViewResultsResponse>(
+            privileged, $"saved-views/{ownerView.Id}/results");
+
+        Assert.Equal(2, asOwner.Documents.Count);
+    }
+
+    /// <summary>
     /// Reading is not audited; the acts that change what the agency holds are.
     /// </summary>
     /// <remarks>

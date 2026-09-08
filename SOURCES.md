@@ -30,6 +30,8 @@ Official/current references used to pin the snapshot:
   https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md
 - Temporal .NET SDK:
   https://www.nuget.org/packages/Temporalio
+- TLA+ tools (TLC) v1.8.0, pinned by SHA-256 for the `formal` target:
+  https://github.com/tlaplus/tlaplus/releases/tag/v1.8.0
 
 Rule: re-check official sources before pinning a new FORGE/LAB snapshot or promoting toolchains.
 

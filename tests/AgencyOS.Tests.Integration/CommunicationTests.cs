@@ -5,6 +5,7 @@ using AgencyOS.Application.Communications;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.Documents;
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Contracts.SavedViews;
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Common;
@@ -812,6 +813,58 @@ public sealed class CommunicationTests
         Assert.Equal(
             HttpStatusCode.NotFound,
             (await b.Client.GetAsync($"{b.Root}/messages/{messageId}")).StatusCode);
+    }
+
+    /// <summary>
+    /// A saved view over messages never reaches a mailbox its runner may not read.
+    /// </summary>
+    /// <remarks>
+    /// The same rule documents follow, and the more dangerous of the two: a saved
+    /// view is a query somebody else may run, and one that returned a colleague's
+    /// correspondence would be a permission system with a hole in the shape of a
+    /// bookmark (ADR-0026).
+    /// </remarks>
+    [Fact]
+    public async Task ASavedView_NeverReachesAMailboxItsRunnerMayNotRead()
+    {
+        SeededActor owner = await _fixture.SeedActorAsync(AgencyRole.Owner, "m10-view-owner");
+        SeededActor first = await SeedIntoAsync(owner, AgencyRole.Member, "m10-view-first");
+        SeededActor second = await SeedIntoAsync(owner, AgencyRole.Member, "m10-view-second");
+
+        Actor mine = Actor.For(_fixture, first, owner);
+        Actor theirs = Actor.For(_fixture, second, owner);
+
+        string code = Guid.NewGuid().ToString("N");
+        ConnectMailboxResponse connected = await ConnectAsync(mine, code);
+
+        string marker = "viewmarker" + Guid.NewGuid().ToString("N")[..8];
+
+        Seed(code, Inbound($"{marker} private", "counsel@firm.test"));
+
+        await SynchronizeAsync(mine, connected.AccountId);
+
+        SavedViewDefinitionModel definition = new(
+            8,
+            "Communications",
+            new SavedViewFiltersModel(TextContains: marker));
+
+        SavedViewResponse ownerOfMailbox = await PostAsync<SavedViewResponse>(
+            mine, "saved-views", new CreateSavedViewRequest($"Mine {marker}", definition));
+
+        SavedViewResponse colleague = await PostAsync<SavedViewResponse>(
+            theirs, "saved-views", new CreateSavedViewRequest($"Theirs {marker}", definition));
+
+        SavedViewResultsResponse asOwner = await GetAsync<SavedViewResultsResponse>(
+            mine, $"saved-views/{ownerOfMailbox.Id}/results");
+
+        Assert.Single(asOwner.Communications);
+
+        // The identical definition, run by somebody who may not read the mailbox,
+        // returns nothing at all - not a redacted row, and not a count.
+        SavedViewResultsResponse asColleague = await GetAsync<SavedViewResultsResponse>(
+            theirs, $"saved-views/{colleague.Id}/results");
+
+        Assert.Empty(asColleague.Communications);
     }
 
     /// <summary>

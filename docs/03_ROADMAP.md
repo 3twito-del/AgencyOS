@@ -1106,8 +1106,9 @@ Known limitations, recorded rather than implied:
 - No participation waterfall, breakeven or Hollywood accounting model. A backend
   participation is an obligation with an unknown amount until somebody values it.
 - No invoice document, no PDF and no sending of anything. AgencyOS records that an
-  invoice exists and what number it carries. M10 brings documents and
-  communications.
+  invoice exists and what number it carries. M10 brought the document store, and
+  `Invoice.DocumentVersionId` now points at it — but M10 still generates no
+  invoice, renders none and sends none. It stores the file an operator gives it.
 - No statement or remittance ingestion. Payments and deductions are entered by a
   person; the `SourceSystem` field is the seam a future importer fills.
 - No forecast, prediction, valuation or score of any kind. Every one would be a
