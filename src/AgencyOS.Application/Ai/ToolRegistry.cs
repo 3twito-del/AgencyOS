@@ -166,17 +166,17 @@ public static class AgentToolAllowList
     public static IReadOnlyDictionary<AgentKind, IReadOnlySet<string>> ByAgent { get; } =
         new Dictionary<AgentKind, IReadOnlySet<string>>
         {
-            // The research copilot is the only agent that proposes, and everything
-            // it proposes is an M11 object a person then accepts or dismisses.
+            // The research copilot proposes M11 objects, and it does so through its
+            // structured output rather than through tools. A "propose" tool would
+            // be a tool that changes nothing, needs no approval and produces no
+            // effect — a tool in name only — and modelling it as one would put a
+            // proposal and a canonical write in the same category. What the copilot
+            // returns is a brief with proposals attached; a person accepts one, and
+            // the acceptance is what runs an M11 command (§22, §67).
             [AgentKind.ResearchCopilot] = Freeze(
                 "research_case.get",
                 "signals.search",
-                "thesis.get",
-                "prediction.get",
                 "agency.search",
-                "signal.propose",
-                "thesis.propose",
-                "prediction.propose",
                 "task.create"),
 
             [AgentKind.RelationshipBrief] = Freeze(
@@ -188,28 +188,23 @@ public static class AgentToolAllowList
 
             [AgentKind.DealBrief] = Freeze(
                 "deal.get",
-                "offer.compare",
                 "task.create"),
 
             [AgentKind.ContractBrief] = Freeze(
                 "contract.get",
-                "contract.reconciliation",
-                "obligations.list",
                 "task.create"),
 
             // Read only, and no task creation either: a finance brief that could
             // create work items would be a finance workflow, and M12 keeps finance
             // strictly read-only (§28).
             [AgentKind.FinanceBrief] = Freeze(
-                "receivables.list",
-                "finance.reconciliation"),
+                "receivables.list"),
 
             // Drafting needs context and nothing else. There is no send tool in
             // this build, for any agent (§29).
             [AgentKind.CommunicationDraft] = Freeze(
                 "person.get",
-                "company.get",
-                "deal.get"),
+                "company.get"),
         };
 
     private static IReadOnlySet<string> Freeze(params string[] names) =>
