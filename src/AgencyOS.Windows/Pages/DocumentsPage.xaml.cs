@@ -134,15 +134,23 @@ public sealed partial class DocumentsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        _list.Kind = Tag(KindBox);
-        _list.Sensitivity = Tag(SensitivityBox);
-        _list.Status = Tag(StatusBox);
+        _list.Kind = SelectedTag(KindBox);
+        _list.Sensitivity = SelectedTag(SensitivityBox);
+        _list.Status = SelectedTag(StatusBox);
         _list.WithContentOnly = HasContentBox.IsChecked == true;
 
         _ = _list.LoadAsync();
     }
 
-    private static string? Tag(ComboBox box) =>
+    /// <summary>
+    /// The selected item's tag, or null when it is the "any" entry.
+    /// </summary>
+    /// <remarks>
+    /// Named apart from <c>FrameworkElement.Tag</c>, which a page inherits. A
+    /// helper called <c>Tag</c> compiles and hides it, and the next person to
+    /// write <c>Tag = something</c> on the page gets a puzzle.
+    /// </remarks>
+    private static string? SelectedTag(ComboBox box) =>
         (box.SelectedItem as ComboBoxItem)?.Tag as string is { Length: > 0 } value ? value : null;
 
     private void OnDocumentSelected(object sender, SelectionChangedEventArgs e)

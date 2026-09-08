@@ -81,7 +81,11 @@ public sealed partial class ConnectMailboxDialog : ContentDialog
 
     public string RedirectUri => (RedirectBox.Text ?? string.Empty).Trim();
 
-    public string Visibility =>
+    /// <summary>
+    /// Who may read the mailbox. Named apart from <c>UIElement.Visibility</c>,
+    /// which every control already has and which means something else entirely.
+    /// </summary>
+    public string MailboxVisibility =>
         (VisibilityBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "Private";
 
     private void OnOpenConsent(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

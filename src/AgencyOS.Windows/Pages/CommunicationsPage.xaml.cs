@@ -204,7 +204,7 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
         }
 
         _messages.AccountId = (MessageAccountBox.SelectedItem as ComboBoxItem)?.Tag as Guid?;
-        _messages.Direction = Tag(DirectionBox);
+        _messages.Direction = SelectedTag(DirectionBox);
         _messages.UnlinkedOnly = UnlinkedBox.IsChecked == true;
         _messages.WithAttachmentsOnly = AttachmentsBox.IsChecked == true;
 
@@ -218,12 +218,20 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        _outbound.State = Tag(OutboundStateBox);
+        _outbound.State = SelectedTag(OutboundStateBox);
 
         _ = _outbound.LoadAsync();
     }
 
-    private static string? Tag(ComboBox box) =>
+    /// <summary>
+    /// The selected item's tag, or null when it is the "any" entry.
+    /// </summary>
+    /// <remarks>
+    /// Named apart from <c>FrameworkElement.Tag</c>, which a page inherits. A
+    /// helper called <c>Tag</c> compiles and hides it, and the next person to
+    /// write <c>Tag = something</c> on the page gets a puzzle.
+    /// </remarks>
+    private static string? SelectedTag(ComboBox box) =>
         (box.SelectedItem as ComboBoxItem)?.Tag as string is { Length: > 0 } value ? value : null;
 
     private static void SelectComboTag(ComboBox box, string tag)
@@ -391,7 +399,7 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
                     dialog.Provider,
                     dialog.AuthorizationCode,
                     dialog.RedirectUri,
-                    dialog.Visibility),
+                    dialog.MailboxVisibility),
                 Guid.NewGuid().ToString("N")))
             .ConfigureAwait(true);
     }
@@ -444,7 +452,7 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
         }
 
         await Guarded(() => _mailboxes.ChangeVisibilityAsync(
-                account.Id, dialog.Visibility, account.Version, Guid.NewGuid().ToString("N")))
+                account.Id, dialog.MailboxVisibility, account.Version, Guid.NewGuid().ToString("N")))
             .ConfigureAwait(true);
     }
 

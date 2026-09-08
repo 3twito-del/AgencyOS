@@ -27,6 +27,10 @@ public sealed partial class MailboxVisibilityDialog : ContentDialog
         VisibilityChoice.SelectedItem = selected ?? VisibilityChoice.Items.FirstOrDefault();
     }
 
-    public string Visibility =>
+    /// <summary>
+    /// The chosen visibility. Named apart from <c>UIElement.Visibility</c>, which
+    /// every control already has and which means something else entirely.
+    /// </summary>
+    public string MailboxVisibility =>
         (VisibilityChoice.SelectedItem as RadioButton)?.Tag as string ?? "Private";
 }
