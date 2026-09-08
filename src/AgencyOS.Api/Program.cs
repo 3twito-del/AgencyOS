@@ -25,7 +25,10 @@ using AgencyOS.Application.Idempotency;
 using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
+using AgencyOS.Api.Workers;
+using AgencyOS.Application.Communications;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Documents;
 using AgencyOS.Application.Finance;
 using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
@@ -42,6 +45,7 @@ using AgencyOS.Application.Releases;
 using AgencyOS.Contracts;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Releases;
+using AgencyOS.Infrastructure.Communications;
 using AgencyOS.Infrastructure.DependencyInjection;
 using AgencyOS.Infrastructure.Logging;
 using Microsoft.AspNetCore.Authorization;
@@ -99,6 +103,24 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 builder.Services.AddAgencyOSInfrastructure(connectionString);
+
+// Where stored bytes and protection keys live. Beside the application by default,
+// which is right for a single-server ALPHA deployment and wrong for anything
+// larger; ADR-0024 says so rather than leaving it to be discovered.
+builder.Services.AddAgencyOSContentStorage(
+    builder.Configuration["AgencyOS:BlobStore:RootPath"],
+    builder.Configuration["AgencyOS:DataProtection:KeyPath"]);
+
+// Microsoft Graph is offered only when an operator has registered an application.
+// Without one the adapter would refuse every call, and offering a mailbox provider
+// that cannot connect is worse than not offering it (ADR-0027). No secret is
+// committed: these are configuration, absent by default.
+builder.Services.AddMicrosoftGraphProvider(new GraphOptions
+{
+    ClientId = builder.Configuration["AgencyOS:Graph:ClientId"],
+    ClientSecret = builder.Configuration["AgencyOS:Graph:ClientSecret"],
+    TenantId = builder.Configuration["AgencyOS:Graph:TenantId"] ?? "common",
+});
 
 // ---------------------------------------------------------------------------
 // First-run initialization
@@ -209,6 +231,36 @@ builder.Services.AddScoped<InvoiceHandler>();
 builder.Services.AddScoped<PaymentHandler>();
 builder.Services.AddScoped<CommissionHandler>();
 builder.Services.AddScoped<LedgerHandler>();
+// Documents and communications (M10). DocumentIngestion holds the one
+// implementation of the bytes-first, rows-second ordering, so no future upload
+// path can invent a different one and leave a document nobody can open
+// (ADR-0024). OutboundSendProcessor holds the send protocol for the same reason,
+// and it is the only thing in AgencyOS that causes an irreversible external act
+// (ADR-0028).
+builder.Services.AddScoped<DocumentAuthorization>();
+builder.Services.AddScoped<DocumentLinkValidator>();
+builder.Services.AddScoped<DocumentIngestion>();
+builder.Services.AddScoped<DocumentHandler>();
+builder.Services.AddScoped<DocumentQueryService>();
+
+builder.Services.AddScoped<CommunicationAuthorization>();
+builder.Services.AddScoped<CommunicationQueryService>();
+builder.Services.AddScoped<CommunicationAccountHandler>();
+builder.Services.AddScoped<CommunicationMessageHandler>();
+builder.Services.AddScoped<OutboundDispatchHandler>();
+builder.Services.AddScoped<MailboxSynchronizer>();
+builder.Services.AddScoped<OutboundSendProcessor>();
+
+// The background loop. Canonical state lives in PostgreSQL and every claim takes
+// an expiring lease, so two instances running at once is ordinary rather than a
+// bug, and a restart loses nothing about a send that may already have happened
+// (ADR-0029).
+builder.Services.AddSingleton(new CommunicationWorkerOptions
+{
+    Enabled = builder.Configuration.GetValue("AgencyOS:Worker:Enabled", true),
+});
+builder.Services.AddHostedService<CommunicationWorker>();
+
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();
 builder.Services.AddScoped<ChangeTalentDisciplineHandler>();

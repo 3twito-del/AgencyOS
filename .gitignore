@@ -27,3 +27,11 @@ artifacts/
 # the translator's backup and TLC's state directory are not.
 specs/states/
 specs/*.old
+
+# TLC writes an error-trace specification beside the module when it finds a
+# counterexample. It is a diagnostic for one run, not a specification anybody
+# maintains.
+specs/*_TTrace_*.tla
+specs/*_TTrace_*.bin
+
+.fake

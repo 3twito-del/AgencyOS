@@ -1,0 +1,76 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ComposeMessageDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Compose a message"
+    PrimaryButtonText="Save draft"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="600">
+        <StackPanel Spacing="10" MinWidth="620">
+
+            <!--
+                The sending mailbox is chosen from the accounts this user owns.
+                There is no From field: a From field invites the question of
+                whether somebody else can be typed into it, and the answer has to
+                be no on the server anyway (ADR-0028).
+            -->
+            <ComboBox x:Name="AccountBox" Header="Send from" MinWidth="380"
+                      SelectionChanged="OnChanged" />
+
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox x:Name="RoleBox" Grid.Column="0" VerticalAlignment="Bottom">
+                    <ComboBoxItem Content="To" Tag="To" IsSelected="True" />
+                    <ComboBoxItem Content="Cc" Tag="Cc" />
+                    <ComboBoxItem Content="Bcc" Tag="Bcc" />
+                </ComboBox>
+
+                <TextBox x:Name="AddressBox" Grid.Column="1" Header="Recipient"
+                         PlaceholderText="name@example.com" />
+
+                <Button x:Name="AddRecipientButton" Grid.Column="2" Content="Add"
+                        VerticalAlignment="Bottom" Click="OnAddRecipient" />
+            </Grid>
+
+            <ListView x:Name="RecipientList" MaxHeight="120" SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="8" Padding="2">
+                            <TextBlock Text="{Binding Role}" Opacity="0.7" Width="40" />
+                            <TextBlock Text="{Binding Address}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <Button x:Name="RemoveRecipientButton" Content="Remove selected recipient"
+                    Click="OnRemoveRecipient" />
+
+            <TextBox x:Name="SubjectBox" Header="Subject" TextChanged="OnChanged" />
+
+            <TextBox x:Name="BodyBox" Header="Message" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="180" />
+
+            <TextBlock x:Name="AttachmentText" Opacity="0.8"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Text="No attachments" />
+
+            <!--
+                Composing writes a draft and sends nothing. Queueing is a second,
+                separate action with its own confirmation, because it is the point
+                after which AgencyOS cannot take the message back (ADR-0028).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="This saves a draft"
+                     Message="Nothing is sent yet. The draft appears under Outbound, where sending it is a separate, confirmed action." />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

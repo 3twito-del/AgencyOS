@@ -485,4 +485,173 @@ public static class AgencyOsTelemetry
         Meter.CreateCounter<long>(
             "agencyos.finance.reconciliations",
             description: "Expected-against-arrived comparisons computed for a receivable.");
+
+    // ---- Documents and communications (M10) ----
+    //
+    // Every rule from M7 to M9 holds, and M10 adds two more that matter here.
+    // Nothing carries a message body, a subject, a recipient address, an OAuth
+    // token, a storage key or a byte of document content. What is counted is that
+    // something happened and what shape it had: a provider, an operation, a byte
+    // count, a state category, a duration. Telemetry is exported to places that
+    // hold no document and no mailbox permission at all (ADR-0025, ADR-0026).
+
+    /// <summary>Documents recorded, with or without a new version of their own.</summary>
+    public static Counter<long> DocumentsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.document.recorded",
+            description: "Documents recorded into the canonical store.");
+
+    /// <summary>Versions added to existing documents.</summary>
+    /// <remarks>
+    /// Counted apart from new documents because the rate says something different:
+    /// versions accumulating on one instrument is a negotiation being papered, and
+    /// new documents arriving is an agency filing things.
+    /// </remarks>
+    public static Counter<long> DocumentVersionsAdded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.document.version.added",
+            description: "Versions added to an existing document. Version N is never rewritten.");
+
+    /// <summary>Bytes accepted into the content store.</summary>
+    /// <remarks>
+    /// A byte count and a deduplication flag, never a filename and never a digest.
+    /// The digest identifies specific content, and a metric carrying one would let
+    /// an observer confirm whether a particular file is held.
+    /// </remarks>
+    public static Counter<long> BlobBytesStored { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.blob.bytes.stored",
+            unit: "By",
+            description: "Bytes written to the content store.");
+
+    /// <summary>Uploads whose bytes the organization already held.</summary>
+    public static Counter<long> BlobDeduplications { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.blob.deduplicated",
+            description: "Uploads that reused bytes already held by the same organization.");
+
+    /// <summary>Downloads served.</summary>
+    /// <remarks>
+    /// Tagged with the classification, because a rising rate of privileged
+    /// downloads is worth seeing. Never with the document, the filename or the
+    /// person.
+    /// </remarks>
+    public static Counter<long> DocumentDownloads { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.document.downloaded",
+            description: "Document versions streamed to an authorized caller.");
+
+    /// <summary>Stored bytes that no longer hash to their recorded digest.</summary>
+    /// <remarks>
+    /// Should be zero for ever. It is counted so that it is <em>visible</em> if it
+    /// is not, rather than being discovered by somebody opening a broken file
+    /// (ADR-0024).
+    /// </remarks>
+    public static Counter<long> BlobIntegrityFailures { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.blob.integrity.failures",
+            description: "Stored objects whose bytes no longer match their recorded digest.");
+
+    /// <summary>Uploads collected because they never became a document.</summary>
+    public static Counter<long> OrphanedUploadsSwept { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.blob.orphans.swept",
+            description: "Unreferenced staged uploads removed by the sweeper.");
+
+    /// <summary>Documents connected to a business record.</summary>
+    public static Counter<long> DocumentLinks { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.document.linked",
+            description: "Documents linked to or unlinked from a business record.");
+
+    /// <summary>Mailboxes connected or disconnected.</summary>
+    /// <remarks>
+    /// Tagged with the provider and the operation. Never with the mailbox address:
+    /// a metric carrying one is a directory of who the agency corresponds through.
+    /// </remarks>
+    public static Counter<long> MailboxConnections { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.account.changes",
+            description: "Mailboxes connected, disconnected or reshared.");
+
+    /// <summary>Messages brought in by synchronization.</summary>
+    public static Counter<long> MessagesSynchronized { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.messages.synchronized",
+            description: "Messages newly recorded from a provider.");
+
+    /// <summary>Synchronizations that failed.</summary>
+    public static Counter<long> SyncFailures { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.sync.failures",
+            description: "Mailbox synchronizations that could not complete.");
+
+    /// <summary>Delta cursors the provider refused.</summary>
+    /// <remarks>
+    /// Not a failure: it is the provider asking for a full resynchronization, and
+    /// counting it separately keeps it out of the failure rate where it would look
+    /// like something was wrong (ADR-0026).
+    /// </remarks>
+    public static Counter<long> SyncCursorResets { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.sync.cursor.resets",
+            description: "Delta cursors a provider rejected, prompting a full resync.");
+
+    /// <summary>Message attachments pulled into the document store.</summary>
+    public static Counter<long> AttachmentsIngested { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.attachment.ingested",
+            description: "Message attachments ingested as canonical document versions.");
+
+    /// <summary>Messages linked to a business record.</summary>
+    public static Counter<long> MessageLinks { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.message.linked",
+            description: "Messages linked to or unlinked from a business record.");
+
+    /// <summary>Outbound messages composed.</summary>
+    public static Counter<long> OutboundComposed { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.dispatch.composed",
+            description: "Outbound message intents recorded.");
+
+    /// <summary>Every transition of an outbound send, by the states involved.</summary>
+    /// <remarks>
+    /// The single most operationally useful counter in the milestone. Tagged with
+    /// the state moved from and to, which says whether sends are completing, being
+    /// refused, or piling up unresolved - without carrying anything about the
+    /// messages themselves (ADR-0028).
+    /// </remarks>
+    public static Counter<long> OutboundStateChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.dispatch.transitions",
+            description: "Outbound send state changes, by the states moved between.");
+
+    /// <summary>Sends whose outcome AgencyOS cannot yet prove.</summary>
+    /// <remarks>
+    /// Counted on its own because it is the one state nothing can resolve without a
+    /// person or a successful reconciliation, and because a rising number means
+    /// somebody has to go and look at a mailbox (ADR-0028).
+    /// </remarks>
+    public static Counter<long> OutboundUnknownOutcomes { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.dispatch.unknown",
+            description: "Sends whose outcome could not be established. Never retried blindly.");
+
+    /// <summary>Reconciliations run against a provider, by verdict.</summary>
+    public static Counter<long> OutboundReconciliations { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.dispatch.reconciliations",
+            description: "Provider searches for a message of unknown outcome.");
+
+    /// <summary>Mailbox authorizations a provider refused.</summary>
+    /// <remarks>
+    /// Never tagged with a token, a fragment of one, or the mailbox. Only that a
+    /// credential stopped working, which is what an operator needs to know
+    /// (ADR-0027).
+    /// </remarks>
+    public static Counter<long> ProviderAuthorizationFailures { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.communication.provider.authorization.failures",
+            description: "Provider calls refused because a stored credential was rejected.");
 }

@@ -123,6 +123,15 @@ public sealed class SavedViewService
             [SavedViewTarget.Receivables] = Permission.FinanceRead,
             [SavedViewTarget.Invoices] = Permission.FinanceRead,
             [SavedViewTarget.Payments] = Permission.FinancePaymentsRead,
+
+            // Documents and communications take their own floors, and the finer
+            // grain is applied where the results are projected: a document view
+            // returns only classifications the caller may read, and a message view
+            // only mailboxes they may open. A saved view is a second route to the
+            // same records and must not be a way around either (ADR-0025,
+            // ADR-0026).
+            [SavedViewTarget.Documents] = Permission.DocumentsRead,
+            [SavedViewTarget.Communications] = Permission.CommunicationsRead,
         };
 
     /// <summary>Largest page a saved view returns.</summary>

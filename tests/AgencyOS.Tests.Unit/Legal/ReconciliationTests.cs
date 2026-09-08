@@ -1,4 +1,4 @@
-using AgencyOS.Deals.Rules;
+﻿using AgencyOS.Deals.Rules;
 using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Identity;
@@ -542,13 +542,16 @@ public sealed class ContractVersionTests
     }
 
     /// <summary>
-    /// AgencyOS holds a reference, not the document. The property says so rather
-    /// than leaving the screen to guess.
+    /// A version records a reference, and says whether the bytes are actually held.
     /// </summary>
+    /// <remarks>
+    /// False until M10 stores something against it. A version recorded before the
+    /// document store existed keeps saying false for ever, which remains the truth
+    /// about it: nobody ever gave the system those bytes (ADR-0022, ADR-0024).
+    /// </remarks>
     [Fact]
     public void AgencyOsRecordsAReferenceRatherThanTheDocument()
     {
-        Assert.False(ContractVersion.HoldsDocument);
 
         ContractVersion version = ContractVersion.Start(
             Tenant,
@@ -565,6 +568,11 @@ public sealed class ContractVersionTests
 
         Assert.Equal("DMS-88421", version.ExternalReference);
         Assert.Equal("undertow-writer-v1.docx", version.DisplayFileName);
+
+        // The reference is recorded; the bytes are not held, and the version says
+        // so rather than leaving a reader to assume the file is in the system.
+        Assert.False(version.HoldsDocument);
+        Assert.Null(version.ContentHash);
     }
 
     [Fact]

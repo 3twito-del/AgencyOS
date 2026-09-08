@@ -118,17 +118,46 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
         });
 
+        // The digit accelerators follow the AccessKey on each navigation item, not
+        // the item's position: Ctrl+9 has meant Saved Views since M2, and every
+        // milestone that inserted a section above it would otherwise silently
+        // repoint a shortcut people already use.
         AddAccelerator(VirtualKey.Number9, VirtualKeyModifiers.Control, (_, args) =>
+        {
+            SelectMenu(13);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.Number0, VirtualKeyModifiers.Control, (_, args) =>
         {
             SelectMenu(8);
             args.Handled = true;
         });
 
         // Contracts takes Ctrl+Shift+K because the single-digit accelerators are
-        // exhausted and Ctrl+K already opens search.
+        // exhausted and Ctrl+K already opens search. Finance, Documents and
+        // Communications follow the same pattern for the same reason.
         AddAccelerator(VirtualKey.K, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
         {
             SelectMenu(9);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.F, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
+        {
+            SelectMenu(10);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.D, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
+        {
+            SelectMenu(11);
+            args.Handled = true;
+        });
+
+        AddAccelerator(VirtualKey.E, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
+        {
+            SelectMenu(12);
             args.Handled = true;
         });
 
@@ -136,7 +165,7 @@ public sealed partial class MainWindow : Window
         // intercept for zoom.
         AddAccelerator(VirtualKey.F8, VirtualKeyModifiers.None, (_, args) =>
         {
-            SelectMenu(11);
+            SelectMenu(14);
             args.Handled = true;
         });
 
@@ -194,6 +223,8 @@ public sealed partial class MainWindow : Window
             "deals" => typeof(DealsPage),
             "contracts" => typeof(ContractsPage),
             "finance" => typeof(FinancePage),
+            "documents" => typeof(DocumentsPage),
+            "communications" => typeof(CommunicationsPage),
             "saved-views" => typeof(SavedViewsPage),
             "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
@@ -325,12 +356,20 @@ public sealed partial class MainWindow : Window
                 SelectMenu(10);
                 return;
 
-            case "go.saved-views":
+            case "go.documents":
                 SelectMenu(11);
                 return;
 
-            case "go.sync":
+            case "go.communications":
                 SelectMenu(12);
+                return;
+
+            case "go.saved-views":
+                SelectMenu(13);
+                return;
+
+            case "go.sync":
+                SelectMenu(14);
                 return;
 
             case "search.open":

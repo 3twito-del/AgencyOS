@@ -61,6 +61,14 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             AlreadyExistsException => (StatusCodes.Status409Conflict, "Already exists"),
             DomainException => (StatusCodes.Status400BadRequest, "Invalid request"),
 
+            // A body the framework itself could not parse - a multipart section
+            // with a broken Content-Disposition, a malformed boundary. The caller
+            // sent something invalid, so it is a refusal rather than a server
+            // fault, and it is not logged as an integrity failure. Uploads are the
+            // one place a hostile client can send a body no well-behaved client
+            // would produce, and a 500 there is both wrong and noisy (ADR-0024).
+            InvalidDataException => (StatusCodes.Status400BadRequest, "Malformed request body"),
+
             // Reaching this means a defense-in-depth layer fired. It is a defect,
             // not a user error, and it is logged as one.
             AuditTrailImmutableException => (StatusCodes.Status500InternalServerError, "Audit trail violation"),

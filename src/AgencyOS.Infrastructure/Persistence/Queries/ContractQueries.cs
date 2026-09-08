@@ -949,9 +949,10 @@ internal sealed class ContractQueries : IContractQueries
             version.DisplayFileName,
             version.MediaType,
 
-            // Stated rather than assumed. M8 records where a document is, never
-            // the document, and the surface says so instead of implying otherwise.
-            ContractVersion.HoldsDocument,
+            // Stated rather than assumed. False for every version M8 recorded,
+            // and true only once M10 has actually stored the bytes, so the surface
+            // says which it is instead of implying one (ADR-0022, ADR-0024).
+            version.HoldsDocument,
 
             version.Notes,
             [.. terms.OrderBy(term => term.Sequence).Select(ToTermModel)],

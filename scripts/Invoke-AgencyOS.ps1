@@ -23,7 +23,7 @@
 #>
 param(
     [Parameter(Position=0)]
-    [ValidateSet("doctor","build","test","test-unit","test-integration","verify","verify-fast","version","contract","ci","nightly")]
+    [ValidateSet("doctor","build","test","test-unit","test-integration","verify","verify-fast","version","contract","formal","ci","nightly")]
     [string]$Target = "doctor",
 
     [ValidateSet("forge","lab","nightly","alpha","beta","rc","stable")]
@@ -212,6 +212,87 @@ function Invoke-TestIntegration {
 # only when a token is configured, so a throwaway token is supplied for the
 # duration of generation to keep the published contract complete. It is restored
 # afterwards and never persisted.
+
+# Model-checks the formal specifications with TLC.
+#
+# AgencyOS uses TLA+ selectively, for protocols where a wrong answer is expensive
+# and testing cannot enumerate the interleavings: the M3 offline write queue, and
+# the M10 outbound send protocol whose failure mode is sending a client the same
+# commercial email twice (ADR-0028).
+#
+# tla2tools.jar is fetched once and pinned by SHA-256. It is not committed - an
+# 8 MB binary in a source repository is its own problem - and it is not fetched
+# silently either: a checksum mismatch or an unreachable release fails loudly,
+# because a formal check that quietly skips itself is worse than none.
+function Invoke-Formal {
+    Write-Section "Formal (TLC)"
+
+    $java = Get-Command java -ErrorAction SilentlyContinue
+    if (-not $java) {
+        throw "java is required to run TLC. Install a JDK, or run the other targets."
+    }
+
+    $toolsDir = Join-Path $root "artifacts/tools"
+    $jar = Join-Path $toolsDir "tla2tools.jar"
+
+    # Pinned exactly, never "latest". A model checker that changed under us would
+    # make a green run mean something different from one to the next.
+    $expected = "b658b4e504fdf0b721caf7066320f6b6fe5805f4dd2f717d0e47baba4097205e"
+    $release = "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"
+
+    if (-not (Test-Path $jar)) {
+        New-Item -ItemType Directory -Force -Path $toolsDir | Out-Null
+
+        Write-Host "Fetching tla2tools.jar (pinned) ..."
+        try {
+            Invoke-WebRequest -Uri $release -OutFile $jar -UseBasicParsing
+        }
+        catch {
+            throw "Could not fetch tla2tools.jar from $release. $($_.Exception.Message)"
+        }
+    }
+
+    $actual = (Get-FileHash -Path $jar -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actual -ne $expected) {
+        Remove-Item $jar -Force
+        throw "tla2tools.jar checksum mismatch. Expected $expected, got $actual."
+    }
+
+    $specs = @("OfflineWriteQueue", "OutboundSend")
+    $specsDir = Join-Path $root "specs"
+    $statesDir = Join-Path $specsDir "states"
+
+    foreach ($spec in $specs) {
+        Write-Host ""
+        Write-Host "TLC: $spec"
+
+        Push-Location $specsDir
+        try {
+            # -deadlock turns off deadlock detection. A terminal state is the
+            # point of both these protocols, not a bug in them: a message that has
+            # been sent, failed or cancelled has nowhere further to go, and TLC
+            # would otherwise report each of them as a deadlock.
+            java -XX:+UseParallelGC -cp $jar tlc2.TLC `
+                -config "$spec.cfg" `
+                -workers auto `
+                -metadir $statesDir `
+                -deadlock `
+                -cleanup `
+                "$spec.tla"
+
+            if ($LASTEXITCODE -ne 0) {
+                throw "TLC found a counterexample in $spec. See the trace above."
+            }
+        }
+        finally {
+            Pop-Location
+        }
+    }
+
+    Write-Host ""
+    Write-Host "[OK] TLC: $($specs -join ', ')"
+}
+
 function Invoke-Contract {
     Write-Section "API Contract (OpenAPI)"
 
@@ -377,7 +458,33 @@ function Invoke-Contract {
         "/api/v1/organizations/{organizationId}/ledger/entries/{entryId}",
         "/api/v1/organizations/{organizationId}/ledger/entries/{entryId}/reverse",
         "/api/v1/organizations/{organizationId}/finance/history",
-        "/api/v1/organizations/{organizationId}/finance/command-center"
+        "/api/v1/organizations/{organizationId}/finance/command-center",
+        "/api/v1/organizations/{organizationId}/documents",
+        "/api/v1/organizations/{organizationId}/documents/{documentId}",
+        "/api/v1/organizations/{organizationId}/documents/{documentId}/versions",
+        "/api/v1/organizations/{organizationId}/documents/{documentId}/update",
+        "/api/v1/organizations/{organizationId}/documents/{documentId}/links",
+        "/api/v1/organizations/{organizationId}/documents/{documentId}/links/{linkId}",
+        "/api/v1/organizations/{organizationId}/documents/{documentId}/archive",
+        "/api/v1/organizations/{organizationId}/documents/{documentId}/restore",
+        "/api/v1/organizations/{organizationId}/document-versions/{versionId}/content",
+        "/api/v1/organizations/{organizationId}/communication-providers",
+        "/api/v1/organizations/{organizationId}/communication-accounts",
+        "/api/v1/organizations/{organizationId}/communication-accounts/{accountId}/disconnect",
+        "/api/v1/organizations/{organizationId}/communication-accounts/{accountId}/visibility",
+        "/api/v1/organizations/{organizationId}/messages",
+        "/api/v1/organizations/{organizationId}/messages/{messageId}",
+        "/api/v1/organizations/{organizationId}/messages/{messageId}/links",
+        "/api/v1/organizations/{organizationId}/messages/{messageId}/links/{linkId}",
+        "/api/v1/organizations/{organizationId}/messages/{messageId}/participants/{participantId}",
+        "/api/v1/organizations/{organizationId}/participant-suggestions",
+        "/api/v1/organizations/{organizationId}/message-attachments/{attachmentId}/ingest",
+        "/api/v1/organizations/{organizationId}/outbound-messages",
+        "/api/v1/organizations/{organizationId}/outbound-messages/{dispatchId}",
+        "/api/v1/organizations/{organizationId}/outbound-messages/{dispatchId}/queue",
+        "/api/v1/organizations/{organizationId}/outbound-messages/{dispatchId}/cancel",
+        "/api/v1/organizations/{organizationId}/communications/history",
+        "/api/v1/organizations/{organizationId}/communications/command-center"
     )
 
     $paths = @($contract.paths.PSObject.Properties.Name)
@@ -409,6 +516,7 @@ function Invoke-Verify {
     Invoke-Build
     Invoke-Test
     Invoke-Contract
+    Invoke-Formal
 
     Write-Section "Git Status"
     if (Test-GitRepository) {
@@ -423,6 +531,7 @@ function Invoke-Ci {
     Invoke-Build
     Invoke-Test
     Invoke-Contract
+    Invoke-Formal
     Invoke-Version
 }
 
@@ -488,6 +597,7 @@ try {
         "test-unit"        { Invoke-TestUnit }
         "test-integration" { Invoke-TestIntegration }
         "contract"         { Invoke-Contract }
+        "formal"           { Invoke-Formal }
         "ci"          { Invoke-Ci }
         "nightly"     { Invoke-Nightly }
     }

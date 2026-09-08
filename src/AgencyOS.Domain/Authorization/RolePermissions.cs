@@ -122,7 +122,20 @@ public static class RolePermissions
         Permission.FinanceCommissionsRead,
         Permission.FinanceCommissionsWrite,
         Permission.FinanceLedgerRead,
-        Permission.FinanceAdjustmentsWrite);
+        Permission.FinanceAdjustmentsWrite,
+
+        // Documents and communications are operational work, so a member does
+        // both. Three grants are deliberately absent: the two elevated document
+        // classifications, which are given to the people who need that material
+        // rather than to everybody who can open a file, and shared mailbox
+        // reading, because a member's own mailbox is not an argument for reading
+        // anybody else's (ADR-0025, ADR-0026).
+        Permission.DocumentsRead,
+        Permission.DocumentsWrite,
+        Permission.DocumentsLink,
+        Permission.CommunicationsRead,
+        Permission.CommunicationsSend,
+        Permission.CommunicationsAccountManage);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -159,7 +172,16 @@ public static class RolePermissions
         Permission.FinancePaymentsRead,
         Permission.FinanceCommissionsRead,
         Permission.FinanceLedgerRead,
-        Permission.FinanceLedgerPost);
+        Permission.FinanceLedgerPost,
+
+        // An administrator reads documents and communications and writes neither.
+        // The pattern the role has followed since M1: oversight without the
+        // ability to author the records being overseen.
+        Permission.DocumentsRead,
+        Permission.DocumentsPrivilegedRead,
+        Permission.DocumentsRestrictedRead,
+        Permission.CommunicationsRead,
+        Permission.CommunicationsSharedRead);
 
     private static readonly IReadOnlySet<string> OwnerPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -193,7 +215,23 @@ public static class RolePermissions
         Permission.FinanceCommissionsRead,
         Permission.FinanceLedgerRead,
         Permission.FinanceLedgerPost,
-        Permission.FinanceAdjustmentsWrite);
+        Permission.FinanceAdjustmentsWrite,
+        Permission.DocumentsRead,
+        Permission.DocumentsPrivilegedRead,
+        Permission.DocumentsRestrictedRead,
+
+        // The owner writes documents where the administrator does not, and the
+        // reason is a rule the milestone enforces elsewhere: a writer may not file
+        // a document into a classification they could not then read. Without these
+        // two grants no role in the system could record privileged material at all
+        // - members write but cannot read privileged, administrators read but
+        // cannot write - and counsel's advice would have nowhere to go
+        // (ADR-0025).
+        Permission.DocumentsWrite,
+        Permission.DocumentsLink,
+
+        Permission.CommunicationsRead,
+        Permission.CommunicationsSharedRead);
 
     private static readonly IReadOnlySet<string> NoPermissions = Freeze();
 

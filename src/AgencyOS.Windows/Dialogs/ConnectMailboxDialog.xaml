@@ -1,0 +1,55 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ConnectMailboxDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Connect a mailbox"
+    PrimaryButtonText="Connect"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="520">
+
+            <ComboBox x:Name="ProviderBox" Header="Provider" MinWidth="260"
+                      SelectionChanged="OnChanged" />
+
+            <!--
+                The consent screen opens in the operator's own browser. The client
+                never sees a token, and the code below is exchanged server-side for
+                credentials the Windows build has no way to read (ADR-0027).
+            -->
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button x:Name="ConsentButton" Content="Open the consent page"
+                        Click="OnOpenConsent" />
+                <TextBlock VerticalAlignment="Center" Opacity="0.7"
+                           Style="{StaticResource CaptionTextBlockStyle}"
+                           Text="Sign in, approve, then paste the code you are given." />
+            </StackPanel>
+
+            <TextBox x:Name="CodeBox" Header="Authorization code" TextChanged="OnChanged"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="80" />
+
+            <TextBox x:Name="RedirectBox" Header="Redirect URI" TextChanged="OnChanged" />
+
+            <ComboBox x:Name="VisibilityBox" Header="Who may read this mailbox" MinWidth="320"
+                      SelectionChanged="OnChanged">
+                <ComboBoxItem Content="Only me" Tag="Private" IsSelected="True" />
+                <ComboBoxItem Content="Members granted mailbox access" Tag="Shared" />
+                <ComboBoxItem Content="Everyone in the organization" Tag="Organization" />
+            </ComboBox>
+
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="A mailbox is somebody's correspondence"
+                     Message="Connecting a mailbox does not open it to the agency. Visibility decides who may read it, and it defaults to nobody but you." />
+
+            <!--
+                Said because the alternative is somebody assuming the client cached
+                a token and looking for it.
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Credentials stay on the server"
+                     Message="The code is exchanged by the AgencyOS server. Access and refresh tokens are encrypted at rest there and are never returned to this application." />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

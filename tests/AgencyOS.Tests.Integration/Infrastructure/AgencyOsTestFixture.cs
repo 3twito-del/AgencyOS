@@ -1,4 +1,4 @@
-using AgencyOS.Api.Authentication;
+﻿using AgencyOS.Api.Authentication;
 using AgencyOS.Contracts;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Identity;
@@ -248,7 +248,22 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
     {
         _connectionString = connectionString;
         _bootstrapToken = bootstrapToken;
+
+        BlobRoot = Path.Combine(
+            Path.GetTempPath(),
+            "agencyos-tests",
+            Guid.NewGuid().ToString("N"));
+
+        Directory.CreateDirectory(BlobRoot);
     }
+
+    /// <summary>Where this host stores blob content, so a test can inspect it.</summary>
+    /// <remarks>
+    /// Inspected deliberately in the hostile-filename tests: the assertion that
+    /// matters is that nothing was written outside this directory, and that can
+    /// only be checked by looking at the directory (ADR-0024).
+    /// </remarks>
+    public string BlobRoot { get; }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -256,6 +271,15 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
 
         builder.UseSetting("ConnectionStrings:AgencyOS", _connectionString);
         builder.UseEnvironment("Development");
+
+        // The M10 background worker is off under test. It is exercised by driving
+        // the same processor it drives, one step at a time, which is the only way
+        // an assertion can sit between "the provider was called" and "the row was
+        // written" - the interval the whole send protocol is about (ADR-0028).
+        builder.UseSetting("AgencyOS:Worker:Enabled", "false");
+
+        // Stored bytes go somewhere disposable, not beside the test binaries.
+        builder.UseSetting("AgencyOS:BlobStore:RootPath", BlobRoot);
 
         if (_bootstrapToken is not null)
         {

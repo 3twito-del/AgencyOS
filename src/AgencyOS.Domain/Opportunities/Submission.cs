@@ -1,4 +1,5 @@
-using AgencyOS.Domain.Common;
+﻿using AgencyOS.Domain.Common;
+using AgencyOS.Domain.Documents;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.Talent;
@@ -63,6 +64,21 @@ public sealed class SubmissionMaterial
 
     /// <summary>Its type when it was submitted.</summary>
     public MaterialType TypeAtSubmission { get; private set; }
+
+    /// <summary>
+    /// The canonical stored version that was actually sent, where one exists.
+    /// </summary>
+    /// <remarks>
+    /// An addition, never a correction. The title, type and label captured at
+    /// submission stay exactly as M6 recorded them, because they are what the
+    /// agency believed it was sending at the time; this names the bytes, when the
+    /// bytes are known (ADR-0024).
+    /// </remarks>
+    public DocumentVersionId? DocumentVersionId { get; private set; }
+
+    /// <summary>Names the stored version that was sent.</summary>
+    public void AttachDocumentVersion(DocumentVersionId documentVersionId) =>
+        DocumentVersionId = documentVersionId;
 
     /// <summary>Its version label when it was submitted, when it had one.</summary>
     public string? VersionLabelAtSubmission { get; private set; }

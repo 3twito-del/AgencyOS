@@ -1,0 +1,47 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ResolveParticipantDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Identify this address"
+    PrimaryButtonText="Record"
+    SecondaryButtonText="Leave unidentified"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="520">
+        <TextBlock x:Name="AddressText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+
+        <!--
+            Shown when more than one record shares the address. AgencyOS does not
+            pick one: a shared assistant mailbox and a company address both match
+            several people, and a wrong attribution is quiet and hard to find later
+            (ADR-0026).
+        -->
+        <InfoBar x:Name="AmbiguousBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                 Title="More than one match"
+                 Message="This address matches several records. AgencyOS will not choose between them." />
+
+        <InfoBar x:Name="NoMatchBar" Severity="Informational" IsOpen="False" IsClosable="False"
+                 Title="No match"
+                 Message="Nobody in AgencyOS is recorded with this address. Leaving it unidentified is a valid answer." />
+
+        <ListView x:Name="SuggestionList" MaxHeight="220" SelectionMode="Single"
+                  SelectionChanged="OnChanged">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Padding="4,6">
+                        <TextBlock Text="{Binding DisplayName}" />
+                        <TextBlock Text="{Binding MatchedAddress}" Opacity="0.7"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="The address itself does not change"
+                 Message="The raw address and display name stay exactly as the message carried them. This records who AgencyOS believes that is." />
+    </StackPanel>
+</ContentDialog>

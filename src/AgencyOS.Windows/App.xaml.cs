@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 
 namespace AgencyOS.Windows;
 
@@ -11,15 +11,23 @@ namespace AgencyOS.Windows;
 /// </remarks>
 public partial class App : Application
 {
-    private Window? _window;
-
     /// <summary>Initializes the application.</summary>
     public App() => InitializeComponent();
+
+    /// <summary>
+    /// The main window, once there is one.
+    /// </summary>
+    /// <remarks>
+    /// Exposed because the Windows App SDK file pickers are told which window they
+    /// belong to. A picker with no owner appears behind the application on a
+    /// multi-monitor desktop, which reads as the application having hung.
+    /// </remarks>
+    internal static Window? Window { get; private set; }
 
     /// <inheritdoc />
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        _window = new MainWindow();
-        _window.Activate();
+        Window = new MainWindow();
+        Window.Activate();
     }
 }

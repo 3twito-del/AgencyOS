@@ -222,6 +222,40 @@ public static class AuditAction
     public const string JournalEntryPosted = "finance.journal.posted";
     public const string JournalEntryReversed = "finance.journal.reversed";
 
+    // ---- Documents and communications (M10) ----
+    //
+    // Consequential acts only. Opening a preview, polling a mailbox and typing in a
+    // search box are not audited: they would bury the acts that matter under
+    // traffic, and an audit trail nobody can read is one nobody reads (ADR-0025).
+
+    public const string DocumentRecorded = "document.recorded";
+    public const string DocumentUpdated = "document.updated";
+    public const string DocumentVersionAdded = "document.version.added";
+    public const string DocumentLinked = "document.linked";
+    public const string DocumentUnlinked = "document.unlinked";
+    public const string DocumentArchived = "document.archived";
+    public const string DocumentRestored = "document.restored";
+    public const string DocumentDownloaded = "document.downloaded";
+
+    public const string CommunicationAccountConnected = "communication.account.connected";
+    public const string CommunicationAccountDisconnected = "communication.account.disconnected";
+    public const string CommunicationAccountVisibilityChanged =
+        "communication.account.visibility.changed";
+
+    public const string CommunicationMessageLinked = "communication.message.linked";
+    public const string CommunicationMessageUnlinked = "communication.message.unlinked";
+    public const string CommunicationParticipantResolved = "communication.participant.resolved";
+    public const string CommunicationAttachmentIngested = "communication.attachment.ingested";
+
+    public const string OutboundDispatchComposed = "communication.dispatch.composed";
+    public const string OutboundDispatchQueued = "communication.dispatch.queued";
+    public const string OutboundDispatchCancelled = "communication.dispatch.cancelled";
+    public const string OutboundSendRequested = "communication.send.requested";
+    public const string OutboundSendConfirmed = "communication.send.confirmed";
+    public const string OutboundSendFailed = "communication.send.failed";
+    public const string OutboundOutcomeUnknown = "communication.send.outcome.unknown";
+    public const string OutboundReconciled = "communication.send.reconciled";
+
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";
     public const string SavedViewDeleted = "savedview.deleted";

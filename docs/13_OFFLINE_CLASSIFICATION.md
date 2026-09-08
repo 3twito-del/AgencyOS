@@ -17,7 +17,7 @@ must be **defined and proven**, not merely plausible. See
 `docs/adr/ADR-0013-synchronization-architecture.md`,
 `ADR-0014-concurrency-and-idempotency.md` and `specs/OfflineWriteQueue.tla`.
 
-## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5, M6, M7, M8 and M9)
+## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5, M6, M7, M8, M9 and M10)
 
 | Command | Why it is safe |
 |---|---|
@@ -232,6 +232,49 @@ The cache schema therefore stays at **version 2**. M9 adds no migration and no
 `QueuedOperation` member; finance writes are online-only by construction rather
 than by a check somebody could forget.
 
+## ONLINE_ONLY (all M10 mutations, and all M10 reads)
+
+M10 is online-only in both directions, for two different reasons.
+
+| Command | Why it is not queued |
+|---|---|
+| RecordDocument / AddDocumentVersion | The bytes are the point, and a queue is not a content store. Holding a two-hundred-megabyte file in a local write queue would put a copy of a privileged contract on a laptop for as long as the queue took to drain. |
+| UpdateDocument / ArchiveDocument / RestoreDocument | Version-guarded, and archiving states a reason as of a moment. Replayed hours later it would archive a document somebody has since replaced. |
+| LinkDocument / UnlinkDocument | The target must exist in the tenant now. A link queued against a record somebody has since removed is a refusal delayed by four hours. |
+| ConnectMailbox | Exchanges an authorization code, which expires in minutes. Queueing one guarantees it fails. |
+| DisconnectMailbox / ChangeMailboxVisibility | Both are decisions about who may read somebody's correspondence, taken as of now. A queued visibility change would widen access at a time nobody chose. |
+| LinkMessage / UnlinkMessage / ResolveParticipant | Identification is a judgment about a person. Queued, it would be applied against a mailbox the operator may no longer be permitted to read. |
+| IngestAttachment | Fetches bytes from a mail provider using a credential that lives on the server. There is nothing a client could queue. |
+| **ComposeMessage / QueueMessage / CancelMessage** | **The reason the whole milestone is online-only.** An actual send is never held in the generic M3 offline queue: a message queued for four hours is a message somebody has already been told was sent, and the queue's retry semantics — replay under the original key until it succeeds — are exactly wrong for an act that cannot be taken back (ADR-0028). |
+
+### Why the M10 reads are online-only too
+
+M9 established that some reads cannot be cached because a stale figure is a
+different figure. M10's reason is different: **the content is the problem, not its
+freshness.**
+
+A privileged contract copied into a local SQLite file is a privileged contract on
+a laptop. Revoking somebody's `documents.privileged.read` afterwards does not take
+it back, and neither does removing them from the organization. The same is true of
+a colleague's mailbox: a cached message stays readable after the visibility that
+justified reading it has been narrowed.
+
+So the whole M10 surface reaches the server or says it could not:
+
+- documents, versions, links, history and extracted text;
+- stored bytes, which leave through one authorized route and are never written to
+  the local cache at all;
+- connected mailboxes, messages, participants and attachments;
+- outbound dispatches, their states and the communications command centre.
+
+There is also nothing to serve. There is no offline document capture and no
+offline compose workflow, and admitting these reads would widen the cache for
+surfaces that do not exist.
+
+The cache schema therefore stays at **version 2**. M10 adds no migration and no
+`QueuedOperation` member; document and communication writes are online-only by
+construction rather than by a check somebody could forget.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |
@@ -387,8 +430,16 @@ The cache schema therefore stays at **version 2**. M8 adds no migration.
 - **Reconciliation** — computed by the rules kernel from an accepted offer and a
   drafting version. A cached comparison would be a stale answer about whether the
   paper matches the deal, presented as a current one.
-- **The document itself** — AgencyOS has never held one. There is nothing to cache
-  and, until M10, nothing to say about caching it.
+- **Stored documents and their bytes** — M10 gave AgencyOS files to hold, and none
+  of them is cached. A privileged contract in a local database is a privileged
+  contract on a laptop, and revoking the permission that justified reading it does
+  not take the copy back (ADR-0025).
+- **Synchronized messages and their attachments** — somebody else's
+  correspondence, readable only while the mailbox visibility that justified it
+  still stands. A cached copy would outlive that (ADR-0026).
+- **Outbound dispatches** — a cached state would say a message is queued when it
+  has already been sent, or the reverse. It is the one screen where a stale answer
+  could lead somebody to send the same message twice (ADR-0028).
 - **Receivables, invoices, payments, allocations, commissions, balances, journal
   entries, reconciliation, the finance history and the finance command centre** —
   every figure on them is money, derived at read time, permission-gated, or all

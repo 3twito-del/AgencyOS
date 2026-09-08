@@ -1,0 +1,427 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.CommunicationsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="16" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Spacing="4">
+            <TextBlock Text="Communications" Style="{StaticResource TitleTextBlockStyle}" />
+
+            <!--
+                Not an inbox. Outlook exists and is better at being one. What this
+                surface is for is the question Outlook cannot answer: which
+                correspondence bears on which deal (ADR-0026).
+            -->
+            <TextBlock Opacity="0.7" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Text="Correspondence AgencyOS has synchronized, and messages it has actually sent. This is not a mail client: it files correspondence against the business, and leaves reading mail to Outlook." />
+
+            <TextBlock x:Name="SummaryText" Style="{StaticResource CaptionTextBlockStyle}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Spacing="6">
+            <ProgressBar x:Name="Busy" IsIndeterminate="True" Visibility="Collapsed" />
+
+            <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" IsClosable="False"
+                     Title="That did not happen" />
+
+            <!--
+                Never rolled into a failure count. An unknown outcome may already
+                have put a message in somebody's inbox, and it calls for looking
+                rather than for retrying (ADR-0028).
+            -->
+            <InfoBar x:Name="AttentionBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                     Title="Sends with an unknown outcome" />
+        </StackPanel>
+
+        <TabView Grid.Row="2" x:Name="Tabs" IsAddTabButtonVisible="False"
+                 CanDragTabs="False" CanReorderTabs="False">
+
+            <TabViewItem Header="Messages" IsClosable="False">
+                <Grid ColumnSpacing="16" Padding="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="440" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                            <ComboBox x:Name="MessageAccountBox" MinWidth="220"
+                                      PlaceholderText="All mailboxes I may read"
+                                      SelectionChanged="OnMessageFilterChanged" />
+
+                            <ComboBox x:Name="DirectionBox" MinWidth="130"
+                                      SelectionChanged="OnMessageFilterChanged">
+                                <ComboBoxItem Content="Both ways" Tag="" IsSelected="True" />
+                                <ComboBoxItem Content="Inbound" Tag="Inbound" />
+                                <ComboBoxItem Content="Outbound" Tag="Outbound" />
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <CheckBox x:Name="UnlinkedBox" Content="Unfiled only"
+                                          Click="OnMessageFilterChanged" />
+                                <CheckBox x:Name="AttachmentsBox" Content="With attachments"
+                                          Click="OnMessageFilterChanged" />
+                            </StackPanel>
+
+                            <AutoSuggestBox x:Name="MessageSearchBox"
+                                            PlaceholderText="Subject or participant"
+                                            QuerySubmitted="OnMessageSearchSubmitted" />
+
+                            <TextBlock x:Name="MessageScopeText" Opacity="0.6" TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+                            <InfoBar x:Name="MessageEmpty" Severity="Informational" IsOpen="False"
+                                     IsClosable="False" Title="Nothing here"
+                                     Message="No messages match these filters. A mailbox you cannot read contributes nothing to this list." />
+
+                            <TextBlock x:Name="MessageSummary"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+
+                        <ListView Grid.Row="2" x:Name="MessageList" SelectionMode="Single"
+                                  SelectionChanged="OnMessageSelected">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Padding="4,6">
+                                        <TextBlock Text="{Binding Subject}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding FromAddress}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding OccurredAt}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+
+                    <Grid Grid.Column="1" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Spacing="4">
+                            <TextBlock x:Name="MessageSubject"
+                                       Style="{StaticResource SubtitleTextBlockStyle}"
+                                       Text="Select a message" />
+                            <TextBlock x:Name="MessageDates" Opacity="0.6" TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Spacing="6">
+                            <!--
+                                Sanitized once, on the way in. Nothing rendered here
+                                can run, and no external image can tell a sender that
+                                somebody opened a five-year-old message (ADR-0026).
+                            -->
+                            <InfoBar x:Name="SanitizedBar" Severity="Informational" IsOpen="False"
+                                     IsClosable="False" Title="Rendered from sanitized text" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="LinkMessageButton" Content="Link to a record"
+                                        Click="OnLinkMessage" IsEnabled="False" />
+                                <Button x:Name="UnlinkMessageButton" Content="Remove link"
+                                        Click="OnUnlinkMessage" IsEnabled="False" />
+                                <Button x:Name="ResolveButton" Content="Identify address"
+                                        Click="OnResolveParticipant" IsEnabled="False" />
+                                <Button x:Name="IngestButton" Content="Store attachment"
+                                        Click="OnIngestAttachment" IsEnabled="False" />
+                                <Button x:Name="ReplyButton" Content="Compose a reply"
+                                        Click="OnComposeReply" IsEnabled="False" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TabView Grid.Row="2" IsAddTabButtonVisible="False" CanDragTabs="False"
+                                 CanReorderTabs="False">
+
+                            <TabViewItem Header="Message" IsClosable="False">
+                                <TextBox x:Name="MessageBody" IsReadOnly="True" TextWrapping="Wrap"
+                                         AcceptsReturn="True" Margin="0,10,0,0"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                            </TabViewItem>
+
+                            <TabViewItem Header="Participants" IsClosable="False">
+                                <ListView x:Name="ParticipantList" SelectionMode="Single"
+                                          Padding="0,10,0,0"
+                                          SelectionChanged="OnParticipantSelected">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Padding="4,6" ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="50" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Grid.Column="0" Text="{Binding Role}"
+                                                           Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding Address}" />
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                               Opacity="0.6"
+                                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                                </StackPanel>
+
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{Binding PersonDisplayName}"
+                                                           Opacity="0.8"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </TabViewItem>
+
+                            <TabViewItem Header="Attachments" IsClosable="False">
+                                <ListView x:Name="AttachmentList" SelectionMode="Single"
+                                          Padding="0,10,0,0"
+                                          SelectionChanged="OnAttachmentSelected">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Padding="4,6" ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding FileName}" />
+                                                    <TextBlock Text="{Binding MediaType}"
+                                                               Opacity="0.6"
+                                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                                </StackPanel>
+
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding HoldsContent}"
+                                                           Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </TabViewItem>
+
+                            <TabViewItem Header="Filed against" IsClosable="False">
+                                <ListView x:Name="MessageLinkList" SelectionMode="Single"
+                                          Padding="0,10,0,0" SelectionChanged="OnMessageLinkSelected">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Padding="4,6">
+                                                <TextBlock Text="{Binding TargetLabel}" />
+                                                <TextBlock Text="{Binding Target}" Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </TabViewItem>
+                        </TabView>
+                    </Grid>
+                </Grid>
+            </TabViewItem>
+
+            <TabViewItem Header="Outbound" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                        <ComboBox x:Name="OutboundStateBox" MinWidth="210"
+                                  SelectionChanged="OnOutboundFilterChanged">
+                            <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
+                            <ComboBoxItem Content="Draft" Tag="Draft" />
+                            <ComboBoxItem Content="Queued" Tag="Queued" />
+                            <ComboBoxItem Content="Send in progress" Tag="SendRequested" />
+                            <ComboBoxItem Content="Sent" Tag="Sent" />
+                            <ComboBoxItem Content="Outcome unknown" Tag="UnknownOutcome" />
+                            <ComboBoxItem Content="Failed, will retry" Tag="FailedRetryable" />
+                            <ComboBoxItem Content="Failed, stopped" Tag="FailedPermanent" />
+                            <ComboBoxItem Content="Cancelled" Tag="Cancelled" />
+                        </ComboBox>
+
+                        <Button x:Name="ComposeButton" Content="Compose" Click="OnCompose" />
+                        <Button x:Name="QueueButton" Content="Send this draft" Click="OnQueue"
+                                IsEnabled="False" />
+                        <Button x:Name="CancelSendButton" Content="Cancel" Click="OnCancelSend"
+                                IsEnabled="False" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Spacing="6">
+                        <InfoBar x:Name="OutboundNotice" Severity="Informational" IsOpen="False"
+                                 IsClosable="False" />
+                        <TextBlock x:Name="OutboundSummary"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                        <InfoBar x:Name="OutboundEmpty" Severity="Informational" IsOpen="False"
+                                 IsClosable="False" Title="Nothing here"
+                                 Message="AgencyOS has not been asked to send anything matching this filter." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="2" x:Name="OutboundList" SelectionMode="Single"
+                              SelectionChanged="OnOutboundSelected">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="230" />
+                                        <ColumnDefinition Width="90" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Subject}" />
+                                        <TextBlock Text="{Binding MailboxAddress}" Opacity="0.6"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" Text="{Binding State}"
+                                               VerticalAlignment="Center" Opacity="0.8"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+
+                                    <TextBlock Grid.Column="2" Text="{Binding AttemptCount}"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Opacity="0.6"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </TabViewItem>
+
+            <TabViewItem Header="Mailboxes" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                        <Button x:Name="ConnectButton" Content="Connect a mailbox"
+                                Click="OnConnectMailbox" />
+                        <Button x:Name="VisibilityButton" Content="Change who may read it"
+                                Click="OnChangeVisibility" IsEnabled="False" />
+                        <Button x:Name="DisconnectButton" Content="Disconnect"
+                                Click="OnDisconnect" IsEnabled="False" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Spacing="6">
+                        <!--
+                            Said because the alternative is somebody looking for a
+                            cached token that does not exist (ADR-0027).
+                        -->
+                        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                                 Title="Credentials never reach this application"
+                                 Message="Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them." />
+
+                        <InfoBar x:Name="MailboxEmpty" Severity="Informational" IsOpen="False"
+                                 IsClosable="False" Title="No mailboxes connected"
+                                 Message="Connecting one requires an administrator to have provisioned the provider first." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="2" x:Name="MailboxList" SelectionMode="Single"
+                              SelectionChanged="OnMailboxSelected">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="170" />
+                                        <ColumnDefinition Width="150" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding MailboxAddress}" />
+                                        <TextBlock Text="{Binding OwnerDisplayName}" Opacity="0.6"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding State}" Opacity="0.8"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding LastSyncedAt}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="2" Text="{Binding Visibility}"
+                                               VerticalAlignment="Center" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </TabViewItem>
+
+            <TabViewItem Header="Desk" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Spacing="6">
+                        <TextBlock x:Name="DeskSummary" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                        <!--
+                            Counts and rows. Nothing here is ranked, summarized or
+                            triaged: M10 records communications and does not judge
+                            which of them matter (ADR-0026).
+                        -->
+                        <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="What needs a person. Nothing on this tab is ranked or summarized." />
+
+                        <InfoBar x:Name="DeskClear" Severity="Success" IsOpen="False"
+                                 IsClosable="False" Title="Nothing needs attention"
+                                 Message="Every send has a known outcome and every mailbox is connected." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="1" x:Name="DeskList">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="240" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Subject}" />
+                                        <TextBlock Text="{Binding MailboxAddress}" Opacity="0.6"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" Text="{Binding State}"
+                                               VerticalAlignment="Center" Opacity="0.8"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </TabViewItem>
+        </TabView>
+    </Grid>
+</Page>

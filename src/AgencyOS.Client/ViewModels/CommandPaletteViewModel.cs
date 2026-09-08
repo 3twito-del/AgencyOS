@@ -225,6 +225,44 @@ public sealed class CommandPaletteViewModel : ViewModelBase
         new("journal.post", "Post journal entry", "Finance"),
         new("journal.reverse", "Reverse journal entry", "Finance"),
         new("receivable.reconcile", "Reconcile receivable", "Finance", "Ctrl+Shift+Y"),
+
+        // Documents and communications (M10). Two verbs are doing careful work
+        // here. "Record document" adds a version and never replaces one, so the
+        // command that adds bytes to an existing document is called
+        // "Add document version" rather than "Update document". And nothing in
+        // this group says "send" except the two commands that genuinely cause an
+        // external message: composing writes a draft, and queueing is the point
+        // after which AgencyOS cannot take the message back (ADR-0028).
+        new("go.documents", "Go to Documents", "Navigate", "Ctrl+Shift+D"),
+        new("go.communications", "Go to Communications", "Navigate", "Ctrl+Shift+E"),
+        new("document.record", "Record document", "Documents", "Ctrl+Shift+U"),
+        new("document.open", "Open document", "Documents"),
+        new("document.version.add", "Add document version", "Documents"),
+        new("document.download", "Download document version", "Documents"),
+        new("document.link", "Link document to a record", "Documents"),
+        new("document.unlink", "Remove document link", "Documents"),
+        new("document.update", "Edit document details", "Documents"),
+        new("document.archive", "Archive document", "Documents"),
+        new("document.restore", "Restore archived document", "Documents"),
+        new("go.documents.unfiled", "Open unfiled documents", "Documents"),
+        new("mailbox.connect", "Connect mailbox", "Communications"),
+        new("mailbox.disconnect", "Disconnect mailbox", "Communications"),
+        new("mailbox.visibility", "Change mailbox visibility", "Communications"),
+        new("go.mailboxes", "Open connected mailboxes", "Communications"),
+        new("go.messages", "Open messages", "Communications"),
+        new("go.messages.unlinked", "Open unfiled correspondence", "Communications"),
+        new("message.open", "Open message", "Communications"),
+        new("message.link", "Link message to a record", "Communications"),
+        new("message.unlink", "Remove message link", "Communications"),
+        new("message.participant.resolve", "Identify an address", "Communications"),
+        new("attachment.ingest", "Store attachment as a document", "Communications"),
+        new("message.compose", "Compose message", "Communications", "Ctrl+Shift+W"),
+        new("message.queue", "Queue message for sending", "Communications"),
+        new("message.cancel", "Cancel queued message", "Communications"),
+        new("go.outbound", "Open outbound messages", "Communications"),
+        new("go.outbound.unknown", "Open sends with unknown outcome", "Communications"),
+        new("go.communications.command-center", "Open communications command center", "Communications"),
+
         new("view.save", "Save current view", "View"),
         new("view.run", "Run selected view", "View"),
         new("sync.now", "Synchronize now", "Sync", "F9"),

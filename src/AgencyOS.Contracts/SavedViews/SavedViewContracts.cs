@@ -140,7 +140,27 @@ public sealed record SavedViewFiltersModel(
     DateOnly? DueBefore = null,
     DateOnly? RecordedAfter = null,
     DateOnly? RecordedBefore = null,
-    string? CurrencyCode = null);
+    string? CurrencyCode = null,
+
+    // M10. Metadata and shape, never content. Nothing here narrows by extracted
+    // document text or by a message body: a predicate matching inside a privileged
+    // contract would report its contents to whoever ran the view, and one matching
+    // a message body would do the same for somebody else's mail (ADR-0025,
+    // ADR-0026).
+    string? DocumentKind = null,
+    string? DocumentStatus = null,
+    string? DocumentSensitivity = null,
+    string? DocumentSource = null,
+    string? LinkedTargetKind = null,
+    bool HasContent = false,
+    DateOnly? CreatedAfter = null,
+    DateOnly? CreatedBefore = null,
+    Guid? CommunicationAccountId = null,
+    string? MessageDirection = null,
+    bool UnlinkedOnly = false,
+    bool HasAttachments = false,
+    DateOnly? OccurredAfter = null,
+    DateOnly? OccurredBefore = null);
 
 /// <param name="Field">Field to order by. Must be sortable for the target.</param>
 /// <param name="Direction">Ascending or Descending.</param>
@@ -201,6 +221,8 @@ public sealed record UpdateSavedViewRequest(
 /// <param name="Receivables">Matching receivables.</param>
 /// <param name="Invoices">Matching invoices.</param>
 /// <param name="Payments">Matching payments.</param>
+/// <param name="Documents">Matching documents.</param>
+/// <param name="Communications">Matching messages.</param>
 public sealed record SavedViewResultsResponse(
     string Target,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.PersonSummaryResponse> People,
@@ -215,7 +237,9 @@ public sealed record SavedViewResultsResponse(
     IReadOnlyList<AgencyOS.Contracts.Legal.ContractSummaryResponse> Contracts,
     IReadOnlyList<AgencyOS.Contracts.Finance.ReceivableResponse> Receivables,
     IReadOnlyList<AgencyOS.Contracts.Finance.InvoiceResponse> Invoices,
-    IReadOnlyList<AgencyOS.Contracts.Finance.PaymentResponse> Payments);
+    IReadOnlyList<AgencyOS.Contracts.Finance.PaymentResponse> Payments,
+    IReadOnlyList<AgencyOS.Contracts.Documents.DocumentSummaryResponse> Documents,
+    IReadOnlyList<AgencyOS.Contracts.Documents.MessageSummaryResponse> Communications);
 
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>

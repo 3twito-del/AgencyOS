@@ -1,0 +1,31 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.IngestAttachmentDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Store this attachment as a document"
+    PrimaryButtonText="Store"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="500">
+        <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+
+        <TextBox x:Name="TitleBox" Header="Title" TextChanged="OnChanged" />
+
+        <ComboBox x:Name="KindBox" Header="Kind" MinWidth="260" SelectionChanged="OnChanged" />
+
+        <ComboBox x:Name="SensitivityBox" Header="Sensitivity" MinWidth="260"
+                  PlaceholderText="Choose one" SelectionChanged="OnChanged" />
+
+        <!--
+            Until this runs, AgencyOS knows an attachment exists and holds none of
+            its bytes. Storing it is the moment the system becomes answerable for
+            the content (ADR-0024).
+        -->
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="This downloads the file"
+                 Message="The bytes are fetched from the mail provider, hashed and stored as a new document. Until now AgencyOS held only the fact that the attachment exists." />
+    </StackPanel>
+</ContentDialog>

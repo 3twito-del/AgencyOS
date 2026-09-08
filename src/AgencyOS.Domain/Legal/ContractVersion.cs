@@ -1,5 +1,6 @@
-using AgencyOS.Deals.Rules;
+﻿using AgencyOS.Deals.Rules;
 using AgencyOS.Domain.Common;
+using AgencyOS.Domain.Documents;
 using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Organizations;
@@ -140,14 +141,49 @@ public sealed class ContractVersion
     public bool IsEditable => Status == ContractVersionStatus.Draft;
 
     /// <summary>
+    /// The canonical stored version of this draft, once AgencyOS holds one.
+    /// </summary>
+    /// <remarks>
+    /// Null for every version M8 recorded, and null still for a draft nobody has
+    /// uploaded. Attaching one is an addition, never a rewrite: what a previous
+    /// version asserted about a file it had never seen stays exactly as it was
+    /// (ADR-0022, ADR-0024).
+    /// </remarks>
+    public DocumentVersionId? DocumentVersionId { get; private set; }
+
+    /// <summary>
     /// Gets a value indicating whether AgencyOS holds the document itself.
     /// </summary>
     /// <remarks>
-    /// Always false in M8, and stated as a property rather than left implicit so
-    /// the Windows surface can say so without guessing. It becomes meaningful when
-    /// M10 brings a document repository.
+    /// <para>
+    /// False throughout M8, because the system had no document store. From M10 it
+    /// is true exactly when a canonical version has been attached, which is also
+    /// when <see cref="ContentHash"/> becomes a digest AgencyOS computed rather
+    /// than an absent field.
+    /// </para>
+    /// <para>
+    /// A version recorded before M10 keeps saying false, and that remains the
+    /// truth about it: nobody ever gave the system those bytes.
+    /// </para>
     /// </remarks>
-    public static bool HoldsDocument => false;
+    public bool HoldsDocument => DocumentVersionId is not null;
+
+    /// <summary>
+    /// The digest of the stored bytes, once there are stored bytes.
+    /// </summary>
+    /// <remarks>
+    /// M8 deliberately carried no hash, because a hash the system did not compute
+    /// would be a claim about identity it could not support. This one is computed
+    /// by the blob store while streaming, so the claim is now real (ADR-0024).
+    /// </remarks>
+    public string? ContentHash { get; private set; }
+
+    /// <summary>Attaches the canonical stored version of this draft.</summary>
+    public void AttachDocumentVersion(DocumentVersionId documentVersionId, string contentHash)
+    {
+        DocumentVersionId = documentVersionId;
+        ContentHash = Ensure.NotBlankMax(contentHash, nameof(contentHash), 64);
+    }
 
     public static ContractVersion Start(
         OrganizationId organizationId,

@@ -47,6 +47,19 @@ public enum SavedViewTarget
     Receivables = 11,
     Invoices = 12,
     Payments = 13,
+
+    // Added in definition version 8. What the agency holds, and what passed
+    // between it and the outside world.
+    //
+    // A communications view lists messages the caller may already read: the query
+    // runs under the same mailbox authorization as the communications surface
+    // itself, so saving a view can never become a second route into somebody
+    // else's mailbox. Nothing in either target's filters touches message content
+    // or document content, for the reason every filter list since M7 has given -
+    // a view is a query somebody else may run, and its predicate would tell them
+    // what it matched (ADR-0025, ADR-0026).
+    Documents = 14,
+    Communications = 15,
 }
 
 /// <summary>Sort direction for a saved view.</summary>
@@ -236,7 +249,27 @@ public sealed record SavedViewFilters(
     DateOnly? DueBefore = null,
     DateOnly? RecordedAfter = null,
     DateOnly? RecordedBefore = null,
-    string? CurrencyCode = null);
+    string? CurrencyCode = null,
+
+    // M10. Metadata and shape, never content. Nothing here narrows by extracted
+    // document text or by a message body: a predicate that matched inside a
+    // privileged contract would report the contents of that contract to whoever
+    // ran the view, and a mailbox filter that matched on body text would do the
+    // same for somebody else's mail (ADR-0025, ADR-0026).
+    string? DocumentKind = null,
+    string? DocumentStatus = null,
+    string? DocumentSensitivity = null,
+    string? DocumentSource = null,
+    string? LinkedTargetKind = null,
+    bool HasContent = false,
+    DateOnly? CreatedAfter = null,
+    DateOnly? CreatedBefore = null,
+    Guid? CommunicationAccountId = null,
+    string? MessageDirection = null,
+    bool UnlinkedOnly = false,
+    bool HasAttachments = false,
+    DateOnly? OccurredAfter = null,
+    DateOnly? OccurredBefore = null);
 
 /// <summary>
 /// A saved view's query, as a versioned, validated document.
@@ -265,7 +298,7 @@ public sealed record SavedViewDefinition(
 {
     /// <summary>The definition schema version this build writes and understands.</summary>
     /// <summary>Definition schema this build writes.</summary>
-    public const int CurrentDefinitionVersion = 7;
+    public const int CurrentDefinitionVersion = 8;
 
     /// <summary>
     /// The oldest definition schema this build still understands.
@@ -305,6 +338,8 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Receivables] = 7,
             [SavedViewTarget.Invoices] = 7,
             [SavedViewTarget.Payments] = 7,
+            [SavedViewTarget.Documents] = 8,
+            [SavedViewTarget.Communications] = 8,
         };
 
     /// <summary>Fields a view may sort by, per target.</summary>
@@ -344,6 +379,18 @@ public sealed record SavedViewDefinition(
                 Freeze("IssuedOn", "DueOn", "CreatedAt", "Status", "Reference"),
             [SavedViewTarget.Payments] =
                 Freeze("ReceivedOn", "RecordedAt", "Method", "Reference"),
+
+            // Titles, kinds and dates. Deliberately not classification: ordering a
+            // list by sensitivity tells the reader which documents are the
+            // privileged ones, which is most of what the classification protects.
+            [SavedViewTarget.Documents] =
+                Freeze("Title", "CreatedAt", "UpdatedAt", "Kind", "Status"),
+
+            // Dates, direction and subject. Not sender or recipient: ordering by
+            // participant groups a mailbox by who somebody talks to, which is the
+            // shape of a relationship rather than a list of messages.
+            [SavedViewTarget.Communications] =
+                Freeze("OccurredAt", "SynchronizedAt", "Direction", "Subject"),
         };
 
     /// <summary>Validates the document, failing with a message that says what is wrong.</summary>
@@ -550,6 +597,32 @@ public sealed record SavedViewDefinition(
             nameof(SavedViewFilters.RecordedAfter),
             nameof(SavedViewFilters.RecordedBefore),
             nameof(SavedViewFilters.CurrencyCode)),
+
+        // Metadata only. TextContains searches title, filename and reference and
+        // never the extracted text, because a snippet from a privileged contract
+        // is the leak this whole classification exists to prevent (ADR-0025).
+        [SavedViewTarget.Documents] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.DocumentKind),
+            nameof(SavedViewFilters.DocumentStatus),
+            nameof(SavedViewFilters.DocumentSensitivity),
+            nameof(SavedViewFilters.DocumentSource),
+            nameof(SavedViewFilters.LinkedTargetKind),
+            nameof(SavedViewFilters.HasContent),
+            nameof(SavedViewFilters.CreatedAfter),
+            nameof(SavedViewFilters.CreatedBefore)),
+
+        // Subject and participants, never body. The account filter narrows within
+        // the mailboxes the caller may already read; it does not widen them.
+        [SavedViewTarget.Communications] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.CommunicationAccountId),
+            nameof(SavedViewFilters.MessageDirection),
+            nameof(SavedViewFilters.LinkedTargetKind),
+            nameof(SavedViewFilters.UnlinkedOnly),
+            nameof(SavedViewFilters.HasAttachments),
+            nameof(SavedViewFilters.OccurredAfter),
+            nameof(SavedViewFilters.OccurredBefore)),
     };
 
     /// <summary>Every filter the document could carry, by name.</summary>

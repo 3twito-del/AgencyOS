@@ -1,4 +1,5 @@
-using AgencyOS.Domain.Common;
+﻿using AgencyOS.Domain.Common;
+using AgencyOS.Domain.Documents;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.People;
@@ -104,6 +105,21 @@ public sealed class Material
 
     /// <summary>Optimistic concurrency token, incremented on every mutation (ADR-0014).</summary>
     public int Version { get; private set; }
+
+    /// <summary>
+    /// The canonical stored version of this file, once AgencyOS holds one.
+    /// </summary>
+    /// <remarks>
+    /// Null for every row written before M10, and null still for anything nobody
+    /// has uploaded. The record stays exactly what it was: this is an addition,
+    /// never a rewrite of what a previous milestone asserted (ADR-0024).
+    /// </remarks>
+    public DocumentVersionId? DocumentVersionId { get; private set; }
+
+    /// <summary>Attaches the canonical stored version.</summary>
+    public void AttachDocumentVersion(DocumentVersionId documentVersionId) =>
+        DocumentVersionId = documentVersionId;
+
 
     public static Material Create(
         OrganizationId organizationId,

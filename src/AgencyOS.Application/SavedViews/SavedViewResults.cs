@@ -1,5 +1,6 @@
 ﻿using AgencyOS.Application.Directory;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Documents;
 using AgencyOS.Application.Finance;
 using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
@@ -42,10 +43,12 @@ public sealed record SavedViewResultModel(
     IReadOnlyList<ContractSummaryModel> Contracts,
     IReadOnlyList<ReceivableModel> Receivables,
     IReadOnlyList<InvoiceModel> Invoices,
-    IReadOnlyList<PaymentModel> Payments)
+    IReadOnlyList<PaymentModel> Payments,
+    IReadOnlyList<DocumentSummaryModel> Documents,
+    IReadOnlyList<CommunicationMessageSummaryModel> Communications)
 {
     public static SavedViewResultModel Empty(SavedViewTarget target) =>
-        new(target, [], [], [], [], [], [], [], [], [], [], [], [], []);
+        new(target, [], [], [], [], [], [], [], [], [], [], [], [], [], [], []);
 
     // One factory per target, so a query names only the list it filled. Building
     // these positionally meant every target's call site had to grow by an empty
@@ -107,6 +110,25 @@ public sealed record SavedViewResultModel(
     public static SavedViewResultModel OfPayments(IReadOnlyList<PaymentModel> payments) =>
         Empty(SavedViewTarget.Payments) with { Payments = payments };
 
+    /// <summary>A document result set.</summary>
+    /// <remarks>
+    /// Narrowed to the classifications the caller may read before it is counted or
+    /// paged, so a saved view never reports how many privileged documents exist
+    /// (ADR-0025).
+    /// </remarks>
+    public static SavedViewResultModel OfDocuments(
+        IReadOnlyList<DocumentSummaryModel> documents) =>
+        Empty(SavedViewTarget.Documents) with { Documents = documents };
+
+    /// <summary>A message result set.</summary>
+    /// <remarks>
+    /// Narrowed to the mailboxes the caller may open. Saving a view is not a route
+    /// into somebody else's correspondence (ADR-0026).
+    /// </remarks>
+    public static SavedViewResultModel OfCommunications(
+        IReadOnlyList<CommunicationMessageSummaryModel> messages) =>
+        Empty(SavedViewTarget.Communications) with { Communications = messages };
+
     /// <summary>Gets how many rows the view returned, whatever its target.</summary>
     public int Count =>
         People.Count
@@ -118,6 +140,8 @@ public sealed record SavedViewResultModel(
         + Packages.Count
         + Opportunities.Count
         + Deals.Count
+        + Documents.Count
+        + Communications.Count
         + Contracts.Count
         + Receivables.Count
         + Invoices.Count

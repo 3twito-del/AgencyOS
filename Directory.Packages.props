@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
 
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
@@ -74,6 +74,30 @@
   -->
   <ItemGroup>
     <PackageVersion Include="FSharp.Core" Version="10.0.100" />
+  </ItemGroup>
+
+  <!--
+    Secret protection for M10. OAuth refresh tokens are stored encrypted rather
+    than in plaintext, because a refresh token in a database column is a standing
+    grant to read somebody's mail that anybody with a backup can use
+    (ADR-0027).
+
+    ASP.NET Core Data Protection rather than a hand-rolled envelope: it is
+    first-party, it handles key rotation and payload versioning, and writing our
+    own would be writing cryptography to save a package reference. Its ALPHA
+    limitation - keys on the server's own disk - is stated in the ADR rather than
+    glossed over, and M15 moves custody to a managed store.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="10.0.11" />
+
+    <!--
+      A pooled HttpClient for the Microsoft Graph adapter. Hand-written against the
+      six REST endpoints AgencyOS actually uses, rather than the Graph SDK, which
+      models the whole of Microsoft 365 for the sake of six calls (ADR-0026).
+    -->
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.11" />
   </ItemGroup>
 
   <!-- Test stack. -->

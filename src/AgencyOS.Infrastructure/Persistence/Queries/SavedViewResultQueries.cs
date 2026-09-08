@@ -19,6 +19,10 @@ using AgencyOS.Domain.Representations;
 using AgencyOS.Domain.SavedViews;
 using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
+using AgencyOS.Application.Communications;
+using AgencyOS.Application.Documents;
+using AgencyOS.Domain.Communications;
+using AgencyOS.Domain.Documents;
 using Microsoft.EntityFrameworkCore;
 using static AgencyOS.Infrastructure.Persistence.Queries.PeopleSliceProjection;
 
@@ -49,6 +53,14 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
     private readonly IContractQueries _contracts;
     private readonly IFinanceQueries _finance;
 
+    // The authorization-aware services rather than the raw queries. A saved view is
+    // a second route to the same records, so it must apply the same narrowing: only
+    // classifications the caller may read, only mailboxes they may open. Reaching
+    // past these into the projections would make saving a view a way around a
+    // permission the direct route enforces (ADR-0025, ADR-0026).
+    private readonly DocumentQueryService _documents;
+    private readonly CommunicationQueryService _communications;
+
     public SavedViewResultQueries(
         AgencyOsDbContext context,
         IRepresentationQueries representation,
@@ -56,7 +68,9 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
         IOpportunityQueries opportunities,
         IDealQueries deals,
         IContractQueries contracts,
-        IFinanceQueries finance)
+        IFinanceQueries finance,
+        DocumentQueryService documents,
+        CommunicationQueryService communications)
     {
         _context = context;
         _representation = representation;
@@ -65,6 +79,8 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
         _deals = deals;
         _contracts = contracts;
         _finance = finance;
+        _documents = documents;
+        _communications = communications;
     }
 
     public async Task<SavedViewResultModel> RunAsync(
@@ -128,6 +144,14 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
             SavedViewTarget.Payments =>
                 await RunPaymentsAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Documents =>
+                await RunDocumentsAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Communications =>
+                await RunCommunicationsAsync(organizationId, definition, limit, cancellationToken)
                     .ConfigureAwait(false),
 
             _ => SavedViewResultModel.Empty(definition.Target),
@@ -552,6 +576,76 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
     /// differently from the list, and the two would disagree in front of the same
     /// person (ADR-0021, ADR-0023).
     /// </remarks>
+    /// <summary>
+    /// Documents matching a saved view.
+    /// </summary>
+    /// <remarks>
+    /// Metadata only. The text filter reaches title, filename and reference and
+    /// never extracted content, because a snippet from a privileged contract is
+    /// exactly the leak the classification exists to prevent (ADR-0025).
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunDocumentsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        DocumentFilter filter = new(
+            Parse<DocumentKind>(filters.DocumentKind),
+            Parse<DocumentStatus>(filters.DocumentStatus),
+            Parse<DocumentSensitivity>(filters.DocumentSensitivity),
+            Parse<DocumentVersionSource>(filters.DocumentSource),
+            Parse<DocumentLinkTarget>(filters.LinkedTargetKind),
+            LinkedTargetId: null,
+            filters.HasContent,
+            filters.CreatedAfter,
+            filters.CreatedBefore,
+            filters.TextContains);
+
+        IReadOnlyList<DocumentSummaryModel> documents = await _documents
+            .ListAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfDocuments(documents);
+    }
+
+    /// <summary>
+    /// Messages matching a saved view.
+    /// </summary>
+    /// <remarks>
+    /// Subject and participants, never body. The account filter narrows within the
+    /// mailboxes the caller may already read; it does not widen them (ADR-0026).
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunCommunicationsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        CommunicationFilter filter = new(
+            filters.CommunicationAccountId is { } account
+                ? new CommunicationAccountId(account)
+                : null,
+            Parse<MessageDirection>(filters.MessageDirection),
+            Parse<DocumentLinkTarget>(filters.LinkedTargetKind),
+            LinkedTargetId: null,
+            filters.UnlinkedOnly,
+            filters.HasAttachments,
+            filters.OccurredAfter,
+            filters.OccurredBefore,
+            filters.TextContains);
+
+        IReadOnlyList<CommunicationMessageSummaryModel> messages = await _communications
+            .ListMessagesAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfCommunications(messages);
+    }
+
     private async Task<SavedViewResultModel> RunReceivablesAsync(
         OrganizationId organizationId,
         SavedViewDefinition definition,

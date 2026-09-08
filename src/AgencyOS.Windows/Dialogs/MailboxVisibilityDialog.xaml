@@ -1,0 +1,28 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.MailboxVisibilityDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Who may read this mailbox"
+    PrimaryButtonText="Change"
+    CloseButtonText="Cancel"
+    DefaultButton="Close">
+
+    <StackPanel Spacing="10" MinWidth="480">
+        <TextBlock x:Name="MailboxText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+
+        <RadioButtons x:Name="VisibilityChoice" Header="Visibility">
+            <RadioButton Content="Only me" Tag="Private" />
+            <RadioButton Content="Members granted mailbox access" Tag="Shared" />
+            <RadioButton Content="Everyone in the organization" Tag="Organization" />
+        </RadioButtons>
+
+        <!--
+            Widening this is a decision about somebody's correspondence, and the
+            dialog says so rather than treating it as a settings toggle (ADR-0026).
+        -->
+        <InfoBar Severity="Warning" IsOpen="True" IsClosable="False"
+                 Title="This changes who can read real correspondence"
+                 Message="Widening visibility exposes every message already synchronized from this mailbox, not only the ones that arrive after the change." />
+    </StackPanel>
+</ContentDialog>

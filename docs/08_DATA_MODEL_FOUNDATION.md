@@ -752,8 +752,138 @@ derived, so no two facts can disagree. No exchange rate table, no FX conversion 
 no cross-currency total. No tax table and no tax engine. No revenue-recognition
 schedule: M9 records cash movements and commission earned, and claims no GAAP or
 IFRS compliance. No participation waterfall, breakeven or Hollywood accounting
-model. No invoice document, PDF, mail transport or statement ingestion - those are
-M10. No forecast, prediction, valuation or score of any kind.
+model. No forecast, prediction, valuation or score of any kind.
+
+M10 brought the document store, and the M9 seam points at it:
+`Invoice.DocumentVersionId` is a nullable reference to a stored version and
+remains null until somebody files one. `Material.DocumentVersionId` (M4),
+`ContractVersion.DocumentVersionId` (M8) and `SubmissionMaterial` are the other
+three seams, closed the same way. No invoice is generated, rendered or sent by
+AgencyOS; M10 stores what an operator gives it and transmits nothing on an
+invoice's behalf.
+
+## M10 entities - documents, content, mailboxes and outbound sends
+
+Implemented in M10. ADR-0024 records the content store, ADR-0025 the linking and
+sensitivity model, ADR-0026 the communications model, ADR-0027 credential
+protection and ADR-0028 the send protocol.
+
+### BlobObject and BlobIngestion
+Stored bytes, and the ledger that makes storing them crash-consistent.
+
+- **BlobObject** - Id, OrganizationId, ContentHash (SHA-256, 64 hex characters),
+  ByteLength, MediaType, StorageKey, ScanState, CreatedAt.
+  Unique on `(organization_id, content_hash)`: deduplication is **per tenant**,
+  because a shared store would answer "do you already hold this file?" for
+  anybody who could guess the content.
+  `trg_blob_objects_immutable` refuses an update to the hash, the length or the
+  storage key.
+- **BlobIngestion** - Id, OrganizationId, ContentHash?, StorageKey?, State
+  (Staging | Stored | Finalized | Abandoned), CreatedAt, CreatedBy.
+  Written and committed *before* the bytes, so a crash leaves an orphan the
+  sweeper can find rather than a document row pointing at nothing.
+
+Bytes never live in an entity column. `IBlobStore` is the only thing that touches
+content.
+
+### Document and DocumentVersion
+- **Document** - Id, OrganizationId, Title, Kind, Sensitivity, Status, Reference?,
+  Description?, ArchiveReason?, CreatedAt, UpdatedAt, CreatedBy, Version.
+  Mutable metadata only. **No current-version column**: it is derived from the
+  versions, on the M8 and M9 precedent that a stored pointer to "the current one"
+  is a second truth that drifts.
+- **DocumentVersion** - Id, OrganizationId, DocumentId, Sequence, BlobObjectId,
+  ContentHash, ByteLength, DisplayFileName, MediaType, Source,
+  SourceExternalReference?, RecordedAt, CreatedBy, Notes?, ExtractionState,
+  ExtractedText?, ScanState.
+  Unique on `(document_id, sequence)`, and immutable:
+  `trg_document_versions_immutable` refuses an update to the hash, the length or
+  the blob reference. Adding a version never replaces one.
+
+`RecordedAt` is when AgencyOS was handed the bytes. It is **not** the authoring
+date of the document, which AgencyOS does not know.
+
+`Kind` is business meaning and `MediaType` is technical format. A PDF can be a
+contract, an invoice or a headshot proof, and neither field is inferred from the
+other or from the filename.
+
+`Sensitivity` (Internal | Confidential | Privileged | Financial | Restricted) is
+required with no default, and is never inferred from a filename, a folder, a kind
+or a link.
+
+### DocumentLink and CommunicationLink
+One discriminator and exactly one of fourteen nullable typed identifier columns,
+with a `CHECK` requiring precisely one to be set. Each column carries a composite
+foreign key `(organization_id, target_id)` to its target's alternate key, so
+PostgreSQL enforces existence **and** tenancy.
+
+Targets: Person, Company, TalentProfile, Material, Project, Package, Opportunity,
+Submission, Deal, Offer, Contract, ContractVersion, Invoice, Payment.
+
+The precedent is `ContractTaskLink` (M8) and `FinanceTaskLink` (M9). An untyped
+`(entity_type, guid)` pair was rejected: it has no referential integrity and
+permits a link to a deleted or foreign-tenant record.
+
+### CommunicationAccount
+A connected mailbox.
+- Id, OrganizationId, Provider, ExternalAccountId, MailboxAddress, DisplayName?,
+  OwnerUserId, State, Visibility (Private | Shared | Organization), GrantedScopes,
+  ProtectedRefreshToken?, CredentialExpiresAt?, DeltaCursor?, LastSyncedAt?,
+  LastSyncError?, SyncLeaseOwner?, SyncLeaseExpiresAt?, CreatedAt, Version.
+
+`ProtectedRefreshToken` is ciphertext. No API contract has a field that could
+carry it, and disconnecting sets it to null.
+
+`DeltaCursor` is the provider's own cursor, never a timestamp: a timestamp
+comparison misses back-dated messages and re-reads unchanged ones.
+
+### CommunicationThread, CommunicationMessage, CommunicationParticipant, CommunicationAttachment
+- **CommunicationMessage** - Id, OrganizationId, AccountId, ThreadId?, Direction,
+  ExternalMessageId, InternetMessageId?, Subject?, BodyText?, SanitizedHtml?,
+  SentAt?, ReceivedAt?, SynchronizedAt, Folder?, IsDeletedAtProvider.
+  Unique on `(account_id, external_message_id)`, which is what makes
+  synchronization idempotent. `trg_communication_messages_frozen` refuses updates
+  to the content: AgencyOS did not write the message.
+  **Three dates are kept apart** - sent, received, and when AgencyOS first saw it.
+- **CommunicationParticipant** - Role, Address, DisplayName?, PersonId?,
+  CompanyId?, ResolvedBy?. The raw address and name are preserved exactly as the
+  message carried them; identification is a separate, human decision.
+- **CommunicationAttachment** - FileName, MediaType, ByteLength, IsInline,
+  ExternalAttachmentId, DocumentVersionId?, IngestedAt?, IngestedBy?.
+  `DocumentVersionId` is null until somebody ingests the bytes: until then
+  AgencyOS knows the attachment exists and holds none of it.
+
+### OutboundDispatch, OutboundRecipient, OutboundAttachment
+The canonical record of AgencyOS asking a provider to send something.
+
+- Id, OrganizationId, AccountId, State, Subject, BodyText, InReplyToMessageId?,
+  ClientReference, ProviderDraftId?, ProviderMessageId?, InternetMessageId?,
+  SentMessageId?, AttemptCount, LastError?, LastVerdict?, LastReconciledAt?,
+  CreatedAt, UpdatedAt, SentAt?, CreatedBy, LeaseOwner?, LeaseExpiresAt?,
+  NextAttemptAt?, Version.
+
+`trg_outbound_dispatches_monotonic` refuses a transition out of `Sent`. A
+confirmed send is never un-confirmed.
+
+`ClientReference` is carried onto the provider draft, so a later search of sent
+items matches the intent with certainty rather than by comparing subject lines.
+
+The lease columns are the work queue. A claim is one atomic
+`UPDATE ... WHERE id = (SELECT ... FOR UPDATE SKIP LOCKED) RETURNING id`
+(ADR-0029).
+
+### DocumentEvent and CommunicationEvent
+Curated history beside the audit trail, on the M6-M9 pattern. Neither is a
+substitute for `AuditEvent`, and neither records reads.
+
+### Deliberately absent
+No column holding file bytes. No current-version pointer on a document. No
+full-text index over document contents or message bodies - M10 indexes metadata
+only, because a hit count over privileged text discloses the text. No public or
+signed blob URL column. No `IsClean` or `IsSafe` flag: nothing scans anything. No
+delivery, open or read receipt on an outbound dispatch - the provider confirms it
+accepted a message and says nothing about what happened next. No plaintext token
+column anywhere. No `entity_type` / `entity_id` untyped link pair.
 
 ## Temporal modeling
 

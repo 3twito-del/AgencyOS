@@ -156,7 +156,9 @@ internal static class M3Endpoints
                     [.. results.Contracts.Select(M8Endpoints.MapContractSummary)],
                     [.. results.Receivables.Select(M9Endpoints.MapReceivable)],
                     [.. results.Invoices.Select(M9Endpoints.MapInvoice)],
-                    [.. results.Payments.Select(M9Endpoints.MapPayment)]));
+                    [.. results.Payments.Select(M9Endpoints.MapPayment)],
+                    [.. results.Documents.Select(M10Endpoints.Map)],
+                    [.. results.Communications.Select(M10Endpoints.Map)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("RunSavedView");
@@ -410,7 +412,21 @@ internal static class M3Endpoints
         DueBefore: filters.DueBefore,
         RecordedAfter: filters.RecordedAfter,
         RecordedBefore: filters.RecordedBefore,
-        CurrencyCode: filters.CurrencyCode);
+        CurrencyCode: filters.CurrencyCode,
+        DocumentKind: filters.DocumentKind,
+        DocumentStatus: filters.DocumentStatus,
+        DocumentSensitivity: filters.DocumentSensitivity,
+        DocumentSource: filters.DocumentSource,
+        LinkedTargetKind: filters.LinkedTargetKind,
+        HasContent: filters.HasContent,
+        CreatedAfter: filters.CreatedAfter,
+        CreatedBefore: filters.CreatedBefore,
+        CommunicationAccountId: filters.CommunicationAccountId,
+        MessageDirection: filters.MessageDirection,
+        UnlinkedOnly: filters.UnlinkedOnly,
+        HasAttachments: filters.HasAttachments,
+        OccurredAfter: filters.OccurredAfter,
+        OccurredBefore: filters.OccurredBefore);
 
     /// <inheritdoc cref="ToFilters"/>
     internal static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
@@ -479,7 +495,21 @@ internal static class M3Endpoints
         DueBefore: filters.DueBefore,
         RecordedAfter: filters.RecordedAfter,
         RecordedBefore: filters.RecordedBefore,
-        CurrencyCode: filters.CurrencyCode);
+        CurrencyCode: filters.CurrencyCode,
+        DocumentKind: filters.DocumentKind,
+        DocumentStatus: filters.DocumentStatus,
+        DocumentSensitivity: filters.DocumentSensitivity,
+        DocumentSource: filters.DocumentSource,
+        LinkedTargetKind: filters.LinkedTargetKind,
+        HasContent: filters.HasContent,
+        CreatedAfter: filters.CreatedAfter,
+        CreatedBefore: filters.CreatedBefore,
+        CommunicationAccountId: filters.CommunicationAccountId,
+        MessageDirection: filters.MessageDirection,
+        UnlinkedOnly: filters.UnlinkedOnly,
+        HasAttachments: filters.HasAttachments,
+        OccurredAfter: filters.OccurredAfter,
+        OccurredBefore: filters.OccurredBefore);
 
     // --------------------------------------------------------------- mapping
 

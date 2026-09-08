@@ -150,10 +150,27 @@ Candidate owner of:
 - research pipelines;
 - statistical/forecasting jobs.
 
+**Still not introduced as of M10.** Document text extraction was the first
+plausible occasion and did not justify it: plain-text formats are extracted
+natively in .NET, and PDF and DOCX report `Unsupported` rather than being handed
+to a parser this build has not fuzzed. No OCR, no embeddings and no model runs
+anywhere in M10 (ADR-0024).
+
 ### TypeScript
 Use only for required web ecosystems:
 - Outlook/Office web add-ins;
 - lightweight web/admin surfaces.
+
+**Still not introduced as of M10.** The milestone that would have justified an
+Outlook add-in built the integration boundary instead: mailboxes connect
+server-side, messages synchronize server-side, and sending goes through the
+AgencyOS API. A task pane would be a second client with its own authentication,
+deployment, update and version story, added before anybody has used the first
+one, and it would not make the server-side work any more correct.
+
+The decision is recorded rather than deferred silently: TypeScript is not added to
+satisfy the polyglot roadmap. It arrives when a real Office surface is asked for
+and the ecosystem genuinely requires web technologies to deliver it.
 
 ## 4. Contracts
 
@@ -174,6 +191,18 @@ Local:
   DPAPI-protected key, and isolated per channel, tenant and user. It is never
   canonical and can always be rebuilt from the change feed. See
   `docs/adr/ADR-0015-local-cache-encryption.md`.
+
+Content:
+- Stored file bytes live behind `IBlobStore`, never in a database column. The
+  ALPHA implementation is a local filesystem and is not distributed object
+  storage; a two-server deployment would not share it, which is a stated limit
+  rather than a discovered one. Identity is the SHA-256 of the bytes, and
+  deduplication is per tenant so the store cannot be asked whether another
+  organization holds a given file. See
+  `docs/adr/ADR-0024-blob-storage-content-addressing-and-ingestion.md`.
+- A filesystem and PostgreSQL do not share a transaction and nothing pretends they
+  do. Ingestion writes a ledger row, then the bytes, then the database rows, so
+  the only reachable failure is bytes nobody references.
 
 Projections later:
 - pgvector inside PostgreSQL first;
@@ -203,3 +232,18 @@ Introduce Temporal when workflows are long-lived, resumable and business-critica
 - collections;
 - payment schedules;
 - multi-step AI/research workflows.
+
+**M10 is the first milestone with background work, and it did not introduce
+Temporal.** The mailbox synchronizer and the outbound send worker are a
+`BackgroundService` in the API host, over a work queue that is the domain tables
+themselves. Canonical work state is a row in PostgreSQL — never an in-memory list
+— and a claim is one atomic
+`UPDATE ... WHERE id = (SELECT ... FOR UPDATE SKIP LOCKED) RETURNING id`, so two
+instances during a rolling deployment is ordinary rather than a hazard.
+
+What the send protocol needs is recovery, and recovery here is "read the row and
+reconcile" rather than deterministic replay of a workflow history. Adopting a
+workflow engine would add a server, a worker fleet and a second definition of what
+a workflow is, in exchange for a scheduler this milestone already has in twenty
+lines of SQL. See `docs/adr/ADR-0029-background-work-leasing-and-not-temporal.md`
+for the conditions under which that answer changes.

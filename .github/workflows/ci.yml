@@ -47,6 +47,15 @@ jobs:
         with:
           global-json-file: global.json
 
+      # TLC runs on the JVM. Pinned to a specific major rather than whatever the
+      # runner image happens to ship, so a model-checking result means the same
+      # thing from one run to the next.
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Restore tools
         run: dotnet tool restore
 
@@ -73,6 +82,20 @@ jobs:
         env:
           CI: 'true'
         run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 version
+
+      # Model checks the two protocols where a wrong answer is expensive and no
+      # amount of testing enumerates the interleavings: the M3 offline write queue
+      # and the M10 outbound send protocol, whose failure mode is sending a client
+      # the same commercial email twice (ADR-0028).
+      #
+      # The runner already has a JDK. TLC itself is fetched once and pinned by
+      # SHA-256 by the script, which fails loudly rather than skipping when the
+      # checksum does not match.
+      - name: Formal (TLC)
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 formal
 
       - name: Upload API contract
         uses: actions/upload-artifact@v4

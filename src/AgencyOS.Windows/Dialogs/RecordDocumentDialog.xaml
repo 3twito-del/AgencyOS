@@ -1,0 +1,60 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordDocumentDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record a document"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="520">
+
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button x:Name="ChooseButton" Content="Choose file..." Click="OnChooseFile" />
+                <TextBlock x:Name="FileText" VerticalAlignment="Center" Opacity="0.8"
+                           Text="No file chosen" />
+            </StackPanel>
+
+            <!--
+                The size limit is stated before the upload rather than after it. A
+                two-hundred-megabyte file that fails at the end of a slow transfer
+                is a worse way to learn the rule (ADR-0024).
+            -->
+            <InfoBar x:Name="TooLargeBar" Severity="Error" IsOpen="False" IsClosable="False"
+                     Title="Too large"
+                     Message="This build accepts files up to 200 MB." />
+
+            <TextBox x:Name="TitleBox" Header="Title" TextChanged="OnChanged" />
+
+            <ComboBox x:Name="KindBox" Header="Kind" MinWidth="260"
+                      SelectionChanged="OnChanged" />
+
+            <!--
+                Sensitivity has no pre-selected value. Guessing it from the filename
+                or the folder would be AgencyOS drawing a legal conclusion, and
+                privilege is something a lawyer asserts (ADR-0025).
+            -->
+            <ComboBox x:Name="SensitivityBox" Header="Sensitivity" MinWidth="260"
+                      PlaceholderText="Choose one" SelectionChanged="OnChanged" />
+
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Sensitivity is stated, not inferred"
+                     Message="AgencyOS does not read privilege from a filename, a folder or a document kind. Whoever records the document says what it is." />
+
+            <TextBox x:Name="ReferenceBox" Header="Reference (optional)" />
+
+            <TextBox x:Name="DescriptionBox" Header="Description (optional)"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="70" />
+
+            <!--
+                Said plainly, because an operator who assumes otherwise will treat a
+                stored file as vetted. Nothing scanned it.
+            -->
+            <InfoBar Severity="Warning" IsOpen="True" IsClosable="False"
+                     Title="Nothing is scanned"
+                     Message="AgencyOS stores the file and computes its digest. It runs no malware scanner and will not describe an unscanned file as safe." />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

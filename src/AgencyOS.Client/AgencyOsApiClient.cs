@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Documents;
 using AgencyOS.Contracts.Finance;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Opportunities;
@@ -1154,7 +1155,225 @@ public interface IAgencyOsApi
 
     Task<FinanceCommandCenterResponse> GetFinanceCommandCenterAsync(
         CancellationToken cancellationToken = default);
+
+    // ---- Documents and communications (M10) ----
+    //
+    // Every method here goes to the server and waits. Nothing is queued and nothing
+    // is cached: docs/13_OFFLINE_CLASSIFICATION.md classifies the whole milestone
+    // ONLINE_ONLY, and an actual send is never held in the M3 offline queue - a
+    // message queued for four hours is a message somebody has already been told was
+    // sent (ADR-0028).
+
+    Task<IReadOnlyList<DocumentSummaryResponse>> ListDocumentsAsync(
+        string? kind = null,
+        string? status = null,
+        string? sensitivity = null,
+        string? linkedTarget = null,
+        Guid? linkedTargetId = null,
+        bool hasContent = false,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<DocumentDetailResponse> GetDocumentAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records a document and its first version.
+    /// </summary>
+    /// <remarks>
+    /// Multipart, so the bytes stream rather than being base64-encoded into a JSON
+    /// body. The digest comes back from the server, computed as it stored them
+    /// (ADR-0024).
+    /// </remarks>
+    Task<RecordDocumentResponse> RecordDocumentAsync(
+        RecordDocumentRequest request,
+        Stream content,
+        string fileName,
+        string? mediaType = null,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a version. Never replaces one.</summary>
+    Task<RecordDocumentResponse> AddDocumentVersionAsync(
+        Guid documentId,
+        Stream content,
+        string fileName,
+        int expectedVersion,
+        string? mediaType = null,
+        string? notes = null,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Opens a version's bytes.</summary>
+    /// <remarks>
+    /// The only route to stored content. There is no public URL and no path in any
+    /// response (ADR-0025).
+    /// </remarks>
+    Task<DocumentContent> DownloadDocumentVersionAsync(
+        Guid versionId,
+        CancellationToken cancellationToken = default);
+
+    Task UpdateDocumentAsync(
+        Guid documentId,
+        UpdateDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<LinkDocumentResponse> LinkDocumentAsync(
+        Guid documentId,
+        LinkDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task UnlinkDocumentAsync(
+        Guid documentId,
+        Guid linkId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Takes a document out of ordinary use. Destroys nothing.</summary>
+    Task ArchiveDocumentAsync(
+        Guid documentId,
+        ArchiveDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task RestoreDocumentAsync(
+        Guid documentId,
+        RestoreDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asks which providers this server can connect to, and where to authorize them.
+    /// </summary>
+    /// <remarks>
+    /// The client does not build an authorization URL itself. Doing so would mean
+    /// carrying the application registration in the Windows build, and that
+    /// registration is server configuration (ADR-0027).
+    /// </remarks>
+    Task<IReadOnlyList<CommunicationProviderResponse>> ListCommunicationProvidersAsync(
+        string redirectUri,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CommunicationAccountResponse>> ListCommunicationAccountsAsync(
+        CancellationToken cancellationToken = default);
+
+    Task<ConnectMailboxResponse> ConnectMailboxAsync(
+        ConnectMailboxRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task DisconnectMailboxAsync(
+        Guid accountId,
+        DisconnectMailboxRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ChangeMailboxVisibilityAsync(
+        Guid accountId,
+        ChangeMailboxVisibilityRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<MessageSummaryResponse>> ListMessagesAsync(
+        Guid? accountId = null,
+        string? direction = null,
+        string? linkedTarget = null,
+        Guid? linkedTargetId = null,
+        bool unlinkedOnly = false,
+        bool hasAttachments = false,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<MessageDetailResponse> GetMessageAsync(
+        Guid messageId,
+        CancellationToken cancellationToken = default);
+
+    Task<LinkMessageResponse> LinkMessageAsync(
+        Guid messageId,
+        LinkMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task UnlinkMessageAsync(
+        Guid messageId,
+        Guid linkId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Records that an address is a person or company AgencyOS knows.</summary>
+    Task ResolveParticipantAsync(
+        Guid messageId,
+        Guid participantId,
+        ResolveParticipantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ParticipantSuggestionResponse>> SuggestParticipantsAsync(
+        string address,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Pulls an attachment's bytes into the canonical document store.</summary>
+    Task<IngestAttachmentResponse> IngestAttachmentAsync(
+        Guid attachmentId,
+        IngestAttachmentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<OutboundDispatchResponse>> ListOutboundMessagesAsync(
+        string? state = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<OutboundDispatchResponse> GetOutboundMessageAsync(
+        Guid dispatchId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records the intent to send.
+    /// </summary>
+    /// <remarks>
+    /// Nothing has left. The message can still be cancelled until it is queued,
+    /// after which AgencyOS cannot unsend anything (ADR-0028).
+    /// </remarks>
+    Task<ComposeMessageResponse> ComposeMessageAsync(
+        ComposeMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task QueueMessageAsync(
+        Guid dispatchId,
+        QueueMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task CancelMessageAsync(
+        Guid dispatchId,
+        CancelMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CommunicationEventResponse>> GetCommunicationHistoryAsync(
+        Guid? accountId = null,
+        Guid? dispatchId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<CommunicationCommandCenterResponse> GetCommunicationCommandCenterAsync(
+        CancellationToken cancellationToken = default);
 }
+
+/// <summary>Bytes streamed back from the server, with what a caller needs to save them.</summary>
+/// <param name="ContentHash">
+/// The digest the server holds, so a caller can verify the file it received.
+/// </param>
+public sealed record DocumentContent(
+    Stream Content,
+    string FileName,
+    string MediaType,
+    long? ByteLength,
+    string? ContentHash);
 
 /// <summary>
 /// Typed HTTP client for the AgencyOS API.
@@ -3279,6 +3498,444 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
         CancellationToken cancellationToken = default) =>
         GetAsync<FinanceCommandCenterResponse>(
             $"{TenantRoot}/finance/command-center", cancellationToken);
+
+    // ---- Documents and communications (M10) ----
+
+    public Task<IReadOnlyList<DocumentSummaryResponse>> ListDocumentsAsync(
+        string? kind = null,
+        string? status = null,
+        string? sensitivity = null,
+        string? linkedTarget = null,
+        Guid? linkedTargetId = null,
+        bool hasContent = false,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("kind", kind);
+        query.Add("status", status);
+        query.Add("sensitivity", sensitivity);
+        query.Add("linkedTarget", linkedTarget);
+        query.Add("linkedTargetId", linkedTargetId);
+        query.Add("hasContent", hasContent);
+        query.Add("search", search);
+        query.Add("limit", limit);
+
+        return GetListAsync<DocumentSummaryResponse>(
+            query.Apply($"{TenantRoot}/documents"), cancellationToken);
+    }
+
+    public Task<DocumentDetailResponse> GetDocumentAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<DocumentDetailResponse>($"{TenantRoot}/documents/{documentId}", cancellationToken);
+
+    public async Task<RecordDocumentResponse> RecordDocumentAsync(
+        RecordDocumentRequest request,
+        Stream content,
+        string fileName,
+        string? mediaType = null,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(content);
+
+        using MultipartFormDataContent form = new();
+
+        form.Add(new StringContent(request.Title), "title");
+        form.Add(new StringContent(request.Kind), "kind");
+        form.Add(new StringContent(request.Sensitivity), "sensitivity");
+
+        AddOptional(form, "reference", request.Reference);
+        AddOptional(form, "description", request.Description);
+        AddOptional(form, "notes", request.Notes);
+
+        // One JSON field rather than indexed keys, so uploading and filing are a
+        // single act. A separate link call would leave the document unfiled every
+        // time the second request failed.
+        if (request.Links is { Count: > 0 } links)
+        {
+            form.Add(
+                new StringContent(JsonSerializer.Serialize(links, Json)),
+                "links");
+        }
+
+        // Streamed rather than buffered. A two-hundred-megabyte deck read into a
+        // byte array would be in memory twice before anything hashed it.
+        StreamContent file = new(content);
+
+        file.Headers.ContentType =
+            new System.Net.Http.Headers.MediaTypeHeaderValue(
+                string.IsNullOrWhiteSpace(mediaType) ? "application/octet-stream" : mediaType);
+
+        form.Add(file, "file", fileName);
+
+        return await SendMultipartAsync<RecordDocumentResponse>(
+                $"{TenantRoot}/documents", form, idempotencyKey, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<RecordDocumentResponse> AddDocumentVersionAsync(
+        Guid documentId,
+        Stream content,
+        string fileName,
+        int expectedVersion,
+        string? mediaType = null,
+        string? notes = null,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+
+        using MultipartFormDataContent form = new();
+
+        form.Add(
+            new StringContent(expectedVersion.ToString(CultureInfo.InvariantCulture)),
+            "expectedVersion");
+
+        AddOptional(form, "notes", notes);
+
+        StreamContent file = new(content);
+
+        file.Headers.ContentType =
+            new System.Net.Http.Headers.MediaTypeHeaderValue(
+                string.IsNullOrWhiteSpace(mediaType) ? "application/octet-stream" : mediaType);
+
+        form.Add(file, "file", fileName);
+
+        return await SendMultipartAsync<RecordDocumentResponse>(
+                $"{TenantRoot}/documents/{documentId}/versions", form, idempotencyKey,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<DocumentContent> DownloadDocumentVersionAsync(
+        Guid versionId,
+        CancellationToken cancellationToken = default)
+    {
+        HttpResponseMessage response = await _http
+            .GetAsync(
+                $"{TenantRoot}/document-versions/{versionId}/content",
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        await EnsureSuccessAsync(response, cancellationToken).ConfigureAwait(false);
+
+        string fileName = response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+            ?? $"{versionId}";
+
+        return new DocumentContent(
+            await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false),
+            fileName,
+            response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream",
+            response.Content.Headers.ContentLength,
+            null);
+    }
+
+    public Task UpdateDocumentAsync(
+        Guid documentId,
+        UpdateDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/documents/{documentId}/update",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<LinkDocumentResponse> LinkDocumentAsync(
+        Guid documentId,
+        LinkDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<LinkDocumentRequest, LinkDocumentResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/documents/{documentId}/links",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public async Task UnlinkDocumentAsync(
+        Guid documentId,
+        Guid linkId,
+        CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await _http
+            .DeleteAsync($"{TenantRoot}/documents/{documentId}/links/{linkId}", cancellationToken)
+            .ConfigureAwait(false);
+
+        await EnsureSuccessAsync(response, cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task ArchiveDocumentAsync(
+        Guid documentId,
+        ArchiveDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/documents/{documentId}/archive",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task RestoreDocumentAsync(
+        Guid documentId,
+        RestoreDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/documents/{documentId}/restore",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<CommunicationProviderResponse>> ListCommunicationProvidersAsync(
+        string redirectUri,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("redirectUri", redirectUri);
+
+        return GetListAsync<CommunicationProviderResponse>(
+            query.Apply($"{TenantRoot}/communication-providers"), cancellationToken);
+    }
+
+    public Task<IReadOnlyList<CommunicationAccountResponse>> ListCommunicationAccountsAsync(
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<CommunicationAccountResponse>(
+            $"{TenantRoot}/communication-accounts", cancellationToken);
+
+    public Task<ConnectMailboxResponse> ConnectMailboxAsync(
+        ConnectMailboxRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<ConnectMailboxRequest, ConnectMailboxResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/communication-accounts",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task DisconnectMailboxAsync(
+        Guid accountId,
+        DisconnectMailboxRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/communication-accounts/{accountId}/disconnect",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ChangeMailboxVisibilityAsync(
+        Guid accountId,
+        ChangeMailboxVisibilityRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/communication-accounts/{accountId}/visibility",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<MessageSummaryResponse>> ListMessagesAsync(
+        Guid? accountId = null,
+        string? direction = null,
+        string? linkedTarget = null,
+        Guid? linkedTargetId = null,
+        bool unlinkedOnly = false,
+        bool hasAttachments = false,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("accountId", accountId);
+        query.Add("direction", direction);
+        query.Add("linkedTarget", linkedTarget);
+        query.Add("linkedTargetId", linkedTargetId);
+        query.Add("unlinkedOnly", unlinkedOnly);
+        query.Add("hasAttachments", hasAttachments);
+        query.Add("search", search);
+        query.Add("limit", limit);
+
+        return GetListAsync<MessageSummaryResponse>(
+            query.Apply($"{TenantRoot}/messages"), cancellationToken);
+    }
+
+    public Task<MessageDetailResponse> GetMessageAsync(
+        Guid messageId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<MessageDetailResponse>($"{TenantRoot}/messages/{messageId}", cancellationToken);
+
+    public Task<LinkMessageResponse> LinkMessageAsync(
+        Guid messageId,
+        LinkMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<LinkMessageRequest, LinkMessageResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/messages/{messageId}/links",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public async Task UnlinkMessageAsync(
+        Guid messageId,
+        Guid linkId,
+        CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await _http
+            .DeleteAsync($"{TenantRoot}/messages/{messageId}/links/{linkId}", cancellationToken)
+            .ConfigureAwait(false);
+
+        await EnsureSuccessAsync(response, cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task ResolveParticipantAsync(
+        Guid messageId,
+        Guid participantId,
+        ResolveParticipantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/messages/{messageId}/participants/{participantId}",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<ParticipantSuggestionResponse>> SuggestParticipantsAsync(
+        string address,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("address", address);
+
+        return GetListAsync<ParticipantSuggestionResponse>(
+            query.Apply($"{TenantRoot}/participant-suggestions"), cancellationToken);
+    }
+
+    public Task<IngestAttachmentResponse> IngestAttachmentAsync(
+        Guid attachmentId,
+        IngestAttachmentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<IngestAttachmentRequest, IngestAttachmentResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/message-attachments/{attachmentId}/ingest",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<OutboundDispatchResponse>> ListOutboundMessagesAsync(
+        string? state = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("state", state);
+        query.Add("limit", limit);
+
+        return GetListAsync<OutboundDispatchResponse>(
+            query.Apply($"{TenantRoot}/outbound-messages"), cancellationToken);
+    }
+
+    public Task<OutboundDispatchResponse> GetOutboundMessageAsync(
+        Guid dispatchId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<OutboundDispatchResponse>(
+            $"{TenantRoot}/outbound-messages/{dispatchId}", cancellationToken);
+
+    public Task<ComposeMessageResponse> ComposeMessageAsync(
+        ComposeMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<ComposeMessageRequest, ComposeMessageResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/outbound-messages",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task QueueMessageAsync(
+        Guid dispatchId,
+        QueueMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/outbound-messages/{dispatchId}/queue",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task CancelMessageAsync(
+        Guid dispatchId,
+        CancelMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/outbound-messages/{dispatchId}/cancel",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<CommunicationEventResponse>> GetCommunicationHistoryAsync(
+        Guid? accountId = null,
+        Guid? dispatchId = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("accountId", accountId);
+        query.Add("dispatchId", dispatchId);
+
+        return GetListAsync<CommunicationEventResponse>(
+            query.Apply($"{TenantRoot}/communications/history"), cancellationToken);
+    }
+
+    public Task<CommunicationCommandCenterResponse> GetCommunicationCommandCenterAsync(
+        CancellationToken cancellationToken = default) =>
+        GetAsync<CommunicationCommandCenterResponse>(
+            $"{TenantRoot}/communications/command-center", cancellationToken);
+
+    /// <summary>Adds a form field only when there is one to add.</summary>
+    private static void AddOptional(MultipartFormDataContent form, string name, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            form.Add(new StringContent(value), name);
+        }
+    }
+
+    private async Task<TResponse> SendMultipartAsync<TResponse>(
+        string uri,
+        MultipartFormDataContent form,
+        string? idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        using HttpRequestMessage request = new(HttpMethod.Post, uri) { Content = form };
+
+        if (!string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            request.Headers.Add(ClientHeaders.IdempotencyKey, idempotencyKey);
+        }
+
+        using HttpResponseMessage response = await _http
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+
+        return await ReadAsync<TResponse>(response, cancellationToken).ConfigureAwait(false);
+    }
 
     // ------------------------------------------------------------- plumbing
 

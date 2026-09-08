@@ -57,13 +57,21 @@ public static class ApiContract
     /// rather than sending them, and holds no exchange rates.
     /// </para>
     /// <para>
+    /// Version 10 adds documents and communications: a canonical content store
+    /// addressed by SHA-256, immutable document versions, links to business records
+    /// through typed foreign keys, connected mailboxes with delta synchronization,
+    /// and outbound sending with provider evidence. It is the first contract whose
+    /// operations cause an irreversible act outside AgencyOS, which is why an
+    /// outbound send reports an unknown outcome as itself rather than as a failure.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 9;
+    public const int Current = 10;
 
     /// <summary>
     /// The lowest contract version this build still serves.

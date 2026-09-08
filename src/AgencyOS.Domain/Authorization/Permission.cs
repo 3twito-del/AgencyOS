@@ -263,6 +263,88 @@ public static class Permission
     /// </remarks>
     public const string FinanceAdjustmentsWrite = "finance.adjustments.write";
 
+    // ---- Documents and communications (M10) ----
+    //
+    // Two families, deliberately separate from each other and from everything
+    // above. Reading a deal grants nothing about the contract PDF attached to it,
+    // and reading a document grants nothing about the email it arrived on
+    // (ADR-0025, ADR-0026).
+
+    /// <summary>Listing and reading documents and their metadata.</summary>
+    /// <remarks>
+    /// The floor for every document surface. It does not, on its own, open a
+    /// privileged, restricted or financial document: those carry their own grants
+    /// below, because sensitivity is a property of the document and not of what it
+    /// happens to be linked to (ADR-0025).
+    /// </remarks>
+    public const string DocumentsRead = "documents.read";
+
+    /// <summary>Adding documents, uploading versions and archiving.</summary>
+    public const string DocumentsWrite = "documents.write";
+
+    /// <summary>
+    /// Reading a document classified as legally privileged.
+    /// </summary>
+    /// <remarks>
+    /// The M8 contract-privilege grant guards a lawyer's analysis written into
+    /// AgencyOS; this guards the file itself. Somebody who may read the contract
+    /// record does not thereby get the privileged memo attached to it.
+    /// </remarks>
+    public const string DocumentsPrivilegedRead = "documents.privileged.read";
+
+    /// <summary>Reading a document classified as restricted.</summary>
+    /// <remarks>
+    /// The narrowest document classification, for material with a deliberately
+    /// small readership. Held separately so it can be granted to a handful of
+    /// people without also opening every privileged legal document.
+    /// </remarks>
+    public const string DocumentsRestrictedRead = "documents.restricted.read";
+
+    /// <summary>Connecting a document to a business record, or disconnecting one.</summary>
+    /// <remarks>
+    /// A link is an assertion about what a document is evidence of, so it is a
+    /// write even though it changes no bytes.
+    /// </remarks>
+    public const string DocumentsLink = "documents.link";
+
+    /// <summary>
+    /// Reading synchronized messages from a mailbox the caller owns.
+    /// </summary>
+    /// <remarks>
+    /// Ownership still decides which mailbox. This grant says a person may use the
+    /// communications surface at all; it does not open anybody else's mail
+    /// (ADR-0026).
+    /// </remarks>
+    public const string CommunicationsRead = "communications.read";
+
+    /// <summary>
+    /// Reading a mailbox somebody else owns, or one shared with the agency.
+    /// </summary>
+    /// <remarks>
+    /// Held apart from <see cref="CommunicationsRead"/> because sharing a tenant
+    /// with somebody is not a reason to read their correspondence. A message being
+    /// linked to a deal does not change that either: the link is context, and the
+    /// content is still the mailbox owner's (ADR-0026).
+    /// </remarks>
+    public const string CommunicationsSharedRead = "communications.shared.read";
+
+    /// <summary>
+    /// Sending an external message through a connected provider.
+    /// </summary>
+    /// <remarks>
+    /// The most consequential grant M10 adds. Every other action in the milestone
+    /// records something that already happened; this one causes something to happen
+    /// outside AgencyOS, to a real person, irreversibly (ADR-0028).
+    /// </remarks>
+    public const string CommunicationsSend = "communications.send";
+
+    /// <summary>Connecting, reconfiguring and disconnecting a mailbox.</summary>
+    /// <remarks>
+    /// Account management is where credentials are exchanged, so it is separate
+    /// from using the mailbox once it is connected.
+    /// </remarks>
+    public const string CommunicationsAccountManage = "communications.account.manage";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -325,5 +407,14 @@ public static class Permission
         FinanceLedgerRead,
         FinanceLedgerPost,
         FinanceAdjustmentsWrite,
+        DocumentsRead,
+        DocumentsWrite,
+        DocumentsPrivilegedRead,
+        DocumentsRestrictedRead,
+        DocumentsLink,
+        CommunicationsRead,
+        CommunicationsSharedRead,
+        CommunicationsSend,
+        CommunicationsAccountManage,
     };
 }

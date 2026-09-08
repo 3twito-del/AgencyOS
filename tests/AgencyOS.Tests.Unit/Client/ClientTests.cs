@@ -1,8 +1,11 @@
-﻿using System.Reflection;
+﻿using System.Net;
+using System.Reflection;
+using System.Security.Cryptography;
 using AgencyOS.Client;
 using AgencyOS.Client.Cache;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Documents;
 using AgencyOS.Contracts.Finance;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Opportunities;
@@ -385,7 +388,9 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             [.. Contracts],
             [.. Receivables],
             [.. Invoices],
-            [.. Payments]));
+            [.. Payments],
+            [.. Documents],
+            [.. Messages]));
     }
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(
@@ -3298,6 +3303,819 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             null,
             null,
             [],
+            1);
+
+    // ---- Documents and communications (M10) ----
+    //
+    // The fake holds real bytes and hashes them, because that is where the client
+    // behaviour worth testing is: an upload that becomes version N+1 rather than
+    // replacing version N, and a download whose digest can be checked. A fake that
+    // returned a constant string for the hash would let a view model that ignored
+    // the digest pass here and fail against a real file.
+
+    public List<DocumentSummaryResponse> Documents { get; } = [];
+
+    /// <summary>Details a test has arranged, when the derived one is not enough.</summary>
+    public Dictionary<Guid, DocumentDetailResponse> DocumentDetails { get; } = [];
+
+    /// <summary>Version bytes, keyed by version id.</summary>
+    public Dictionary<Guid, byte[]> VersionContent { get; } = [];
+
+    /// <summary>Versions per document, oldest first, so a sequence can be asserted.</summary>
+    public Dictionary<Guid, List<DocumentVersionResponse>> DocumentVersions { get; } = [];
+
+    public List<CommunicationAccountResponse> CommunicationAccounts { get; } = [];
+
+    public List<MessageSummaryResponse> Messages { get; } = [];
+
+    public Dictionary<Guid, MessageDetailResponse> MessageDetails { get; } = [];
+
+    public List<OutboundDispatchResponse> OutboundMessages { get; } = [];
+
+    public List<CommunicationEventResponse> CommunicationHistory { get; } = [];
+
+    public List<ParticipantSuggestionResponse> ParticipantSuggestions { get; } = [];
+
+    public CommunicationCommandCenterResponse CommunicationCommandCenter { get; set; } =
+        new([], [], [], 0, 0, 0);
+
+    /// <summary>Uploads that reached the fake, so a test can assert bytes and version.</summary>
+    public List<(Guid DocumentId, string FileName, int ExpectedVersion, byte[] Content)> Uploads
+    { get; } = [];
+
+    /// <summary>Compose requests, so a test can assert what was actually asked for.</summary>
+    public List<ComposeMessageRequest> Composed { get; } = [];
+
+    /// <summary>Dispatches the fake was asked to queue, in order.</summary>
+    public List<Guid> QueuedDispatches { get; } = [];
+
+    /// <summary>Dispatches the fake was asked to cancel, in order.</summary>
+    public List<Guid> CancelledDispatches { get; } = [];
+
+    /// <summary>Documents the fake was asked to archive, in order.</summary>
+    public List<Guid> ArchivedDocuments { get; } = [];
+
+    /// <summary>The filter the last document list call actually sent.</summary>
+    public (string? Kind, string? Status, string? Sensitivity, string? LinkedTarget,
+        Guid? LinkedTargetId, bool HasContent, string? Search) LastDocumentFilter
+    { get; private set; }
+
+    /// <summary>The filter the last message list call actually sent.</summary>
+    public (Guid? AccountId, string? Direction, string? LinkedTarget, Guid? LinkedTargetId,
+        bool UnlinkedOnly, bool HasAttachments, string? Search) LastMessageFilter
+    { get; private set; }
+
+    public Task<IReadOnlyList<DocumentSummaryResponse>> ListDocumentsAsync(
+        string? kind = null,
+        string? status = null,
+        string? sensitivity = null,
+        string? linkedTarget = null,
+        Guid? linkedTargetId = null,
+        bool hasContent = false,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        LastDocumentFilter =
+            (kind, status, sensitivity, linkedTarget, linkedTargetId, hasContent, search);
+
+        IEnumerable<DocumentSummaryResponse> documents = Documents;
+
+        if (kind is not null)
+        {
+            documents = documents.Where(x => x.Kind == kind);
+        }
+
+        if (status is not null)
+        {
+            documents = documents.Where(x => x.Status == status);
+        }
+
+        if (sensitivity is not null)
+        {
+            documents = documents.Where(x => x.Sensitivity == sensitivity);
+        }
+
+        if (hasContent)
+        {
+            documents = documents.Where(x => x.HoldsContent);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            documents = documents.Where(x =>
+                x.Title.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (limit is { } take)
+        {
+            documents = documents.Take(take);
+        }
+
+        return Task.FromResult<IReadOnlyList<DocumentSummaryResponse>>([.. documents]);
+    }
+
+    public Task<DocumentDetailResponse> GetDocumentAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        if (DocumentDetails.TryGetValue(documentId, out DocumentDetailResponse? arranged))
+        {
+            return Task.FromResult(arranged);
+        }
+
+        DocumentSummaryResponse summary = Documents.Single(x => x.Id == documentId);
+
+        return Task.FromResult(new DocumentDetailResponse(
+            summary,
+            null,
+            null,
+            DocumentVersions.TryGetValue(documentId, out List<DocumentVersionResponse>? versions)
+                ? [.. versions]
+                : [],
+            [],
+            [],
+            null));
+    }
+
+    public async Task<RecordDocumentResponse> RecordDocumentAsync(
+        RecordDocumentRequest request,
+        Stream content,
+        string fileName,
+        string? mediaType = null,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        byte[] bytes = await ReadAllAsync(content, cancellationToken).ConfigureAwait(false);
+        string hash = Digest(bytes);
+
+        Guid documentId = Guid.NewGuid();
+        bool deduplicated = VersionContent.Values.Any(existing => Digest(existing) == hash);
+
+        DocumentVersionResponse version = DocumentVersion(
+            1, fileName, mediaType ?? "application/octet-stream", bytes, hash);
+
+        VersionContent[version.Id] = bytes;
+        DocumentVersions[documentId] = [version];
+        Uploads.Add((documentId, fileName, 0, bytes));
+
+        Documents.Add(new DocumentSummaryResponse(
+            documentId,
+            request.Title,
+            request.Kind,
+            "Active",
+            request.Sensitivity ?? "Internal",
+            request.Reference,
+            version,
+            1,
+            request.Links?.Count ?? 0,
+            true,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow,
+            "Operator",
+            1));
+
+        return new RecordDocumentResponse(
+            documentId, version.Id, hash, bytes.LongLength, deduplicated);
+    }
+
+    public async Task<RecordDocumentResponse> AddDocumentVersionAsync(
+        Guid documentId,
+        Stream content,
+        string fileName,
+        int expectedVersion,
+        string? mediaType = null,
+        string? notes = null,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        byte[] bytes = await ReadAllAsync(content, cancellationToken).ConfigureAwait(false);
+        string hash = Digest(bytes);
+
+        int index = Documents.FindIndex(x => x.Id == documentId);
+        DocumentSummaryResponse existing = Documents[index];
+
+        // The fake refuses a stale write for the same reason the server does. A view
+        // model that forgot to carry the version forward would otherwise pass here.
+        if (existing.Version != expectedVersion)
+        {
+            throw new AgencyOsApiException(
+                HttpStatusCode.Conflict,
+                "The document changed since it was read.",
+                code: "version_conflict",
+                expectedVersion: expectedVersion,
+                actualVersion: existing.Version);
+        }
+
+        List<DocumentVersionResponse> versions = DocumentVersions.TryGetValue(
+            documentId, out List<DocumentVersionResponse>? held) ? held : [];
+
+        DocumentVersionResponse version = DocumentVersion(
+            versions.Count + 1,
+            fileName,
+            mediaType ?? "application/octet-stream",
+            bytes,
+            hash,
+            notes);
+
+        // Appended. The earlier versions and their bytes stay exactly where they are.
+        versions.Add(version);
+        DocumentVersions[documentId] = versions;
+        VersionContent[version.Id] = bytes;
+        Uploads.Add((documentId, fileName, expectedVersion, bytes));
+
+        Documents[index] = existing with
+        {
+            CurrentVersion = version,
+            VersionCount = versions.Count,
+            HoldsContent = true,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Version = existing.Version + 1,
+        };
+
+        return new RecordDocumentResponse(
+            documentId, version.Id, hash, bytes.LongLength, false);
+    }
+
+    public Task<DocumentContent> DownloadDocumentVersionAsync(
+        Guid versionId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        byte[] bytes = VersionContent[versionId];
+
+        DocumentVersionResponse version = DocumentVersions.Values
+            .SelectMany(x => x)
+            .Single(x => x.Id == versionId);
+
+        return Task.FromResult(new DocumentContent(
+            new MemoryStream(bytes, writable: false),
+            version.DisplayFileName,
+            version.MediaType,
+            bytes.LongLength,
+            version.ContentHash));
+    }
+
+    public Task UpdateDocumentAsync(
+        Guid documentId,
+        UpdateDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Documents.FindIndex(x => x.Id == documentId);
+
+        if (index >= 0)
+        {
+            DocumentSummaryResponse existing = Documents[index];
+
+            Documents[index] = existing with
+            {
+                Title = request.Title ?? existing.Title,
+                Kind = request.Kind ?? existing.Kind,
+                Sensitivity = request.Sensitivity ?? existing.Sensitivity,
+                Reference = request.Reference ?? existing.Reference,
+                UpdatedAt = DateTimeOffset.UtcNow,
+                Version = existing.Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<LinkDocumentResponse> LinkDocumentAsync(
+        Guid documentId,
+        LinkDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        return Task.FromResult(new LinkDocumentResponse(Guid.NewGuid()));
+    }
+
+    public Task UnlinkDocumentAsync(
+        Guid documentId,
+        Guid linkId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task ArchiveDocumentAsync(
+        Guid documentId,
+        ArchiveDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        ArchivedDocuments.Add(documentId);
+
+        int index = Documents.FindIndex(x => x.Id == documentId);
+
+        if (index >= 0)
+        {
+            // Archived, not destroyed: the bytes and every version stay exactly where
+            // they were, which is the whole distinction M10 draws (ADR-0024).
+            Documents[index] = Documents[index] with
+            {
+                Status = "Archived",
+                Version = Documents[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task RestoreDocumentAsync(
+        Guid documentId,
+        RestoreDocumentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Documents.FindIndex(x => x.Id == documentId);
+
+        if (index >= 0)
+        {
+            Documents[index] = Documents[index] with
+            {
+                Status = "Active",
+                Version = Documents[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Providers a test has arranged, so a connect flow can be exercised.</summary>
+    public List<CommunicationProviderResponse> CommunicationProviders { get; } = [];
+
+    public Task<IReadOnlyList<CommunicationProviderResponse>> ListCommunicationProvidersAsync(
+        string redirectUri,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult<IReadOnlyList<CommunicationProviderResponse>>(
+            [.. CommunicationProviders]);
+    }
+
+    public Task<IReadOnlyList<CommunicationAccountResponse>> ListCommunicationAccountsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult<IReadOnlyList<CommunicationAccountResponse>>(
+            [.. CommunicationAccounts]);
+    }
+
+    public Task<ConnectMailboxResponse> ConnectMailboxAsync(
+        ConnectMailboxRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        return Task.FromResult(new ConnectMailboxResponse(Guid.NewGuid()));
+    }
+
+    public Task DisconnectMailboxAsync(
+        Guid accountId,
+        DisconnectMailboxRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = CommunicationAccounts.FindIndex(x => x.Id == accountId);
+
+        if (index >= 0)
+        {
+            CommunicationAccounts[index] = CommunicationAccounts[index] with
+            {
+                State = "Disconnected",
+                HasStoredCredential = false,
+                Version = CommunicationAccounts[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task ChangeMailboxVisibilityAsync(
+        Guid accountId,
+        ChangeMailboxVisibilityRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = CommunicationAccounts.FindIndex(x => x.Id == accountId);
+
+        if (index >= 0)
+        {
+            CommunicationAccounts[index] = CommunicationAccounts[index] with
+            {
+                Visibility = request.Visibility,
+                Version = CommunicationAccounts[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<MessageSummaryResponse>> ListMessagesAsync(
+        Guid? accountId = null,
+        string? direction = null,
+        string? linkedTarget = null,
+        Guid? linkedTargetId = null,
+        bool unlinkedOnly = false,
+        bool hasAttachments = false,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        LastMessageFilter = (
+            accountId, direction, linkedTarget, linkedTargetId,
+            unlinkedOnly, hasAttachments, search);
+
+        IEnumerable<MessageSummaryResponse> messages = Messages;
+
+        if (accountId is { } account)
+        {
+            messages = messages.Where(x => x.AccountId == account);
+        }
+
+        if (direction is not null)
+        {
+            messages = messages.Where(x => x.Direction == direction);
+        }
+
+        if (unlinkedOnly)
+        {
+            messages = messages.Where(x => x.LinkCount == 0);
+        }
+
+        if (hasAttachments)
+        {
+            messages = messages.Where(x => x.HasAttachments);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            messages = messages.Where(x =>
+                x.Subject?.Contains(search, StringComparison.OrdinalIgnoreCase) == true);
+        }
+
+        if (limit is { } take)
+        {
+            messages = messages.Take(take);
+        }
+
+        return Task.FromResult<IReadOnlyList<MessageSummaryResponse>>([.. messages]);
+    }
+
+    public Task<MessageDetailResponse> GetMessageAsync(
+        Guid messageId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        if (MessageDetails.TryGetValue(messageId, out MessageDetailResponse? arranged))
+        {
+            return Task.FromResult(arranged);
+        }
+
+        MessageSummaryResponse summary = Messages.Single(x => x.Id == messageId);
+
+        return Task.FromResult(new MessageDetailResponse(
+            summary, null, null, null, null, [], [], [], [summary]));
+    }
+
+    public Task<LinkMessageResponse> LinkMessageAsync(
+        Guid messageId,
+        LinkMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        int index = Messages.FindIndex(x => x.Id == messageId);
+
+        if (index >= 0)
+        {
+            Messages[index] = Messages[index] with { LinkCount = Messages[index].LinkCount + 1 };
+        }
+
+        return Task.FromResult(new LinkMessageResponse(Guid.NewGuid()));
+    }
+
+    public Task UnlinkMessageAsync(
+        Guid messageId,
+        Guid linkId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.CompletedTask;
+    }
+
+    public Task ResolveParticipantAsync(
+        Guid messageId,
+        Guid participantId,
+        ResolveParticipantRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<ParticipantSuggestionResponse>> SuggestParticipantsAsync(
+        string address,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult<IReadOnlyList<ParticipantSuggestionResponse>>(
+            [.. ParticipantSuggestions.Where(x =>
+                string.Equals(x.MatchedAddress, address, StringComparison.OrdinalIgnoreCase))]);
+    }
+
+    public Task<IngestAttachmentResponse> IngestAttachmentAsync(
+        Guid attachmentId,
+        IngestAttachmentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        byte[] bytes = [1, 2, 3];
+
+        return Task.FromResult(new IngestAttachmentResponse(
+            Guid.NewGuid(), Guid.NewGuid(), Digest(bytes), bytes.LongLength));
+    }
+
+    public Task<IReadOnlyList<OutboundDispatchResponse>> ListOutboundMessagesAsync(
+        string? state = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        IEnumerable<OutboundDispatchResponse> dispatches = OutboundMessages;
+
+        if (state is not null)
+        {
+            dispatches = dispatches.Where(x => x.State == state);
+        }
+
+        if (limit is { } take)
+        {
+            dispatches = dispatches.Take(take);
+        }
+
+        return Task.FromResult<IReadOnlyList<OutboundDispatchResponse>>([.. dispatches]);
+    }
+
+    public Task<OutboundDispatchResponse> GetOutboundMessageAsync(
+        Guid dispatchId,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(OutboundMessages.Single(x => x.Id == dispatchId));
+    }
+
+    public Task<ComposeMessageResponse> ComposeMessageAsync(
+        ComposeMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        Composed.Add(request);
+
+        Guid dispatchId = Guid.NewGuid();
+
+        // Composed, not queued. Nothing has left, which is what the interface must
+        // be able to say truthfully (ADR-0028).
+        OutboundMessages.Add(Dispatch("Draft", request.Subject, dispatchId));
+
+        return Task.FromResult(new ComposeMessageResponse(dispatchId));
+    }
+
+    public Task QueueMessageAsync(
+        Guid dispatchId,
+        QueueMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        QueuedDispatches.Add(dispatchId);
+
+        int index = OutboundMessages.FindIndex(x => x.Id == dispatchId);
+
+        if (index >= 0)
+        {
+            OutboundMessages[index] = OutboundMessages[index] with
+            {
+                State = "Queued",
+                Version = OutboundMessages[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task CancelMessageAsync(
+        Guid dispatchId,
+        CancelMessageRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default)
+    {
+        Submit(idempotencyKey);
+
+        CancelledDispatches.Add(dispatchId);
+
+        int index = OutboundMessages.FindIndex(x => x.Id == dispatchId);
+
+        if (index >= 0)
+        {
+            OutboundMessages[index] = OutboundMessages[index] with
+            {
+                State = "Cancelled",
+                Version = OutboundMessages[index].Version + 1,
+            };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<CommunicationEventResponse>> GetCommunicationHistoryAsync(
+        Guid? accountId = null,
+        Guid? dispatchId = null,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult<IReadOnlyList<CommunicationEventResponse>>(
+            [.. CommunicationHistory]);
+    }
+
+    public Task<CommunicationCommandCenterResponse> GetCommunicationCommandCenterAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+
+        return Task.FromResult(CommunicationCommandCenter);
+    }
+
+    // ---- Document and communication builders ----
+
+    private static async Task<byte[]> ReadAllAsync(Stream content, CancellationToken cancellationToken)
+    {
+        using MemoryStream buffer = new();
+
+        await content.CopyToAsync(buffer, cancellationToken).ConfigureAwait(false);
+
+        return buffer.ToArray();
+    }
+
+    /// <summary>The real digest of the real bytes, exactly as the server computes it.</summary>
+    private static string Digest(byte[] bytes) =>
+        Convert.ToHexStringLower(SHA256.HashData(bytes));
+
+    private static DocumentVersionResponse DocumentVersion(
+        int sequence,
+        string fileName,
+        string mediaType,
+        byte[] bytes,
+        string hash,
+        string? notes = null) =>
+        new(
+            Guid.NewGuid(),
+            sequence,
+            fileName,
+            mediaType,
+            bytes.LongLength,
+            hash,
+            "Upload",
+            null,
+            DateTimeOffset.UtcNow,
+            "Operator",
+            notes,
+            "NotAttempted",
+            null,
+            // Unscanned, because nothing scanned it. The fake will not say Clean for
+            // the same reason the server will not.
+            "Unscanned");
+
+    /// <summary>A document summary whose derived counts follow from its versions.</summary>
+    internal static DocumentSummaryResponse DocumentSummary(
+        string title = "Executed agreement",
+        string kind = "Contract",
+        string status = "Active",
+        string sensitivity = "Internal",
+        bool holdsContent = true,
+        int versionCount = 1,
+        int linkCount = 0,
+        Guid? id = null)
+    {
+        byte[] bytes = [7, 7, 7];
+
+        return new DocumentSummaryResponse(
+            id ?? Guid.NewGuid(),
+            title,
+            kind,
+            status,
+            sensitivity,
+            null,
+            holdsContent
+                ? DocumentVersion(versionCount, $"{title}.pdf", "application/pdf", bytes, Digest(bytes))
+                : null,
+            versionCount,
+            linkCount,
+            holdsContent,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow,
+            "Operator",
+            1);
+    }
+
+    /// <summary>A message summary.</summary>
+    internal static MessageSummaryResponse Message(
+        string subject = "Re: offer",
+        string direction = "Inbound",
+        string from = "producer@studio.example",
+        int linkCount = 0,
+        int attachmentCount = 0,
+        Guid? id = null,
+        Guid? accountId = null) =>
+        new(
+            id ?? Guid.NewGuid(),
+            accountId ?? Guid.NewGuid(),
+            "agent@agency.example",
+            direction,
+            subject,
+            from,
+            "Producer",
+            ["agent@agency.example"],
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow,
+            attachmentCount > 0,
+            attachmentCount,
+            linkCount,
+            false,
+            "Inbox");
+
+    /// <summary>An outbound dispatch in a named state.</summary>
+    internal static OutboundDispatchResponse Dispatch(
+        string state = "Draft",
+        string subject = "Offer terms",
+        Guid? id = null,
+        int attempts = 0,
+        string? lastVerdict = null,
+        bool hasProviderEvidence = false) =>
+        new(
+            id ?? Guid.NewGuid(),
+            Guid.NewGuid(),
+            "agent@agency.example",
+            state,
+            subject,
+            [],
+            [],
+            attempts,
+            null,
+            lastVerdict,
+            null,
+            state is "ProviderDraftCreated" or "SendRequested",
+            hasProviderEvidence,
+            null,
+            state == "Sent" ? DateTimeOffset.UtcNow : null,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow,
+            "Operator",
+            state is "UnknownOutcome" or "FailedPermanent",
             1);
 
     private void Throw()

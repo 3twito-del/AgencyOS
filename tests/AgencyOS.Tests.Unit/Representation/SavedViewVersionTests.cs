@@ -46,7 +46,7 @@ public sealed class SavedViewVersionTests
     /// <summary>A version from the future is refused rather than guessed at.</summary>
     [Theory]
     [InlineData(0)]
-    [InlineData(8)]
+    [InlineData(9)]
     [InlineData(99)]
     public void AnUnknownVersion_IsRefused(int version)
     {
@@ -70,7 +70,7 @@ public sealed class SavedViewVersionTests
     public void TheUnderstoodRange_CoversEveryVersionEverShipped()
     {
         Assert.Equal(1, SavedViewDefinition.MinimumUnderstoodVersion);
-        Assert.Equal(7, SavedViewDefinition.CurrentDefinitionVersion);
+        Assert.Equal(8, SavedViewDefinition.CurrentDefinitionVersion);
     }
 
     /// <summary>
@@ -136,6 +136,28 @@ public sealed class SavedViewVersionTests
 
         SavedViewDefinition backdated = new(
             6, target, new SavedViewFilters(CurrencyCode: "USD"));
+
+        Assert.Throws<DomainException>(backdated.Validate);
+    }
+
+    /// <summary>
+    /// The document and communication views are version 8 documents, and claiming
+    /// an earlier version while naming one is refused.
+    /// </summary>
+    /// <remarks>
+    /// Their filters narrow by metadata and shape only. Nothing here matches
+    /// inside a document or inside a message body: a predicate that did would
+    /// report the contents of a privileged contract, or somebody else's mail, to
+    /// whoever ran the view (ADR-0025, ADR-0026).
+    /// </remarks>
+    [Theory]
+    [InlineData(SavedViewTarget.Documents)]
+    [InlineData(SavedViewTarget.Communications)]
+    public void TheDocumentAndCommunicationViews_ArrivedInVersionEight(SavedViewTarget target)
+    {
+        new SavedViewDefinition(8, target, new SavedViewFilters()).Validate();
+
+        SavedViewDefinition backdated = new(7, target, new SavedViewFilters());
 
         Assert.Throws<DomainException>(backdated.Validate);
     }

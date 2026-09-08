@@ -1,4 +1,5 @@
-using AgencyOS.Domain.Common;
+﻿using AgencyOS.Domain.Common;
+using AgencyOS.Domain.Documents;
 using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Legal;
@@ -112,6 +113,21 @@ public sealed class Invoice
 
     /// <summary>Optimistic concurrency token (ADR-0014).</summary>
     public int Version { get; private set; }
+
+    /// <summary>
+    /// The canonical stored invoice document, once one has been attached.
+    /// </summary>
+    /// <remarks>
+    /// Null by default, and <see cref="HoldsDocument"/> says so. M9 published that
+    /// property as a constant false because there was no document store; it is now
+    /// a real answer, and an invoice with no file still answers false rather than
+    /// implying one exists (ADR-0023, ADR-0024).
+    /// </remarks>
+    public DocumentVersionId? DocumentVersionId { get; private set; }
+
+    /// <summary>Attaches the canonical stored invoice document.</summary>
+    public void AttachDocumentVersion(DocumentVersionId documentVersionId) =>
+        DocumentVersionId = documentVersionId;
 
     public IReadOnlyCollection<InvoiceLine> Lines => _lines;
 

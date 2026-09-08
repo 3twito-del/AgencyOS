@@ -2,6 +2,8 @@
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Deals;
+using AgencyOS.Domain.Communications;
+using AgencyOS.Domain.Documents;
 using AgencyOS.Domain.Finance;
 using AgencyOS.Domain.Legal;
 using AgencyOS.Domain.Identity;
@@ -247,6 +249,42 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
 
     public DbSet<FinanceTaskLink> FinanceTaskLinks => Set<FinanceTaskLink>();
 
+    // ---- Documents and communications (M10) ----
+
+    public DbSet<BlobObject> BlobObjects => Set<BlobObject>();
+
+    public DbSet<BlobIngestion> BlobIngestions => Set<BlobIngestion>();
+
+    public DbSet<Document> Documents => Set<Document>();
+
+    public DbSet<DocumentVersion> DocumentVersions => Set<DocumentVersion>();
+
+    public DbSet<DocumentLink> DocumentLinks => Set<DocumentLink>();
+
+    public DbSet<DocumentEvent> DocumentEvents => Set<DocumentEvent>();
+
+    public DbSet<CommunicationAccount> CommunicationAccounts => Set<CommunicationAccount>();
+
+    public DbSet<CommunicationThread> CommunicationThreads => Set<CommunicationThread>();
+
+    public DbSet<CommunicationMessage> CommunicationMessages => Set<CommunicationMessage>();
+
+    public DbSet<CommunicationParticipant> CommunicationParticipants =>
+        Set<CommunicationParticipant>();
+
+    public DbSet<CommunicationAttachment> CommunicationAttachments =>
+        Set<CommunicationAttachment>();
+
+    public DbSet<CommunicationLink> CommunicationLinks => Set<CommunicationLink>();
+
+    public DbSet<OutboundDispatch> OutboundDispatches => Set<OutboundDispatch>();
+
+    public DbSet<OutboundRecipient> OutboundRecipients => Set<OutboundRecipient>();
+
+    public DbSet<OutboundAttachment> OutboundAttachments => Set<OutboundAttachment>();
+
+    public DbSet<CommunicationEvent> CommunicationEvents => Set<CommunicationEvent>();
+
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.
     /// </summary>
@@ -266,6 +304,12 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     /// </remarks>
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        // The exclusive-arc columns are filled here rather than at each call site.
+        // A link written without them would still satisfy every C# type, and would
+        // then fail a check constraint or - worse - carry a stale identifier from a
+        // previous target. One place, applied to every added link (ADR-0025).
+        LinkArcSynchronizer.Apply(ChangeTracker);
+
         IReadOnlyList<PendingChange> pending = ChangeFeedRecorder.Collect(ChangeTracker);
 
         if (pending.Count == 0)

@@ -1131,14 +1131,111 @@ Deliver:
   what happened. The condition for revisiting is a stated question somebody
   actually needs answered, and an accountant in the room.
 
-## M10 — Documents & Communications
-Deliver:
-- object storage;
-- document metadata/versioning;
-- Outlook/Office integration;
-- attachment ingestion;
-- previews;
-- relationship-linked correspondence.
+## M10 — Canonical Documents, Communications, Outlook & Office Integration — **Done** (2026-09-08)
+
+Implemented: two connected capabilities. A canonical document store — an entity
+holds a Document, a Document holds immutable DocumentVersions, and a version
+points at a content-addressed BlobObject — and real external communications:
+connected mailboxes, synchronized messages filed against the business, and the
+first operation in AgencyOS that causes something irreversible outside the
+database.
+
+**A version is never rewritten.** Updating a document adds version N+1. The bytes,
+the digest and the storage key of an existing version cannot be changed, and
+database triggers refuse the update rather than trusting application code. This is
+its own immutability, distinct from the audit trail's, an Offer's, a ContractTerm's
+and a journal entry's — it exists so somebody can read what was actually signed.
+
+**Identity is the SHA-256 of the actual bytes.** Computed while storing, never
+from anything a caller declared. Deduplication is per organization, because a
+store shared across tenants would answer "do you already hold this file?" for
+anybody who could guess the content. Identical bytes never merge two documents:
+the privileged copy of an ordinary memo stays privileged.
+
+**Bytes are written before rows, and the ordering is the design.** A staging row
+in an ingestion ledger, then the bytes flushed and atomically renamed, then the
+document rows. A crash leaves bytes nobody references — swept later — and never
+a database record committed to bytes that were never durably written.
+
+**Nothing is scanned, and nothing is called clean.** M10 ships no malware scanner.
+Every version is `Unscanned`, the surface says "Not scanned", and a file is never
+described as safe on the strength of having been stored.
+
+**Sensitivity is stated, never inferred** — not from the filename, the folder, the
+kind or what the document is linked to. **A link is context, not authorization:**
+being able to read the deal a document is filed against grants nothing about the
+document.
+
+**Full-content search is deferred, explicitly.** M10 searches titles and
+references, and the screen says so. Searching inside a corpus holding privileged
+contracts requires the authorization to be airtight in the index, the snippets,
+the ranking *and* the counts, and a partly-correct implementation reads exactly
+like a correct one. No OpenSearch.
+
+**A message is not an Interaction.** Synchronized messages are frozen — AgencyOS
+did not write them — and a linked message is evidence, never a state change. No
+Opportunity, Submission, Offer, Contract or Invoice is created or transitioned
+from email text.
+
+**Provider HTML is sanitized once, on the way in.** Script, styles, frames, forms
+and every attribute are gone before the row is written. External images go too: a
+remote image in a stored message would tell its sender that the agency opened
+their email, years later, while somebody browsed a deal's history.
+
+**A mailbox belongs to a person.** Visibility defaults to private, sharing a
+tenant is not an argument for reading a colleague's correspondence, and a message
+in a mailbox the caller may not read is absent rather than refused — the existence
+is itself the disclosure.
+
+**An address is not an identity.** Ambiguous addresses are reported as ambiguous
+and resolved by a person; the raw address and display name are preserved exactly
+as the mail carried them.
+
+**The outbound send protocol is the milestone's centre.** The state is written and
+committed *before* the provider is called, so a crash leaves a row saying a send
+may have happened. `UnknownOutcome` is never treated as a failure, in the state
+machine, in the counts or in the wording: it leaves only for `Sent` (found in the
+provider's sent items) or `ProviderDraftCreated` (proven absent, which requires
+the draft still to be there). `specs/OutboundSend.tla` is model-checked in CI and
+finds no violation of `NeverSendsTwice`, `SentIsMonotonic`,
+`UnknownIsNeverAssumedFailed`, `CommittedIsNeverCalledFailed`,
+`SendRequiresDraft`, `CancelOnlyBeforeProvider` or `EventuallySettles`.
+
+**AgencyOS never claims delivery.** `Sent` means the provider confirmed it took
+the message. Nothing says delivered, opened or read.
+
+**Credentials never reach a client.** The authorization code is exchanged
+server-side, tokens are encrypted at rest with ASP.NET Core Data Protection, and
+no response, log line or telemetry attribute has a field that could carry one.
+Disconnecting destroys the credential and keeps the correspondence.
+
+**No mailbox has been connected to a real Microsoft tenant in this repository.**
+The Graph adapter compiles and satisfies the same protocol contract the fake
+provider does. That is a different claim from working, and the two are reported
+separately.
+
+Deliberately not built:
+
+- **Full-content document search.** See above. Deferred rather than approximated.
+- **PDF and DOCX text extraction.** Plain-text formats are extracted natively and
+  everything else reports `Unsupported`, which is honest. Document parsers are a
+  mandatory fuzzing target in `docs/11_TESTING_AND_FORMAL_METHODS.md`, and adding
+  two before the fuzzing exists would be the wrong order. No OCR, no Python, no
+  model.
+- **An Office or Outlook add-in, and any TypeScript.** The integration boundary is
+  documented and the server side works; a task pane would be a second client with
+  its own authentication, deployment and version story, added before anybody has
+  used the first one. TypeScript is not introduced merely to satisfy the polyglot
+  roadmap.
+- **E-signature integration.** M8 records that a signature happened and verifies
+  nothing. Sending documents for signature is a different milestone.
+- **Malware scanning.** The seam exists; the implementation does not, and no file
+  is ever labelled clean.
+- **A public or signed blob URL.** Bytes leave through one authorized route.
+- **Purge or destruction tooling.** Archiving hides; nothing deletes.
+- **Temporal.** The send protocol is a single-step state machine over rows in the
+  same database, with an atomic lease. Adopting a workflow engine because there is
+  an asynchronous operation is the argument `CLAUDE.md` rules out (ADR-0029).
 
 ## M11 — Intelligence
 Deliver:

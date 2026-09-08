@@ -1,5 +1,7 @@
 ﻿using AgencyOS.Application.Abstractions;
+using AgencyOS.Application.Communications;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Documents;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Authorization;
@@ -13,7 +15,10 @@ using AgencyOS.Application.Representations;
 using AgencyOS.Application.Search;
 using AgencyOS.Application.Sync;
 using AgencyOS.Infrastructure.Persistence;
+using AgencyOS.Infrastructure.Communications;
 using AgencyOS.Infrastructure.Persistence.Queries;
+using AgencyOS.Infrastructure.Storage;
+using Microsoft.AspNetCore.DataProtection;
 using AgencyOS.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -126,9 +131,111 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IFinanceTaskLinkRepository, FinanceTaskLinkRepository>();
         services.AddScoped<IFinanceQueries, FinanceQueries>();
 
+        // ---- Documents and communications (M10) ----
+
+        services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<IBlobRepository, BlobRepository>();
+        services.AddScoped<IDocumentEventRepository, DocumentEventRepository>();
+        services.AddScoped<IDocumentQueries, DocumentQueries>();
+        services.AddScoped<IDocumentLinkValidator, LinkLabels>();
+
+        services.AddScoped<ICommunicationAccountRepository, CommunicationAccountRepository>();
+        services.AddScoped<ICommunicationMessageRepository, CommunicationMessageRepository>();
+        services.AddScoped<ICommunicationThreadRepository, CommunicationThreadRepository>();
+        services.AddScoped<IOutboundDispatchRepository, OutboundDispatchRepository>();
+        services.AddScoped<ICommunicationEventRepository, CommunicationEventRepository>();
+        services.AddScoped<ICommunicationQueries, CommunicationQueries>();
+
+        // The content store and the extractor are stateless and hold no connection,
+        // so one instance serves every request.
+        services.AddSingleton<IBlobStore, FileSystemBlobStore>();
+        services.AddSingleton<IDocumentTextExtractor, PlainTextDocumentExtractor>();
+
+        // Encryption at rest for stored mailbox credentials. The key ring is
+        // file-backed in ALPHA, which protects a leaked database and not a
+        // compromised server - a limitation stated rather than glossed over
+        // (ADR-0027).
+        services.AddSingleton<ISecretProtector, DataProtectionSecretProtector>();
+
+        // The fake provider is always registered. It is not a test-only stub: CI has
+        // no Microsoft tenant, so it is what proves the send protocol behaves when a
+        // provider loses an acknowledgement, which no real mailbox will do on
+        // request (ADR-0026, ADR-0028).
+        services.AddSingleton<ICommunicationProvider, FakeCommunicationProvider>();
+        services.AddSingleton<ICommunicationProviderRegistry, CommunicationProviderRegistry>();
+
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 
         services.AddSingleton<IClock, SystemClock>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configures where stored bytes and protection keys live.
+    /// </summary>
+    /// <remarks>
+    /// Separate from the main registration because a host that never uploads
+    /// anything - a migration run, a contract generation - should not have to
+    /// create directories to start. The defaults are beside the application, which
+    /// is right for a single-server ALPHA deployment and wrong for anything larger;
+    /// ADR-0024 says so rather than leaving it to be discovered.
+    /// </remarks>
+    public static IServiceCollection AddAgencyOSContentStorage(
+        this IServiceCollection services,
+        string? blobRootPath = null,
+        string? protectionKeyPath = null)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        BlobStoreOptions options = new();
+
+        if (!string.IsNullOrWhiteSpace(blobRootPath))
+        {
+            options.RootPath = blobRootPath;
+        }
+
+        services.AddSingleton(options);
+
+        IDataProtectionBuilder protection = services
+            .AddDataProtection()
+            .SetApplicationName("AgencyOS");
+
+        if (!string.IsNullOrWhiteSpace(protectionKeyPath))
+        {
+            Directory.CreateDirectory(protectionKeyPath);
+            protection.PersistKeysToFileSystem(new DirectoryInfo(protectionKeyPath));
+        }
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the Microsoft Graph adapter, when an operator has configured one.
+    /// </summary>
+    /// <remarks>
+    /// Absent by default. Without an application registration the adapter would
+    /// refuse every call, and offering a mailbox provider that cannot connect is
+    /// worse than not offering it (ADR-0027).
+    /// </remarks>
+    public static IServiceCollection AddMicrosoftGraphProvider(
+        this IServiceCollection services,
+        GraphOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (!options.IsConfigured)
+        {
+            return services;
+        }
+
+        services.AddSingleton(options);
+
+        services.AddHttpClient<GraphCommunicationProvider>();
+
+        services.AddSingleton<ICommunicationProvider>(
+            provider => provider.GetRequiredService<GraphCommunicationProvider>());
 
         return services;
     }
