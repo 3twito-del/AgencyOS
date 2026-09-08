@@ -9,8 +9,11 @@ using AgencyOS.Contracts;
 using AgencyOS.Contracts.Documents;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.SavedViews;
+using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Authorization;
+using AgencyOS.Infrastructure.Persistence;
 using AgencyOS.Tests.Integration.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace AgencyOS.Tests.Integration;
@@ -827,6 +830,65 @@ public sealed class DocumentTests
 
         Assert.Equal("Documents", results.Target);
         Assert.Contains(results.Documents, x => x.Title == "Saved view document");
+    }
+
+    /// <summary>
+    /// Reading is not audited; the acts that change what the agency holds are.
+    /// </summary>
+    /// <remarks>
+    /// Recording every document somebody opened would bury the entries that
+    /// matter under a log of ordinary work, and the audit trail exists to answer
+    /// "who changed this" rather than "who looked at it" (ADR-0012). The curated
+    /// document history is the record of what happened to a document; it is not a
+    /// substitute for the audit trail, and neither is a substitute for the other.
+    /// </remarks>
+    [Fact]
+    public async Task ReadsAreNotAudited_AndConsequentialActsAre()
+    {
+        Actor a = await ActorAsync("m10-audit");
+
+        RecordDocumentResponse recorded = await UploadAsync(
+            a, Bytes("Audited."), "audited.txt", "text/plain",
+            "Audited", "Statement", "Internal");
+
+        // Reading, in every shape the surface offers.
+        await GetAsync<DocumentSummaryResponse[]>(a, "documents");
+        await GetAsync<DocumentSummaryResponse[]>(a, "documents?search=Audited");
+        await GetAsync<DocumentDetailResponse>(a, $"documents/{recorded.DocumentId}");
+        await DownloadAsync(a, recorded.VersionId);
+
+        await using AgencyOsDbContext context = _fixture.CreateDbContext();
+
+        AuditEvent[] entries =
+        [
+            .. await context.AuditEvents
+                .AsNoTracking()
+                .Where(x => x.EntityId == recorded.DocumentId.ToString())
+                .ToListAsync(),
+        ];
+
+        // Exactly one, for the recording. Not four more for the reads.
+        AuditEvent record = Assert.Single(entries);
+
+        Assert.Equal(AuditAction.DocumentRecorded, record.Action);
+
+        // Archiving is a decision about what the agency holds, and is audited.
+        DocumentDetailResponse detail = await GetAsync<DocumentDetailResponse>(
+            a, $"documents/{recorded.DocumentId}");
+
+        await NoContentAsync(a.Client.PostAsJsonAsync(
+            $"{a.Root}/documents/{recorded.DocumentId}/archive",
+            new ArchiveDocumentRequest("No longer in use", detail.Document.Version)));
+
+        await using AgencyOsDbContext after = _fixture.CreateDbContext();
+
+        Assert.True(
+            await after.AuditEvents
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.EntityId == recorded.DocumentId.ToString()
+                    && x.Action == AuditAction.DocumentArchived),
+            "Archiving a document should be audited.");
     }
 
     // ---------------------------------------------------------------- helpers

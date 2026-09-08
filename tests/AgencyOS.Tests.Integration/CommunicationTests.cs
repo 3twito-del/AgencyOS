@@ -5,11 +5,14 @@ using AgencyOS.Application.Communications;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.Documents;
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Communications;
 using AgencyOS.Infrastructure.Communications;
+using AgencyOS.Infrastructure.Persistence;
 using AgencyOS.Tests.Integration.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -809,6 +812,78 @@ public sealed class CommunicationTests
         Assert.Equal(
             HttpStatusCode.NotFound,
             (await b.Client.GetAsync($"{b.Root}/messages/{messageId}")).StatusCode);
+    }
+
+    /// <summary>
+    /// Synchronizing and reading a mailbox are not audited; managing one is.
+    /// </summary>
+    /// <remarks>
+    /// A worker polls every mailbox on a timer. Auditing that would produce an
+    /// entry per mailbox per cycle for ever, and the trail exists to answer who
+    /// changed something rather than who looked (ADR-0012). The curated
+    /// communication history records the synchronization; the audit trail records
+    /// the decisions.
+    /// </remarks>
+    [Fact]
+    public async Task PollingAndReadingAreNotAudited_AndManagingAMailboxIs()
+    {
+        Actor a = await ActorAsync("m10-comm-audit");
+
+        string code = Guid.NewGuid().ToString("N");
+        ConnectMailboxResponse connected = await ConnectAsync(a, code);
+
+        Seed(code, Inbound("Ordinary", "producer@studio.test"));
+
+        // Three synchronization cycles and every read the surface offers.
+        await SynchronizeAsync(a, connected.AccountId);
+        await SynchronizeAsync(a, connected.AccountId);
+        await SynchronizeAsync(a, connected.AccountId);
+
+        Guid messageId = (await MessagesAsync(a))[0].Id;
+
+        await GetAsync<MessageDetailResponse>(a, $"messages/{messageId}");
+        await AccountsAsync(a);
+        await GetAsync<CommunicationCommandCenterResponse>(a, "communications/command-center");
+
+        await using AgencyOsDbContext context = _fixture.CreateDbContext();
+
+        AuditEvent[] entries =
+        [
+            .. await context.AuditEvents
+                .AsNoTracking()
+                .Where(x => x.EntityId == connected.AccountId.ToString())
+                .ToListAsync(),
+        ];
+
+        // Exactly one, for connecting the mailbox.
+        AuditEvent record = Assert.Single(entries);
+
+        Assert.Equal(AuditAction.CommunicationAccountConnected, record.Action);
+
+        // Nothing was audited against the message either.
+        Assert.False(
+            await context.AuditEvents
+                .AsNoTracking()
+                .AnyAsync(x => x.EntityId == messageId.ToString()),
+            "Reading a message should leave no audit entry.");
+
+        // Disconnecting destroys a credential, and is audited.
+        CommunicationAccountResponse account = (await AccountsAsync(a))
+            .Single(x => x.Id == connected.AccountId);
+
+        await NoContentAsync(a.Client.PostAsJsonAsync(
+            $"{a.Root}/communication-accounts/{connected.AccountId}/disconnect",
+            new DisconnectMailboxRequest(account.Version)));
+
+        await using AgencyOsDbContext after = _fixture.CreateDbContext();
+
+        Assert.True(
+            await after.AuditEvents
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.EntityId == connected.AccountId.ToString()
+                    && x.Action == AuditAction.CommunicationAccountDisconnected),
+            "Disconnecting a mailbox should be audited.");
     }
 
     // ---------------------------------------------------------------- helpers
