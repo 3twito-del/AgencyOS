@@ -145,7 +145,17 @@ public static class RolePermissions
         // forecaster's name into the agency's calibration record (ADR-0030).
         Permission.IntelligenceRead,
         Permission.IntelligenceWrite,
-        Permission.IntelligenceRadarWrite);
+        Permission.IntelligenceRadarWrite,
+
+        // AI is ordinary working equipment for an agent: ask for a brief, let it
+        // draft, let it propose. Three grants are deliberately absent. Reasoning
+        // over elevated classifications is its own decision because reading a
+        // confidence and exporting it are different acts; approving is held apart
+        // so a proposal and its acceptance can be two people; and configuring what
+        // leaves the building is not a day-to-day grant (ADR-0031).
+        Permission.AiUse,
+        Permission.AiPropose,
+        Permission.AiApprove);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -196,7 +206,13 @@ public static class RolePermissions
         // Oversight again: an administrator reads the agency's intelligence,
         // including the sensitive classifications, and writes none of it.
         Permission.IntelligenceRead,
-        Permission.IntelligenceSensitiveRead);
+        Permission.IntelligenceSensitiveRead,
+
+        // Oversight again, and the AI configuration grant lives here rather than
+        // with the people who use AI: deciding what an organization transmits to
+        // an outside provider is an administrative act, not an agent's.
+        Permission.AiUse,
+        Permission.AiAdminister);
 
     private static readonly IReadOnlySet<string> OwnerPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -257,7 +273,17 @@ public static class RolePermissions
         Permission.IntelligenceWrite,
         Permission.IntelligenceSensitiveRead,
         Permission.IntelligencePredictionsWrite,
-        Permission.IntelligenceRadarWrite);
+        Permission.IntelligenceRadarWrite,
+
+        // All five, for the reason the intelligence block gives: a role that could
+        // not reach an elevated classification through AI while being able to read
+        // it directly would make the sensitive path unreachable in a fresh tenant,
+        // and somebody has to be able to configure the provider policy at all.
+        Permission.AiUse,
+        Permission.AiSensitiveUse,
+        Permission.AiPropose,
+        Permission.AiApprove,
+        Permission.AiAdminister);
 
     private static readonly IReadOnlySet<string> NoPermissions = Freeze();
 

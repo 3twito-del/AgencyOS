@@ -304,6 +304,35 @@ public static class AuditAction
     public const string ResearchCaseLinked = "intelligence.research.linked";
     public const string ResearchCaseStatusChanged = "intelligence.research.status.changed";
 
+    // ---- AI runtime (M12) ----
+    //
+    // Six actions, and the list is short on purpose. What is audited is what a
+    // person did or what crossed a boundary: a run started, an approval decided, a
+    // canonical write executed because somebody allowed it, and the configuration
+    // that decides what leaves the building. Model invocations and read-only tool
+    // calls are not here — they belong in the run's own execution history, and an
+    // audit trail that grew by a row per model turn would bury the writes it
+    // exists to record (§51, ADR-0012, ADR-0031).
+
+    public const string AgentRunStarted = "ai.run.started";
+    public const string AgentRunCancelled = "ai.run.cancelled";
+
+    public const string AiApprovalGranted = "ai.approval.granted";
+    public const string AiApprovalRejected = "ai.approval.rejected";
+
+    /// <summary>
+    /// A canonical command ran because a person approved an AI proposal.
+    /// </summary>
+    /// <remarks>
+    /// Recorded in addition to the underlying command's own audit entry, not
+    /// instead of it. The command's entry names the human actor, because a human
+    /// authorized it; this one records that the proposal came from a run, which is
+    /// the provenance a reviewer needs six months later (§23, §51).
+    /// </remarks>
+    public const string AiProposedWriteExecuted = "ai.proposal.executed";
+
+    public const string AiProviderPolicyChanged = "ai.provider.policy.changed";
+
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";
     public const string SavedViewDeleted = "savedview.deleted";

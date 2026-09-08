@@ -395,6 +395,68 @@ public static class Permission
     /// </remarks>
     public const string IntelligenceRadarWrite = "intelligence.radar.write";
 
+    // ---- AI runtime (M12) ----
+
+    /// <summary>
+    /// Using AI at all: starting a run, reading its own runs.
+    /// </summary>
+    /// <remarks>
+    /// The floor, and it is not automatic. AI is the first thing in AgencyOS that
+    /// transmits agency material to somebody else's computer, and a firm should be
+    /// able to decide who does that before deciding what they may ask (ADR-0031).
+    /// </remarks>
+    public const string AiUse = "ai.use";
+
+    /// <summary>
+    /// Asking a model to reason over material classified above ordinary internal.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>This is not the same as reading that material.</strong> Somebody
+    /// with intelligence.sensitive.read may read a source-sensitive signal inside
+    /// AgencyOS; whether AgencyOS may put it in a prompt is a second question, and
+    /// this is the second answer. Both must pass, and the organization's provider
+    /// policy must permit the classification as well (§5, §42).
+    /// </para>
+    /// <para>
+    /// A user grant alone is never sufficient. The policy is a property of the
+    /// organization and the ceiling it sets cannot be raised by holding a
+    /// permission.
+    /// </para>
+    /// </remarks>
+    public const string AiSensitiveUse = "ai.sensitive.use";
+
+    /// <summary>
+    /// Letting an agent propose canonical writes for approval.
+    /// </summary>
+    /// <remarks>
+    /// Held apart from ai.use because reading and drafting are a different risk
+    /// from proposing changes to business truth. It authorizes the proposal, never
+    /// the write: the write still needs an approval, and the approval still needs
+    /// whatever permission the underlying command needs (§11, §41).
+    /// </remarks>
+    public const string AiPropose = "ai.propose";
+
+    /// <summary>
+    /// Deciding an approval.
+    /// </summary>
+    /// <remarks>
+    /// Separate from proposing so a firm can require a second person, and separate
+    /// from the underlying command's permission because approving is not the same
+    /// act as doing. Both are checked: approving a task creation needs this grant
+    /// and tasks.write, re-checked at execution (§13, §14).
+    /// </remarks>
+    public const string AiApprove = "ai.approve";
+
+    /// <summary>
+    /// Configuring which providers an organization transmits to, and what.
+    /// </summary>
+    /// <remarks>
+    /// The most consequential AI grant, and the one held by fewest people. Raising
+    /// a sensitivity ceiling changes what leaves the building.
+    /// </remarks>
+    public const string AiAdminister = "ai.administer";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -471,5 +533,10 @@ public static class Permission
         IntelligenceSensitiveRead,
         IntelligencePredictionsWrite,
         IntelligenceRadarWrite,
+        AiUse,
+        AiSensitiveUse,
+        AiPropose,
+        AiApprove,
+        AiAdminister,
     };
 }
