@@ -404,7 +404,9 @@ public sealed class M4PaletteTests
     [Theory]
     [InlineData("go.talent")]
     [InlineData("go.prospects")]
-    [InlineData("prospect.create")]
+    // prospect.create is deliberately absent: no page dispatches it and no
+    // dialog creates a prospect. Advertising a command the build cannot perform
+    // is what M13 stopped doing (ADR-0032).
     [InlineData("prospect.convert")]
     [InlineData("credit.add")]
     [InlineData("material.add")]

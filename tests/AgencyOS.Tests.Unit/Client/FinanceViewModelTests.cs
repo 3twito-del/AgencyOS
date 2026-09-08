@@ -534,7 +534,11 @@ public sealed class FinancePaletteTests
             "invoice.record",
             "payment.record",
             "payment.allocate",
-            "commission.calculate",
+
+            // commission.calculate is deliberately absent. CalculateCommissionDialog
+            // exists and is complete, but nothing can reach it: the obligations list
+            // it needs was never built, so the palette entry dispatched nowhere.
+            // M13 stopped advertising it rather than pretending (ADR-0032).
             "journal.post",
             "receivable.reconcile",
         })

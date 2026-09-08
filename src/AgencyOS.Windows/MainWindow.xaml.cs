@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AgencyOS.Client.Commands;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.Search;
@@ -64,138 +65,31 @@ public sealed partial class MainWindow : Window
         Navigation.SelectedItem = Navigation.MenuItems[0];
         Navigate("command-center");
 
+        // Every gesture comes from the registry, which validated at construction
+        // that no two commands claim one. Before M13 they were installed by hand
+        // here and addressed the navigation menu by position, which is how Ctrl+9
+        // came to mean two different things (ADR-0032).
+        foreach (CommandDefinition command in CommandRegistry.Default.GlobalGestures)
+        {
+            if (!TryMapGesture(command.Gesture, out VirtualKey key, out VirtualKeyModifiers modifiers))
+            {
+                continue;
+            }
+
+            string id = command.Id;
+
+            AddAccelerator(key, modifiers, (_, args) =>
+            {
+                Dispatch(id);
+                args.Handled = true;
+            });
+        }
+
+        // The palette is the one gesture with no command of its own: it is how a
+        // user reaches every other command, so it cannot be one of them.
         AddAccelerator(VirtualKey.P, VirtualKeyModifiers.Control, (_, args) =>
         {
             TogglePalette();
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number1, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(0);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number2, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(1);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number3, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(2);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number4, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(3);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number5, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(4);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number6, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(5);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number7, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(6);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number8, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(7);
-            args.Handled = true;
-        });
-
-        // The digit accelerators follow the AccessKey on each navigation item, not
-        // the item's position: Ctrl+9 has meant Saved Views since M2, and every
-        // milestone that inserted a section above it would otherwise silently
-        // repoint a shortcut people already use.
-        AddAccelerator(VirtualKey.Number9, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(15);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.Number0, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            SelectMenu(8);
-            args.Handled = true;
-        });
-
-        // Contracts takes Ctrl+Shift+K because the single-digit accelerators are
-        // exhausted and Ctrl+K already opens search. Finance, Documents and
-        // Communications follow the same pattern for the same reason.
-        AddAccelerator(VirtualKey.K, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
-        {
-            SelectMenu(9);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.F, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
-        {
-            SelectMenu(10);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.D, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
-        {
-            SelectMenu(11);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.E, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, args) =>
-        {
-            SelectMenu(12);
-            args.Handled = true;
-        });
-
-        // Intelligence takes a function key rather than a Ctrl+Shift letter. Every
-        // obvious letter is already advertised by the palette for something else,
-        // and a shortcut that contradicts the palette is worse than one more key.
-        AddAccelerator(VirtualKey.F7, VirtualKeyModifiers.None, (_, args) =>
-        {
-            SelectMenu(13);
-            args.Handled = true;
-        });
-
-        // AI follows Intelligence on F6 for the same reason Intelligence took F7:
-        // every obvious letter is spoken for, and it sits beside the surface it
-        // most often reads from.
-        AddAccelerator(VirtualKey.F6, VirtualKeyModifiers.None, (_, args) =>
-        {
-            SelectMenu(14);
-            args.Handled = true;
-        });
-
-        // Sync moves to F8 rather than Ctrl+0, which several keyboard layouts
-        // intercept for zoom.
-        AddAccelerator(VirtualKey.F8, VirtualKeyModifiers.None, (_, args) =>
-        {
-            SelectMenu(16);
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.K, VirtualKeyModifiers.Control, (_, args) =>
-        {
-            ToggleSearch();
-            args.Handled = true;
-        });
-
-        AddAccelerator(VirtualKey.F9, VirtualKeyModifiers.None, (sender, args) =>
-        {
-            _ = SynchronizeAsync();
             args.Handled = true;
         });
     }
@@ -211,12 +105,71 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void SelectMenu(int index)
+    /// <summary>
+    /// Selects a workspace by tag, never by position.
+    /// </summary>
+    /// <remarks>
+    /// The M12 defect in one method. <c>SelectMenu(int)</c> addressed the
+    /// navigation pane by index, so inserting AI above Saved Views silently
+    /// repointed Ctrl+9. A tag cannot shift (ADR-0032).
+    /// </remarks>
+    private void SelectWorkspace(string tag)
     {
-        if (index >= 0 && index < Navigation.MenuItems.Count)
+        foreach (object item in Navigation.MenuItems)
         {
-            Navigation.SelectedItem = Navigation.MenuItems[index];
+            if (item is NavigationViewItem { Tag: string candidate }
+                && string.Equals(candidate, tag, StringComparison.Ordinal))
+            {
+                Navigation.SelectedItem = item;
+
+                return;
+            }
         }
+    }
+
+    /// <summary>
+    /// Maps a registry gesture onto the WinRT keys that express it.
+    /// </summary>
+    /// <remarks>
+    /// The registry cannot name <c>VirtualKey</c>: it lives in the cross-platform
+    /// client assembly so the palette and the accelerators share one list. This is
+    /// the only place the two vocabularies meet, and a gesture it cannot map
+    /// installs nothing rather than installing something wrong.
+    /// </remarks>
+    private static bool TryMapGesture(
+        CommandGesture gesture, out VirtualKey key, out VirtualKeyModifiers modifiers)
+    {
+        modifiers = VirtualKeyModifiers.None;
+
+        if (gesture.Modifiers.HasFlag(CommandModifiers.Control))
+        {
+            modifiers |= VirtualKeyModifiers.Control;
+        }
+
+        if (gesture.Modifiers.HasFlag(CommandModifiers.Shift))
+        {
+            modifiers |= VirtualKeyModifiers.Shift;
+        }
+
+        if (gesture.Modifiers.HasFlag(CommandModifiers.Alt))
+        {
+            modifiers |= VirtualKeyModifiers.Menu;
+        }
+
+        key = gesture.Key switch
+        {
+            >= CommandKey.D0 and <= CommandKey.D9 =>
+                VirtualKey.Number0 + (gesture.Key - CommandKey.D0),
+            >= CommandKey.A and <= CommandKey.Z =>
+                VirtualKey.A + (gesture.Key - CommandKey.A),
+            >= CommandKey.F1 and <= CommandKey.F12 =>
+                VirtualKey.F1 + (gesture.Key - CommandKey.F1),
+            CommandKey.Escape => VirtualKey.Escape,
+            CommandKey.Enter => VirtualKey.Enter,
+            _ => VirtualKey.None,
+        };
+
+        return key != VirtualKey.None;
     }
 
     private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -299,7 +252,7 @@ public sealed partial class MainWindow : Window
             case VirtualKey.Enter:
                 if (_palette.Selected is { } selected)
                 {
-                    Invoke(selected.Id);
+                    Dispatch(selected.Id);
                 }
 
                 e.Handled = true;
@@ -314,7 +267,7 @@ public sealed partial class MainWindow : Window
     {
         if (e.ClickedItem is PaletteCommand command)
         {
-            Invoke(command.Id);
+            Dispatch(command.Id);
         }
     }
 
@@ -326,80 +279,37 @@ public sealed partial class MainWindow : Window
     /// delegated to the page currently showing, because the page holds the context
     /// they need.
     /// </remarks>
-    private void Invoke(string commandId)
+    /// <summary>
+    /// Carries out a command, wherever it came from.
+    /// </summary>
+    /// <remarks>
+    /// One route for the palette, the accelerators and, from M13, activation. A
+    /// navigation command moves to its workspace by tag; an action command
+    /// navigates to the workspace that answers it, when it names one, and is then
+    /// handed to whichever page is showing. Before M13 this switch listed every
+    /// destination twice over - once here and once in the constructor - and both
+    /// lists addressed the menu by index (ADR-0032).
+    /// </remarks>
+    private void Dispatch(string commandId)
     {
         PaletteLayer.Visibility = Visibility.Collapsed;
 
+        if (CommandRegistry.Default.Find(commandId) is not { } command)
+        {
+            return;
+        }
+
+        if (command.Action == CommandActionKind.Navigate)
+        {
+            SelectWorkspace(command.Workspace!);
+
+            return;
+        }
+
+        // Shell-owned actions: they belong to the window rather than to any
+        // workspace, so no page can answer them.
         switch (commandId)
         {
-            case "go.command-center":
-                SelectMenu(0);
-                return;
-
-            case "go.people":
-                SelectMenu(1);
-                return;
-
-            case "go.companies":
-                SelectMenu(2);
-                return;
-
-            case "go.talent":
-                SelectMenu(3);
-                return;
-
-            case "go.prospects":
-                SelectMenu(4);
-                return;
-
-            case "go.projects":
-                SelectMenu(5);
-                return;
-
-            case "go.packages":
-                SelectMenu(6);
-                return;
-
-            case "go.pipeline":
-                SelectMenu(7);
-                return;
-
-            case "go.deals":
-                SelectMenu(8);
-                return;
-
-            case "go.contracts":
-                SelectMenu(9);
-                return;
-
-            case "go.finance":
-                SelectMenu(10);
-                return;
-
-            case "go.documents":
-                SelectMenu(11);
-                return;
-
-            case "go.communications":
-                SelectMenu(12);
-                return;
-
-            case "go.intelligence":
-                SelectMenu(13);
-                return;
-
-            case "go.ai":
-                SelectMenu(14);
-                return;
-
-            case "go.saved-views":
-                SelectMenu(15);
-                return;
-
-            case "go.sync":
-                SelectMenu(16);
-                return;
-
             case "search.open":
                 ToggleSearch();
                 return;
@@ -409,12 +319,21 @@ public sealed partial class MainWindow : Window
                 return;
 
             default:
-                if (ContentFrame.Content is IPaletteCommandTarget target)
-                {
-                    target.Execute(commandId);
-                }
+                break;
+        }
 
-                return;
+        // An action that names a workspace is answered there, so invoking it from
+        // anywhere goes to the right page first. Before M13 it was dispatched to
+        // whatever happened to be showing, which is why "Open receivables" did
+        // nothing unless Finance was already open.
+        if (command.Workspace is { } workspace)
+        {
+            SelectWorkspace(workspace);
+        }
+
+        if (ContentFrame.Content is IPaletteCommandTarget target)
+        {
+            target.Execute(commandId);
         }
     }
 
@@ -564,7 +483,7 @@ public sealed partial class MainWindow : Window
             case "Person":
                 // The talent workspace, not the directory: a search hit on a person
                 // is almost always the start of working on them.
-                SelectMenu(3);
+                SelectWorkspace("talent");
 
                 if (ContentFrame.Content is TalentPage talent)
                 {
@@ -574,11 +493,11 @@ public sealed partial class MainWindow : Window
                 break;
 
             case "Company":
-                SelectMenu(2);
+                SelectWorkspace("companies");
                 break;
 
             default:
-                SelectMenu(0);
+                SelectWorkspace("command-center");
                 break;
         }
     }

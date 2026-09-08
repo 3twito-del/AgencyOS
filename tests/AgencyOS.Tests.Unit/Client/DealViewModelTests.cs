@@ -625,9 +625,13 @@ public sealed class DealClientTests
             "contract.signature.record",
             "contract.version.record",
             "notice.record",
-            "rights.grant.record",
-            "option.record",
-            "obligation.record",
+
+            // rights.grant.record, option.record and obligation.record were
+            // advertised and never dispatched: the contracts workspace shows
+            // rights, options and obligations but has no surface that records one.
+            // M13 removed the claim rather than the requirement (ADR-0032).
+            "option.resolve",
+            "obligation.resolve",
         ];
 
         foreach (string id in mustRecord)
