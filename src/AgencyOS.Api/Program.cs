@@ -286,8 +286,10 @@ builder.Services.AddScoped<ResearchCaseHandler>();
 builder.Services.Configure<AiOptions>(builder.Configuration.GetSection(AiOptions.Section));
 builder.Services.AddScoped<ModelDataPolicy>();
 builder.Services.AddScoped<AgentRuntime>();
+builder.Services.AddScoped<AiQueryService>();
 builder.Services.AddScoped<AgentRunHandler>();
 builder.Services.AddScoped<AiApprovalHandler>();
+builder.Services.AddScoped<AiProviderPolicyHandler>();
 
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();

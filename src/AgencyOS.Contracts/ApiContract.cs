@@ -73,13 +73,21 @@ public static class ApiContract
     /// belongs to a named person on a stated date.
     /// </para>
     /// <para>
+    /// Version 12 adds the AI runtime: a provider-neutral model gateway, a registry
+    /// of tools a model may ask for, an approval that binds to one exact action by
+    /// fingerprint, and agent runs with the step history that lets a reader tell
+    /// what the model said from what AgencyOS did. The model is untrusted input
+    /// rather than a trusted component: it reads only what the caller may read,
+    /// asks only for registered tools, and changes nothing without a person.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 11;
+    public const int Current = 12;
 
     /// <summary>
     /// The lowest contract version this build still serves.

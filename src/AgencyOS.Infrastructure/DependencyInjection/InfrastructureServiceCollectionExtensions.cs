@@ -188,6 +188,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IAiApprovalRepository, AiApprovalRepository>();
         services.AddScoped<IAiProviderPolicyRepository, AiProviderPolicyRepository>();
 
+        services.AddScoped<IAiQueries, AiQueries>();
         services.AddScoped<IAiContextAssembler, AiContextAssembler>();
         services.AddScoped<IAiToolRegistry, AiToolRegistry>();
         services.AddScoped<IModelGateway, ModelGateway>();

@@ -555,7 +555,19 @@ function Invoke-Contract {
         "/api/v1/organizations/{organizationId}/intelligence/research-cases/{researchCaseId}/links/{linkId}",
         "/api/v1/organizations/{organizationId}/intelligence/research-cases/{researchCaseId}/subjects",
         "/api/v1/organizations/{organizationId}/intelligence/relationships/{kind}/{subjectId}",
-        "/api/v1/organizations/{organizationId}/intelligence/command-center"
+        "/api/v1/organizations/{organizationId}/intelligence/command-center",
+        "/api/v1/organizations/{organizationId}/ai/runs",
+        "/api/v1/organizations/{organizationId}/ai/runs/{runId}",
+        "/api/v1/organizations/{organizationId}/ai/runs/{runId}/cancel",
+        "/api/v1/organizations/{organizationId}/ai/approvals",
+        "/api/v1/organizations/{organizationId}/ai/approvals/{approvalId}",
+        "/api/v1/organizations/{organizationId}/ai/approvals/{approvalId}/decision",
+        "/api/v1/organizations/{organizationId}/ai/tool-requests/{toolRequestId}/execute",
+        "/api/v1/organizations/{organizationId}/ai/agents",
+        "/api/v1/organizations/{organizationId}/ai/agents/{kind}/tools",
+        "/api/v1/organizations/{organizationId}/ai/models",
+        "/api/v1/organizations/{organizationId}/ai/policies",
+        "/api/v1/organizations/{organizationId}/ai/policies/{providerKey}"
     )
 
     $paths = @($contract.paths.PSObject.Properties.Name)

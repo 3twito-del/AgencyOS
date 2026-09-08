@@ -311,6 +311,18 @@ public sealed partial class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/intelligence/research-cases/{researchCaseId}/subjects")]
     [InlineData("/api/v1/organizations/{organizationId}/intelligence/relationships/{kind}/{subjectId}")]
     [InlineData("/api/v1/organizations/{organizationId}/intelligence/command-center")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/runs")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/runs/{runId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/runs/{runId}/cancel")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/approvals")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/approvals/{approvalId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/approvals/{approvalId}/decision")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/tool-requests/{toolRequestId}/execute")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/agents")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/agents/{kind}/tools")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/models")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/policies")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/policies/{providerKey}")]
     public async Task Contract_DescribesTheImplementedSurface(string path)
     {
         using JsonDocument document = await GetContractAsync();
