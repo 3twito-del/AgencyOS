@@ -223,6 +223,7 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
     /// </remarks>
     private Task LoadCurrentAsync() => Tabs.SelectedIndex switch
     {
+        8 => LoadRelationshipSubjectsAsync(),
         0 => _desk?.LoadAsync() ?? Task.CompletedTask,
         1 => _signals?.LoadAsync() ?? Task.CompletedTask,
         2 => _sources?.LoadAsync() ?? Task.CompletedTask,
@@ -1163,16 +1164,56 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
         }
     }
 
+    /// <summary>
+    /// Fills the picker with whichever kind of counterparty is selected.
+    /// </summary>
+    /// <remarks>
+    /// A relationship view is about a person or a company, so the picker holds real
+    /// records rather than asking for an identifier. A screen that wanted a GUID
+    /// typed in would be a screen nobody uses.
+    /// </remarks>
+    private async Task LoadRelationshipSubjectsAsync()
+    {
+        if (_api is null)
+        {
+            return;
+        }
+
+        if (Selection(RelationshipKindBox) == "Company")
+        {
+            IReadOnlyList<CompanySummaryResponse> companies =
+                await _api.ListCompaniesAsync().ConfigureAwait(true);
+
+            RelationshipSubjectBox.ItemsSource =
+                companies.Select(x => new Counterparty(x.Id, x.Name)).ToList();
+        }
+        else
+        {
+            IReadOnlyList<PersonSummaryResponse> people =
+                await _api.ListPeopleAsync().ConfigureAwait(true);
+
+            RelationshipSubjectBox.ItemsSource =
+                people.Select(x => new Counterparty(x.Id, x.DisplayName)).ToList();
+        }
+    }
+
+    private void OnRelationshipKindChanged(object sender, SelectionChangedEventArgs e) =>
+        _ = LoadRelationshipSubjectsAsync();
+
     private void OnRelationshipRequested(object sender, RoutedEventArgs e)
     {
-        if (_relationship is null || !Guid.TryParse(RelationshipIdBox.Text, out Guid subjectId))
+        if (_relationship is null
+            || RelationshipSubjectBox.SelectedItem is not Counterparty chosen)
         {
             return;
         }
 
         _ = _relationship.LoadAsync(
-            Selection(RelationshipKindBox) ?? "Person", subjectId);
+            Selection(RelationshipKindBox) ?? "Person", chosen.Id);
     }
+
+    /// <summary>A person or a company, as the picker shows them.</summary>
+    private sealed record Counterparty(Guid Id, string DisplayName);
 
     // -------------------------------------------------------------- helpers
 

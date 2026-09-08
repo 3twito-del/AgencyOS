@@ -761,13 +761,15 @@
                 <ScrollViewer>
                     <StackPanel Spacing="12" Padding="4,10" MaxWidth="900">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox x:Name="RelationshipKindBox" MinWidth="140">
+                            <ComboBox x:Name="RelationshipKindBox" MinWidth="140"
+                                      SelectionChanged="OnRelationshipKindChanged">
                                 <ComboBoxItem Content="Person" Tag="Person" IsSelected="True" />
                                 <ComboBoxItem Content="Company" Tag="Company" />
                             </ComboBox>
 
-                            <TextBox x:Name="RelationshipIdBox" MinWidth="330"
-                                     PlaceholderText="Record identifier" />
+                            <ComboBox x:Name="RelationshipSubjectBox" MinWidth="330"
+                                      DisplayMemberPath="DisplayName"
+                                      PlaceholderText="Choose somebody" />
 
                             <Button x:Name="RelationshipLoadButton" Content="Show"
                                     Click="OnRelationshipRequested" />
