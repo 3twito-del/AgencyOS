@@ -452,6 +452,108 @@ public sealed class IntelligenceTests
     }
 
     /// <summary>
+    /// Recording what you heard is not the same grant as staking a forecast.
+    /// </summary>
+    /// <remarks>
+    /// A member may record signals and work the radar. Forecasting is separate
+    /// because a probability carries the forecaster's name into the agency's
+    /// calibration record, and the elevated classifications are separate because
+    /// they protect somebody who spoke in confidence (ADR-0030).
+    /// </remarks>
+    [Fact]
+    public async Task AMember_MayRecordButMayNotForecastOrClassifyHigher()
+    {
+        SeededActor tenant = await _fixture.SeedActorAsync(AgencyRole.Owner, "m11-grants-owner");
+
+        SeededActor memberActor = await SeedIntoAsync(tenant, AgencyRole.Member, "m11-grants-member");
+        Actor member = Actor.For(_fixture, memberActor, tenant);
+
+        // Recording evidence and a claim is ordinary work.
+        IntelligenceIdResponse source = await PostAsync<IntelligenceIdResponse>(
+            member,
+            "intelligence/sources",
+            new RecordSourceRequest("ManualObservation", "What I heard", "Internal"));
+
+        await PostAsync<IntelligenceIdResponse>(
+            member,
+            "intelligence/signals",
+            new RecordSignalRequest(
+                "Something I heard", "A claim.", "Observation", "Internal",
+                [new SignalEvidenceRequest(source.Id)]));
+
+        // Staking a forecast is not.
+        HttpResponseMessage forecast = await member.Client.PostAsJsonAsync(
+            $"{member.Root}/intelligence/predictions",
+            new CreatePredictionRequest(
+                "Something falsifiable",
+                DateTimeOffset.UtcNow.AddDays(30),
+                0.5m,
+                "Internal"));
+
+        Assert.Equal(HttpStatusCode.Forbidden, forecast.StatusCode);
+
+        // Neither is filing something at a classification they could not read
+        // back. Otherwise anybody could hide a claim from themselves.
+        HttpResponseMessage classified = await member.Client.PostAsJsonAsync(
+            $"{member.Root}/intelligence/signals",
+            new RecordSignalRequest(
+                "Told in confidence",
+                "A claim naming who provided it.",
+                "Observation",
+                "SourceSensitive",
+                [new SignalEvidenceRequest(source.Id)]));
+
+        Assert.Equal(HttpStatusCode.Forbidden, classified.StatusCode);
+    }
+
+    /// <summary>
+    /// An administrator reads the agency's intelligence and writes none of it.
+    /// </summary>
+    /// <remarks>
+    /// Oversight, on the M10 precedent. Somebody auditing what the desk believes
+    /// should be able to see the sensitive material and should not be able to add
+    /// to it.
+    /// </remarks>
+    [Fact]
+    public async Task AnAdministrator_ReadsEverythingAndWritesNothing()
+    {
+        SeededActor tenant = await _fixture.SeedActorAsync(AgencyRole.Owner, "m11-admin-owner");
+        Actor owner = Actor.For(_fixture, tenant);
+
+        SeededActor adminActor =
+            await SeedIntoAsync(tenant, AgencyRole.Administrator, "m11-admin");
+        Actor admin = Actor.For(_fixture, adminActor, tenant);
+
+        IntelligenceIdResponse source = await PostAsync<IntelligenceIdResponse>(
+            owner,
+            "intelligence/sources",
+            new RecordSourceRequest("ManualObservation", "In confidence", "SourceSensitive"));
+
+        IntelligenceIdResponse signal = await PostAsync<IntelligenceIdResponse>(
+            owner,
+            "intelligence/signals",
+            new RecordSignalRequest(
+                "Told in confidence",
+                "A claim naming who provided it.",
+                "Observation",
+                "SourceSensitive",
+                [new SignalEvidenceRequest(source.Id)]));
+
+        // Reads it, classification and all.
+        SignalDetailResponse read = await GetAsync<SignalDetailResponse>(
+            admin, $"intelligence/signals/{signal.Id}");
+
+        Assert.Equal("SourceSensitive", read.Signal.Sensitivity);
+
+        // Adds nothing.
+        HttpResponseMessage written = await admin.Client.PostAsJsonAsync(
+            $"{admin.Root}/intelligence/sources",
+            new RecordSourceRequest("ManualObservation", "Mine", "Internal"));
+
+        Assert.Equal(HttpStatusCode.Forbidden, written.StatusCode);
+    }
+
+    /// <summary>
     /// Global search finds Internal claims and stops there.
     /// </summary>
     /// <remarks>
