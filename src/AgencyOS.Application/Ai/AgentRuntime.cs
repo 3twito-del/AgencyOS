@@ -1,9 +1,6 @@
 using System.Text.Json;
 using AgencyOS.Application.Abstractions;
-using AgencyOS.Application.Authorization;
 using AgencyOS.Domain.Ai;
-using AgencyOS.Domain.Authorization;
-using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Organizations;
 
 namespace AgencyOS.Application.Ai;
@@ -69,7 +66,6 @@ public sealed class AgentRuntime
     private readonly IAiToolRequestRepository _toolRequests;
     private readonly IAiApprovalRepository _approvals;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly TenantGuard _guard;
     private readonly IClock _clock;
 
     public AgentRuntime(
@@ -81,7 +77,6 @@ public sealed class AgentRuntime
         IAiToolRequestRepository toolRequests,
         IAiApprovalRepository approvals,
         IUnitOfWork unitOfWork,
-        TenantGuard guard,
         IClock clock)
     {
         _gateway = gateway;
@@ -92,7 +87,6 @@ public sealed class AgentRuntime
         _toolRequests = toolRequests;
         _approvals = approvals;
         _unitOfWork = unitOfWork;
-        _guard = guard;
         _clock = clock;
     }
 
@@ -159,7 +153,8 @@ public sealed class AgentRuntime
         // A model may be offered a write tool only where the organization allows
         // proposals at all and the caller holds the proposing grant. Filtering here
         // rather than refusing later means the model never learns the tool exists.
-        available = await FilterProposalsAsync(run, available, cancellationToken)
+        available = await _dataPolicy
+            .FilterProposableAsync(run.OrganizationId, run.ProviderKey, available, cancellationToken)
             .ConfigureAwait(false);
 
         List<ModelMessage> messages =
@@ -376,33 +371,6 @@ public sealed class AgentRuntime
                 ? result.Content + "\n\n(There was more than this. Say so if it matters.)"
                 : result.Content,
             false);
-    }
-
-    /// <summary>Removes write tools an organization or a caller may not propose.</summary>
-    private async Task<IReadOnlyList<IAiTool>> FilterProposalsAsync(
-        AgentRun run,
-        IReadOnlyList<IAiTool> tools,
-        CancellationToken cancellationToken)
-    {
-        if (tools.All(x => x.Effect == ToolEffect.ReadOnly))
-        {
-            return tools;
-        }
-
-        bool organizationAllows = await _dataPolicy
-            .AllowsWriteProposalsAsync(run.OrganizationId, run.ProviderKey, cancellationToken)
-            .ConfigureAwait(false);
-
-        bool callerMayPropose = await _guard
-            .HasPermissionAsync(Permission.AiPropose, run.OrganizationId, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (organizationAllows && callerMayPropose)
-        {
-            return tools;
-        }
-
-        return [.. tools.Where(x => x.Effect == ToolEffect.ReadOnly)];
     }
 
     private async Task<AgentRun> FinishAsync(

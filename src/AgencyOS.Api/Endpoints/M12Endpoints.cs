@@ -273,13 +273,22 @@ internal static class M12Endpoints
                 string kind,
                 AiQueryService queries,
                 IAiToolRegistry registry,
+                IModelGateway gateway,
+                string? provider,
                 CancellationToken cancellationToken) =>
             {
+                // Policy is per provider, so the answer is too. Defaults to the
+                // provider a run would actually use rather than to a fixed name.
+                string providerKey = provider is { Length: > 0 }
+                    ? provider
+                    : gateway.Default?.ProviderKey ?? string.Empty;
+
                 IReadOnlyList<AiToolDescriptorModel> tools = await queries
                     .ListToolsAsync(
                         new OrganizationId(organizationId),
                         EndpointParsing.ParseEnum<AgentKind>(kind, nameof(kind)),
                         registry,
+                        providerKey,
                         cancellationToken)
                     .ConfigureAwait(false);
 

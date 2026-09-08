@@ -174,6 +174,16 @@ public interface IModelGateway
 
     /// <summary>Looks a model up, or null when it is unknown or disabled.</summary>
     ModelDescriptor? Describe(string modelKey);
+
+    /// <summary>
+    /// The model a run uses when nothing says otherwise.
+    /// </summary>
+    /// <remarks>
+    /// Exposed because policy is per provider, and a screen answering "what may
+    /// this agent do here" has to know which provider it is talking about. Null
+    /// only where the configured default names a model that is not enabled.
+    /// </remarks>
+    ModelDescriptor? Default { get; }
 }
 
 /// <summary>

@@ -153,13 +153,17 @@ public sealed class AiQueries : IAiQueries
     public async Task<AiApprovalModel?> GetApprovalAsync(
         OrganizationId organizationId,
         AiApprovalId id,
+        UserId requestedOf,
         DateTimeOffset asOf,
         CancellationToken cancellationToken = default)
     {
         AiApproval? approval = await _context.AiApprovals
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                x => x.OrganizationId == organizationId && x.Id == id, cancellationToken)
+                x => x.OrganizationId == organizationId
+                    && x.Id == id
+                    && x.RequestedOf == requestedOf,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (approval is null)

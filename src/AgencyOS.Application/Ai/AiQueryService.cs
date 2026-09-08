@@ -125,9 +125,15 @@ public interface IAiQueries
         DateTimeOffset asOf,
         CancellationToken cancellationToken = default);
 
+    /// <param name="requestedOf">
+    /// The person the approval was put to. Narrowed in SQL rather than filtered
+    /// afterwards, because an approval carries the summary and arguments of a
+    /// proposal made inside somebody's private run.
+    /// </param>
     Task<AiApprovalModel?> GetApprovalAsync(
         OrganizationId organizationId,
         AiApprovalId id,
+        UserId requestedOf,
         DateTimeOffset asOf,
         CancellationToken cancellationToken = default);
 
@@ -160,12 +166,18 @@ public sealed class AiQueryService
 
     private readonly IAiQueries _queries;
     private readonly TenantGuard _guard;
+    private readonly ModelDataPolicy _dataPolicy;
     private readonly Abstractions.IClock _clock;
 
-    public AiQueryService(IAiQueries queries, TenantGuard guard, Abstractions.IClock clock)
+    public AiQueryService(
+        IAiQueries queries,
+        TenantGuard guard,
+        ModelDataPolicy dataPolicy,
+        Abstractions.IClock clock)
     {
         _queries = queries;
         _guard = guard;
+        _dataPolicy = dataPolicy;
         _clock = clock;
     }
 
@@ -238,17 +250,24 @@ public sealed class AiQueryService
             .ConfigureAwait(false);
     }
 
+    /// <summary>One approval, and only if it was put to the caller.</summary>
+    /// <remarks>
+    /// Holding <c>ai.approve</c> is permission to decide what is asked of you, not
+    /// permission to read what was asked of somebody else. An approval carries the
+    /// summary and the exact arguments of a proposal made inside a run this caller
+    /// cannot open, so answering it here would route around that (§52).
+    /// </remarks>
     public async Task<AiApprovalModel?> GetApprovalAsync(
         OrganizationId organizationId,
         AiApprovalId id,
         CancellationToken cancellationToken = default)
     {
-        await _guard
+        UserId actor = await _guard
             .AuthorizeAsync(Permission.AiApprove, organizationId, cancellationToken)
             .ConfigureAwait(false);
 
         return await _queries
-            .GetApprovalAsync(organizationId, id, _clock.UtcNow, cancellationToken)
+            .GetApprovalAsync(organizationId, id, actor, _clock.UtcNow, cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -280,13 +299,17 @@ public sealed class AiQueryService
 
     /// <summary>The tools this caller may reach, for one agent.</summary>
     /// <remarks>
-    /// Filtered exactly as the runtime filters them, so what a person is shown on
-    /// the configuration screen is what a model would actually be offered.
+    /// Filtered exactly as the runtime filters them — the same allow-list, the same
+    /// permission check and the same proposal policy, through the same method — so
+    /// what a person is shown on the configuration screen is what a model would
+    /// actually be offered. A screen that overstated it would be the more dangerous
+    /// error of the two, but either way the two must not be able to drift.
     /// </remarks>
     public async Task<IReadOnlyList<AiToolDescriptorModel>> ListToolsAsync(
         OrganizationId organizationId,
         AgentKind kind,
         IAiToolRegistry registry,
+        string providerKey,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(registry);
@@ -297,6 +320,10 @@ public sealed class AiQueryService
 
         IReadOnlyList<IAiTool> tools = await registry
             .AvailableAsync(organizationId, kind, cancellationToken)
+            .ConfigureAwait(false);
+
+        tools = await _dataPolicy
+            .FilterProposableAsync(organizationId, providerKey, tools, cancellationToken)
             .ConfigureAwait(false);
 
         return

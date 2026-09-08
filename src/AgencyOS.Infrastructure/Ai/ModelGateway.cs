@@ -62,6 +62,7 @@ public sealed class ModelGateway : IModelGateway
 {
     private readonly IReadOnlyDictionary<string, IModelProvider> _providers;
     private readonly IReadOnlyDictionary<string, ModelDescriptor> _models;
+    private readonly string _defaultKey;
     private readonly ILogger<ModelGateway> _logger;
 
     public ModelGateway(
@@ -106,9 +107,12 @@ public sealed class ModelGateway : IModelGateway
                 IsEnabled: true));
 
         _models = models;
+        _defaultKey = options.Value.DefaultModelKey;
     }
 
     public IReadOnlyList<ModelDescriptor> Catalog => [.. _models.Values.Where(x => x.IsEnabled)];
+
+    public ModelDescriptor? Default => Describe(_defaultKey);
 
     public ModelDescriptor? Describe(string modelKey) =>
         _models.TryGetValue(modelKey, out ModelDescriptor? descriptor) && descriptor.IsEnabled

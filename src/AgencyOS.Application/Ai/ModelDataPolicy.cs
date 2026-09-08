@@ -189,6 +189,50 @@ public sealed class ModelDataPolicy
 
         return policy.IsEnabled && policy.AllowsCanonicalWriteProposals;
     }
+
+    /// <summary>
+    /// Removes write tools this organization or this caller may not propose.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Two conditions, both required: the organization permits proposals for this
+    /// provider, and the caller holds <c>ai.propose</c>. Either one absent removes
+    /// the tool from the list entirely rather than refusing it later, so the model
+    /// never learns it exists — a refusal after the fact tells it what to ask for
+    /// next time (§42).
+    /// </para>
+    /// <para>
+    /// Lives here rather than in the runtime so the screen that shows a person what
+    /// an agent may do and the loop that offers tools to a model apply the same
+    /// filter. Two copies of this would drift, and the direction they would drift
+    /// is a screen that understates what the model can ask for.
+    /// </para>
+    /// </remarks>
+    public async Task<IReadOnlyList<T>> FilterProposableAsync<T>(
+        OrganizationId organizationId,
+        string providerKey,
+        IReadOnlyList<T> tools,
+        CancellationToken cancellationToken = default)
+        where T : IAiTool
+    {
+        ArgumentNullException.ThrowIfNull(tools);
+
+        if (tools.All(x => x.Effect == ToolEffect.ReadOnly))
+        {
+            return tools;
+        }
+
+        bool organizationAllows = await AllowsWriteProposalsAsync(
+            organizationId, providerKey, cancellationToken).ConfigureAwait(false);
+
+        bool callerMayPropose = await _guard
+            .HasPermissionAsync(Permission.AiPropose, organizationId, cancellationToken)
+            .ConfigureAwait(false);
+
+        return organizationAllows && callerMayPropose
+            ? tools
+            : [.. tools.Where(x => x.Effect == ToolEffect.ReadOnly)];
+    }
 }
 
 /// <param name="Reason">

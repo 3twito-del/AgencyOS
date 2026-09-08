@@ -239,6 +239,17 @@ public sealed class AiApprovalHandler
             ?? throw new EntityNotFoundException(
                 nameof(AiApproval), command.ApprovalId.ToString());
 
+        // An approval is put to a person, and that person decides it. Holding
+        // ai.approve is permission to answer what is asked of you, not permission
+        // to answer for somebody else — and the proposal was made inside a run this
+        // caller may not even read. Answered as missing rather than as forbidden,
+        // for the same reason the run itself is (§13, §52).
+        if (approval.RequestedOf != actor)
+        {
+            throw new EntityNotFoundException(
+                nameof(AiApproval), command.ApprovalId.ToString());
+        }
+
         AiToolRequest request = await _toolRequests
             .FindAsync(command.OrganizationId, approval.ToolRequestId, cancellationToken)
             .ConfigureAwait(false)
@@ -322,16 +333,26 @@ public sealed class AiApprovalHandler
             ?? throw new EntityNotFoundException(
                 nameof(AiToolRequest), command.ToolRequestId.ToString());
 
+        AiApproval? approval = await _approvals
+            .FindForRequestAsync(command.OrganizationId, request.Id, cancellationToken)
+            .ConfigureAwait(false);
+
+        // Checked before anything is said about the request's state. The person who
+        // was asked is the person who runs it, and telling somebody else that the
+        // request exists and what it is waiting for would be a disclosure about a
+        // run they cannot read (§14, §46, §52).
+        if (approval is null || approval.RequestedOf != actor)
+        {
+            throw new EntityNotFoundException(
+                nameof(AiToolRequest), command.ToolRequestId.ToString());
+        }
+
         if (request.Status != ToolRequestStatus.Approved)
         {
             return ToolResult.Refused(
                 $"That request is {request.Status.ToString().ToLowerInvariant()} and "
                     + "cannot run.");
         }
-
-        AiApproval? approval = await _approvals
-            .FindForRequestAsync(command.OrganizationId, request.Id, cancellationToken)
-            .ConfigureAwait(false);
 
         // Recomputed from what is about to run, never read back from the approval.
         string fingerprint = AiToolRequest.ComputeFingerprint(
@@ -341,7 +362,7 @@ public sealed class AiApprovalHandler
             request.ToolVersion,
             request.Arguments);
 
-        if (approval is null || !approval.Authorizes(fingerprint, _clock.UtcNow))
+        if (!approval.Authorizes(fingerprint, _clock.UtcNow))
         {
             return ToolResult.Refused(
                 "No current approval authorizes exactly this action. If the proposal "

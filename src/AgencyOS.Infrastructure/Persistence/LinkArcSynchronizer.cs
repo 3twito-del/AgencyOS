@@ -1,3 +1,4 @@
+using AgencyOS.Domain.Ai;
 using AgencyOS.Domain.Communications;
 using AgencyOS.Domain.Documents;
 using AgencyOS.Domain.Intelligence;
@@ -75,6 +76,36 @@ internal static class LinkArcSynchronizer
             {
                 WriteEventOwner(entry, entry.Entity.OwnerKind, entry.Entity.OwnerId);
             }
+        }
+
+        // M12 adds one more: what a run is about. A run may name no subject at all,
+        // which is the case the others do not have — and it is exactly the case
+        // that must clear every column rather than leaving one set (ADR-0031).
+        foreach (EntityEntry<AgentRun> entry in tracker.Entries<AgentRun>())
+        {
+            if (entry.State is EntityState.Added or EntityState.Modified)
+            {
+                WriteRunSubject(entry, entry.Entity.SubjectKind, entry.Entity.SubjectId);
+            }
+        }
+    }
+
+    /// <summary>Sets the one matching subject column and nulls the other four.</summary>
+    /// <remarks>
+    /// A run with no subject writes five nulls, which
+    /// <c>ck_ai_runs_subject_arc</c> requires: the constraint counts the non-null
+    /// columns, so a stale value left over from an earlier subject would read as a
+    /// run about something it is not.
+    /// </remarks>
+    private static void WriteRunSubject(
+        EntityEntry<AgentRun> entry,
+        AgentSubjectKind kind,
+        Guid? subjectId)
+    {
+        foreach ((AgentSubjectKind candidate, string column, _) in M12RunSubjects.Kinds)
+        {
+            entry.Property<Guid?>(column).CurrentValue =
+                candidate == kind ? subjectId : null;
         }
     }
 
