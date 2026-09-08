@@ -124,7 +124,7 @@ public sealed partial class MainWindow : Window
         // repoint a shortcut people already use.
         AddAccelerator(VirtualKey.Number9, VirtualKeyModifiers.Control, (_, args) =>
         {
-            SelectMenu(14);
+            SelectMenu(15);
             args.Handled = true;
         });
 
@@ -170,11 +170,20 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
         });
 
+        // AI follows Intelligence on F6 for the same reason Intelligence took F7:
+        // every obvious letter is spoken for, and it sits beside the surface it
+        // most often reads from.
+        AddAccelerator(VirtualKey.F6, VirtualKeyModifiers.None, (_, args) =>
+        {
+            SelectMenu(14);
+            args.Handled = true;
+        });
+
         // Sync moves to F8 rather than Ctrl+0, which several keyboard layouts
         // intercept for zoom.
         AddAccelerator(VirtualKey.F8, VirtualKeyModifiers.None, (_, args) =>
         {
-            SelectMenu(15);
+            SelectMenu(16);
             args.Handled = true;
         });
 
@@ -235,6 +244,7 @@ public sealed partial class MainWindow : Window
             "documents" => typeof(DocumentsPage),
             "communications" => typeof(CommunicationsPage),
             "intelligence" => typeof(IntelligencePage),
+            "ai" => typeof(AiPage),
             "saved-views" => typeof(SavedViewsPage),
             "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
@@ -378,12 +388,16 @@ public sealed partial class MainWindow : Window
                 SelectMenu(13);
                 return;
 
-            case "go.saved-views":
+            case "go.ai":
                 SelectMenu(14);
                 return;
 
-            case "go.sync":
+            case "go.saved-views":
                 SelectMenu(15);
+                return;
+
+            case "go.sync":
+                SelectMenu(16);
                 return;
 
             case "search.open":

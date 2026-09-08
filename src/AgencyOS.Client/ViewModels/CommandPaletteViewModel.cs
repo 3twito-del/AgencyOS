@@ -293,6 +293,15 @@ public sealed class CommandPaletteViewModel : ViewModelBase
         new("intelligence.research.open", "Open a research case", "Intelligence"),
         new("intelligence.research.link", "Attach something to a research case", "Intelligence"),
 
+        // AI (M12). Every verb is something a person does: ask, review, decide.
+        // There is no "run tool", no "let it fix this" and no "apply suggestion",
+        // because a canonical change is never a palette command away from a model
+        // request (§32, §63).
+        new("go.ai", "Go to AI", "Navigate", "F6"),
+        new("ai.ask", "Ask AI for a brief", "AI"),
+        new("ai.approvals", "Review what AI is waiting on", "AI"),
+        new("ai.runs", "Open my AI runs", "AI"),
+
         new("view.save", "Save current view", "View"),
         new("view.run", "Run selected view", "View"),
         new("sync.now", "Synchronize now", "Sync", "F9"),

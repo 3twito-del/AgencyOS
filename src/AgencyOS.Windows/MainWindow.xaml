@@ -29,6 +29,7 @@
                 <muxc:NavigationViewItem Content="Documents" Tag="documents" AccessKey="D" />
                 <muxc:NavigationViewItem Content="Communications" Tag="communications" AccessKey="E" />
                 <muxc:NavigationViewItem Content="Intelligence" Tag="intelligence" AccessKey="I" />
+                <muxc:NavigationViewItem Content="AI" Tag="ai" AccessKey="A" />
                 <muxc:NavigationViewItem Content="Saved Views" Tag="saved-views" AccessKey="9" />
                 <muxc:NavigationViewItem Content="Sync and Offline" Tag="sync" AccessKey="S" />
             </muxc:NavigationView.MenuItems>

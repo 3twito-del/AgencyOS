@@ -1,0 +1,46 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ApproveAiActionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Approve this action?"
+    PrimaryButtonText="Approve and run"
+    SecondaryButtonText="Reject"
+    CloseButtonText="Decide later"
+    DefaultButton="Secondary">
+
+    <StackPanel Spacing="10" MinWidth="520">
+
+        <!--
+            What AgencyOS says would happen, written from the validated arguments.
+            Never the model's account of its own request: a model that could word
+            its own approval prompt could describe one action and request another.
+        -->
+        <TextBlock x:Name="SummaryText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+
+        <InfoBar x:Name="EffectBar" Severity="Warning" IsOpen="True" IsClosable="False"
+                 Title="This changes AgencyOS" />
+
+        <TextBlock Text="Exactly what would happen"
+                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <ScrollViewer MaxHeight="240">
+            <TextBlock x:Name="ArgumentsText" FontFamily="Consolas" TextWrapping="Wrap"
+                       IsTextSelectionEnabled="True" />
+        </ScrollViewer>
+
+        <TextBlock x:Name="ExpiryText" Opacity="0.7"
+                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+        <!--
+            Optional on approval, and worth asking for on a rejection: why somebody
+            declined is the part that is impossible to reconstruct later.
+        -->
+        <TextBox x:Name="ReasonBox" Header="Reason (optional)" TextWrapping="Wrap"
+                 AcceptsReturn="True" Height="72" />
+
+        <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                   Style="{StaticResource CaptionTextBlockStyle}"
+                   Text="A model proposed this. It has not happened, and it will not happen unless you approve it here." />
+    </StackPanel>
+</ContentDialog>
