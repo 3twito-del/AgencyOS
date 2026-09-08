@@ -938,15 +938,198 @@ Deliver:
 - document versioning. **met as reference versioning** (drafting versions with
   external references; AgencyOS holds no document until M10, and says so)
 
-## M9 — Finance
+## M9 — Finance, Commissions, Receivables, Payments & Ledger — **Done** (2026-09-08) · promoted to ALPHA
+
+Implemented: the whole chain from an operative contract to a balanced ledger —
+monetary obligations a contract says are payable, receivables the agency expects
+to collect, optional invoices recording something issued elsewhere, payments that
+say money moved, allocations that say what it was for, commission entitlements
+worked out under the rule that governed at the time, and double-entry journal
+entries behind all of it.
+
+**Agreed commercial terms are not a collectible legal amount.** A monetary
+obligation may only be recorded against a contract that is executed or carries an
+effective date, and is not abandoned or superseded. M6 interest, an M7 offer and a
+deal at *TermsAgreed* are none of them a source of money anybody can be asked for.
+There is no flag that overrides the gate.
+
+**Money is an amount and a currency, and never a float.** `decimal` in C#,
+`numeric` in PostgreSQL, and an `Amount` in the F# kernel that carries its currency
+*inside the value*, so cross-currency arithmetic is unrepresentable rather than
+merely discouraged. No monetary value crosses the wire as a bare number, and the
+OpenAPI gate fails the build if a schema grows an amount with no currency beside
+it. Two currencies are never added: balances and totals are reported per currency,
+because AgencyOS holds no exchange rate and a single "total outstanding" over a
+mixed book would be a number that does not exist.
+
+**One rounding policy, applied once.** Intermediate arithmetic at six decimal
+places, rounded exactly once at storage to the currency's own minor units — two for
+most, zero for JPY and KRW, three for KWD and BHD — with banker's rounding stated
+once rather than chosen per handler. A handler cannot round differently, because
+handlers do not round.
+
+**Unknown is a real amount, and zero is not a synonym for it.** A backend
+participation nobody can value is an obligation with no figure. It produces no
+receivable and no commission, and the refusal says why: a percentage of an unknown
+is not zero, and recording it as zero would put a false number into every total
+that touched it. It can be quantified later, by somebody who knows, as a recorded
+act with its own reason.
+
+**Entitled, collected and outstanding are three numbers.** An agency entitled to a
+hundred thousand against a million-dollar contract that has paid four hundred
+thousand has collected forty thousand. The three are kept apart in the domain, the
+projection, the API and the UI, and `Collected` is computed from applied
+allocations on every read rather than stored.
+
+**Commission comes from a dated rule, and there is no default rate.** Rules are
+effective-dated and hang off a representation, because a rate is a term of a
+relationship. The kernel selects by the date the obligation fell due, not by what
+is current, so recalculating a 2027 commission in 2029 gives the 2027 answer.
+Contract-specific beats general; two rules in force at once is refused when the
+overlap is created; no governing rule produces no entitlement and an explanation.
+The rate is snapshotted at calculation, and recalculating supersedes rather than
+overwrites.
+
+**Client funds are not agency revenue.** Money collected against a client
+receivable posts to a liability and is owed onward; only the commission earned on
+it moves into revenue, and only in proportion to what actually arrived.
+Recognising the gross receipt as revenue would overstate agency income by an order
+of magnitude on a typical deal.
+
+**Nothing is auto-matched.** Anything unallocated stays unapplied, is reported back
+in the response, and appears on the work queue. Assigning a residual to whichever
+receivable looks closest would be the system guessing at a payer's intent and then
+acting on the guess. Bank references are not assumed unique either: a repeated
+remittance text is reported as a possible duplicate and never refuses a record.
+
+**An unexplained gap stays unexplained.** Reconciliation reports NotStarted,
+Reconciled, Shortfall or Excess, states the arithmetic and stops. Whether a
+shortfall is withholding, a bank charge, a dispute or a mistake is something a
+person finds out. There is no tax engine: inferring one would produce a reconciled
+receivable and a fabricated tax record, and nobody would look at either again.
+
+**Balances are projections, never columns.** Outstanding, status, overdue,
+unapplied and collected commission are all derived from the rows that recorded the
+events, so no two facts can disagree. A stored `IsOverdue` would be wrong every
+midnight. A receivable with no due date is never overdue: the contract did not say
+when.
+
+**Double entry, with sides and positive amounts.** No signed-number folklore, no
+single-amount "transactions" table. The balance invariant is enforced three times
+on purpose — by the aggregate, by the F# kernel, and again by PostgreSQL through a
+**deferred constraint trigger** at commit, because the invariant spans rows that
+arrive in one transaction and a row-level check could not see them.
+
+**Nothing posted is edited or deleted.** Triggers freeze posted entries, their
+lines, and a payment's amount, currency and received date. A correction is a
+reversing entry beside the original and both stay readable. Write-off is a
+financial act with a reason and a posting, not data cleanup: the receivable keeps
+its original amount and stays on the books. Cancelling a receivable raised in error
+reverses the *original recognition entry* instead, because the money was never
+owed.
+
+**AgencyOS records an invoice. It does not send one.** No document store, no
+transport, no email, no attachment. `HoldsDocument` is published as `false` rather
+than omitted, and the palette test fails if a finance command says send, collect,
+chase or match. AgencyOS assigns no invoice numbers either: numbering carries
+statutory weight that varies by jurisdiction, so the operator supplies the number
+they actually used.
+
+**Finance refuses rather than redacts** — the one place M9 departs from the M7 and
+M8 pattern. Removing rows from a list of contract terms leaves a shorter list,
+which is honest. Removing rows from an arithmetic report leaves a wrong answer
+presented as a right one. The single exception is the command centre, which drops
+the whole commission section for a reader without the grant rather than refusing
+the page: a section, not rows inside an arithmetic.
+
+**Nine new permissions, disjoint from the commercial ones.** Holding
+`deals.economics.read` — which lets somebody see what a deal pays — confers no
+finance access whatsoever. `finance.ledger.post` is narrower still and absent from
+the Member role: every other posting is a consequence of an act already authorized,
+and writing an entry nothing else produced is the one act that needs its own grant.
+
+**A second F# kernel**, `AgencyOS.Finance.Rules`, holding the rounding policy,
+allocation and residual arithmetic, double-entry validation, commission selection
+and reconciliation outcomes. The M8 argument for staying in one assembly does not
+carry over: money arithmetic shares no vocabulary with deal comparison, and the
+rounding policy needed to be stated once rather than five times in five handlers
+(ADR-0023).
+
+**No revenue recognition policy is implemented, and none is claimed.** M9 records
+cash movements and commission earned on collected funds. Having double entry is
+not compliance with GAAP or IFRS, the accounts are named neutrally, and cash
+collected is never silently equated with recognized revenue.
+
+Workflow **CI**, run
+[34206656953](https://github.com/3twito-del/AgencyOS/actions/runs/34206656953),
+commit `ce3931d`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `postgres:18.6`, server banner
+  `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 465 passed, 0 failed,
+  0 skipped — including migrations from a clean database through M0 + M1 + M2 +
+  M3 + M4 + M5 + M6 + M7 + M8 + M9, the whole finance chain from an executed
+  contract to a balanced ledger, an obligation refused against a contract that is
+  not yet operative, a commission worked out under the rule that governed sixty
+  days ago rather than the one in force today, gross receipts landing in client
+  funds payable while only the earned commission reaches revenue, a residual left
+  unapplied against two receivables that would each have fitted, a shortfall that
+  stays unexplained until somebody records the deduction, an unbalanced and a
+  single-sided journal entry both refused, a written-off receivable that keeps its
+  original amount, a reversed payment whose original still says what it said, and
+  a retried payment that took effect exactly once.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including
+  both F# rules kernels and the WinUI 3 client, **0 warnings / 0 errors**; 3309
+  unit tests passed — among them the money arithmetic and rounding properties
+  across zero-, two- and three-decimal currencies, the apportionment residual, the
+  allocation and receivable-state matrices, the journal validation ordering, the
+  governing-rule selection over overlapping and contract-specific rules, the
+  reconciliation outcomes, and the proof that no finance palette command claims an
+  act AgencyOS does not perform; OpenAPI 3.1.1 generated and verified (173 paths,
+  131 schemas).
+
+The migration was also applied, rolled back and re-applied cleanly before the
+commit, so the expand path has a proven reverse.
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
+
+Known limitations, recorded rather than implied:
+
+- No exchange rate, no FX conversion and no cross-currency total. Multi-currency
+  reporting is a list of figures rather than one figure, which is less comfortable
+  and more honest.
+- No tax engine and no tax inference. Every deduction is a fact somebody entered
+  from a remittance advice or a statement, and a gap with none against it stays a
+  gap.
+- No revenue recognition policy. M9 records cash movements and commission earned;
+  it makes no GAAP or IFRS claim.
+- No participation waterfall, breakeven or Hollywood accounting model. A backend
+  participation is an obligation with an unknown amount until somebody values it.
+- No invoice document, no PDF and no sending of anything. AgencyOS records that an
+  invoice exists and what number it carries. M10 brings documents and
+  communications.
+- No statement or remittance ingestion. Payments and deductions are entered by a
+  person; the `SourceSystem` field is the seam a future importer fills.
+- No forecast, prediction, valuation or score of any kind. Every one would be a
+  claim about the future, and M9 records what happened.
+- Commission rules cover a percentage of gross, a percentage of one named term and
+  a fixed sum. There is no universal entertainment-industry formula and M9 invents
+  none.
+
 Deliver:
-- Invoice;
-- Receivable;
-- Payment;
-- Commission;
-- allocations;
-- immutable journal / double-entry ledger;
-- reconciliation and forecasts.
+- Invoice; **met** (optional, records something issued elsewhere, holds no
+  document, and says nothing about payment)
+- Receivable; **met** (beneficiary-aware, with no stored balance or status)
+- Payment; **met** (frozen once recorded; corrected by reversal, never by edit)
+- Commission; **met** (dated rules, snapshotted rate, entitled and collected kept
+  apart)
+- allocations; **met** (rows rather than a column; residuals never auto-assigned)
+- immutable journal / double-entry ledger; **met** (sides and positive amounts,
+  balance enforced three times including a deferred constraint trigger)
+- reconciliation and forecasts. **met as reconciliation; forecasts deliberately
+  not built** — a forecast is a claim about the future, and the milestone records
+  what happened. The condition for revisiting is a stated question somebody
+  actually needs answered, and an accountant in the room.
 
 ## M10 — Documents & Communications
 Deliver:
