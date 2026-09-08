@@ -654,4 +654,64 @@ public static class AgencyOsTelemetry
         Meter.CreateCounter<long>(
             "agencyos.communication.provider.authorization.failures",
             description: "Provider calls refused because a stored credential was rejected.");
+
+    // ---- Intelligence (M11) ----
+    //
+    // Four counters, chosen to answer whether the discipline is holding rather
+    // than to measure volume. Nothing here is tagged with a claim, a subject, a
+    // probability or a classification: a metric label is the one place data
+    // reliably escapes an access-control boundary, and a count of
+    // source-sensitive signals about a named person would be the disclosure the
+    // classification exists to prevent (§28, ADR-0030).
+
+    /// <summary>Claims recorded, by kind.</summary>
+    public static Counter<long> SignalsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.intelligence.signal.recorded",
+            description: "Signals recorded, by kind. Never by classification or subject.");
+
+    /// <summary>
+    /// Verification changes, by the state moved to.
+    /// </summary>
+    /// <remarks>
+    /// The operationally useful one. A rising Disputed count means the desk is
+    /// checking its own claims; a Retracted count that never moves means nobody
+    /// is going back to see whether what they wrote down held up.
+    /// </remarks>
+    public static Counter<long> SignalVerificationChanges { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.intelligence.signal.verification",
+            description: "Signal verification changes, by the state moved to.");
+
+    /// <summary>
+    /// Forecasts stated, counting opening statements and revisions separately.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately not tagged with the probability. The number somebody stated is
+    /// the content of the prediction, and a metric carrying it would publish
+    /// forecasts to anybody who can read the meter.
+    /// </remarks>
+    public static Counter<long> ForecastsStated { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.intelligence.prediction.forecast",
+            description: "Probabilities stated, by whether they opened or revised a prediction.");
+
+    /// <summary>
+    /// Predictions closed, by outcome.
+    /// </summary>
+    /// <remarks>
+    /// Unresolvable is visible here on purpose. A desk whose questions mostly
+    /// resolve as unresolvable is a desk asking questions nobody can settle, and
+    /// that is worth seeing without reading the predictions themselves.
+    /// </remarks>
+    public static Counter<long> PredictionsResolved { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.intelligence.prediction.resolved",
+            description: "Predictions closed, by outcome. Unresolvable counted, never scored.");
+
+    /// <summary>Radar entries handed to representation.</summary>
+    public static Counter<long> RadarConversions { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.intelligence.radar.converted",
+            description: "Radar entries converted into an M4 prospect.");
 }

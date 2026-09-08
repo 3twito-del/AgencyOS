@@ -1,4 +1,5 @@
 using AgencyOS.Api.Authorization;
+using AgencyOS.Api.Observability;
 using AgencyOS.Application.Intelligence;
 using AgencyOS.Contracts.Intelligence;
 using AgencyOS.Domain.Authorization;
@@ -296,6 +297,9 @@ internal static class M11Endpoints
                         cancellationToken)
                     .ConfigureAwait(false);
 
+                AgencyOsTelemetry.SignalsRecorded.Add(
+                    1, new KeyValuePair<string, object?>("kind", request.Kind));
+
                 return Results.Created(
                     $"/api/v1/organizations/{organizationId}/intelligence/signals/{id.Value}",
                     new { id = id.Value });
@@ -355,6 +359,9 @@ internal static class M11Endpoints
                             request.Note),
                         cancellationToken)
                     .ConfigureAwait(false);
+
+                AgencyOsTelemetry.SignalVerificationChanges.Add(
+                    1, new KeyValuePair<string, object?>("verification", request.Verification));
 
                 return Results.NoContent();
             })
@@ -811,6 +818,12 @@ internal static class M11Endpoints
                         cancellationToken)
                     .ConfigureAwait(false);
 
+                // The probability is deliberately not a tag. It is the content of
+                // the prediction, and a metric carrying it would publish forecasts
+                // to anybody who can read the meter.
+                AgencyOsTelemetry.ForecastsStated.Add(
+                    1, new KeyValuePair<string, object?>("stage", "opened"));
+
                 return Results.Created(
                     $"/api/v1/organizations/{organizationId}/intelligence/predictions/{id.Value}",
                     new { id = id.Value });
@@ -837,6 +850,9 @@ internal static class M11Endpoints
                         cancellationToken)
                     .ConfigureAwait(false);
 
+                AgencyOsTelemetry.ForecastsStated.Add(
+                    1, new KeyValuePair<string, object?>("stage", "revised"));
+
                 return Results.Ok(new { id });
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.IntelligencePredictionsWrite))
@@ -862,6 +878,9 @@ internal static class M11Endpoints
                             ParsePredictionEvidence(request.Evidence)),
                         cancellationToken)
                     .ConfigureAwait(false);
+
+                AgencyOsTelemetry.PredictionsResolved.Add(
+                    1, new KeyValuePair<string, object?>("outcome", request.Outcome));
 
                 return Results.NoContent();
             })
@@ -1350,6 +1369,11 @@ internal static class M11Endpoints
                             request.StrategyNotes),
                         cancellationToken)
                     .ConfigureAwait(false);
+
+                AgencyOsTelemetry.RadarConversions.Add(
+                    1,
+                    new KeyValuePair<string, object?>(
+                        "createdProfile", result.CreatedTalentProfile));
 
                 return Results.Ok(new RadarConversionResponse(
                     result.ProspectId.Value,
