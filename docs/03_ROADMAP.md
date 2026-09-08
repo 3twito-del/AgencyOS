@@ -1339,16 +1339,148 @@ Deliver:
 - relationship-linked correspondence. **met** (fourteen typed link targets with
   real composite foreign keys; a link is context and never authorization)
 
-## M11 — Intelligence
+## M11 — Intelligence — **Done** (2026-09-08)
+
+Implemented: the first milestone that records what the agency *knows* and what it
+*thinks*, as distinct from what it has done. Everything before it recorded facts
+with an owner — a contract signed, a payment arrived. This one records claims,
+positions and expectations, all of which can be wrong, and its design is mostly
+about not letting them look settled.
+
+**The chain is kept apart everywhere.** A source is evidence, a signal is a claim
+with provenance, a thesis is a position somebody holds, a prediction is a
+falsifiable statement with a date. Separate aggregates, separate tables, separate
+endpoints, separate tabs. One table with a discriminator would have been less
+code and would have lost the only thing that matters: that a rumour, a considered
+view and a forecast are different kinds of statement.
+
+**A signal keeps at least one source, enforced three times.** The aggregate
+refuses to remove the last citation, the handler refuses it, and a trigger on
+`signal_evidence` refuses it unless the parent signal is already gone. Three
+enforcements of one rule is unusual here and deliberate: a claim with no
+provenance is indistinguishable from something somebody made up, and the database
+is the only layer no future code path can go around.
+
+**There is no `Verified`.** Verification states are Unverified, Corroborated,
+Disputed and Retracted. Corroborated means other evidence agrees; it does not mean
+the claim is true, and AgencyOS cannot determine that. A unit test asserts that no
+rendering of any state reads as an assertion of fact. `ThesisStatus` has no True
+and no False for the same reason — a position is abandoned by recording why.
+
+**A forecast is somebody's assertion, and cannot be edited.** Probability is
+`numeric(5,4)`, never a float, because a Brier score is computed from it and a
+double stops being the number somebody stated. A new forecast is a new revision;
+triggers refuse `UPDATE` and refuse `DELETE` while the prediction exists. A
+forecaster who could revise after resolution would score perfectly every time.
+
+**`Unresolvable` is a real outcome and is never scored.** Counted in the
+calibration model, excluded from every figure. Scoring it as half right would
+manufacture a number from an absence; scoring it as wrong would push people
+towards questions that are easy to grade rather than questions worth asking.
+
+**Calibration is arithmetic and a sample count.** A mean Brier score, a mean
+probability, an observed frequency, and the counts they came from. No grade, no
+badge, no forecaster ranking. A mean over eleven predictions supports very little,
+and the count travels beside every figure so a reader can see that themselves.
+
+**Relationship intelligence has dimensions and no score.** What a person recorded
+is rendered apart from what the M2 rows count. There is no `RelationshipHealth`,
+no `Affinity` and no `InfluenceScore`: a composite would be arithmetic over
+emails, meetings and a subjective 1-to-5, and its apparent precision would be
+believed. Where nobody recorded an assessment the client says "Not recorded"
+rather than filling the gap from a count.
+
+**Classification is applied in SQL, including on the detail reads.** A thesis a
+member may open can cite a source-sensitive signal, so citations are narrowed too,
+and supporting counts are computed over the narrowed set — the numbers agree with
+the rows. The top-level object is fetched unnarrowed and refused with a 403 rather
+than hidden as a 404, so somebody who followed a citation learns a grant exists to
+ask for. Global search finds Internal claims only, for everybody: the palette
+shows a result count before anything is opened.
+
+### Evidence
+
+- **Migration.** Empty PostgreSQL through M0…M10 to M11, then M11 rolled back and
+  re-applied, cleanly. Fifteen tables, twenty-two composite tenant foreign keys,
+  five exclusive-arc checks, probability bounded to 0…1, resolution and
+  cancellation coherence, three immutability triggers and six search vectors.
+- **3,570 unit tests and 606 integration tests**, all passing. Fourteen of the
+  integration tests are M11's, and four of them exercise the database directly
+  rather than through the API — testing only the aggregate would prove that one
+  code path is careful rather than that the schema is.
+- **The classification test is the one worth reading.** It proves a member learns
+  nothing about a source-sensitive claim from the list, from the citation count on
+  a source they may read, or from the evidence on a thesis they may open — three
+  separate leaks, each of which would answer "is there something about this
+  person" on its own.
+
+### Three things the build got wrong first
+
+**`SubjectId`, `LinkedId` and `OwnerId` were ignored rather than mapped.** Every
+query that filtered on them would have failed at runtime. They are now real
+columns beside the typed arcs, on M10's `target_id` precedent, with check
+constraints proving the two agree. The migration is what surfaced it: the
+generated table had fifteen arc columns and no id to scan by.
+
+**`Down()` dropped tables before the foreign keys declared in SQL.** EF orders its
+own `DropTable` calls around the relationships it knows about, and it knows about
+none of these, so the first rollback attempt stopped halfway and left the schema
+half-dismantled. Every SQL-declared key is now dropped first.
+
+**The event foreign keys had to be deferred.** An event is written in the same
+unit of work as the object it happened to, and EF wrote the history row before the
+thesis. `DEFERRABLE INITIALLY DEFERRED` checks at commit instead — which is what
+deferred constraints are for, and keeps the key rather than trading it for insert
+ordering.
+
+Known limitations, recorded rather than implied:
+
+- **Nothing is summarized, extracted, generated or scored.** No model, no
+  embeddings, no vector column, no semantic search, no RAG, no sentiment analysis,
+  no talent ranking. Not a capability deferral: the value of this milestone is
+  that every judgment in it belongs to a named person on a stated date, and a
+  claim nobody is accountable for sitting in the same list would end that.
+- **Global search finds Internal claims only.** Elevated claims are found on the
+  intelligence surface, which narrows in SQL by what the caller may read. A reader
+  with the elevated grant gains nothing in the palette, which is a real cost and
+  the right trade.
+- **Relationship intelligence covers people and companies.** The other eight
+  subject kinds are records rather than counterparties, and a relationship view of
+  a contract would be arithmetic in search of a meaning.
+- **A research case holds no findings.** What the research concluded belongs in a
+  thesis, where it can be revised and retired with a reason. A finding on the case
+  would be a fifth kind of claim with none of the provenance rules.
+- **The radar stops at conversion.** Courting, signing and representation are M4's.
+  A second pursuit pipeline here would be two systems disagreeing about the same
+  relationship.
+- **Excerpt withholding is at the artifact level, not the passage level.** An
+  excerpt quoting a document the reader may not open is withheld whole and said to
+  be withheld. There is no partial redaction, because a partly-redacted quotation
+  reads exactly like a complete one.
+- **Disciplines on a radar entry are free text, split for display.** A radar entry
+  is about somebody who is not a client, so there is no M4 profile to read them
+  from, and guessing which enum member "writer / showrunner" means would record a
+  fact nobody asserted.
+
 Deliver:
-- Signal;
-- Source;
-- Thesis;
-- Prediction;
-- Watchlist;
-- relationship intelligence;
-- talent radar;
-- research workflows.
+- Signal; **met** (a claim with at least one source, four verification states and
+  no Verified among them)
+- Source; **met** (five kinds, three times kept apart, reliability as a separate
+  judgment with a name on it, and a URL described as a reference rather than as
+  something held)
+- Thesis; **met** (revisions that cannot be rewritten, evidence with a stance,
+  supporting and challenging reported side by side and never netted)
+- Prediction; **met** (immutable forecast history, decimal probability, Brier
+  scoring, and Unresolvable counted but never scored)
+- Watchlist; **met** (membership by subject, activity derived by overlap at read
+  time rather than stamped on a signal, review recorded as an act)
+- relationship intelligence; **met as dimensions** (recorded assessment kept apart
+  from counted activity; no composite score anywhere, and the absence is the
+  decision)
+- talent radar; **met** (one open entry per person, priority set by a person, and
+  a hand-over to M4 rather than a second pipeline)
+- research workflows. **met** (a case organized around a question, gathering
+  sources, signals, theses, predictions and tasks; no findings of its own)
 
 ## M12 — AI Runtime
 Deliver:

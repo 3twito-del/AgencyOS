@@ -36,6 +36,22 @@ and the distinction is worth keeping: a fuzzer finds the cases nobody thought of
 and adding real document parsers is the point at which one becomes mandatory
 rather than desirable.
 
+## What the database is tested for, not just the aggregate
+
+From M11 onward, an invariant enforced in both the domain and the schema is tested
+against **both**. Four M11 integration tests issue SQL directly: removing a
+signal's last source, editing a stated forecast, deleting one, and rewriting a
+thesis revision. The aggregate refuses all four as well, and testing only the
+aggregate would prove that one code path is careful rather than that the schema
+is — which is the whole reason the trigger exists.
+
+The classification test is the other shape worth copying. It asserts that a reader
+without the elevated grant learns nothing about a hidden claim from the list, from
+the citation count on a source they may read, or from the evidence on a thesis
+they may open. Three separate leaks, each of which would answer "is there
+something about this person" on its own, and each of which would have passed a
+test that only checked the list.
+
 ## Formal specification
 Use TLA+/PlusCal selectively for:
 - client/server version compatibility protocol;

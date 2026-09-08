@@ -437,8 +437,16 @@ public sealed class SignalHandler
 
     /// <summary>Refuses evidence that is not in this tenant.</summary>
     /// <remarks>
+    /// <para>
     /// The composite foreign key enforces it too. This exists so the refusal is a
     /// sentence rather than a constraint violation at save time (ADR-0025).
+    /// </para>
+    /// <para>
+    /// Answered as missing rather than as malformed, on M10's precedent. The
+    /// request is well formed; the source named in it does not exist here, and
+    /// saying which of those two it is would confirm the source exists somewhere
+    /// else.
+    /// </para>
     /// </remarks>
     private async Task RequireSourcesAsync(
         OrganizationId organizationId,
@@ -450,8 +458,8 @@ public sealed class SignalHandler
         if (!await _sources.AllExistAsync(organizationId, ids, cancellationToken)
             .ConfigureAwait(false))
         {
-            throw new DomainException(
-                "One of those sources is not in this organization.");
+            throw new EntityNotFoundException(
+                nameof(IntelligenceSource), string.Join(", ", ids.Select(x => x.ToString())));
         }
     }
 
@@ -464,8 +472,8 @@ public sealed class SignalHandler
             .ExistsAsync(organizationId, subject.Kind, subject.SubjectId, cancellationToken)
             .ConfigureAwait(false))
         {
-            throw new DomainException(
-                $"There is no {subject.Kind} with that identifier in this organization.");
+            throw new EntityNotFoundException(
+                subject.Kind.ToString(), subject.SubjectId.ToString());
         }
     }
 

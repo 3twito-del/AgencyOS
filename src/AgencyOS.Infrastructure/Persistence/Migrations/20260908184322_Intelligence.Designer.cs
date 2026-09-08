@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AgencyOS.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AgencyOsDbContext))]
-    [Migration("20260908175138_Intelligence")]
+    [Migration("20260908184322_Intelligence")]
     partial class Intelligence
     {
         /// <inheritdoc />

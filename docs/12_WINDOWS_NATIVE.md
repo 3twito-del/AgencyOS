@@ -70,5 +70,31 @@ act the build does not perform.
 - **No Office add-in.** The integration boundary is documented and server-side;
   a task pane is not added to satisfy a roadmap.
 
+## Intelligence (M11)
+
+One workspace, tabbed in the order of the chain: the desk, signals, sources,
+theses, predictions, watchlists, the radar, research and relationship. Reached
+from the navigation pane or F7, with nineteen palette commands under an
+Intelligence category.
+
+**The wording is load-bearing and is tested.** No screen renders a verification
+state as "Verified"; no probability appears without the forecaster and the date
+beside it; no calibration figure appears without the sample count it was computed
+from; and where nobody has recorded a relationship strength the screen says "Not
+recorded" rather than filling the gap from an interaction count.
+
+**Nothing on the page generates anything.** There is no summarize button, no
+"extract signals from this document" and no suggested probability, because there
+is no route on the server that would answer one.
+
+Two refusals happen before a dialog opens rather than after it is filled in:
+recording a signal with no source available says so and offers to record the
+source first, and putting somebody on the radar requires an existing person record
+rather than a typed name.
+
+The whole surface is ONLINE_ONLY. Nothing is cached, for the reason
+`docs/13_OFFLINE_CLASSIFICATION.md` gives: a source-sensitive claim on a laptop is
+not something a later revocation takes back.
+
 ## UI rule
 Windows UI optimizes for Windows. It must not be constrained by a hypothetical future cross-platform UI framework.

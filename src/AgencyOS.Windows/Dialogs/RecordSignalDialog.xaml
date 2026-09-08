@@ -32,14 +32,14 @@
                 </Grid.ColumnDefinitions>
 
                 <ComboBox Grid.Column="0" x:Name="KindBox" Header="Kind" HorizontalAlignment="Stretch">
-                    <ComboBoxItem Content="Personnel change" Tag="PersonnelChange" IsSelected="True" />
-                    <ComboBoxItem Content="Project movement" Tag="ProjectMovement" />
-                    <ComboBoxItem Content="Market activity" Tag="MarketActivity" />
-                    <ComboBoxItem Content="Company change" Tag="CompanyChange" />
-                    <ComboBoxItem Content="Financing" Tag="Financing" />
-                    <ComboBoxItem Content="Availability" Tag="Availability" />
-                    <ComboBoxItem Content="Relationship" Tag="Relationship" />
-                    <ComboBoxItem Content="Other" Tag="Other" />
+                    <ComboBoxItem Content="Somebody moved" Tag="PersonnelMove" IsSelected="True" />
+                    <ComboBoxItem Content="A project changed state" Tag="ProjectStatus" />
+                    <ComboBoxItem Content="A company did something" Tag="CorporateAction" />
+                    <ComboBoxItem Content="Deal activity" Tag="DealActivity" />
+                    <ComboBoxItem Content="What a buyer is looking for" Tag="MarketAppetite" />
+                    <ComboBoxItem Content="What somebody is doing" Tag="TalentActivity" />
+                    <ComboBoxItem Content="A credit or a recognition" Tag="CreditOrRecognition" />
+                    <ComboBoxItem Content="An observation" Tag="Observation" />
                 </ComboBox>
 
                 <ComboBox Grid.Column="1" x:Name="ConfidenceBox" Header="Your confidence"

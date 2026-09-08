@@ -469,7 +469,8 @@ public sealed class TalentRadarHandler
         if (await _people.FindAsync(command.OrganizationId, command.PersonId, cancellationToken)
             .ConfigureAwait(false) is null)
         {
-            throw new DomainException("That person is not in this organization.");
+            throw new EntityNotFoundException(
+                nameof(Person), command.PersonId.ToString());
         }
 
         // One person is watched once at a time. Two open entries would be two

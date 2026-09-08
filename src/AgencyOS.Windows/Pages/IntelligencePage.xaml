@@ -128,14 +128,14 @@
                                 <ComboBox x:Name="SignalKindBox" MinWidth="170"
                                           SelectionChanged="OnSignalFilterChanged">
                                     <ComboBoxItem Content="Any kind" Tag="" IsSelected="True" />
-                                    <ComboBoxItem Content="Personnel change" Tag="PersonnelChange" />
-                                    <ComboBoxItem Content="Project movement" Tag="ProjectMovement" />
-                                    <ComboBoxItem Content="Market activity" Tag="MarketActivity" />
-                                    <ComboBoxItem Content="Company change" Tag="CompanyChange" />
-                                    <ComboBoxItem Content="Financing" Tag="Financing" />
-                                    <ComboBoxItem Content="Availability" Tag="Availability" />
-                                    <ComboBoxItem Content="Relationship" Tag="Relationship" />
-                                    <ComboBoxItem Content="Other" Tag="Other" />
+                                    <ComboBoxItem Content="Somebody moved" Tag="PersonnelMove" />
+                                    <ComboBoxItem Content="Project state" Tag="ProjectStatus" />
+                                    <ComboBoxItem Content="Corporate action" Tag="CorporateAction" />
+                                    <ComboBoxItem Content="Deal activity" Tag="DealActivity" />
+                                    <ComboBoxItem Content="Market appetite" Tag="MarketAppetite" />
+                                    <ComboBoxItem Content="Talent activity" Tag="TalentActivity" />
+                                    <ComboBoxItem Content="Credit or recognition" Tag="CreditOrRecognition" />
+                                    <ComboBoxItem Content="Observation" Tag="Observation" />
                                 </ComboBox>
 
                                 <ComboBox x:Name="SignalVerificationBox" MinWidth="160"

@@ -42,6 +42,30 @@ A document list is narrowed **inside the query**, before anything is counted or
 paged: a count of privileged documents about a named person is itself a
 disclosure. See `docs/adr/ADR-0025-document-linking-sensitivity-and-search.md`.
 
+M11 added a second, narrower scale for what the agency thinks.
+`IntelligenceSensitivity` is Internal, Confidential, SourceSensitive or
+Restricted; it is required with no default and is **never inferred** from the
+content. Whether somebody spoke in confidence is something they said, not
+something a system can detect from wording.
+
+The three elevated classifications share one grant, `intelligence.sensitive.read`,
+on M10's precedent: what varies between them is what they protect, not who should
+see it. Forecasting and the talent radar take their own write grants, so somebody
+who may record what they heard is not automatically somebody who may stake a
+prediction or open a pursuit.
+
+Every intelligence read is narrowed **inside the query**, including the detail
+reads. A thesis a member may open can cite a source-sensitive signal, and naming
+that signal in a citation would disclose it as surely as a list would; counts are
+computed over the same narrowed set, so a source's citation count and a thesis's
+supporting count agree with the rows the reader can see. The object itself is
+refused with a 403 rather than hidden as a 404, so somebody who followed a
+citation learns a grant exists to ask for.
+
+Global search is narrowed harder: it returns Internal claims only, for everybody.
+The command palette shows a result count before anything is opened, and a count is
+an answer. See `docs/adr/ADR-0030-intelligence-provenance-judgment-and-no-scores.md`.
+
 ## Audit
 Reads are not audited. Opening a document, listing messages and polling a mailbox
 for changes produce no audit entry: filling the trail with reads buries the writes

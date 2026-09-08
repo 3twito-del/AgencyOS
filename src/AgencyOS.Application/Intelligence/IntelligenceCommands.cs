@@ -362,7 +362,8 @@ public sealed class IntelligenceSourceHandler
 
         if (version is null)
         {
-            throw new DomainException("That document version is not in this organization.");
+            throw new EntityNotFoundException(
+                nameof(DocumentVersion), versionId.ToString());
         }
 
         return IntelligenceSource.FromDocumentVersion(
@@ -395,7 +396,8 @@ public sealed class IntelligenceSourceHandler
 
         if (message is null)
         {
-            throw new DomainException("That message is not in this organization.");
+            throw new EntityNotFoundException(
+                nameof(CommunicationMessage), messageId.ToString());
         }
 
         return IntelligenceSource.FromMessage(

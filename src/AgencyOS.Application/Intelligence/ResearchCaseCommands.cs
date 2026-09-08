@@ -415,7 +415,7 @@ public sealed class ResearchCaseHandler
 
         if (!exists)
         {
-            throw new DomainException($"That {kind} is not in this organization.");
+            throw new EntityNotFoundException(kind.ToString(), linkedId.ToString());
         }
     }
 

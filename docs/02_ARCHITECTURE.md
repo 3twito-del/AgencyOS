@@ -247,3 +247,21 @@ workflow engine would add a server, a worker fleet and a second definition of wh
 a workflow is, in exchange for a scheduler this milestone already has in twenty
 lines of SQL. See `docs/adr/ADR-0029-background-work-leasing-and-not-temporal.md`
 for the conditions under which that answer changes.
+
+## Intelligence adds no infrastructure (M11)
+
+M11 records sources, signals, theses, predictions and the work built on them, and
+adds nothing to the stack: no Python service, no F# project, no model of any kind,
+no vector store, no search engine and no new specification.
+
+There is no distributed protocol to specify. Every M11 operation is a single
+request against a single database inside one transaction; the only sequencing that
+matters is the radar conversion, which is ordered so a failure leaves the entry
+open rather than orphaning a pursuit. Brier scoring is a dozen lines of pure
+decimal arithmetic with no state machine in it, so it lives in the application
+layer beside the other read models rather than in F#.
+
+The one schema mechanism M11 introduces is a deferred constraint: the seven
+foreign keys on `intelligence_events` are `DEFERRABLE INITIALLY DEFERRED`, because
+an event is written in the same unit of work as the object it happened to. See
+`docs/adr/ADR-0030-intelligence-provenance-judgment-and-no-scores.md`.

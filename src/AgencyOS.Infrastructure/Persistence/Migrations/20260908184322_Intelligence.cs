@@ -869,57 +869,70 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     END
                 );
                 """);
-            // Curated history belongs to exactly one object, in the same tenant. This
-            // is the record people read; the audit trail lives on its own and answers a
-            // different question (ADR-0012).
+            // Curated history belongs to exactly one object, in the same tenant.
+            // 
+            // These seven are DEFERRABLE INITIALLY DEFERRED, and alone among the arcs they
+            // have to be. An event is written in the same unit of work as the thing it
+            // happened to; EF orders inserts by the relationships it knows about, knows
+            // about none of these, and wrote the history row before the thesis. Checking
+            // at commit rather than at statement is exactly what deferred constraints are
+            // for, and it keeps the key rather than trading it for insert ordering
+            // (ADR-0011, ADR-0012).
             migrationBuilder.Sql("""
                 ALTER TABLE intelligence_events
                 ADD CONSTRAINT fk_intelligence_events_source_id
                     FOREIGN KEY (organization_id, source_id)
                     REFERENCES intelligence_sources (organization_id, id)
-                    ON DELETE CASCADE;
+                    ON DELETE CASCADE
+                    DEFERRABLE INITIALLY DEFERRED;
                 """);
             migrationBuilder.Sql("""
                 ALTER TABLE intelligence_events
                 ADD CONSTRAINT fk_intelligence_events_signal_id
                     FOREIGN KEY (organization_id, signal_id)
                     REFERENCES signals (organization_id, id)
-                    ON DELETE CASCADE;
+                    ON DELETE CASCADE
+                    DEFERRABLE INITIALLY DEFERRED;
                 """);
             migrationBuilder.Sql("""
                 ALTER TABLE intelligence_events
                 ADD CONSTRAINT fk_intelligence_events_thesis_id
                     FOREIGN KEY (organization_id, thesis_id)
                     REFERENCES theses (organization_id, id)
-                    ON DELETE CASCADE;
+                    ON DELETE CASCADE
+                    DEFERRABLE INITIALLY DEFERRED;
                 """);
             migrationBuilder.Sql("""
                 ALTER TABLE intelligence_events
                 ADD CONSTRAINT fk_intelligence_events_prediction_id
                     FOREIGN KEY (organization_id, prediction_id)
                     REFERENCES predictions (organization_id, id)
-                    ON DELETE CASCADE;
+                    ON DELETE CASCADE
+                    DEFERRABLE INITIALLY DEFERRED;
                 """);
             migrationBuilder.Sql("""
                 ALTER TABLE intelligence_events
                 ADD CONSTRAINT fk_intelligence_events_watchlist_id
                     FOREIGN KEY (organization_id, watchlist_id)
                     REFERENCES watchlists (organization_id, id)
-                    ON DELETE CASCADE;
+                    ON DELETE CASCADE
+                    DEFERRABLE INITIALLY DEFERRED;
                 """);
             migrationBuilder.Sql("""
                 ALTER TABLE intelligence_events
                 ADD CONSTRAINT fk_intelligence_events_radar_entry_id
                     FOREIGN KEY (organization_id, radar_entry_id)
                     REFERENCES talent_radar_entries (organization_id, id)
-                    ON DELETE CASCADE;
+                    ON DELETE CASCADE
+                    DEFERRABLE INITIALLY DEFERRED;
                 """);
             migrationBuilder.Sql("""
                 ALTER TABLE intelligence_events
                 ADD CONSTRAINT fk_intelligence_events_research_case_id
                     FOREIGN KEY (organization_id, research_case_id)
                     REFERENCES research_cases (organization_id, id)
-                    ON DELETE CASCADE;
+                    ON DELETE CASCADE
+                    DEFERRABLE INITIALLY DEFERRED;
                 """);
             migrationBuilder.Sql("""
                 ALTER TABLE intelligence_events
@@ -1374,21 +1387,6 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                 "ALTER TABLE intelligence_subjects "
                     + "DROP CONSTRAINT IF EXISTS fk_intelligence_subjects_contract_id;");
             migrationBuilder.Sql(
-                "ALTER TABLE research_case_links "
-                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_source_id;");
-            migrationBuilder.Sql(
-                "ALTER TABLE research_case_links "
-                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_signal_id;");
-            migrationBuilder.Sql(
-                "ALTER TABLE research_case_links "
-                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_thesis_id;");
-            migrationBuilder.Sql(
-                "ALTER TABLE research_case_links "
-                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_prediction_id;");
-            migrationBuilder.Sql(
-                "ALTER TABLE research_case_links "
-                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_task_id;");
-            migrationBuilder.Sql(
                 "ALTER TABLE intelligence_events "
                     + "DROP CONSTRAINT IF EXISTS fk_intelligence_events_source_id;");
             migrationBuilder.Sql(
@@ -1409,6 +1407,21 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             migrationBuilder.Sql(
                 "ALTER TABLE intelligence_events "
                     + "DROP CONSTRAINT IF EXISTS fk_intelligence_events_research_case_id;");
+            migrationBuilder.Sql(
+                "ALTER TABLE research_case_links "
+                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_source_id;");
+            migrationBuilder.Sql(
+                "ALTER TABLE research_case_links "
+                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_signal_id;");
+            migrationBuilder.Sql(
+                "ALTER TABLE research_case_links "
+                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_thesis_id;");
+            migrationBuilder.Sql(
+                "ALTER TABLE research_case_links "
+                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_prediction_id;");
+            migrationBuilder.Sql(
+                "ALTER TABLE research_case_links "
+                    + "DROP CONSTRAINT IF EXISTS fk_research_case_links_task_id;");
             migrationBuilder.Sql(
                 "ALTER TABLE signal_evidence "
                     + "DROP CONSTRAINT IF EXISTS fk_signal_evidence_source_id;");

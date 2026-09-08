@@ -885,6 +885,141 @@ delivery, open or read receipt on an outbound dispatch - the provider confirms i
 accepted a message and says nothing about what happened next. No plaintext token
 column anywhere. No `entity_type` / `entity_id` untyped link pair.
 
+## M11 entities - sources, signals, theses, predictions and standing work
+
+Implemented in M11. ADR-0030 records the epistemology the schema enforces.
+
+### IntelligenceSource
+Evidence. Never labelled true.
+
+- **IntelligenceSource** - Id, OrganizationId, Kind (DocumentVersion | Message |
+  ExternalUrl | ManualObservation | Other), Title, DocumentVersionId?, MessageId?,
+  Url?, Publisher?, Author?, ExternalReference?, PublishedAt?, ObservedAt,
+  RecordedAt, Reliability, ReliabilityRationale?, ReliabilityAssessedBy?,
+  ReliabilityAssessedAt?, Sensitivity, Notes?, RecordedBy, Version.
+
+**Three times, kept apart.** When it was published, when the agency observed it,
+and when the row was written are three different facts, and collapsing them loses
+the one that matters in a dispute. A manual observation has no publication date at
+all.
+
+`ck_intelligence_sources_kind` ties the kind to the pointer: a DocumentVersion
+source names a version and nothing else; an ExternalUrl source names a URL and is
+a **reference** — AgencyOS has not archived the page and cannot produce it later.
+`ck_intelligence_sources_reliability` keeps the rating inseparable from who made
+it and when; Unassessed carries neither, and is the honest default.
+
+### Signal and SignalEvidence
+A claim, with its provenance.
+
+- **Signal** - Id, OrganizationId, Title, Claim, Kind, OccurredAt?, ObservedAt,
+  Verification, VerificationNote?, VerificationChangedBy?, VerificationChangedAt?,
+  Confidence, Sensitivity, Notes?, RecordedAt, RecordedBy, Version.
+- **SignalEvidence** - Id, OrganizationId, SignalId, SourceId, Role, Excerpt?,
+  Locator?, AddedAt, AddedBy. Unique on `(signal_id, source_id)`.
+
+**Verification has four states and none of them is Verified.** Unverified,
+Corroborated, Disputed, Retracted. Corroborated means other evidence agrees.
+
+`trg_signal_evidence_last_source` refuses to delete the last citation while the
+signal exists. The aggregate and the handler refuse it too; the trigger is the
+layer no future code path can go around.
+
+### Thesis, ThesisRevision and ThesisEvidence
+A position somebody holds.
+
+- **Thesis** - Id, OrganizationId, Title, Proposition, Rationale?, Status (Draft |
+  Active | Retired | Superseded), Confidence, Sensitivity, OwnerUserId,
+  SupersededByThesisId?, ClosedReason?, ClosedAt?, CreatedAt, UpdatedAt,
+  CreatedBy, Version.
+- **ThesisRevision** - Id, OrganizationId, ThesisId, Sequence, Proposition,
+  Rationale?, Confidence, ChangeNote?, RecordedAt, RecordedBy. Unique on
+  `(thesis_id, sequence)`, and `trg_thesis_revisions_immutable` refuses both
+  update and delete.
+- **ThesisEvidence** - Id, OrganizationId, ThesisId, SignalId, Stance (Supports |
+  Challenges | Context), Note?, AddedAt, AddedBy.
+
+**No True and no False.** A position is abandoned by retiring it with a reason or
+superseding it with a better one, and `ck_theses_closure` requires the reason and
+the moment together.
+
+Stances are counted separately and never netted: five weak agreements do not
+outweigh one strong contradiction.
+
+### Prediction, PredictionRevision and PredictionEvidence
+A falsifiable statement with a date.
+
+- **Prediction** - Id, OrganizationId, Statement, ResolutionCriteria?, ResolvesBy,
+  OwnerUserId, Sensitivity, Outcome? (Yes | No | Unresolvable), ResolvedAt?,
+  ResolvedBy?, ResolutionNote?, CancelledAt?, CancelledReason?, CreatedAt,
+  CreatedBy, Version.
+- **PredictionRevision** - Id, OrganizationId, PredictionId, Sequence,
+  Probability `numeric(5,4)`, Rationale?, RecordedAt, RecordedBy. Unique on
+  `(prediction_id, sequence)`; `ck_prediction_revisions_probability` bounds it to
+  0…1; `trg_prediction_revisions_immutable` refuses update and delete.
+- **PredictionEvidence** - Id, OrganizationId, PredictionId, SourceId?, SignalId?,
+  Note?, AddedAt, AddedBy. `ck_prediction_evidence_arc` requires exactly one.
+
+**No stored current probability and no stored status.** Both are derived — the
+latest revision, and the clock against `ResolvesBy`. A stored copy would be a
+second truth that drifts from the history calibration is measured against.
+
+`ck_predictions_resolution` keeps outcome, moment and person together;
+`ck_predictions_not_both` refuses a prediction that is resolved and cancelled at
+once.
+
+### Watchlist, TalentRadarEntry and ResearchCase
+Standing work.
+
+- **Watchlist** - Id, OrganizationId, Name, Purpose?, Status, OwnerUserId,
+  Sensitivity, LastReviewedAt?, LastReviewedBy?, CreatedAt, CreatedBy, Version.
+  Membership is `intelligence_subjects`; activity is derived by overlap at read
+  time, because a flag on a signal saying it is watched would have to be
+  maintained on every membership change and would be silently wrong the first time
+  one was missed.
+- **TalentRadarEntry** - Id, OrganizationId, PersonId, Status (Watching |
+  Researching | ReadyForReview | ConvertedToProspect | Dismissed), OwnerUserId,
+  Rationale, IntendedDisciplines?, Priority, Sensitivity, FirstObservedAt,
+  LastReviewedAt?, LastReviewedBy?, ProspectId?, TalentProfileId?, ConvertedAt?,
+  ConvertedBy?, DismissedReason?, DismissedAt?, CreatedAt, CreatedBy, Version.
+  `ux_talent_radar_open_person` is a partial unique index over the open states:
+  one person is watched once at a time. `ck_talent_radar_conversion` requires a
+  converted entry to name the prospect it became.
+- **ResearchCase** and **ResearchCaseLink** - a question, a context, a conclusion,
+  and typed links to sources, signals, theses, predictions and M2 tasks. **No
+  finding type**: what the research concluded belongs in a thesis, where it can be
+  revised and retired with a reason.
+
+### IntelligenceSubject
+One table for what all five kinds of intelligence are about.
+
+Table-per-hierarchy: `owner_kind` discriminates SignalSubject, ThesisSubject,
+PredictionSubject, WatchlistEntry and ResearchCaseSubject; five owner arcs and ten
+subject arcs, each with a composite `(organization_id, id)` foreign key.
+`ck_intelligence_subjects_subject_arc` requires exactly one typed column, matching
+the kind and holding the same identifier as `subject_id`.
+
+Five tables of ten arcs each would be fifty keys saying the same thing. More to the
+point, "what does the agency know about this record" wants one scan across all five
+kinds at once.
+
+### IntelligenceEvent
+The curated history, append-only, beside the audit trail rather than instead of it.
+
+Seven owner arcs, declared `DEFERRABLE INITIALLY DEFERRED` — alone among the arcs.
+An event is written in the same unit of work as the object it happened to, EF
+orders inserts by relationships it knows about, and it knows about none of these.
+Checking at commit keeps the key rather than trading it for insert ordering.
+
+### Deliberately absent in M11
+
+No composite score of any kind: no relationship health, no affinity, no influence,
+no fit and no talent ranking. No stored current probability and no stored
+prediction status. No `Verified` on a signal and no True or False on a thesis. No
+embedding column, no vector index and no full-text index over excerpts — an
+excerpt quotes an M10 artifact, and a hit inside one would report that artifact's
+contents. No research finding. No untyped `(entity_type, entity_id)` link pair.
+
 ## Temporal modeling
 
 Effective-date history rather than destructive overwrite, applied from M4 onward.

@@ -206,14 +206,14 @@ public sealed class SignalListViewModel : ViewModelBase
     /// <summary>What kind of thing was observed. Business meaning, not format.</summary>
     public static IReadOnlyList<string> Kinds { get; } =
     [
-        "PersonnelChange",
-        "ProjectMovement",
-        "MarketActivity",
-        "CompanyChange",
-        "Financing",
-        "Availability",
-        "Relationship",
-        "Other",
+        "PersonnelMove",
+        "ProjectStatus",
+        "CorporateAction",
+        "DealActivity",
+        "MarketAppetite",
+        "TalentActivity",
+        "CreditOrRecognition",
+        "Observation",
     ];
 
     /// <summary>

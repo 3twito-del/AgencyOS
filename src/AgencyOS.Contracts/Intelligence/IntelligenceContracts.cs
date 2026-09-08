@@ -80,8 +80,8 @@ public sealed record SignalEvidenceRequest(
 /// refuse that (§1).
 /// </remarks>
 /// <param name="Kind">
-/// PersonnelChange, ProjectMovement, MarketActivity, CompanyChange, Financing,
-/// Availability, Relationship or Other.
+/// PersonnelMove, ProjectStatus, CorporateAction, DealActivity, MarketAppetite,
+/// TalentActivity, CreditOrRecognition or Observation.
 /// </param>
 /// <param name="Confidence">
 /// Unstated, Low, Medium or High. What a person judged, never what a model output.

@@ -376,7 +376,8 @@ public sealed class PredictionHandler
             if (!await _sources.AllExistAsync(organizationId, [source], cancellationToken)
                 .ConfigureAwait(false))
             {
-                throw new DomainException("That source is not in this organization.");
+                throw new EntityNotFoundException(
+                    nameof(IntelligenceSource), source.ToString());
             }
         }
 
@@ -385,7 +386,7 @@ public sealed class PredictionHandler
             if (!await _signals.ExistsAsync(organizationId, signal, cancellationToken)
                 .ConfigureAwait(false))
             {
-                throw new DomainException("That signal is not in this organization.");
+                throw new EntityNotFoundException(nameof(Signal), signal.ToString());
             }
         }
     }

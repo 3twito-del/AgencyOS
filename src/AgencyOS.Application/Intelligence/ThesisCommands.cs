@@ -342,7 +342,8 @@ public sealed class ThesisHandler
             .ExistsAsync(command.OrganizationId, command.SignalId, cancellationToken)
             .ConfigureAwait(false))
         {
-            throw new DomainException("That signal is not in this organization.");
+            throw new EntityNotFoundException(
+                nameof(Signal), command.SignalId.ToString());
         }
 
         DateTimeOffset now = _clock.UtcNow;

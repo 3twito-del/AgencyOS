@@ -33,7 +33,15 @@ public sealed class SearchService
     /// <summary>Longest query accepted, before ranking cost stops being bounded.</summary>
     private const int MaximumQueryLength = 256;
 
-    private static readonly IReadOnlyDictionary<SearchEntityType, string> RequiredPermissions =
+    /// <summary>
+    /// Which permission each searchable type is gated by.
+    /// </summary>
+    /// <remarks>
+    /// Public so a test can walk it. A type missing from this map is silently
+    /// unsearchable rather than loudly wrong, which is the worse failure and the
+    /// one the saved-view equivalent actually shipped with once (ADR-0021).
+    /// </remarks>
+    public static IReadOnlyDictionary<SearchEntityType, string> RequiredPermissions { get; } =
         new Dictionary<SearchEntityType, string>
         {
             [SearchEntityType.Person] = Permission.PeopleRead,

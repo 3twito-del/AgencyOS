@@ -275,6 +275,47 @@ The cache schema therefore stays at **version 2**. M10 adds no migration and no
 `QueuedOperation` member; document and communication writes are online-only by
 construction rather than by a check somebody could forget.
 
+## ONLINE_ONLY (all M11 mutations, and all M11 reads)
+
+M11 is online-only in both directions, and for the sharpest version of M10's
+reason.
+
+| Command | Why it is not queued |
+|---|---|
+| RecordSource / UpdateSource | A source is evidence recorded as of a moment, and one of its three times is when the agency observed it. Queued, that moment would be the moment the queue drained. |
+| AssessSourceReliability | Somebody's judgment, with their name and the date on it. Replayed four hours later it would attribute a judgment to a moment nobody chose. |
+| RecordSignal / UpdateSignal | The cited sources must exist in the tenant now. A claim queued against a source somebody has since removed is a refusal delayed by four hours — and a claim that lost its provenance in the meantime is the one thing this milestone refuses to store. |
+| ChangeSignalVerification | A statement about what other evidence now shows. Its meaning is tied to when it was made. |
+| LinkSignalEvidence / UnlinkSignalEvidence | Version-guarded, and unlinking can be refused because it would leave the claim unsourced. That refusal has to be immediate, not discovered later. |
+| CreateThesis / ActivateThesis / ReviseThesis / CloseThesis | A revision is a position held at a moment. Queued, the sequence would record a change of mind at a time it did not happen. |
+| **CreatePrediction / RecordPredictionRevision** | **The reason the milestone is online-only on the write side.** A forecast is a probability somebody stated on a date, and calibration is measured against exactly that. A forecast queued for four hours is a forecast attributed to a moment when the forecaster knew less — or, worse, one that drains after the question resolved. |
+| ResolvePrediction / CancelPrediction | Both close a question as of now, and both are scored. Neither is replayable. |
+| Watchlist, radar and research-case commands | All version-guarded, all recording that somebody did something on a date, and one of them — the radar conversion — creates records in M4. |
+
+### Why the M11 reads are online-only too
+
+M10's reason applies here with less room to argue: **the content is the problem.**
+
+A source-sensitive signal names somebody who spoke in confidence. A copy of it in
+a local SQLite file is that person's identity on a laptop, and revoking
+`intelligence.sensitive.read` afterwards does not take it back — nor does removing
+the reader from the organization.
+
+There is a second reason that is M11's own. Every list is narrowed by the reader's
+classifications **in the SQL**, and the narrowing is what stops a count answering
+"is there something about this person". A cache would hold rows written under one
+grant and serve them under another, which is the leak the query layer exists to
+prevent.
+
+So the whole M11 surface reaches the server or says it could not: sources, signals
+and their evidence, theses and their revisions, predictions and their forecast
+history, watchlists and their derived activity, the radar, research cases,
+relationship intelligence and the intelligence desk.
+
+The cache schema therefore stays at **version 2**. M11 adds no migration and no
+`QueuedOperation` member; intelligence writes are online-only by construction
+rather than by a check somebody could forget.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |
