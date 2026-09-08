@@ -69,6 +69,17 @@ public enum AgentRunStatus
 
     /// <summary>Nobody answered an approval request before it lapsed.</summary>
     Expired = 7,
+
+    /// <summary>
+    /// Waiting for the user's own workstation to run the model.
+    /// </summary>
+    /// <remarks>
+    /// A real state, not an absence of one. Device-local inference happens in a
+    /// process AgencyOS does not control, so the run has to survive the client
+    /// closing, crashing or simply never coming back — and a run that is waiting
+    /// must be distinguishable from one that has hung (ADR-0035).
+    /// </remarks>
+    AwaitingLocalExecution = 8,
 }
 
 /// <summary>
@@ -98,6 +109,22 @@ public enum AgentFailureKind
 
     /// <summary>The data policy refused to transmit the context (§5).</summary>
     PolicyRefused = 5,
+
+    /// <summary>
+    /// The workstation has no device-local model available.
+    /// </summary>
+    /// <remarks>
+    /// Terminal, and deliberately so. A local-only run that cannot run locally
+    /// fails; it does not quietly become a cloud run, because that would move the
+    /// material somewhere the policy did not permit (§E, ADR-0035).
+    /// </remarks>
+    LocalProviderUnavailable = 12,
+
+    /// <summary>The device-local model exists but is not provisioned yet.</summary>
+    LocalModelNotReady = 13,
+
+    /// <summary>The workstation never came back with a result.</summary>
+    LocalExecutionAbandoned = 14,
 
     /// <summary>The caller lacked a permission the run needed.</summary>
     AuthorizationRefused = 6,
@@ -184,6 +211,25 @@ public sealed class AgentRun
     /// <summary>The model identifier this run was configured to use.</summary>
     public string ModelKey { get; private set; } = string.Empty;
 
+    /// <summary>Where this run's inference executes.</summary>
+    /// <remarks>
+    /// Recorded on the run so a reader can tell afterwards where the material
+    /// went, which is the question residency exists to answer. Set at start and
+    /// never changed: a run cannot migrate between residencies, because doing so
+    /// would move data under a policy decision already made (§E).
+    /// </remarks>
+    public ModelResidency Residency { get; private set; }
+
+    /// <summary>
+    /// Which device actually ran it, when the client reported one.
+    /// </summary>
+    /// <remarks>
+    /// Free text from the workstation and treated as provenance rather than as
+    /// fact: the client says what its provider told it, and nothing depends on the
+    /// value. Null for server-side runs.
+    /// </remarks>
+    public string? ExecutionDevice { get; private set; }
+
     /// <summary>
     /// Which version of the agent's prompt asked the question.
     /// </summary>
@@ -245,7 +291,8 @@ public sealed class AgentRun
         int promptTemplateVersion,
         DateTimeOffset now,
         AgentSubjectKind subjectKind = AgentSubjectKind.None,
-        Guid? subjectId = null)
+        Guid? subjectId = null,
+        ModelResidency residency = ModelResidency.ExternalCloud)
     {
         if (subjectKind is AgentSubjectKind.None != (subjectId is null))
         {
@@ -271,6 +318,7 @@ public sealed class AgentRun
             PromptTemplateVersion = promptTemplateVersion >= 1
                 ? promptTemplateVersion
                 : throw new DomainException("A prompt version starts at one."),
+            Residency = residency,
             StartedAt = now,
             CreatedAt = now,
             Failure = AgentFailureKind.None,
@@ -282,7 +330,10 @@ public sealed class AgentRun
     public void Begin(DateTimeOffset now, int expectedVersion)
     {
         Guard(expectedVersion);
-        Require(AgentRunStatus.Queued, AgentRunStatus.AwaitingApproval);
+        Require(
+            AgentRunStatus.Queued,
+            AgentRunStatus.AwaitingApproval,
+            AgentRunStatus.AwaitingLocalExecution);
 
         Status = AgentRunStatus.Running;
         Touch(now);
@@ -302,6 +353,40 @@ public sealed class AgentRun
         Require(AgentRunStatus.Running);
 
         Status = AgentRunStatus.AwaitingApproval;
+        Touch(now);
+    }
+
+    /// <summary>
+    /// Records that the run is waiting for the user's workstation.
+    /// </summary>
+    /// <remarks>
+    /// The mirror of <see cref="AwaitApproval"/>, and for the same reason: the
+    /// thing being waited for happens outside this process, so holding the run in
+    /// memory would lose it on deploy and make a waiting run indistinguishable
+    /// from a hung one (ADR-0035).
+    /// </remarks>
+    public void AwaitLocalExecution(DateTimeOffset now, int expectedVersion)
+    {
+        Guard(expectedVersion);
+        Require(AgentRunStatus.Queued, AgentRunStatus.Running);
+
+        Status = AgentRunStatus.AwaitingLocalExecution;
+        Touch(now);
+    }
+
+    /// <summary>Records which device the workstation said it used.</summary>
+    /// <remarks>
+    /// Provenance, not fact. The client reports what its provider told it, and
+    /// nothing in AgencyOS depends on the value being true.
+    /// </remarks>
+    public void RecordExecutionDevice(string? device, DateTimeOffset now, int expectedVersion)
+    {
+        Guard(expectedVersion);
+
+        ExecutionDevice = device is { Length: > 0 }
+            ? Ensure.NotBlankMax(device, nameof(device), 100)
+            : null;
+
         Touch(now);
     }
 
