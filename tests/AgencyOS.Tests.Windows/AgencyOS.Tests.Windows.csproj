@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The Windows-targeting test suite. Runs on windows-latest in CI alongside the
+    unit tests, and needs no GPU, no NPU, no model file and no network: every
+    Windows-specific decision under test is expressed behind an abstraction with
+    a deterministic fake (ADR-0033).
+
+    Separate from AgencyOS.Tests.Unit because that project targets net10.0 and
+    cannot reference a Windows-TFM assembly.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <IsPackable>false</IsPackable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/AgencyOS.Windows.Platform/AgencyOS.Windows.Platform.csproj" />
+    <ProjectReference Include="../../src/AgencyOS.Client/AgencyOS.Client.csproj" />
+    <ProjectReference Include="../../src/AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

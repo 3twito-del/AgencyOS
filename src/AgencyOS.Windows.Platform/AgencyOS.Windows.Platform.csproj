@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Windows-specific mechanics that are not UI: activation and deep links,
+    notification policy, capability probing, diagnostics redaction and the
+    client half of the local-inference protocol (ADR-0033).
+
+    Deliberately free of WinRT. Everything here is a decision - is this link
+    well formed, may this notification say that, is this field safe to copy -
+    and decisions must be testable without standing up a Windows App SDK
+    runtime. The thin adapters that actually call WinRT live in
+    AgencyOS.Windows, which is the composition layer and is not unit tested.
+
+    It references AgencyOS.Contracts and nothing else, so the M0 compile-time
+    rule survives the new project: the client cannot reach persistence,
+    application or domain code. An architecture test asserts it.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>AgencyOS.Windows.Platform</RootNamespace>
+    <AgencyOSStrict>true</AgencyOSStrict>
+    <UseWinUI>false</UseWinUI>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
+    <ProjectReference Include="../AgencyOS.Client/AgencyOS.Client.csproj" />
+  </ItemGroup>
+
+</Project>

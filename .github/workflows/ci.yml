@@ -71,6 +71,12 @@ jobs:
           CI: 'true'
         run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 test-unit
 
+      - name: Windows tests
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 test-windows
+
       - name: API contract
         shell: pwsh
         env:

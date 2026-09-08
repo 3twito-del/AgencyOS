@@ -23,7 +23,7 @@
 #>
 param(
     [Parameter(Position=0)]
-    [ValidateSet("doctor","build","test","test-unit","test-integration","verify","verify-fast","version","contract","formal","ci","nightly")]
+    [ValidateSet("doctor","build","test","test-unit","test-windows","test-integration","verify","verify-fast","version","contract","formal","ci","nightly")]
     [string]$Target = "doctor",
 
     [ValidateSet("forge","lab","nightly","alpha","beta","rc","stable")]
@@ -193,6 +193,25 @@ function Invoke-TestUnit {
 
     dotnet test $project --nologo -c $config @(Get-MetadataArgs)
     if ($LASTEXITCODE -ne 0) { throw "Unit tests failed." }
+}
+
+# Runs only the Windows suite. Needs a Windows agent and nothing else: no GPU,
+# no NPU, no model file and no network. Every Windows-specific decision under
+# test sits behind an abstraction with a deterministic fake, which is what keeps
+# the local-AI work in M13 verifiable on hardware that cannot run a local model
+# (ADR-0033).
+function Invoke-TestWindows {
+    $project = Join-Path $root "tests/AgencyOS.Tests.Windows/AgencyOS.Tests.Windows.csproj"
+    $config = Get-Configuration "Debug"
+    Write-Section "Windows Tests ($config)"
+
+    if (-not $IsWindows) {
+        Write-Host "[SKIP] Windows tests need a Windows agent."
+        return
+    }
+
+    dotnet test $project --nologo -c $config @(Get-MetadataArgs)
+    if ($LASTEXITCODE -ne 0) { throw "Windows tests failed." }
 }
 
 # Runs only the integration suite. Builds just this project's dependency graph,
@@ -678,6 +697,7 @@ try {
         "verify"      { Invoke-Verify }
         "version"     { Invoke-Version }
         "test-unit"        { Invoke-TestUnit }
+        "test-windows"     { Invoke-TestWindows }
         "test-integration" { Invoke-TestIntegration }
         "contract"         { Invoke-Contract }
         "formal"           { Invoke-Formal }
