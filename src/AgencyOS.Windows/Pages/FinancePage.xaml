@@ -1,0 +1,566 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.FinancePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls">
+
+    <Grid Padding="16" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Spacing="4">
+            <TextBlock Text="Finance" Style="{StaticResource TitleTextBlockStyle}" />
+
+            <!--
+                Every verb on this screen is one AgencyOS actually performs. It
+                records invoices and payments; it issues none, sends none and
+                collects none (ADR-0023).
+            -->
+            <TextBlock Opacity="0.7" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Text="AgencyOS records what happened to money. It sends no invoice, moves no funds and chases nobody." />
+
+            <TextBlock x:Name="SummaryText" Style="{StaticResource CaptionTextBlockStyle}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Spacing="6">
+            <ProgressBar x:Name="Busy" IsIndeterminate="True" Visibility="Collapsed" />
+
+            <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" IsClosable="False"
+                     Title="That did not happen" />
+
+            <!--
+                Finance refuses rather than redacts. A balance with rows hidden is
+                not a partial view of the balance, it is a different number, so a
+                caller without the grant sees a refusal and knows it (ADR-0023).
+            -->
+            <InfoBar x:Name="RefusedBar" Severity="Warning" IsOpen="False" IsClosable="False"
+                     Title="Not shown rather than partly shown"
+                     Message="Finance figures are refused whole rather than shown with rows missing. A total with three allocations hidden would be a different number, not a smaller list." />
+        </StackPanel>
+
+        <muxc:TabView Grid.Row="2" x:Name="Tabs" IsAddTabButtonVisible="False"
+                      CanDragTabs="False" CanReorderTabs="False">
+
+            <muxc:TabViewItem Header="Receivables" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                        <ComboBox x:Name="ReceivableStatusBox" MinWidth="160"
+                                  SelectionChanged="OnReceivableFilterChanged">
+                            <ComboBoxItem Content="Any status" Tag="" IsSelected="True" />
+                            <ComboBoxItem Content="Open" Tag="Open" />
+                            <ComboBoxItem Content="Partially paid" Tag="PartiallyPaid" />
+                            <ComboBoxItem Content="Paid" Tag="Paid" />
+                            <ComboBoxItem Content="Cancelled" Tag="Cancelled" />
+                            <ComboBoxItem Content="Written off" Tag="WrittenOff" />
+                        </ComboBox>
+
+                        <ComboBox x:Name="BeneficiaryBox" MinWidth="180"
+                                  SelectionChanged="OnReceivableFilterChanged">
+                            <ComboBoxItem Content="Client and agency" Tag="" IsSelected="True" />
+                            <ComboBoxItem Content="Client money" Tag="Client" />
+                            <ComboBoxItem Content="Agency money" Tag="Agency" />
+                        </ComboBox>
+
+                        <CheckBox x:Name="OverdueBox" Content="Overdue"
+                                  Click="OnReceivableFilterChanged" />
+                        <CheckBox x:Name="UnreconciledBox" Content="Unreconciled"
+                                  Click="OnReceivableFilterChanged" />
+                        <TextBox x:Name="ReceivableCurrencyBox" PlaceholderText="Currency"
+                                 MaxLength="3" Width="100" />
+                        <Button Content="Apply" Click="OnReceivableFilterChanged" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Spacing="4">
+                        <TextBlock x:Name="ReceivableSummary"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                        <InfoBar x:Name="ReceivableEmpty" Severity="Informational" IsOpen="False"
+                                 IsClosable="False" Title="Nothing here"
+                                 Message="No receivables match these filters." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="2" x:Name="ReceivableList" SelectionMode="Single"
+                              SelectionChanged="OnReceivableSelected">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="110" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding ContractTitle}" />
+                                        <TextBlock Text="{Binding PayerDisplayName}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <!--
+                                        The arithmetic on every row. A status chip
+                                        answers a different question from "how much
+                                        of this is left".
+                                    -->
+                                    <TextBlock Grid.Column="1" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding OriginalAmount.Amount}" />
+                                    <TextBlock Grid.Column="2" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center" Opacity="0.7"
+                                               Text="{Binding Allocated.Amount}" />
+                                    <TextBlock Grid.Column="3" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Outstanding.Amount}" />
+                                    <StackPanel Grid.Column="4" HorizontalAlignment="Right"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding Beneficiary}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </muxc:TabViewItem>
+
+            <muxc:TabViewItem Header="Invoices" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                        <ComboBox x:Name="InvoiceStatusBox" MinWidth="150"
+                                  SelectionChanged="OnInvoiceFilterChanged">
+                            <ComboBoxItem Content="Any status" Tag="" IsSelected="True" />
+                            <ComboBoxItem Content="Draft" Tag="Draft" />
+                            <ComboBoxItem Content="Issued" Tag="Issued" />
+                            <ComboBoxItem Content="Void" Tag="Void" />
+                        </ComboBox>
+                        <CheckBox x:Name="InvoiceOverdueBox" Content="Overdue"
+                                  Click="OnInvoiceFilterChanged" />
+                        <Button Content="Apply" Click="OnInvoiceFilterChanged" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Spacing="4">
+                        <TextBlock x:Name="InvoiceSummary"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+                        <!--
+                            Stated rather than hidden. An operator who assumed the
+                            system held the PDF would go looking for it during an
+                            argument about what was billed.
+                        -->
+                        <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="AgencyOS holds no invoice documents. These rows record that an invoice exists and what number it carries." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="2" x:Name="InvoiceList" SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="110" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Reference}" />
+                                        <TextBlock Text="{Binding DebtorDisplayName}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Total.Amount}" />
+                                    <TextBlock Grid.Column="2" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Outstanding.Amount}" />
+                                    <TextBlock Grid.Column="3" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Text="{Binding Status}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </muxc:TabViewItem>
+
+            <muxc:TabViewItem Header="Payments" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                        <ComboBox x:Name="PaymentDirectionBox" MinWidth="150"
+                                  SelectionChanged="OnPaymentFilterChanged">
+                            <ComboBoxItem Content="Any direction" Tag="" IsSelected="True" />
+                            <ComboBoxItem Content="Incoming" Tag="Incoming" />
+                            <ComboBoxItem Content="Outgoing" Tag="Outgoing" />
+                        </ComboBox>
+                        <CheckBox x:Name="UnappliedBox" Content="With unapplied cash"
+                                  Click="OnPaymentFilterChanged" />
+                        <Button Content="Record payment" Click="OnRecordPaymentClick" />
+                        <Button x:Name="AllocateButton" Content="Allocate" IsEnabled="False"
+                                Click="OnAllocateClick" />
+                        <Button x:Name="ReversePaymentButton" Content="Reverse" IsEnabled="False"
+                                Click="OnReversePaymentClick" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Spacing="4">
+                        <TextBlock x:Name="PaymentSummary"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                        <InfoBar x:Name="UnappliedBar" Severity="Warning" IsOpen="False"
+                                 IsClosable="False" Title="Cash nobody has explained"
+                                 Message="These payments have money that is not applied to anything. Nothing is matched automatically." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="2" x:Name="PaymentList" SelectionMode="Single"
+                              SelectionChanged="OnPaymentSelected">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="110" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding PayerDisplayName}" />
+                                        <TextBlock Text="{Binding ExternalReference}" Opacity="0.6"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Amount.Amount}" />
+                                    <TextBlock Grid.Column="2" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center" Opacity="0.7"
+                                               Text="{Binding Allocated.Amount}" />
+                                    <TextBlock Grid.Column="3" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Unapplied.Amount}" />
+                                    <StackPanel Grid.Column="4" HorizontalAlignment="Right"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding ReceivedOn}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </muxc:TabViewItem>
+
+            <muxc:TabViewItem Header="Commissions" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="140" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                        <CheckBox x:Name="CommissionOutstandingBox" Content="Not yet collected"
+                                  Click="OnCommissionFilterChanged" />
+                        <Button Content="Create rule" Click="OnCreateRuleClick" />
+                        <Button Content="Apply" Click="OnCommissionFilterChanged" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Spacing="4">
+                        <TextBlock x:Name="CommissionSummary"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+                        <!--
+                            Three numbers kept apart. An agency entitled to a hundred
+                            thousand against a contract that has paid four hundred of
+                            a million has collected forty (ADR-0023).
+                        -->
+                        <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="Entitled is what the rule gives against the whole obligation. Collected is what has actually arrived. They are never the same column." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="2" x:Name="CommissionList" SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="100" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding ClientDisplayName}" />
+                                        <TextBlock Text="{Binding ContractTitle}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Entitled.Amount}" />
+                                    <TextBlock Grid.Column="2" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Collected.Amount}" />
+                                    <TextBlock Grid.Column="3" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center" Opacity="0.7"
+                                               Text="{Binding Outstanding.Amount}" />
+                                    <TextBlock Grid.Column="4" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center" Opacity="0.6"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Text="{Binding Status}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <TextBlock Grid.Row="3" Text="Rules in force"
+                               Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,6,0,0" />
+
+                    <ListView Grid.Row="4" x:Name="CommissionRuleList" SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,4" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="200" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding ClientDisplayName}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Basis}" Opacity="0.7"
+                                               VerticalAlignment="Center"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding EffectiveFrom}"
+                                               Opacity="0.6" VerticalAlignment="Center"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </muxc:TabViewItem>
+
+            <muxc:TabViewItem Header="Ledger" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="180" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                        <TextBox x:Name="LedgerCurrencyBox" PlaceholderText="Currency"
+                                 MaxLength="3" Width="110" />
+                        <Button Content="Apply" Click="OnLedgerFilterChanged" />
+                        <Button Content="Post entry" Click="OnPostEntryClick" />
+                        <Button x:Name="ReverseEntryButton" Content="Reverse entry" IsEnabled="False"
+                                Click="OnReverseEntryClick" />
+                    </StackPanel>
+
+                    <ListView Grid.Row="1" x:Name="BalanceList" SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,4" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Currency}"
+                                               Opacity="0.6" VerticalAlignment="Center"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                    <TextBlock Grid.Column="2" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center" Opacity="0.7"
+                                               Text="{Binding Debits.Amount}" />
+                                    <TextBlock Grid.Column="3" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center" Opacity="0.7"
+                                               Text="{Binding Credits.Amount}" />
+                                    <TextBlock Grid.Column="4" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Balance.Amount}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <StackPanel Grid.Row="2" Spacing="4">
+                        <TextBlock x:Name="LedgerSummary"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+                        <!--
+                            Balances are computed from posted lines every time they
+                            are asked for. Nothing is stored beside the entries, so
+                            nothing can drift from them (ADR-0023).
+                        -->
+                        <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="Balances are worked out from the posted lines each time, per currency, and never added across currencies." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="3" x:Name="JournalList" SelectionMode="Single"
+                              SelectionChanged="OnJournalSelected">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="130" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Memo}" />
+                                        <TextBlock Text="{Binding Source}" Opacity="0.6"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Debits.Amount}" />
+                                    <TextBlock Grid.Column="2" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Credits.Amount}" />
+                                    <StackPanel Grid.Column="3" HorizontalAlignment="Right"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding PostingDate}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </muxc:TabViewItem>
+
+            <muxc:TabViewItem Header="Reconciliation" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                        <Button Content="Reconcile selected receivable" Click="OnReconcileClick" />
+                        <Button x:Name="AdjustmentButton" Content="Record deduction"
+                                IsEnabled="False" Click="OnRecordAdjustmentClick" />
+                        <Button x:Name="WriteOffButton" Content="Write off" IsEnabled="False"
+                                Click="OnWriteOffClick" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Spacing="6">
+                        <TextBlock x:Name="ReconcileOutcome"
+                                   Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="ReconcileExplanation" TextWrapping="Wrap" Opacity="0.8" />
+
+                        <!--
+                            The arithmetic, and no guess about why. Whether a
+                            shortfall is withholding, a bank charge, a dispute or a
+                            mistake is something a person finds out (ADR-0023).
+                        -->
+                        <InfoBar x:Name="VarianceBar" Severity="Warning" IsOpen="False"
+                                 IsClosable="False" Title="Unexplained"
+                                 Message="Something is missing and nothing on file says what. AgencyOS will not guess: record what the remittance advice says, or leave it unexplained until somebody knows." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="2" x:Name="ReconcileList" SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="140" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Description}"
+                                               VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Kind}" Opacity="0.7"
+                                               VerticalAlignment="Center"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                    <TextBlock Grid.Column="2" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Amount.Amount}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </muxc:TabViewItem>
+
+            <muxc:TabViewItem Header="Activity" IsClosable="False">
+                <Grid RowSpacing="8" Padding="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!--
+                        One business act, one entry, however many rows it wrote.
+                        Never the raw audit trail, which answers a security question
+                        in a security vocabulary (ADR-0012).
+                    -->
+                    <TextBlock Grid.Row="0" Opacity="0.7" TextWrapping="Wrap"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Text="What happened to this money, in the order it happened. One line per act, not per database row." />
+
+                    <ListView Grid.Row="1" x:Name="HistoryList" SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="160" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="150" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding OccurredAt}"
+                                               Opacity="0.6" VerticalAlignment="Center"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding ActorDisplayName}" Opacity="0.55"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding Kind}" Opacity="0.6"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </muxc:TabViewItem>
+        </muxc:TabView>
+    </Grid>
+</Page>

@@ -1,5 +1,6 @@
 ﻿using AgencyOS.Application.Directory;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Finance;
 using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
@@ -38,10 +39,13 @@ public sealed record SavedViewResultModel(
     IReadOnlyList<PackageSummaryModel> Packages,
     IReadOnlyList<OpportunitySummaryModel> Opportunities,
     IReadOnlyList<DealSummaryModel> Deals,
-    IReadOnlyList<ContractSummaryModel> Contracts)
+    IReadOnlyList<ContractSummaryModel> Contracts,
+    IReadOnlyList<ReceivableModel> Receivables,
+    IReadOnlyList<InvoiceModel> Invoices,
+    IReadOnlyList<PaymentModel> Payments)
 {
     public static SavedViewResultModel Empty(SavedViewTarget target) =>
-        new(target, [], [], [], [], [], [], [], [], [], []);
+        new(target, [], [], [], [], [], [], [], [], [], [], [], [], []);
 
     // One factory per target, so a query names only the list it filled. Building
     // these positionally meant every target's call site had to grow by an empty
@@ -86,6 +90,23 @@ public sealed record SavedViewResultModel(
         IReadOnlyList<ContractSummaryModel> contracts) =>
         Empty(SavedViewTarget.Contracts) with { Contracts = contracts };
 
+    /// <summary>A receivable result set.</summary>
+    /// <remarks>
+    /// Finance refuses rather than redacts, so a saved view either runs whole or
+    /// not at all. There is no partially-visible balance here (ADR-0023).
+    /// </remarks>
+    public static SavedViewResultModel OfReceivables(
+        IReadOnlyList<ReceivableModel> receivables) =>
+        Empty(SavedViewTarget.Receivables) with { Receivables = receivables };
+
+    /// <summary>An invoice result set.</summary>
+    public static SavedViewResultModel OfInvoices(IReadOnlyList<InvoiceModel> invoices) =>
+        Empty(SavedViewTarget.Invoices) with { Invoices = invoices };
+
+    /// <summary>A payment result set.</summary>
+    public static SavedViewResultModel OfPayments(IReadOnlyList<PaymentModel> payments) =>
+        Empty(SavedViewTarget.Payments) with { Payments = payments };
+
     /// <summary>Gets how many rows the view returned, whatever its target.</summary>
     public int Count =>
         People.Count
@@ -97,7 +118,10 @@ public sealed record SavedViewResultModel(
         + Packages.Count
         + Opportunities.Count
         + Deals.Count
-        + Contracts.Count;
+        + Contracts.Count
+        + Receivables.Count
+        + Invoices.Count
+        + Payments.Count;
 }
 
 /// <summary>

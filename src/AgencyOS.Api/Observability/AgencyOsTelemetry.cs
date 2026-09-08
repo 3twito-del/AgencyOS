@@ -330,4 +330,159 @@ public static class AgencyOsTelemetry
         Meter.CreateCounter<long>(
             "agencyos.notice.recorded",
             description: "Notices recorded as given or received. AgencyOS transmits none.");
+
+    // ---- Finance, commissions and the ledger (M9) ----
+    //
+    // The M7 and M8 rule holds, and finance makes it sharper. No counter carries an
+    // amount, a balance, a commission rate, a bank reference or a payer name. What
+    // is counted is that an act happened and what shape it had: a direction, a
+    // method, a currency code, an outcome category. A metric tagged with the figure
+    // would put the economics into every place metrics are exported to, none of
+    // which holds a finance permission (ADR-0021, ADR-0023).
+
+    /// <summary>Payable sums recorded from an operative contract.</summary>
+    /// <remarks>
+    /// Tagged with category and amount kind, which say what sort of money is being
+    /// tracked without saying how much. A rising count of Unknown-amount
+    /// obligations is worth seeing: it means the agency is recording duties nobody
+    /// can yet value.
+    /// </remarks>
+    public static Counter<long> MonetaryObligationsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.obligation.recorded",
+            description: "Payable sums recorded from an operative contract.");
+
+    /// <summary>Receivables raised.</summary>
+    /// <remarks>
+    /// Tagged with the beneficiary, the one distinction that changes whose money it
+    /// becomes. Client and agency receivables behave differently all the way
+    /// through the ledger, so counting them together would hide the split.
+    /// </remarks>
+    public static Counter<long> ReceivablesRaised { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.receivable.raised",
+            description: "Receivables raised from a quantified obligation.");
+
+    /// <summary>Receivables written off.</summary>
+    /// <remarks>
+    /// A deliberate financial act, and the one that says the agency has given up on
+    /// money it expected. Counted on its own because a rising rate is a business
+    /// signal, not a system fault.
+    /// </remarks>
+    public static Counter<long> ReceivablesWrittenOff { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.receivable.written_off",
+            description: "Receivables written off. A financial act, never data cleanup.");
+
+    /// <summary>Deductions recorded against receivables.</summary>
+    /// <remarks>
+    /// Tagged with the kind, because withholding, a bank fee and an agreed
+    /// reduction are different stories about the same shortfall. AgencyOS infers
+    /// none of them: every one of these is a fact somebody entered.
+    /// </remarks>
+    public static Counter<long> AdjustmentsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.adjustment.recorded",
+            description: "Deductions recorded against a receivable.");
+
+    /// <summary>Invoices recorded.</summary>
+    /// <remarks>
+    /// Counts invoices AgencyOS was told about. It sends none: there is no
+    /// transport anywhere in M9, and delivery belongs to a later milestone.
+    /// </remarks>
+    public static Counter<long> InvoicesRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.invoice.recorded",
+            description: "Invoices recorded against existing receivables. AgencyOS sends none.");
+
+    /// <summary>Invoices marked issued.</summary>
+    public static Counter<long> InvoicesIssued { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.invoice.issued",
+            description: "Invoices recorded as issued, by a person who issued them elsewhere.");
+
+    /// <summary>Payments recorded.</summary>
+    /// <remarks>
+    /// Tagged with direction, currency code and whether the money was fully applied.
+    /// The last of those is the operationally interesting one: a rising share of
+    /// partially applied payments means cash is arriving that nobody has explained
+    /// yet, which is a queue somebody has to work.
+    /// </remarks>
+    public static Counter<long> PaymentsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.payment.recorded",
+            description: "Payments recorded as observed. Amounts are never tagged.");
+
+    /// <summary>Payments reversed.</summary>
+    /// <remarks>
+    /// A payment recorded in error, undone by a reversing payment rather than an
+    /// edit. Worth watching on its own: it is the routine operation that unwinds
+    /// something already posted to the ledger.
+    /// </remarks>
+    public static Counter<long> PaymentsReversed { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.payment.reversed",
+            description: "Payments undone by a reversing payment. The original is never edited.");
+
+    /// <summary>Allocations applied.</summary>
+    public static Counter<long> AllocationsRecorded { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.allocation.recorded",
+            description: "Payment allocations applied to receivables.");
+
+    /// <summary>Allocations reversed.</summary>
+    public static Counter<long> AllocationsReversed { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.allocation.reversed",
+            description: "Allocations returned to unapplied, keeping the line as history.");
+
+    /// <summary>Commission entitlements calculated.</summary>
+    /// <remarks>
+    /// Never tagged with the rate or the figure. The rate a client pays is the most
+    /// sensitive number in the relationship, and a metric carrying it would put it
+    /// outside every permission that guards it.
+    /// </remarks>
+    public static Counter<long> CommissionsCalculated { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.commission.calculated",
+            description: "Commission entitlements calculated under a governing rule.");
+
+    /// <summary>Commission adjustments recorded.</summary>
+    public static Counter<long> CommissionsAdjusted { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.commission.adjusted",
+            description: "Corrections, settlements and waivers recorded against an entitlement.");
+
+    /// <summary>Journal entries posted.</summary>
+    /// <remarks>
+    /// Tagged with the source, which separates the entries the system wrote as a
+    /// consequence of a business act from the ones a person wrote by hand. A rising
+    /// count of manual adjustments is the number that says the automatic postings
+    /// are not matching what the desk believes.
+    /// </remarks>
+    public static Counter<long> JournalEntriesPosted { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.journal.posted",
+            description: "Journal entries posted. Balanced at the database before they land.");
+
+    /// <summary>Journal entries reversed.</summary>
+    /// <remarks>
+    /// A posted entry is never edited. A correction is another entry saying the
+    /// opposite, and both stay readable for ever.
+    /// </remarks>
+    public static Counter<long> JournalEntriesReversed { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.journal.reversed",
+            description: "Journal entries undone by a reversing entry.");
+
+    /// <summary>Receivable reconciliations computed.</summary>
+    /// <remarks>
+    /// Tagged with the outcome only. Not the variance: a rising shortfall count on
+    /// a named tenant is a business fact somebody should see, but the size of the
+    /// gap is the economics, and telemetry is not where the economics belong.
+    /// </remarks>
+    public static Counter<long> FinanceReconciliations { get; } =
+        Meter.CreateCounter<long>(
+            "agencyos.finance.reconciliations",
+            description: "Expected-against-arrived comparisons computed for a receivable.");
 }

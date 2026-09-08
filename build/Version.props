@@ -12,7 +12,7 @@
   <PropertyGroup>
     <VersionPrefix>0.1.0</VersionPrefix>
     <AgencyOSChannel Condition="'$(AgencyOSChannel)' == ''">forge</AgencyOSChannel>
-    <AgencyOSApiContractVersion>8</AgencyOSApiContractVersion>
+    <AgencyOSApiContractVersion>9</AgencyOSApiContractVersion>
   </PropertyGroup>
 
 </Project>

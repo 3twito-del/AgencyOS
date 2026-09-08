@@ -1,4 +1,4 @@
-using AgencyOS.Domain.Common;
+﻿using AgencyOS.Domain.Common;
 
 namespace AgencyOS.Domain.SavedViews;
 
@@ -36,6 +36,17 @@ public enum SavedViewTarget
     // and three more targets before anybody has asked to save such a list would be
     // twenty-five filter fields nothing reads (ADR-0022).
     Contracts = 10,
+
+    // Added in definition version 7. The money side: what is owed, what has been
+    // billed, and what has actually arrived.
+    //
+    // Commissions deliberately did not become a target. A saved list of commission
+    // entitlements would be a list of what the agency earns per client, and a view
+    // is a query somebody else may later run - so commission is worked from its own
+    // endpoint under its own permission instead (ADR-0023).
+    Receivables = 11,
+    Invoices = 12,
+    Payments = 13,
 }
 
 /// <summary>Sort direction for a saved view.</summary>
@@ -123,6 +134,27 @@ public sealed record SavedViewSort(string Field, SavedViewSortDirection Directio
 /// <param name="HasUnresolvedReconciliation">
 /// Only contracts whose latest recorded version differs from what was negotiated.
 /// </param>
+/// <param name="ReceivableStatus">Restricts receivables to one status.</param>
+/// <param name="InvoiceStatus">Restricts invoices to one status.</param>
+/// <param name="PaymentDirection">Incoming or Outgoing.</param>
+/// <param name="PayerPartyId">Only rows this party owes or paid.</param>
+/// <param name="ClientPersonId">Only money attributable to this client.</param>
+/// <param name="ContractId">Only rows arising from this instrument.</param>
+/// <param name="OverdueReceivablesOnly">
+/// Only receivables past a resolvable due date with something still owed. One with
+/// no due date is never overdue: the contract did not say when.
+/// </param>
+/// <param name="UnappliedPaymentsOnly">Only payments with cash still to apply.</param>
+/// <param name="UnreconciledOnly">Only receivables whose arithmetic does not yet explain itself.</param>
+/// <param name="DueAfter">Only rows due on or after this date.</param>
+/// <param name="DueBefore">Only rows due on or before this date.</param>
+/// <param name="RecordedAfter">Only rows recorded on or after this date.</param>
+/// <param name="RecordedBefore">Only rows recorded on or before this date.</param>
+/// <param name="CurrencyCode">
+/// Restricts to one currency. A filter rather than a summed total, because
+/// AgencyOS holds no exchange rates and adding two currencies would produce a
+/// number that means nothing.
+/// </param>
 public sealed record SavedViewFilters(
     string? Status = null,
     Guid? CompanyId = null,
@@ -184,7 +216,27 @@ public sealed record SavedViewFilters(
     bool EffectiveOnly = false,
     DateOnly? ExecutedAfter = null,
     DateOnly? ExecutedBefore = null,
-    bool HasUnresolvedReconciliation = false);
+    bool HasUnresolvedReconciliation = false,
+
+    // M9. The same rule a third time, and it matters most here: there is no
+    // "amount above X", no "commission rate over Y" and no balance filter. A
+    // saved view is a query somebody else may run, and one that narrowed by a
+    // figure would tell its reader that figure whether or not they hold any
+    // finance permission at all (ADR-0023).
+    string? ReceivableStatus = null,
+    string? InvoiceStatus = null,
+    string? PaymentDirection = null,
+    Guid? PayerPartyId = null,
+    Guid? ClientPersonId = null,
+    Guid? ContractId = null,
+    bool OverdueReceivablesOnly = false,
+    bool UnappliedPaymentsOnly = false,
+    bool UnreconciledOnly = false,
+    DateOnly? DueAfter = null,
+    DateOnly? DueBefore = null,
+    DateOnly? RecordedAfter = null,
+    DateOnly? RecordedBefore = null,
+    string? CurrencyCode = null);
 
 /// <summary>
 /// A saved view's query, as a versioned, validated document.
@@ -213,7 +265,7 @@ public sealed record SavedViewDefinition(
 {
     /// <summary>The definition schema version this build writes and understands.</summary>
     /// <summary>Definition schema this build writes.</summary>
-    public const int CurrentDefinitionVersion = 6;
+    public const int CurrentDefinitionVersion = 7;
 
     /// <summary>
     /// The oldest definition schema this build still understands.
@@ -250,6 +302,9 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Opportunities] = 4,
             [SavedViewTarget.Deals] = 5,
             [SavedViewTarget.Contracts] = 6,
+            [SavedViewTarget.Receivables] = 7,
+            [SavedViewTarget.Invoices] = 7,
+            [SavedViewTarget.Payments] = 7,
         };
 
     /// <summary>Fields a view may sort by, per target.</summary>
@@ -279,6 +334,16 @@ public sealed record SavedViewDefinition(
             // the ordering of the figures.
             [SavedViewTarget.Contracts] =
                 Freeze("Title", "UpdatedAt", "Status", "Kind", "ExecutedOn", "EffectiveOn"),
+
+            // Dates, references and status. Deliberately not Amount, Outstanding or
+            // Balance: ordering a list by a figure reveals the ordering of the
+            // figures, which is most of what the figure was.
+            [SavedViewTarget.Receivables] =
+                Freeze("DueOn", "CreatedAt", "Status", "Reference"),
+            [SavedViewTarget.Invoices] =
+                Freeze("IssuedOn", "DueOn", "CreatedAt", "Status", "Reference"),
+            [SavedViewTarget.Payments] =
+                Freeze("ReceivedOn", "RecordedAt", "Method", "Reference"),
         };
 
     /// <summary>Validates the document, failing with a message that says what is wrong.</summary>
@@ -454,6 +519,37 @@ public sealed record SavedViewDefinition(
             nameof(SavedViewFilters.ExecutedAfter),
             nameof(SavedViewFilters.ExecutedBefore),
             nameof(SavedViewFilters.HasUnresolvedReconciliation)),
+
+        [SavedViewTarget.Receivables] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.ReceivableStatus),
+            nameof(SavedViewFilters.PayerPartyId),
+            nameof(SavedViewFilters.ClientPersonId),
+            nameof(SavedViewFilters.ContractId),
+            nameof(SavedViewFilters.OverdueReceivablesOnly),
+            nameof(SavedViewFilters.UnreconciledOnly),
+            nameof(SavedViewFilters.DueAfter),
+            nameof(SavedViewFilters.DueBefore),
+            nameof(SavedViewFilters.CurrencyCode)),
+
+        [SavedViewTarget.Invoices] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.InvoiceStatus),
+            nameof(SavedViewFilters.PayerPartyId),
+            nameof(SavedViewFilters.ContractId),
+            nameof(SavedViewFilters.OverdueReceivablesOnly),
+            nameof(SavedViewFilters.DueAfter),
+            nameof(SavedViewFilters.DueBefore),
+            nameof(SavedViewFilters.CurrencyCode)),
+
+        [SavedViewTarget.Payments] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.PaymentDirection),
+            nameof(SavedViewFilters.PayerPartyId),
+            nameof(SavedViewFilters.UnappliedPaymentsOnly),
+            nameof(SavedViewFilters.RecordedAfter),
+            nameof(SavedViewFilters.RecordedBefore),
+            nameof(SavedViewFilters.CurrencyCode)),
     };
 
     /// <summary>Every filter the document could carry, by name.</summary>

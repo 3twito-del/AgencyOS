@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Finance;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
@@ -850,6 +851,308 @@ public interface IAgencyOsApi
 
     /// <summary>The supported contract terms, so a term editor need not hard-code them.</summary>
     Task<IReadOnlyList<ContractTermDefinitionResponse>> ListContractTermsAsync(
+        CancellationToken cancellationToken = default);
+
+    // ---- Finance, commissions, receivables, payments and ledger (M9) ----
+    //
+    // Every method here goes to the server and waits. None is queued.
+    // docs/13_OFFLINE_CLASSIFICATION.md classifies the whole milestone
+    // ONLINE_ONLY, reads included: a balance computed from a cache that is four
+    // hours stale is not a slightly old balance, it is a different number, and the
+    // person reading it has no way to tell which they are looking at (ADR-0023).
+
+    Task<IReadOnlyList<MonetaryObligationResponse>> ListMonetaryObligationsAsync(
+        Guid? contractId = null,
+        bool unbilledOnly = false,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<MonetaryObligationResponse> GetMonetaryObligationAsync(
+        Guid obligationId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records a sum an operative contract says is payable.
+    /// </summary>
+    /// <remarks>
+    /// The server refuses unless the contract is operative. Agreed commercial terms
+    /// are not a collectible legal amount, and no client flag overrides that.
+    /// </remarks>
+    Task<RecordMonetaryObligationResponse> RecordMonetaryObligationAsync(
+        Guid contractId,
+        RecordMonetaryObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task QuantifyObligationAsync(
+        Guid obligationId,
+        QuantifyObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ReleaseObligationAsync(
+        Guid obligationId,
+        ReleaseObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <param name="status">Open, PartiallyPaid, Paid, Cancelled or WrittenOff.</param>
+    /// <param name="beneficiary">Client or Agency.</param>
+    /// <param name="overdueOnly">Only rows past a resolvable date with something owed.</param>
+    /// <param name="unreconciledOnly">Only rows whose arithmetic does not yet explain itself.</param>
+    /// <param name="currency">One currency. There is no rate that would let two be added.</param>
+    Task<IReadOnlyList<ReceivableResponse>> ListReceivablesAsync(
+        string? status = null,
+        Guid? contractId = null,
+        Guid? payerPartyId = null,
+        Guid? clientPersonId = null,
+        string? beneficiary = null,
+        bool overdueOnly = false,
+        bool unreconciledOnly = false,
+        DateOnly? dueAfter = null,
+        DateOnly? dueBefore = null,
+        string? currency = null,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ReceivableResponse> GetReceivableAsync(
+        Guid receivableId,
+        CancellationToken cancellationToken = default);
+
+    Task<RaiseReceivableResponse> RaiseReceivableAsync(
+        Guid obligationId,
+        RaiseReceivableRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gives up on collecting what remains.
+    /// </summary>
+    /// <remarks>
+    /// A financial act with a reason and a posting, never data cleanup. The
+    /// original amount stays exactly what it was.
+    /// </remarks>
+    Task WriteOffReceivableAsync(
+        Guid receivableId,
+        WriteOffReceivableRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task CancelReceivableAsync(
+        Guid receivableId,
+        CancelReceivableRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records a deduction that reduces what will ever arrive.
+    /// </summary>
+    /// <remarks>
+    /// A fact somebody entered, never an inference. A gap with no adjustment
+    /// against it stays a gap.
+    /// </remarks>
+    Task<RecordAdjustmentResponse> RecordAdjustmentAsync(
+        Guid receivableId,
+        RecordAdjustmentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ReceivableReconciliationResponse> ReconcileReceivableAsync(
+        Guid receivableId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<InvoiceResponse>> ListInvoicesAsync(
+        string? status = null,
+        Guid? contractId = null,
+        Guid? debtorPartyId = null,
+        bool overdueOnly = false,
+        DateOnly? dueAfter = null,
+        DateOnly? dueBefore = null,
+        string? currency = null,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<InvoiceResponse> GetInvoiceAsync(
+        Guid invoiceId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records an invoice against receivables that already exist.
+    /// </summary>
+    /// <remarks>
+    /// Records one. Does not send one: there is no transport anywhere in the client
+    /// or the server, and the verb says so.
+    /// </remarks>
+    Task<RecordInvoiceResponse> RecordInvoiceAsync(
+        Guid contractId,
+        RecordInvoiceRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task IssueInvoiceAsync(
+        Guid invoiceId,
+        IssueInvoiceRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task VoidInvoiceAsync(
+        Guid invoiceId,
+        VoidInvoiceRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<PaymentResponse>> ListPaymentsAsync(
+        string? direction = null,
+        string? status = null,
+        Guid? payerPartyId = null,
+        bool unappliedOnly = false,
+        DateOnly? recordedAfter = null,
+        DateOnly? recordedBefore = null,
+        string? currency = null,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<PaymentResponse> GetPaymentAsync(
+        Guid paymentId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records that money moved.
+    /// </summary>
+    /// <remarks>
+    /// The response carries what was allocated and what was not. Anything left over
+    /// stays unapplied: nothing is matched to whichever receivable looks closest,
+    /// because that would be the system guessing at intent and acting on it.
+    /// </remarks>
+    Task<RecordPaymentResponse> RecordPaymentAsync(
+        RecordPaymentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<RecordPaymentResponse> AllocatePaymentAsync(
+        Guid paymentId,
+        AllocatePaymentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task ReverseAllocationAsync(
+        Guid paymentId,
+        ReverseAllocationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ReversePaymentResponse> ReversePaymentAsync(
+        Guid paymentId,
+        ReversePaymentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CommissionRuleResponse>> ListCommissionRulesAsync(
+        Guid? clientPersonId = null,
+        Guid? contractId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<CreateCommissionRuleResponse> CreateCommissionRuleAsync(
+        CreateCommissionRuleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task EndCommissionRuleAsync(
+        Guid ruleId,
+        EndCommissionRuleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CommissionEntitlementResponse>> ListCommissionsAsync(
+        Guid? clientPersonId = null,
+        Guid? contractId = null,
+        Guid? representationId = null,
+        string? status = null,
+        bool outstandingOnly = false,
+        string? currency = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<CommissionEntitlementResponse> GetCommissionAsync(
+        Guid commissionId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Works out what the agency is entitled to against an obligation.
+    /// </summary>
+    /// <remarks>
+    /// The governing date defaults to when the obligation falls due, not to today.
+    /// Recalculating a 2027 commission in 2029 gives the 2027 answer.
+    /// </remarks>
+    Task<CalculateCommissionResponse> CalculateCommissionAsync(
+        Guid obligationId,
+        CalculateCommissionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task AdjustCommissionAsync(
+        Guid commissionId,
+        AdjustCommissionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<AccountResponse>> ListLedgerAccountsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Account balances, per currency and never summed across them.</summary>
+    Task<IReadOnlyList<AccountBalanceResponse>> GetLedgerBalancesAsync(
+        string? currency = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<JournalEntryResponse>> ListJournalEntriesAsync(
+        string? status = null,
+        string? source = null,
+        Guid? accountId = null,
+        DateOnly? postedAfter = null,
+        DateOnly? postedBefore = null,
+        string? currency = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
+
+    Task<JournalEntryResponse> GetJournalEntryAsync(
+        Guid entryId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Posts a balanced entry somebody wrote by hand.</summary>
+    Task<PostJournalEntryResponse> PostJournalEntryAsync(
+        PostJournalEntryRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Posts the entry that undoes a posted one.
+    /// </summary>
+    /// <remarks>
+    /// A posted entry is never edited. A correction is another entry saying the
+    /// opposite, and both stay readable.
+    /// </remarks>
+    Task<ReverseJournalEntryResponse> ReverseJournalEntryAsync(
+        Guid entryId,
+        ReverseJournalEntryRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// The curated financial history.
+    /// </summary>
+    /// <remarks>
+    /// One business act, one entry, however many rows it wrote. Never raw audit
+    /// rows, which answer a security question in a security vocabulary.
+    /// </remarks>
+    Task<IReadOnlyList<FinanceHistoryEntryResponse>> GetFinanceHistoryAsync(
+        Guid? contractId = null,
+        Guid? receivableId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<FinanceCommandCenterResponse> GetFinanceCommandCenterAsync(
         CancellationToken cancellationToken = default);
 }
 
@@ -2508,6 +2811,475 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
         return GetAsync<SyncChangesResponse>(uri, cancellationToken);
     }
 
+    // ---- Finance, commissions, receivables, payments and ledger (M9) ----
+
+    public Task<IReadOnlyList<MonetaryObligationResponse>> ListMonetaryObligationsAsync(
+        Guid? contractId = null,
+        bool unbilledOnly = false,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("contractId", contractId);
+        query.Add("unbilledOnly", unbilledOnly);
+        query.Add("limit", limit);
+
+        return GetListAsync<MonetaryObligationResponse>(
+            query.Apply($"{TenantRoot}/monetary-obligations"), cancellationToken);
+    }
+
+    public Task<MonetaryObligationResponse> GetMonetaryObligationAsync(
+        Guid obligationId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<MonetaryObligationResponse>(
+            $"{TenantRoot}/monetary-obligations/{obligationId}", cancellationToken);
+
+    public Task<RecordMonetaryObligationResponse> RecordMonetaryObligationAsync(
+        Guid contractId,
+        RecordMonetaryObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordMonetaryObligationRequest, RecordMonetaryObligationResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/monetary-obligations",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task QuantifyObligationAsync(
+        Guid obligationId,
+        QuantifyObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/monetary-obligations/{obligationId}/quantify",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ReleaseObligationAsync(
+        Guid obligationId,
+        ReleaseObligationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/monetary-obligations/{obligationId}/release",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<ReceivableResponse>> ListReceivablesAsync(
+        string? status = null,
+        Guid? contractId = null,
+        Guid? payerPartyId = null,
+        Guid? clientPersonId = null,
+        string? beneficiary = null,
+        bool overdueOnly = false,
+        bool unreconciledOnly = false,
+        DateOnly? dueAfter = null,
+        DateOnly? dueBefore = null,
+        string? currency = null,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("status", status);
+        query.Add("contractId", contractId);
+        query.Add("payerPartyId", payerPartyId);
+        query.Add("clientPersonId", clientPersonId);
+        query.Add("beneficiary", beneficiary);
+        query.Add("overdueOnly", overdueOnly);
+        query.Add("unreconciledOnly", unreconciledOnly);
+        query.Add("dueAfter", dueAfter);
+        query.Add("dueBefore", dueBefore);
+        query.Add("currency", currency);
+        query.Add("search", search);
+        query.Add("limit", limit);
+
+        return GetListAsync<ReceivableResponse>(
+            query.Apply($"{TenantRoot}/receivables"), cancellationToken);
+    }
+
+    public Task<ReceivableResponse> GetReceivableAsync(
+        Guid receivableId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ReceivableResponse>($"{TenantRoot}/receivables/{receivableId}", cancellationToken);
+
+    public Task<RaiseReceivableResponse> RaiseReceivableAsync(
+        Guid obligationId,
+        RaiseReceivableRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RaiseReceivableRequest, RaiseReceivableResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/monetary-obligations/{obligationId}/receivables",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task WriteOffReceivableAsync(
+        Guid receivableId,
+        WriteOffReceivableRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/receivables/{receivableId}/write-off",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task CancelReceivableAsync(
+        Guid receivableId,
+        CancelReceivableRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/receivables/{receivableId}/cancel",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RecordAdjustmentResponse> RecordAdjustmentAsync(
+        Guid receivableId,
+        RecordAdjustmentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordAdjustmentRequest, RecordAdjustmentResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/receivables/{receivableId}/adjustments",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ReceivableReconciliationResponse> ReconcileReceivableAsync(
+        Guid receivableId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<ReceivableReconciliationResponse>(
+            $"{TenantRoot}/receivables/{receivableId}/reconciliation", cancellationToken);
+
+    public Task<IReadOnlyList<InvoiceResponse>> ListInvoicesAsync(
+        string? status = null,
+        Guid? contractId = null,
+        Guid? debtorPartyId = null,
+        bool overdueOnly = false,
+        DateOnly? dueAfter = null,
+        DateOnly? dueBefore = null,
+        string? currency = null,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("status", status);
+        query.Add("contractId", contractId);
+        query.Add("debtorPartyId", debtorPartyId);
+        query.Add("overdueOnly", overdueOnly);
+        query.Add("dueAfter", dueAfter);
+        query.Add("dueBefore", dueBefore);
+        query.Add("currency", currency);
+        query.Add("search", search);
+        query.Add("limit", limit);
+
+        return GetListAsync<InvoiceResponse>(query.Apply($"{TenantRoot}/invoices"), cancellationToken);
+    }
+
+    public Task<InvoiceResponse> GetInvoiceAsync(
+        Guid invoiceId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<InvoiceResponse>($"{TenantRoot}/invoices/{invoiceId}", cancellationToken);
+
+    public Task<RecordInvoiceResponse> RecordInvoiceAsync(
+        Guid contractId,
+        RecordInvoiceRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordInvoiceRequest, RecordInvoiceResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/contracts/{contractId}/invoices",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task IssueInvoiceAsync(
+        Guid invoiceId,
+        IssueInvoiceRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/invoices/{invoiceId}/issue",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task VoidInvoiceAsync(
+        Guid invoiceId,
+        VoidInvoiceRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/invoices/{invoiceId}/void",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<PaymentResponse>> ListPaymentsAsync(
+        string? direction = null,
+        string? status = null,
+        Guid? payerPartyId = null,
+        bool unappliedOnly = false,
+        DateOnly? recordedAfter = null,
+        DateOnly? recordedBefore = null,
+        string? currency = null,
+        string? search = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("direction", direction);
+        query.Add("status", status);
+        query.Add("payerPartyId", payerPartyId);
+        query.Add("unappliedOnly", unappliedOnly);
+        query.Add("recordedAfter", recordedAfter);
+        query.Add("recordedBefore", recordedBefore);
+        query.Add("currency", currency);
+        query.Add("search", search);
+        query.Add("limit", limit);
+
+        return GetListAsync<PaymentResponse>(query.Apply($"{TenantRoot}/payments"), cancellationToken);
+    }
+
+    public Task<PaymentResponse> GetPaymentAsync(
+        Guid paymentId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<PaymentResponse>($"{TenantRoot}/payments/{paymentId}", cancellationToken);
+
+    public Task<RecordPaymentResponse> RecordPaymentAsync(
+        RecordPaymentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<RecordPaymentRequest, RecordPaymentResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/payments",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<RecordPaymentResponse> AllocatePaymentAsync(
+        Guid paymentId,
+        AllocatePaymentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<AllocatePaymentRequest, RecordPaymentResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/payments/{paymentId}/allocations",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task ReverseAllocationAsync(
+        Guid paymentId,
+        ReverseAllocationRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/payments/{paymentId}/allocations/reverse",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ReversePaymentResponse> ReversePaymentAsync(
+        Guid paymentId,
+        ReversePaymentRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<ReversePaymentRequest, ReversePaymentResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/payments/{paymentId}/reverse",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<CommissionRuleResponse>> ListCommissionRulesAsync(
+        Guid? clientPersonId = null,
+        Guid? contractId = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("clientPersonId", clientPersonId);
+        query.Add("contractId", contractId);
+
+        return GetListAsync<CommissionRuleResponse>(
+            query.Apply($"{TenantRoot}/commission-rules"), cancellationToken);
+    }
+
+    public Task<CreateCommissionRuleResponse> CreateCommissionRuleAsync(
+        CreateCommissionRuleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CreateCommissionRuleRequest, CreateCommissionRuleResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/commission-rules",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task EndCommissionRuleAsync(
+        Guid ruleId,
+        EndCommissionRuleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/commission-rules/{ruleId}/end",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<CommissionEntitlementResponse>> ListCommissionsAsync(
+        Guid? clientPersonId = null,
+        Guid? contractId = null,
+        Guid? representationId = null,
+        string? status = null,
+        bool outstandingOnly = false,
+        string? currency = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("clientPersonId", clientPersonId);
+        query.Add("contractId", contractId);
+        query.Add("representationId", representationId);
+        query.Add("status", status);
+        query.Add("outstandingOnly", outstandingOnly);
+        query.Add("currency", currency);
+        query.Add("limit", limit);
+
+        return GetListAsync<CommissionEntitlementResponse>(
+            query.Apply($"{TenantRoot}/commissions"), cancellationToken);
+    }
+
+    public Task<CommissionEntitlementResponse> GetCommissionAsync(
+        Guid commissionId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<CommissionEntitlementResponse>(
+            $"{TenantRoot}/commissions/{commissionId}", cancellationToken);
+
+    public Task<CalculateCommissionResponse> CalculateCommissionAsync(
+        Guid obligationId,
+        CalculateCommissionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<CalculateCommissionRequest, CalculateCommissionResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/monetary-obligations/{obligationId}/commission",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task AdjustCommissionAsync(
+        Guid commissionId,
+        AdjustCommissionRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/commissions/{commissionId}/adjustments",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<AccountResponse>> ListLedgerAccountsAsync(
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<AccountResponse>($"{TenantRoot}/ledger/accounts", cancellationToken);
+
+    public Task<IReadOnlyList<AccountBalanceResponse>> GetLedgerBalancesAsync(
+        string? currency = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("currency", currency);
+
+        return GetListAsync<AccountBalanceResponse>(
+            query.Apply($"{TenantRoot}/ledger/balances"), cancellationToken);
+    }
+
+    public Task<IReadOnlyList<JournalEntryResponse>> ListJournalEntriesAsync(
+        string? status = null,
+        string? source = null,
+        Guid? accountId = null,
+        DateOnly? postedAfter = null,
+        DateOnly? postedBefore = null,
+        string? currency = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("status", status);
+        query.Add("source", source);
+        query.Add("accountId", accountId);
+        query.Add("postedAfter", postedAfter);
+        query.Add("postedBefore", postedBefore);
+        query.Add("currency", currency);
+        query.Add("limit", limit);
+
+        return GetListAsync<JournalEntryResponse>(
+            query.Apply($"{TenantRoot}/ledger/entries"), cancellationToken);
+    }
+
+    public Task<JournalEntryResponse> GetJournalEntryAsync(
+        Guid entryId,
+        CancellationToken cancellationToken = default) =>
+        GetAsync<JournalEntryResponse>($"{TenantRoot}/ledger/entries/{entryId}", cancellationToken);
+
+    public Task<PostJournalEntryResponse> PostJournalEntryAsync(
+        PostJournalEntryRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<PostJournalEntryRequest, PostJournalEntryResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/ledger/entries",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<ReverseJournalEntryResponse> ReverseJournalEntryAsync(
+        Guid entryId,
+        ReverseJournalEntryRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<ReverseJournalEntryRequest, ReverseJournalEntryResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/ledger/entries/{entryId}/reverse",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<FinanceHistoryEntryResponse>> GetFinanceHistoryAsync(
+        Guid? contractId = null,
+        Guid? receivableId = null,
+        CancellationToken cancellationToken = default)
+    {
+        QueryBuilder query = new();
+        query.Add("contractId", contractId);
+        query.Add("receivableId", receivableId);
+
+        return GetListAsync<FinanceHistoryEntryResponse>(
+            query.Apply($"{TenantRoot}/finance/history"), cancellationToken);
+    }
+
+    public Task<FinanceCommandCenterResponse> GetFinanceCommandCenterAsync(
+        CancellationToken cancellationToken = default) =>
+        GetAsync<FinanceCommandCenterResponse>(
+            $"{TenantRoot}/finance/command-center", cancellationToken);
+
     // ------------------------------------------------------------- plumbing
 
     private void ApplyIdentityHeaders()
@@ -2681,4 +3453,65 @@ public sealed class AgencyOsApiClient : IAgencyOsApi
 
     /// <summary>Shape returned by endpoints that create a record and answer with its identifier.</summary>
     private sealed record CreatedIdResponse(Guid Id);
+
+    /// <summary>
+    /// Accumulates optional query-string parameters.
+    /// </summary>
+    /// <remarks>
+    /// The finance lists take up to twelve optional predicates each. Building those
+    /// with a local list and a dozen if-statements per method, as the earlier
+    /// milestones did with three or four, would be several hundred lines in which a
+    /// forgotten <c>Add</c> silently drops a filter and returns more rows than the
+    /// caller asked for. Absent values are skipped, and every value is written with
+    /// the invariant culture so a comma decimal separator or a local date format
+    /// cannot reach the wire.
+    /// </remarks>
+    private sealed class QueryBuilder
+    {
+        private readonly List<string> _parts = [];
+
+        public void Add(string name, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                _parts.Add($"{name}={Uri.EscapeDataString(value)}");
+            }
+        }
+
+        public void Add(string name, Guid? value)
+        {
+            if (value is { } id)
+            {
+                _parts.Add($"{name}={id.ToString("D", CultureInfo.InvariantCulture)}");
+            }
+        }
+
+        public void Add(string name, int? value)
+        {
+            if (value is { } number)
+            {
+                _parts.Add($"{name}={number.ToString(CultureInfo.InvariantCulture)}");
+            }
+        }
+
+        public void Add(string name, DateOnly? value)
+        {
+            if (value is { } date)
+            {
+                _parts.Add($"{name}={date.ToString("O", CultureInfo.InvariantCulture)}");
+            }
+        }
+
+        /// <summary>Adds a flag only when it is set, so the default stays off the wire.</summary>
+        public void Add(string name, bool value)
+        {
+            if (value)
+            {
+                _parts.Add($"{name}=true");
+            }
+        }
+
+        public string Apply(string uri) =>
+            _parts.Count == 0 ? uri : uri + "?" + string.Join("&", _parts);
+    }
 }

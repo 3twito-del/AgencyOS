@@ -153,7 +153,10 @@ internal static class M3Endpoints
                     [.. results.Packages.Select(M5Endpoints.MapPackageSummary)],
                     [.. results.Opportunities.Select(M6Endpoints.MapOpportunitySummary)],
                     [.. results.Deals.Select(M7Endpoints.MapDealSummary)],
-                    [.. results.Contracts.Select(M8Endpoints.MapContractSummary)]));
+                    [.. results.Contracts.Select(M8Endpoints.MapContractSummary)],
+                    [.. results.Receivables.Select(M9Endpoints.MapReceivable)],
+                    [.. results.Invoices.Select(M9Endpoints.MapInvoice)],
+                    [.. results.Payments.Select(M9Endpoints.MapPayment)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("RunSavedView");
@@ -393,7 +396,21 @@ internal static class M3Endpoints
         EffectiveOnly: filters.EffectiveOnly,
         ExecutedAfter: filters.ExecutedAfter,
         ExecutedBefore: filters.ExecutedBefore,
-        HasUnresolvedReconciliation: filters.HasUnresolvedReconciliation);
+        HasUnresolvedReconciliation: filters.HasUnresolvedReconciliation,
+        ReceivableStatus: filters.ReceivableStatus,
+        InvoiceStatus: filters.InvoiceStatus,
+        PaymentDirection: filters.PaymentDirection,
+        PayerPartyId: filters.PayerPartyId,
+        ClientPersonId: filters.ClientPersonId,
+        ContractId: filters.ContractId,
+        OverdueReceivablesOnly: filters.OverdueReceivablesOnly,
+        UnappliedPaymentsOnly: filters.UnappliedPaymentsOnly,
+        UnreconciledOnly: filters.UnreconciledOnly,
+        DueAfter: filters.DueAfter,
+        DueBefore: filters.DueBefore,
+        RecordedAfter: filters.RecordedAfter,
+        RecordedBefore: filters.RecordedBefore,
+        CurrencyCode: filters.CurrencyCode);
 
     /// <inheritdoc cref="ToFilters"/>
     internal static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
@@ -448,7 +465,21 @@ internal static class M3Endpoints
         EffectiveOnly: filters.EffectiveOnly,
         ExecutedAfter: filters.ExecutedAfter,
         ExecutedBefore: filters.ExecutedBefore,
-        HasUnresolvedReconciliation: filters.HasUnresolvedReconciliation);
+        HasUnresolvedReconciliation: filters.HasUnresolvedReconciliation,
+        ReceivableStatus: filters.ReceivableStatus,
+        InvoiceStatus: filters.InvoiceStatus,
+        PaymentDirection: filters.PaymentDirection,
+        PayerPartyId: filters.PayerPartyId,
+        ClientPersonId: filters.ClientPersonId,
+        ContractId: filters.ContractId,
+        OverdueReceivablesOnly: filters.OverdueReceivablesOnly,
+        UnappliedPaymentsOnly: filters.UnappliedPaymentsOnly,
+        UnreconciledOnly: filters.UnreconciledOnly,
+        DueAfter: filters.DueAfter,
+        DueBefore: filters.DueBefore,
+        RecordedAfter: filters.RecordedAfter,
+        RecordedBefore: filters.RecordedBefore,
+        CurrencyCode: filters.CurrencyCode);
 
     // --------------------------------------------------------------- mapping
 

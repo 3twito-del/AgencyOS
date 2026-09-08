@@ -1,4 +1,4 @@
-namespace AgencyOS.Domain.Audit;
+﻿namespace AgencyOS.Domain.Audit;
 
 /// <summary>
 /// Action names recorded in the audit trail.
@@ -185,6 +185,42 @@ public static class AuditAction
 
     public const string NoticeRequirementRecorded = "notice.requirement.recorded";
     public const string NoticeRecorded = "notice.recorded";
+
+    // ---- Finance (M9) ----
+    //
+    // Audit is not the ledger and the ledger is not audit. The ledger says what
+    // the books record; this says who did it, under which permission, from which
+    // client. Both exist because neither answers the other's question, and a
+    // finance history built from audit rows would be a security artefact shown to
+    // a bookkeeper (ADR-0012, ADR-0023).
+
+    public const string CommissionRuleCreated = "finance.commission.rule.created";
+    public const string CommissionRuleEnded = "finance.commission.rule.ended";
+    public const string CommissionCalculated = "finance.commission.calculated";
+    public const string CommissionAdjusted = "finance.commission.adjusted";
+
+    public const string MonetaryObligationRecorded = "finance.obligation.recorded";
+    public const string MonetaryObligationQuantified = "finance.obligation.quantified";
+    public const string MonetaryObligationReleased = "finance.obligation.released";
+    public const string MonetaryObligationCancelled = "finance.obligation.cancelled";
+
+    public const string ReceivableRaised = "finance.receivable.raised";
+    public const string ReceivableWrittenOff = "finance.receivable.writtenoff";
+    public const string ReceivableCancelled = "finance.receivable.cancelled";
+
+    public const string InvoiceRecorded = "finance.invoice.recorded";
+    public const string InvoiceIssued = "finance.invoice.issued";
+    public const string InvoiceVoided = "finance.invoice.voided";
+
+    public const string PaymentRecorded = "finance.payment.recorded";
+    public const string PaymentReversed = "finance.payment.reversed";
+    public const string PaymentAllocated = "finance.payment.allocated";
+    public const string PaymentAllocationReversed = "finance.payment.allocation.reversed";
+    public const string PaymentAdjustmentRecorded = "finance.payment.adjustment.recorded";
+    public const string PaymentAdjustmentReversed = "finance.payment.adjustment.reversed";
+
+    public const string JournalEntryPosted = "finance.journal.posted";
+    public const string JournalEntryReversed = "finance.journal.reversed";
 
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";

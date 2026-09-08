@@ -1,0 +1,61 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordAdjustmentDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record deduction"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="520">
+        <StackPanel Spacing="10" MinWidth="520">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       TextWrapping="Wrap" />
+            <TextBlock x:Name="VarianceText" Opacity="0.75" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <!--
+                A deduction is a fact somebody entered, never an inference. A gap
+                with no adjustment against it stays a gap: attributing it to
+                withholding would produce a reconciled receivable and a fabricated
+                tax record, and nobody would look at either again (ADR-0023).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="This is something you know, not something the system worked out"
+                     Message="AgencyOS never infers a deduction from a shortfall, and it implements no tax engine. Record what the remittance advice or the statement actually says." />
+
+            <ComboBox x:Name="KindBox" Header="What kind of deduction"
+                      HorizontalAlignment="Stretch">
+                <ComboBoxItem Content="Withholding" Tag="Withholding" IsSelected="True" />
+                <ComboBoxItem Content="Bank fee" Tag="BankFee" />
+                <ComboBoxItem Content="Wire fee" Tag="WireFee" />
+                <ComboBoxItem Content="Agreed reduction" Tag="AgreedReduction" />
+                <ComboBoxItem Content="Other" Tag="Other" />
+            </ComboBox>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="170" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="AmountBox" Grid.Column="0" Header="Amount"
+                         PlaceholderText="0.00" TextChanged="OnTextChanged" />
+                <TextBox x:Name="CurrencyBox" Grid.Column="1" Header="Currency"
+                         PlaceholderText="USD" MaxLength="3" TextChanged="OnTextChanged" />
+                <CalendarDatePicker x:Name="OccurredPicker" Grid.Column="2" Header="When"
+                                    PlaceholderText="The day it happened"
+                                    DateChanged="OnDateChanged" />
+            </Grid>
+
+            <TextBox x:Name="DescriptionBox" Header="Description"
+                     PlaceholderText="What the deduction was, as reported"
+                     TextChanged="OnTextChanged" />
+
+            <TextBox x:Name="ExternalReferenceBox" Header="Statement reference"
+                     PlaceholderText="Optional" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

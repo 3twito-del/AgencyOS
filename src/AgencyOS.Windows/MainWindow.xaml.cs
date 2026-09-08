@@ -193,6 +193,7 @@ public sealed partial class MainWindow : Window
             "pipeline" => typeof(PipelinePage),
             "deals" => typeof(DealsPage),
             "contracts" => typeof(ContractsPage),
+            "finance" => typeof(FinancePage),
             "saved-views" => typeof(SavedViewsPage),
             "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
@@ -320,12 +321,16 @@ public sealed partial class MainWindow : Window
                 SelectMenu(9);
                 return;
 
-            case "go.saved-views":
+            case "go.finance":
                 SelectMenu(10);
                 return;
 
-            case "go.sync":
+            case "go.saved-views":
                 SelectMenu(11);
+                return;
+
+            case "go.sync":
+                SelectMenu(12);
                 return;
 
             case "search.open":

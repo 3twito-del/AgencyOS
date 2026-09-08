@@ -17,7 +17,7 @@ must be **defined and proven**, not merely plausible. See
 `docs/adr/ADR-0013-synchronization-architecture.md`,
 `ADR-0014-concurrency-and-idempotency.md` and `specs/OfflineWriteQueue.tla`.
 
-## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5, M6, M7 and M8)
+## OFFLINE_SAFE (M2/M3 — unchanged in M4, M5, M6, M7, M8 and M9)
 
 | Command | Why it is safe |
 |---|---|
@@ -181,6 +181,57 @@ outside the system.
 There is also no offline legal capture surface to serve. Admitting these commands
 would widen the queue for a workflow that does not exist.
 
+## ONLINE_ONLY (all M9 mutations, and all M9 reads)
+
+M9 is the first milestone where the **reads** are online-only as well.
+
+| Command | Why it is not queued |
+|---|---|
+| RecordMonetaryObligation | Refused unless the contract is operative, and a contract can be abandoned or superseded while the write sits in a queue. |
+| QuantifyObligation / ReleaseObligation | Version-guarded, and both assert that somebody now knows something they did not. Held for four hours, it is an assertion nobody can date. |
+| RaiseReceivable | The beneficiary decides whether collected money becomes agency revenue or a liability. A queued receivable with the wrong beneficiary would misstate income for as long as it took somebody to notice. |
+| **RecordPayment** | **The act the milestone turns on.** A queued payment is money the agency believes it has. Two clients recording the same wire offline would both believe they succeeded, and the ledger would say the money arrived twice. |
+| AllocatePayment / ReverseAllocation | Legality depends on what is outstanding *now*, which a stale client cannot see. An allocation replayed against a receivable somebody else has settled is not a conflict to merge; it is an over-allocation. |
+| ReversePayment | Version-guarded, and it writes a second payment. Replaying it would reverse a payment twice. |
+| RecordInvoice / IssueInvoice / VoidInvoice | The invoice number is unique per organization, and two clients numbering offline would both claim the same one. Issuing also asserts a date somebody has already told a payer about. |
+| RecordAdjustment | A deduction is a fact from a remittance advice. Queued, it would reconcile a receivable hours after somebody looked at the variance and drew a different conclusion. |
+| CreateCommissionRule / EndCommissionRule | Overlap is refused against the rules that exist. Two clients creating offline would both pass their own check and produce the overlap the check exists to prevent. |
+| CalculateCommission | Chooses the governing rule by date and supersedes the previous entitlement by version. Replayed later, it would supersede an entitlement somebody has already acted on. |
+| AdjustCommission | Version-guarded, and it changes what the agency says it is owed. |
+| PostJournalEntry / ReverseJournalEntry | The narrowest and most consequential act in the system. A hand-written entry queued for hours would post into a period somebody has already reported on. |
+
+### Why the M9 reads are online-only too
+
+Every previous milestone could argue that a stale read is a slightly old read. A
+person looking at yesterday's contract list knows roughly what they are looking
+at, and the surface says the copy is stale.
+
+Finance breaks that argument. **A balance computed from a four-hour-old copy is
+not a slightly old balance; it is a different number**, and there is nothing on
+the screen that tells the reader which one is in front of them. Outstanding,
+unapplied, collected commission and every account balance are derived at read
+time from allocation rows, so a cached page would be a projection of a projection
+— stale in a way that looks exactly like current.
+
+The consequence is also different in kind. A stale contract list leads somebody to
+open the wrong record. A stale receivable balance leads somebody to tell a client
+they have been paid.
+
+So the whole M9 surface reaches the server or says it could not:
+
+- receivables, invoices, payments and allocations;
+- monetary obligations and their amounts;
+- commission rules, entitlements and what has been collected;
+- accounts, balances and journal entries;
+- reconciliation, the finance history and the finance command centre.
+
+There is also nothing to serve. There is no offline finance capture workflow, and
+admitting these reads would widen the cache for a surface that does not exist.
+
+The cache schema therefore stays at **version 2**. M9 adds no migration and no
+`QueuedOperation` member; finance writes are online-only by construction rather
+than by a check somebody could forget.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |
@@ -338,6 +389,13 @@ The cache schema therefore stays at **version 2**. M8 adds no migration.
   paper matches the deal, presented as a current one.
 - **The document itself** — AgencyOS has never held one. There is nothing to cache
   and, until M10, nothing to say about caching it.
+- **Receivables, invoices, payments, allocations, commissions, balances, journal
+  entries, reconciliation, the finance history and the finance command centre** —
+  every figure on them is money, derived at read time, permission-gated, or all
+  three. See above: a stale balance is a different number, not an old one.
+- **Account balances especially** — computed from posted lines each time they are
+  asked for, per currency. A cached balance is the one number in the system that
+  somebody would quote to a client without checking.
 
 ## How the client behaves offline
 

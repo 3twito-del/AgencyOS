@@ -50,13 +50,20 @@ public static class ApiContract
     /// implements no electronic signature.
     /// </para>
     /// <para>
+    /// Version 9 adds the M9 finance layer: monetary obligations derived from
+    /// operative contracts, receivables, optional invoices, payments with explicit
+    /// allocation, deductions and reconciliation, commission rules and entitlements,
+    /// and a double-entry ledger with immutable posted entries. It records invoices
+    /// rather than sending them, and holds no exchange rates.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 8;
+    public const int Current = 9;
 
     /// <summary>
     /// The lowest contract version this build still serves.

@@ -1,0 +1,75 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreateCommissionRuleDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Create commission rule"
+    PrimaryButtonText="Create"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="540">
+
+            <!--
+                Effective-dated, because a rate is a term of a relationship and
+                relationships are renegotiated. There is no default rate anywhere in
+                AgencyOS: a transaction with no governing rule produces no
+                entitlement and says so (ADR-0023).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Rules are dated, and there is no default"
+                     Message="A commission is worked out under the rule in force when the money fell due, not the rule in force today. Where no rule governs, AgencyOS calculates nothing and says why." />
+
+            <ComboBox x:Name="ClientBox" Header="Client" HorizontalAlignment="Stretch"
+                      SelectionChanged="OnFieldChanged" />
+
+            <ComboBox x:Name="BasisBox" Header="What the rate applies to"
+                      HorizontalAlignment="Stretch" SelectionChanged="OnBasisChanged">
+                <ComboBoxItem Content="Gross compensation" Tag="GrossCompensation" IsSelected="True" />
+                <ComboBoxItem Content="One specific contract term" Tag="SpecificTerm" />
+                <ComboBoxItem Content="A fixed amount per transaction" Tag="FixedAmount" />
+            </ComboBox>
+
+            <Grid x:Name="RatePanel" ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="RateBox" Grid.Column="0" Header="Rate (per cent)"
+                         PlaceholderText="10" TextChanged="OnTextChanged" />
+                <TextBlock Grid.Column="1" VerticalAlignment="Bottom" Opacity="0.7"
+                           TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}"
+                           Text="Entered as a percentage. Ten per cent is 10." />
+            </Grid>
+
+            <Grid x:Name="FixedPanel" ColumnSpacing="10" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="120" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="FixedAmountBox" Grid.Column="0" Header="Fixed amount"
+                         PlaceholderText="0.00" TextChanged="OnTextChanged" />
+                <TextBox x:Name="CurrencyBox" Grid.Column="1" Header="Currency"
+                         PlaceholderText="USD" MaxLength="3" TextChanged="OnTextChanged" />
+            </Grid>
+
+            <ComboBox x:Name="TermCodeBox" Header="Which term" Visibility="Collapsed"
+                      HorizontalAlignment="Stretch" SelectionChanged="OnFieldChanged" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <CalendarDatePicker x:Name="FromPicker" Grid.Column="0" Header="In force from"
+                                    PlaceholderText="Required" DateChanged="OnDateChanged" />
+                <CalendarDatePicker x:Name="ToPicker" Grid.Column="1" Header="In force until"
+                                    PlaceholderText="Open ended" />
+            </Grid>
+
+            <TextBox x:Name="ProvenanceBox" Header="Where the rate comes from"
+                     PlaceholderText="The representation agreement clause, for instance" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

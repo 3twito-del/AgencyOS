@@ -115,6 +115,14 @@ public sealed class SavedViewService
             // applied where the results are projected, so a saved view cannot
             // widen what its owner may see (ADR-0022).
             [SavedViewTarget.Contracts] = Permission.ContractsRead,
+
+            // Finance targets take their own grants, and payments takes the
+            // narrower of the two. A saved view is a second route to the same
+            // records, so it must not be a way around the permission the direct
+            // route enforces (ADR-0023).
+            [SavedViewTarget.Receivables] = Permission.FinanceRead,
+            [SavedViewTarget.Invoices] = Permission.FinanceRead,
+            [SavedViewTarget.Payments] = Permission.FinancePaymentsRead,
         };
 
     /// <summary>Largest page a saved view returns.</summary>

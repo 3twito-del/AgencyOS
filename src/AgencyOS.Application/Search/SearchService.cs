@@ -62,6 +62,10 @@ public sealed class SearchService
             // is guarded separately and is not indexed at all, so a hit here
             // reveals a title and nothing else (ADR-0022).
             [SearchEntityType.Contract] = Permission.ContractsRead,
+
+            // Finance is gated on its own. Holding contracts.read or
+            // deals.economics.read confers nothing here (ADR-0023).
+            [SearchEntityType.Invoice] = Permission.FinanceRead,
         };
 
     private readonly ISearchQueries _queries;

@@ -26,6 +26,7 @@ using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Finance;
 using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
@@ -195,6 +196,19 @@ builder.Services.AddScoped<ContractVersionHandler>();
 builder.Services.AddScoped<RightsHandler>();
 builder.Services.AddScoped<OptionHandler>();
 builder.Services.AddScoped<ObligationHandler>();
+
+// Finance (M9). LedgerPosting holds the one implementation of which accounts an
+// event touches, so a payment cannot be posted one way here and another way by a
+// future import - and the client-funds rule lives in exactly one place
+// (ADR-0023).
+builder.Services.AddScoped<LedgerPosting>();
+builder.Services.AddScoped<FinanceQueryService>();
+builder.Services.AddScoped<MonetaryObligationHandler>();
+builder.Services.AddScoped<ReceivableHandler>();
+builder.Services.AddScoped<InvoiceHandler>();
+builder.Services.AddScoped<PaymentHandler>();
+builder.Services.AddScoped<CommissionHandler>();
+builder.Services.AddScoped<LedgerHandler>();
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();
 builder.Services.AddScoped<ChangeTalentDisciplineHandler>();

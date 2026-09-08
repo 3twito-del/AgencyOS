@@ -1,4 +1,4 @@
-namespace AgencyOS.Domain.Authorization;
+﻿namespace AgencyOS.Domain.Authorization;
 
 /// <summary>
 /// The permission vocabulary. Every protected operation names one of these.
@@ -204,6 +204,65 @@ public static class Permission
     public const string ObligationsRead = "obligations.read";
     public const string ObligationsWrite = "obligations.write";
 
+    // ---- Finance (M9) ----
+    //
+    // The most tightly held grants in the system, and deliberately disjoint from
+    // everything above. Reading what a deal pays is a commercial question;
+    // reading what the agency has collected, what it is owed, and what its books
+    // say are three financial ones. deals.economics.read confers none of them
+    // (ADR-0023).
+
+    /// <summary>Reading receivables, invoices and the finance work queues.</summary>
+    public const string FinanceRead = "finance.read";
+
+    /// <summary>Creating receivables and recording invoices.</summary>
+    public const string FinanceWrite = "finance.write";
+
+    /// <summary>Reading payments and how they were applied.</summary>
+    /// <remarks>
+    /// Separate from <see cref="FinanceRead"/> because knowing that a hundred
+    /// thousand is owed and knowing that eighty of it arrived last Tuesday are
+    /// different disclosures. The second names bank movements.
+    /// </remarks>
+    public const string FinancePaymentsRead = "finance.payments.read";
+
+    /// <summary>Recording payments, allocating them and reversing either.</summary>
+    public const string FinancePaymentsWrite = "finance.payments.write";
+
+    /// <summary>Reading commission rules, entitlements and what has been collected.</summary>
+    /// <remarks>
+    /// What the agency earns from a client is the most sensitive number in the
+    /// relationship, and it is gated on its own rather than folded into
+    /// <see cref="FinanceRead"/>.
+    /// </remarks>
+    public const string FinanceCommissionsRead = "finance.commissions.read";
+
+    /// <summary>Setting commission rules and calculating entitlements.</summary>
+    public const string FinanceCommissionsWrite = "finance.commissions.write";
+
+    /// <summary>Reading the ledger: accounts, journal entries and balances.</summary>
+    public const string FinanceLedgerRead = "finance.ledger.read";
+
+    /// <summary>
+    /// Posting to the ledger.
+    /// </summary>
+    /// <remarks>
+    /// The narrowest grant in AgencyOS. Posting is the one irreversible act in the
+    /// milestone - a posted entry can be reversed but never unsaid - so it is held
+    /// separately from every other finance permission and given to nobody by
+    /// default below administrator.
+    /// </remarks>
+    public const string FinanceLedgerPost = "finance.ledger.post";
+
+    /// <summary>
+    /// Recording deductions, write-offs and commission adjustments.
+    /// </summary>
+    /// <remarks>
+    /// Each of these reduces what somebody is owed by a decision rather than by a
+    /// payment, so it is held apart from ordinary finance writing.
+    /// </remarks>
+    public const string FinanceAdjustmentsWrite = "finance.adjustments.write";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -257,5 +316,14 @@ public static class Permission
         RightsWrite,
         ObligationsRead,
         ObligationsWrite,
+        FinanceRead,
+        FinanceWrite,
+        FinancePaymentsRead,
+        FinancePaymentsWrite,
+        FinanceCommissionsRead,
+        FinanceCommissionsWrite,
+        FinanceLedgerRead,
+        FinanceLedgerPost,
+        FinanceAdjustmentsWrite,
     };
 }

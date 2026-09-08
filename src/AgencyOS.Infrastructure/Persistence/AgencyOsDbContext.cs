@@ -2,6 +2,7 @@
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Deals;
+using AgencyOS.Domain.Finance;
 using AgencyOS.Domain.Legal;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Interactions;
@@ -213,6 +214,38 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     public DbSet<ContractRelationship> ContractRelationships => Set<ContractRelationship>();
 
     public DbSet<ContractTaskLink> ContractTaskLinks => Set<ContractTaskLink>();
+
+    // ---- Finance (M9) ----
+
+    public DbSet<MonetaryObligation> MonetaryObligations => Set<MonetaryObligation>();
+
+    public DbSet<Receivable> Receivables => Set<Receivable>();
+
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+
+    public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
+
+    public DbSet<Payment> Payments => Set<Payment>();
+
+    public DbSet<PaymentAllocation> PaymentAllocations => Set<PaymentAllocation>();
+
+    public DbSet<PaymentAdjustment> PaymentAdjustments => Set<PaymentAdjustment>();
+
+    public DbSet<CommissionRule> CommissionRules => Set<CommissionRule>();
+
+    public DbSet<CommissionEntitlement> CommissionEntitlements => Set<CommissionEntitlement>();
+
+    public DbSet<CommissionAdjustment> CommissionAdjustments => Set<CommissionAdjustment>();
+
+    public DbSet<Account> Accounts => Set<Account>();
+
+    public DbSet<JournalEntry> JournalEntries => Set<JournalEntry>();
+
+    public DbSet<JournalLine> JournalLines => Set<JournalLine>();
+
+    public DbSet<FinanceEvent> FinanceEvents => Set<FinanceEvent>();
+
+    public DbSet<FinanceTaskLink> FinanceTaskLinks => Set<FinanceTaskLink>();
 
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.

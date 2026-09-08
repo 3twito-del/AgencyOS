@@ -193,6 +193,38 @@ public sealed class CommandPaletteViewModel : ViewModelBase
         new("go.legal.deadlines", "Open legal deadlines", "Contracts"),
         new("go.legal.command-center", "Open legal command center", "Contracts"),
         new("go.contracts.awaiting", "Open contracts awaiting signature", "Contracts"),
+        // Finance (M9). Every verb is one AgencyOS actually performs. "Record
+        // invoice", not "send invoice", because there is no transport. "Record
+        // payment", not "collect payment", because the agency did not do the
+        // collecting - a bank did, and somebody is writing down that it happened.
+        // "Allocate payment", not "match payment", because nothing is matched
+        // automatically (ADR-0023).
+        new("go.finance", "Go to Finance", "Navigate", "Ctrl+Shift+F"),
+        new("go.receivables", "Open receivables", "Finance"),
+        new("go.receivables.overdue", "Open overdue receivables", "Finance"),
+        new("go.invoices", "Open invoices", "Finance"),
+        new("go.payments", "Open payments", "Finance"),
+        new("go.payments.unapplied", "Open unapplied payments", "Finance"),
+        new("go.commissions", "Open commissions", "Finance"),
+        new("go.ledger", "Open ledger", "Finance"),
+        new("go.finance.command-center", "Open finance command center", "Finance"),
+        new("obligation.monetary.record", "Record monetary obligation", "Finance"),
+        new("obligation.monetary.quantify", "Quantify obligation amount", "Finance"),
+        new("receivable.raise", "Raise receivable", "Finance"),
+        new("receivable.write-off", "Write off receivable", "Finance"),
+        new("invoice.record", "Record invoice", "Finance", "Ctrl+Shift+N"),
+        new("invoice.issue", "Record invoice as issued", "Finance"),
+        new("payment.record", "Record payment", "Finance", "Ctrl+Shift+M"),
+        new("payment.allocate", "Allocate payment", "Finance", "Ctrl+Shift+A"),
+        new("payment.allocation.reverse", "Reverse allocation", "Finance"),
+        new("payment.reverse", "Reverse payment", "Finance"),
+        new("adjustment.record", "Record deduction", "Finance"),
+        new("commission.rule.create", "Create commission rule", "Finance"),
+        new("commission.calculate", "Calculate commission", "Finance"),
+        new("commission.adjust", "Adjust commission", "Finance"),
+        new("journal.post", "Post journal entry", "Finance"),
+        new("journal.reverse", "Reverse journal entry", "Finance"),
+        new("receivable.reconcile", "Reconcile receivable", "Finance", "Ctrl+Shift+Y"),
         new("view.save", "Save current view", "View"),
         new("view.run", "Run selected view", "View"),
         new("sync.now", "Synchronize now", "Sync", "F9"),

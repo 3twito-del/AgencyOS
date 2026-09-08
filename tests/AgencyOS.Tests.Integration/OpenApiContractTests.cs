@@ -63,8 +63,10 @@ public sealed partial class OpenApiContractTests
     /// and synchronization from M3, talent, prospects, representation, credits and
     /// materials from M4, projects, source properties, roles, attachments and
     /// packages from M5, opportunities, targets, submissions and pitches from M6,
-    /// and deals, offers and the term catalog from M7, and contracts, versions,
-    /// reconciliation, rights, options, obligations and notices from M8.
+    /// and deals, offers and the term catalog from M7, contracts, versions,
+    /// reconciliation, rights, options, obligations and notices from M8, and
+    /// monetary obligations, receivables, invoices, payments, allocations,
+    /// commissions, the ledger and reconciliation from M9.
     /// </summary>
     /// <remarks>
     /// A contract that silently stopped describing a route would still be valid
@@ -202,6 +204,41 @@ public sealed partial class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/obligations/{obligationId}/resolve")]
     [InlineData("/api/v1/organizations/{organizationId}/legal/deadlines")]
     [InlineData("/api/v1/organizations/{organizationId}/legal/command-center")]
+    [InlineData("/api/v1/organizations/{organizationId}/monetary-obligations")]
+    [InlineData("/api/v1/organizations/{organizationId}/monetary-obligations/{obligationId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/monetary-obligations/{obligationId}/quantify")]
+    [InlineData("/api/v1/organizations/{organizationId}/monetary-obligations/{obligationId}/release")]
+    [InlineData("/api/v1/organizations/{organizationId}/monetary-obligations/{obligationId}/receivables")]
+    [InlineData("/api/v1/organizations/{organizationId}/monetary-obligations/{obligationId}/commission")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/monetary-obligations")]
+    [InlineData("/api/v1/organizations/{organizationId}/contracts/{contractId}/invoices")]
+    [InlineData("/api/v1/organizations/{organizationId}/receivables")]
+    [InlineData("/api/v1/organizations/{organizationId}/receivables/{receivableId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/receivables/{receivableId}/write-off")]
+    [InlineData("/api/v1/organizations/{organizationId}/receivables/{receivableId}/cancel")]
+    [InlineData("/api/v1/organizations/{organizationId}/receivables/{receivableId}/adjustments")]
+    [InlineData("/api/v1/organizations/{organizationId}/receivables/{receivableId}/reconciliation")]
+    [InlineData("/api/v1/organizations/{organizationId}/invoices")]
+    [InlineData("/api/v1/organizations/{organizationId}/invoices/{invoiceId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/invoices/{invoiceId}/issue")]
+    [InlineData("/api/v1/organizations/{organizationId}/invoices/{invoiceId}/void")]
+    [InlineData("/api/v1/organizations/{organizationId}/payments")]
+    [InlineData("/api/v1/organizations/{organizationId}/payments/{paymentId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/payments/{paymentId}/allocations")]
+    [InlineData("/api/v1/organizations/{organizationId}/payments/{paymentId}/allocations/reverse")]
+    [InlineData("/api/v1/organizations/{organizationId}/payments/{paymentId}/reverse")]
+    [InlineData("/api/v1/organizations/{organizationId}/commission-rules")]
+    [InlineData("/api/v1/organizations/{organizationId}/commission-rules/{ruleId}/end")]
+    [InlineData("/api/v1/organizations/{organizationId}/commissions")]
+    [InlineData("/api/v1/organizations/{organizationId}/commissions/{commissionId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/commissions/{commissionId}/adjustments")]
+    [InlineData("/api/v1/organizations/{organizationId}/ledger/accounts")]
+    [InlineData("/api/v1/organizations/{organizationId}/ledger/balances")]
+    [InlineData("/api/v1/organizations/{organizationId}/ledger/entries")]
+    [InlineData("/api/v1/organizations/{organizationId}/ledger/entries/{entryId}")]
+    [InlineData("/api/v1/organizations/{organizationId}/ledger/entries/{entryId}/reverse")]
+    [InlineData("/api/v1/organizations/{organizationId}/finance/history")]
+    [InlineData("/api/v1/organizations/{organizationId}/finance/command-center")]
     public async Task Contract_DescribesTheImplementedSurface(string path)
     {
         using JsonDocument document = await GetContractAsync();
@@ -273,6 +310,133 @@ public sealed partial class OpenApiContractTests
             ambiguous.Length == 0,
             "The contract contains paths that differ only by parameter name: "
                 + string.Join("; ", ambiguous.Select(x => string.Join(" and ", x.Value))));
+    }
+
+    /// <summary>
+    /// Money crosses the wire as an amount and a currency, never as a bare number.
+    /// </summary>
+    /// <remarks>
+    /// The rule the whole finance milestone rests on, checked where a generated
+    /// client would read it. A figure that travelled without its currency is one
+    /// somebody would assume is dollars, and AgencyOS holds no exchange rate that
+    /// could correct the assumption later (ADR-0023).
+    /// </remarks>
+    [Fact]
+    public async Task Contract_DescribesMoneyAsAnAmountAndACurrency()
+    {
+        using JsonDocument document = await GetContractAsync();
+
+        JsonElement schemas = document.RootElement
+            .GetProperty("components")
+            .GetProperty("schemas");
+
+        Assert.True(
+            schemas.TryGetProperty("MoneyRequest", out JsonElement money),
+            "The contract does not describe MoneyRequest.");
+
+        JsonElement properties = money.GetProperty("properties");
+
+        Assert.True(properties.TryGetProperty("amount", out JsonElement amount));
+        Assert.True(properties.TryGetProperty("currency", out _));
+
+        // Both are required. An amount without a currency is the failure this
+        // shape exists to prevent, so neither may be omitted.
+        string[] required =
+            [.. money.GetProperty("required").EnumerateArray().Select(x => x.GetString()!)];
+
+        Assert.Contains("amount", required);
+        Assert.Contains("currency", required);
+
+        // The amount is emitted with the exact-decimal pattern rather than as a
+        // plain JSON number, so a generated client that reads it as a float has to
+        // do so deliberately.
+        Assert.True(amount.TryGetProperty("pattern", out _));
+    }
+
+    /// <summary>
+    /// No finance request carries a naked monetary number.
+    /// </summary>
+    /// <remarks>
+    /// The check that matters more than the shape of <c>MoneyRequest</c> itself: a
+    /// contract can define money correctly and then take a bare <c>amount</c>
+    /// somewhere, and the bare one is what a caller would fill in wrongly
+    /// (ADR-0023).
+    /// </remarks>
+    [Fact]
+    public async Task NoFinanceRequest_CarriesANakedMonetaryNumber()
+    {
+        using JsonDocument document = await GetContractAsync();
+
+        JsonElement schemas = document.RootElement
+            .GetProperty("components")
+            .GetProperty("schemas");
+
+        string[] monetary =
+            ["amount", "unitAmount", "fixedAmount", "total", "outstanding", "balance"];
+
+        List<string> naked = [];
+
+        foreach (JsonProperty schema in schemas.EnumerateObject())
+        {
+            // MoneyRequest is the shape itself, and the rate is a percentage
+            // rather than a sum, so neither is in scope here.
+            if (schema.Name == "MoneyRequest"
+                || !schema.Value.TryGetProperty("properties", out JsonElement properties))
+            {
+                continue;
+            }
+
+            foreach (JsonProperty property in properties.EnumerateObject())
+            {
+                if (!monetary.Contains(property.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // Either the value is a money object, or the schema carries the
+                // currency beside it. M7 states a term value the second way, and
+                // that is not a naked number: the currency travels with it.
+                bool carriesCurrency =
+                    Describes(property.Value, "MoneyRequest")
+                    || properties.EnumerateObject().Any(
+                        x => string.Equals(x.Name, "currency", StringComparison.OrdinalIgnoreCase));
+
+                if (!carriesCurrency)
+                {
+                    naked.Add($"{schema.Name}.{property.Name}");
+                }
+            }
+        }
+
+        Assert.True(
+            naked.Count == 0,
+            "These contract properties carry a monetary value without its currency: "
+                + string.Join(", ", naked));
+    }
+
+    /// <summary>
+    /// Whether a schema node is that reference, directly or through a nullable
+    /// union the generator emits for an optional value.
+    /// </summary>
+    private static bool Describes(JsonElement node, string schemaName)
+    {
+        if (node.TryGetProperty("$ref", out JsonElement reference)
+            && reference.GetString() is { } target
+            && target.EndsWith($"/{schemaName}", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        foreach (string keyword in new[] { "allOf", "anyOf", "oneOf" })
+        {
+            if (node.TryGetProperty(keyword, out JsonElement branches)
+                && branches.EnumerateArray().Any(x => Describes(x, schemaName)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     [Fact]

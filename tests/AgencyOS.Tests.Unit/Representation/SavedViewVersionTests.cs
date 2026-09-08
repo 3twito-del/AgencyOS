@@ -1,4 +1,4 @@
-using AgencyOS.Domain.Common;
+﻿using AgencyOS.Domain.Common;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.SavedViews;
@@ -46,7 +46,7 @@ public sealed class SavedViewVersionTests
     /// <summary>A version from the future is refused rather than guessed at.</summary>
     [Theory]
     [InlineData(0)]
-    [InlineData(7)]
+    [InlineData(8)]
     [InlineData(99)]
     public void AnUnknownVersion_IsRefused(int version)
     {
@@ -70,7 +70,7 @@ public sealed class SavedViewVersionTests
     public void TheUnderstoodRange_CoversEveryVersionEverShipped()
     {
         Assert.Equal(1, SavedViewDefinition.MinimumUnderstoodVersion);
-        Assert.Equal(6, SavedViewDefinition.CurrentDefinitionVersion);
+        Assert.Equal(7, SavedViewDefinition.CurrentDefinitionVersion);
     }
 
     /// <summary>
@@ -111,6 +111,31 @@ public sealed class SavedViewVersionTests
             4,
             SavedViewTarget.Deals,
             new SavedViewFilters(DealStatus: "Negotiating"));
+
+        Assert.Throws<DomainException>(backdated.Validate);
+    }
+
+    /// <summary>
+    /// The finance views are version 7 documents, and claiming an earlier version
+    /// while naming one is refused.
+    /// </summary>
+    /// <remarks>
+    /// Three targets arrived together because they are three views of one chain.
+    /// A saved view is a query somebody else may run, so none of their filters
+    /// narrows by an amount, a balance or a commission rate: a predicate reading
+    /// "outstanding over fifty thousand" would tell its reader the balance whether
+    /// or not they hold <c>finance.read</c> (ADR-0023).
+    /// </remarks>
+    [Theory]
+    [InlineData(SavedViewTarget.Receivables)]
+    [InlineData(SavedViewTarget.Invoices)]
+    [InlineData(SavedViewTarget.Payments)]
+    public void TheFinanceViews_ArrivedInVersionSeven(SavedViewTarget target)
+    {
+        new SavedViewDefinition(7, target, new SavedViewFilters(CurrencyCode: "USD")).Validate();
+
+        SavedViewDefinition backdated = new(
+            6, target, new SavedViewFilters(CurrencyCode: "USD"));
 
         Assert.Throws<DomainException>(backdated.Validate);
     }

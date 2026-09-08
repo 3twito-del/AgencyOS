@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The M9 finance kernel: pure, deterministic, and deliberately incapable of
+    reaching anything (ADR-0023).
+
+    Separate from AgencyOS.Deals.Rules rather than folded into it. The two share
+    no vocabulary - one owns negotiation states and contract terms, this one owns
+    money arithmetic, allocation conservation and journal balance - and putting
+    both behind one facade would have made a single class the boundary for two
+    unrelated domains. M8 deliberately did not split; M9 deliberately does, and
+    the difference is that this time the concepts genuinely do not overlap.
+
+    There are no package references and there will be none. No EF Core, no
+    Npgsql, no HTTP, no logging, no filesystem, no clock. Everything here is a
+    total function from values to values, which is what lets the accounting
+    invariants be proved by property tests rather than sampled by examples.
+
+    Warnings are errors here for a specific reason: FS0025 (incomplete pattern
+    match) is the compiler telling us a state has been added and a rule has not
+    been updated for it. In a ledger that must break the build, not ship.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AgencyOSStrict>true</AgencyOSStrict>
+    <AssemblyName>AgencyOS.Finance.Rules</AssemblyName>
+    <RootNamespace>AgencyOS.Finance.Rules</RootNamespace>
+
+    <!--
+      The SDK's implicit FSharp.Core reference points at the compiler's own copy
+      inside the SDK directory. That compiles, and then fails at run time in every
+      consuming project because the file is never copied anywhere. Turning it off
+      and referencing the package makes it an ordinary dependency that flows.
+    -->
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Money.fs" />
+    <Compile Include="Allocation.fs" />
+    <Compile Include="Ledger.fs" />
+    <Compile Include="Commission.fs" />
+    <Compile Include="Reconciliation.fs" />
+    <Compile Include="Messages.fs" />
+    <Compile Include="Rules.fs" />
+  </ItemGroup>
+
+</Project>

@@ -36,6 +36,28 @@
 /// Only contracts whose newest version differs from what was agreed. A count of
 /// differences, never a claim that any of them is a problem.
 /// </param>
+/// <param name="ReceivableStatus">Restricts receivables to one status.</param>
+/// <param name="InvoiceStatus">Restricts invoices to one status.</param>
+/// <param name="PaymentDirection">Incoming or Outgoing.</param>
+/// <param name="PayerPartyId">Only rows this party owes or paid.</param>
+/// <param name="ClientPersonId">Only money attributable to this client.</param>
+/// <param name="ContractId">Only rows arising from this instrument.</param>
+/// <param name="OverdueReceivablesOnly">
+/// Only rows past a resolvable due date with something still owed. A receivable
+/// with no due date is never overdue: the contract did not say when.
+/// </param>
+/// <param name="UnappliedPaymentsOnly">Only payments with cash still to apply.</param>
+/// <param name="UnreconciledOnly">
+/// Only receivables whose arithmetic does not yet explain itself.
+/// </param>
+/// <param name="DueAfter">Only rows due on or after this date.</param>
+/// <param name="DueBefore">Only rows due on or before this date.</param>
+/// <param name="RecordedAfter">Only rows recorded on or after this date.</param>
+/// <param name="RecordedBefore">Only rows recorded on or before this date.</param>
+/// <param name="CurrencyCode">
+/// Restricts to one currency. The honest way to ask a monetary question of a
+/// mixed book: there is no rate here that would let two be added.
+/// </param>
 public sealed record SavedViewFiltersModel(
     string? Status = null,
     Guid? CompanyId = null,
@@ -97,7 +119,28 @@ public sealed record SavedViewFiltersModel(
     bool EffectiveOnly = false,
     DateOnly? ExecutedAfter = null,
     DateOnly? ExecutedBefore = null,
-    bool HasUnresolvedReconciliation = false);
+    bool HasUnresolvedReconciliation = false,
+
+    // M9. The economic rule from M7 and M8, sharpened. Nothing here narrows by an
+    // amount, a balance or a commission rate: a saved view is a query somebody
+    // else may run, and a predicate reading "outstanding over fifty thousand"
+    // would tell its reader the balance whether or not they may read it. What is
+    // here is status, party, date, currency and work-queue shape - the questions a
+    // finance desk asks to find rows, not to learn figures (ADR-0023).
+    string? ReceivableStatus = null,
+    string? InvoiceStatus = null,
+    string? PaymentDirection = null,
+    Guid? PayerPartyId = null,
+    Guid? ClientPersonId = null,
+    Guid? ContractId = null,
+    bool OverdueReceivablesOnly = false,
+    bool UnappliedPaymentsOnly = false,
+    bool UnreconciledOnly = false,
+    DateOnly? DueAfter = null,
+    DateOnly? DueBefore = null,
+    DateOnly? RecordedAfter = null,
+    DateOnly? RecordedBefore = null,
+    string? CurrencyCode = null);
 
 /// <param name="Field">Field to order by. Must be sortable for the target.</param>
 /// <param name="Direction">Ascending or Descending.</param>
@@ -143,7 +186,7 @@ public sealed record UpdateSavedViewRequest(
 /// </remarks>
 /// <param name="Target">
 /// Which list this is: People, Companies, Tasks, Talent, Prospects, Projects,
-/// Packages, Opportunities or Deals.
+/// Packages, Opportunities, Deals, Contracts, Receivables, Invoices or Payments.
 /// </param>
 /// <param name="People">Matching people.</param>
 /// <param name="Companies">Matching companies.</param>
@@ -154,6 +197,10 @@ public sealed record UpdateSavedViewRequest(
 /// <param name="Packages">Matching packages.</param>
 /// <param name="Opportunities">Matching opportunities.</param>
 /// <param name="Deals">Matching negotiations.</param>
+/// <param name="Contracts">Matching contracts.</param>
+/// <param name="Receivables">Matching receivables.</param>
+/// <param name="Invoices">Matching invoices.</param>
+/// <param name="Payments">Matching payments.</param>
 public sealed record SavedViewResultsResponse(
     string Target,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.PersonSummaryResponse> People,
@@ -165,7 +212,10 @@ public sealed record SavedViewResultsResponse(
     IReadOnlyList<AgencyOS.Contracts.Projects.PackageSummaryResponse> Packages,
     IReadOnlyList<AgencyOS.Contracts.Opportunities.OpportunitySummaryResponse> Opportunities,
     IReadOnlyList<AgencyOS.Contracts.Deals.DealSummaryResponse> Deals,
-    IReadOnlyList<AgencyOS.Contracts.Legal.ContractSummaryResponse> Contracts);
+    IReadOnlyList<AgencyOS.Contracts.Legal.ContractSummaryResponse> Contracts,
+    IReadOnlyList<AgencyOS.Contracts.Finance.ReceivableResponse> Receivables,
+    IReadOnlyList<AgencyOS.Contracts.Finance.InvoiceResponse> Invoices,
+    IReadOnlyList<AgencyOS.Contracts.Finance.PaymentResponse> Payments);
 
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>

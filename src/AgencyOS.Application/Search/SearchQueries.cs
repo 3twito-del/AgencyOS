@@ -1,4 +1,4 @@
-using AgencyOS.Domain.Organizations;
+﻿using AgencyOS.Domain.Organizations;
 
 namespace AgencyOS.Application.Search;
 
@@ -33,6 +33,11 @@ public enum SearchEntityType
     // Added in M8. "Where is the Northgate paper" is asked constantly, and a
     // contract reachable only through its deal is one nobody finds.
     Contract = 11,
+
+    // Added in M9. Reference only - no amount, no balance, no rate is indexed
+    // anywhere, so a hit reveals that an invoice exists and nothing about what it
+    // is worth. Gated by finance.read (ADR-0023).
+    Invoice = 12,
 }
 
 /// <summary>Why a row matched, so a ranked list can explain itself.</summary>

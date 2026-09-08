@@ -591,8 +591,169 @@ No deadlines table - every date is read from the row that carries it, and one wo
 need a source identifier no foreign key could constrain. No stored difference
 count, execution flag or effectiveness flag. No document bytes, no content hash and
 no local file path. No commission, invoice, receivable, payment, allocation or
-ledger row - those are M9. No document repository, ingestion, mail transport or
+ledger row - **those arrived in M9, below**. No document repository, ingestion, mail transport or
 e-signature - those are M10.
+
+## M9 entities - money, receivables, payments, commissions and the ledger
+
+Implemented in M9.
+`docs/adr/ADR-0023-finance-money-commission-and-the-ledger.md` records why the
+shape is this one.
+
+**Every monetary column is `numeric` with an explicit currency column beside it.**
+There is no `double precision` anywhere in the milestone, no amount without a
+currency, and no column that adds two currencies together.
+
+### MonetaryObligation
+A sum an operative contract says is payable.
+- Id, ContractId, ContractVersionId, SourceObligationId?, SourceTermCode?
+- PayerPartyId, PayeePartyId - **both must be parties to the contract**
+- Category (Compensation | Instalment | Episodic | SigningPayment | Bonus |
+  Deferred | OptionPayment | Expense | Participation | Other)
+- AmountKind (Fixed | Formula | Contingent | Unknown) - **Unknown is a real
+  answer.** A participation nobody can value is an obligation with no figure, and
+  recording it as zero would put a false number into every total that touches it.
+- AmountValue? + CurrencyCode?, Quantity?, UnitAmountValue?, Unit?, Condition?
+- Due (the M8 `DeadlineRule` column group, reused unchanged), AnchorDate?
+- Status (Expected | Raised | Released | Cancelled), Version
+
+The row may only be written against a contract that is **operative**: executed, or
+carrying an effective date, and not abandoned or superseded. Agreed commercial
+terms are not a collectible legal amount.
+
+`IsQuantified`, the resolved due date and whether anything has been raised are
+**not** columns. Each is derived.
+
+### Receivable
+A sum the agency expects to collect.
+- Id, MonetaryObligationId, ContractId, PayerPartyId
+- Beneficiary (Client | Agency) - **the most consequential field in the
+  milestone.** It decides whether collected money becomes agency revenue or a
+  liability owed onward.
+- ClientPersonId?, RepresentationId? - composite foreign keys into the tenant's
+  own people and representations
+- OriginalAmountValue + CurrencyCode, AllocatedAmountValue, AdjustedAmountValue -
+  running totals of what has been applied, guarded by check constraints that keep
+  them non-negative and no greater than the original
+- DueOn?, Reference?, ClosureReason?, Version
+
+**There is no balance column and no status column.** Outstanding, status and
+overdue are computed from the rows, through the F# kernel, on every read. A stored
+`IsOverdue` would be wrong every midnight; a stored balance would drift from its
+allocations under exactly the concurrency the system will see.
+
+A receivable with no due date is **never** overdue. The contract did not say when.
+
+### Invoice and InvoiceLine
+A billing instrument, when one is used. Not every receivable needs one.
+- Reference - the operator's own number, **unique per organization**. AgencyOS
+  assigns none: invoice numbering carries statutory weight that varies by
+  jurisdiction.
+- Status (Draft | Issued | Void) - **nothing here says anything about payment.**
+  There is no "Paid" status, because an invoice does not know.
+- IssuedOn?, DueOn?, DebtorPartyId, ExternalReference?, VoidReason?, Version
+- Lines each name a receivable and an amount, never more than is outstanding
+
+`HoldsDocument` is returned as `false` rather than omitted. AgencyOS holds no
+invoice document and sends nothing.
+
+### Payment and PaymentAllocation
+Money that actually moved, and what it was for.
+- Direction (Incoming | Outgoing), Method, AmountValue + CurrencyCode
+- ReceivedOn (a `DateOnly`, freely backdated - the day the money moved as
+  reported) and RecordedAt (when AgencyOS was told). **Two dates, never merged.**
+- PayerPartyId? / PayerName?, PayeePartyId? / PayeeName?
+- ExternalReference? - the bank's or payer's own handle, **not assumed unique**.
+  Two genuinely different payments can carry the same remittance text, so a match
+  is reported as a possible duplicate and never refuses a record.
+- Status (Recorded | Reversed), ReversedByPaymentId?, ReversalOfPaymentId?
+
+A `BEFORE UPDATE` trigger freezes amount, currency and received date. They are
+what somebody observed on a statement, and observations are not edited: a typo is
+corrected by a reversing payment, and both survive.
+
+**Allocations are rows, not a column.** One payment may settle several receivables
+and one receivable may be settled by several payments, so there is no
+`Payment.ReceivableId`. What is not allocated stays **unapplied**, is reported
+back, and is never assigned to whatever looks closest.
+
+### PaymentAdjustment
+A deduction that reduces what will ever arrive.
+- Kind (Withholding | BankFee | WireFee | AgreedReduction | WriteOff | Other)
+- AmountValue + CurrencyCode, Description, OccurredOn, ExternalReference?
+
+**A fact somebody entered, never an inference.** AgencyOS implements no tax engine
+and infers no liability: a gap with no adjustment against it stays a gap.
+
+### CommissionRule
+The rule that decides what the agency is entitled to.
+- RepresentationId, ClientPersonId, ContractId? (null governs broadly)
+- Basis (GrossCompensation | SpecificTerm | FixedAmount), RatePercent?,
+  FixedAmountValue? + CurrencyCode?, TermCode?
+- EffectiveFrom, EffectiveTo? - **effective-dated**, because a rate is a term of a
+  relationship and relationships are renegotiated
+- Provenance?, Version
+
+Two rules in force at once is refused when the second is created. There is **no
+default rate** anywhere in AgencyOS.
+
+### CommissionEntitlement and CommissionAdjustment
+What the agency is entitled to, and what it has actually earned.
+- MonetaryObligationId, ContractId, ClientPersonId, RepresentationId,
+  CommissionRuleId, ClientReceivableId?
+- Basis, **RatePercentSnapshot** - the rate as it stood at calculation, never
+  re-read, so a later correction to the rule does not restate what was acted on
+- BasisAmountValue, EntitledAmountValue + CurrencyCode
+- GoverningOn - the date the rule was read at, defaulting to when the obligation
+  fell due rather than to today
+- Status (Calculated | Superseded | Cancelled) - recalculating **supersedes**
+  rather than overwrites
+
+**Collected is not a column.** It is the snapshotted rate applied to what has
+actually arrived against the client receivable, computed on every read. Entitled,
+collected and outstanding are three numbers and stay three numbers.
+
+### Account, JournalEntry and JournalLine
+Double entry, in the only shape that means anything.
+- `Account` - eight system accounts seeded per organization: Cash (1000),
+  AccountsReceivable (1100), UnappliedCash (1900), Suspense (1990),
+  ClientFundsPayable (2000), CommissionRevenue (4000), Deductions (5000) and
+  Write-offs (5100), each with a Category (Asset | Liability | Equity | Revenue |
+  Expense | Clearing)
+- `JournalEntry` - Status (Draft | Posted | Reversed), Source, Memo, Currency, and
+  **three dates**: OccurredOn (the economic event), PostingDate (the accounting
+  period) and RecordedAt (when AgencyOS was told). Never merged.
+- `JournalLine` - AccountId, **Side (Debit | Credit)** and a **positive** amount
+
+There is no signed-number folklore and no single-amount "transactions" table. A
+minus sign means one thing on an asset and the opposite on a liability.
+
+The balance invariant spans rows that arrive in one transaction, so it is enforced
+by a **deferred constraint trigger** at commit, in addition to the aggregate and
+the F# kernel. `BEFORE UPDATE OR DELETE` triggers on both tables refuse changes to
+a posted entry: a correction is a reversing entry beside the original, and both
+stay readable.
+
+**No account balance is stored.** Balances are computed from posted lines, per
+currency, every time they are asked for.
+
+### FinanceEvent and FinanceTaskLink
+`FinanceEvent` is the curated financial history: one business act, one entry,
+however many rows it wrote. Distinct from the audit trail, which answers a security
+question in a security vocabulary (ADR-0012), and never used as a substitute for
+the journal.
+
+`FinanceTaskLink` joins an ordinary M2 task to a receivable, invoice or payment, on
+the M6, M7 and M8 precedent. Receivables do **not** become tasks automatically.
+
+### Deliberately absent
+No balance, status, overdue, unapplied or collected column anywhere - every one is
+derived, so no two facts can disagree. No exchange rate table, no FX conversion and
+no cross-currency total. No tax table and no tax engine. No revenue-recognition
+schedule: M9 records cash movements and commission earned, and claims no GAAP or
+IFRS compliance. No participation waterfall, breakeven or Hollywood accounting
+model. No invoice document, PDF, mail transport or statement ingestion - those are
+M10. No forecast, prediction, valuation or score of any kind.
 
 ## Temporal modeling
 
@@ -644,3 +805,18 @@ M8 adds a fourth idea: a date that **does not exist yet**. An effective-dated ro
 says when something started; a `DeadlineRule` says how a date would be worked out,
 and admits when it cannot be. The two are different, and the second is what keeps a
 legal calendar honest.
+
+M9 follows all four and sharpens the third. `FinanceEvent` is append-only beside
+the current figures; `Payment.ReceivedOn` and `MonetaryObligation.Due` are business
+dates, freely backdated, because money moves days before anybody records it; and
+historical immutability now covers **posted journal entries and recorded payments**,
+enforced by triggers as well as by the aggregates. A posted entry is what somebody
+relied on when they reported a figure, so it is never edited: the correction is
+another entry saying the opposite, and both survive.
+
+M9 also adds a fifth idea, which is really the milestone's whole argument: a
+figure that **must not be stored at all**. An effective-dated row records what was
+true then. A derived balance records nothing, because it is recomputed from the
+rows that decided it every time somebody asks. The distinction matters because a
+stored balance and its allocations are two facts that can disagree, and in finance
+they eventually do.

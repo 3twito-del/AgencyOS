@@ -1,0 +1,35 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CalculateCommissionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Calculate commission"
+    PrimaryButtonText="Calculate"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="520">
+        <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+        <TextBlock x:Name="BasisText" Opacity="0.75" TextWrapping="Wrap"
+                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+        <!--
+            The date the rule is read at, not today. Recalculating a 2027 commission
+            in 2029 must give the 2027 answer, because the 2027 rule is what the
+            parties were operating under (ADR-0023).
+        -->
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="Worked out under the rule that governed at the time"
+                 Message="The governing date defaults to when the money falls due. Changing it changes which commission rule applies, not the arithmetic." />
+
+        <ComboBox x:Name="ClientBox" Header="Client" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnFieldChanged" />
+
+        <CalendarDatePicker x:Name="GoverningPicker" Header="Governing date"
+                            PlaceholderText="Defaults to the due date" />
+
+        <TextBox x:Name="NotesBox" Header="Notes" PlaceholderText="Optional"
+                 TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
+    </StackPanel>
+</ContentDialog>

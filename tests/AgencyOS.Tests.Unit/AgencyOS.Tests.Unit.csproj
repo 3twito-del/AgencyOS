@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -16,6 +16,7 @@
     <ProjectReference Include="../../src/AgencyOS.Client/AgencyOS.Client.csproj" />
     <ProjectReference Include="../../src/AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
     <ProjectReference Include="../../src/AgencyOS.Domain/AgencyOS.Domain.csproj" />
+    <ProjectReference Include="../../src/AgencyOS.Finance.Rules/AgencyOS.Finance.Rules.fsproj" />
   </ItemGroup>
 
 </Project>

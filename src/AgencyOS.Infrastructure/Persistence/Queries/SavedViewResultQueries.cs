@@ -1,8 +1,10 @@
 ﻿using AgencyOS.Application.Directory;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Deals;
+using AgencyOS.Domain.Finance;
 using AgencyOS.Domain.Legal;
 using AgencyOS.Application.Deals;
+using AgencyOS.Application.Finance;
 using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
@@ -45,6 +47,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
     private readonly IOpportunityQueries _opportunities;
     private readonly IDealQueries _deals;
     private readonly IContractQueries _contracts;
+    private readonly IFinanceQueries _finance;
 
     public SavedViewResultQueries(
         AgencyOsDbContext context,
@@ -52,7 +55,8 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
         IProjectQueries projects,
         IOpportunityQueries opportunities,
         IDealQueries deals,
-        IContractQueries contracts)
+        IContractQueries contracts,
+        IFinanceQueries finance)
     {
         _context = context;
         _representation = representation;
@@ -60,6 +64,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
         _opportunities = opportunities;
         _deals = deals;
         _contracts = contracts;
+        _finance = finance;
     }
 
     public async Task<SavedViewResultModel> RunAsync(
@@ -111,6 +116,18 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
             SavedViewTarget.Contracts =>
                 await RunContractsAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Receivables =>
+                await RunReceivablesAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Invoices =>
+                await RunInvoicesAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Payments =>
+                await RunPaymentsAsync(organizationId, definition, limit, cancellationToken)
                     .ConfigureAwait(false),
 
             _ => SavedViewResultModel.Empty(definition.Target),
@@ -524,6 +541,93 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ConfigureAwait(false);
 
         return SavedViewResultModel.OfContracts(contracts);
+    }
+
+    /// <summary>
+    /// Runs a saved finance view through the same projection the list endpoints use.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately not a second query, on the M8 precedent. A saved view that
+    /// assembled balances its own way would derive outstanding, status and overdue
+    /// differently from the list, and the two would disagree in front of the same
+    /// person (ADR-0021, ADR-0023).
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunReceivablesAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        ReceivableFilter filter = new(
+            Parse<ReceivableStatus>(filters.ReceivableStatus),
+            filters.ContractId is { } contract ? new ContractId(contract) : null,
+            filters.PayerPartyId,
+            filters.ClientPersonId,
+            Beneficiary: null,
+            filters.OverdueReceivablesOnly,
+            filters.UnreconciledOnly,
+            filters.DueAfter,
+            filters.DueBefore,
+            filters.CurrencyCode,
+            filters.TextContains);
+
+        IReadOnlyList<ReceivableModel> receivables = await _finance
+            .ListReceivablesAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfReceivables(receivables);
+    }
+
+    private async Task<SavedViewResultModel> RunInvoicesAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        InvoiceFilter filter = new(
+            Parse<InvoiceStatus>(filters.InvoiceStatus),
+            filters.ContractId is { } contract ? new ContractId(contract) : null,
+            filters.PayerPartyId,
+            filters.OverdueReceivablesOnly,
+            filters.DueAfter,
+            filters.DueBefore,
+            filters.CurrencyCode,
+            filters.TextContains);
+
+        IReadOnlyList<InvoiceModel> invoices = await _finance
+            .ListInvoicesAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfInvoices(invoices);
+    }
+
+    private async Task<SavedViewResultModel> RunPaymentsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        PaymentFilter filter = new(
+            Parse<PaymentDirection>(filters.PaymentDirection),
+            Status: null,
+            filters.PayerPartyId,
+            filters.UnappliedPaymentsOnly,
+            filters.RecordedAfter,
+            filters.RecordedBefore,
+            filters.CurrencyCode,
+            filters.TextContains);
+
+        IReadOnlyList<PaymentModel> payments = await _finance
+            .ListPaymentsAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfPayments(payments);
     }
 
     private async Task<Dictionary<Guid, string>> LoadCompanyNamesAsync(

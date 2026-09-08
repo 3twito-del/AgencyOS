@@ -1,4 +1,4 @@
-namespace AgencyOS.Domain.Authorization;
+﻿namespace AgencyOS.Domain.Authorization;
 
 /// <summary>
 /// Maps a role to the permissions it confers.
@@ -35,6 +35,12 @@ public static class RolePermissions
 
         // An observer sees the pipeline and what has gone out, but not the agency's
         // private strategy: opportunities.strategy.read is deliberately absent.
+        //
+        // No finance grant appears anywhere below. An observer sees no receivable,
+        // no payment, no commission and no ledger entry - not redacted versions of
+        // them, none of them. Read access to money is a decision somebody makes
+        // deliberately, not a consequence of being able to see the business
+        // (ADR-0023).
         Permission.OpportunitiesRead,
         Permission.SubmissionsRead,
 
@@ -101,7 +107,22 @@ public static class RolePermissions
         Permission.RightsRead,
         Permission.RightsWrite,
         Permission.ObligationsRead,
-        Permission.ObligationsWrite);
+        Permission.ObligationsWrite,
+
+        // Finance is operational work, so a member does it. Two grants are
+        // deliberately absent: finance.ledger.post, which covers posting a
+        // hand-written journal entry, and nothing else - the postings that follow
+        // from a receivable, a payment or an allocation are consequences of acts
+        // already authorized above, and are made by the system inside the same
+        // transaction (ADR-0023).
+        Permission.FinanceRead,
+        Permission.FinanceWrite,
+        Permission.FinancePaymentsRead,
+        Permission.FinancePaymentsWrite,
+        Permission.FinanceCommissionsRead,
+        Permission.FinanceCommissionsWrite,
+        Permission.FinanceLedgerRead,
+        Permission.FinanceAdjustmentsWrite);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -127,7 +148,18 @@ public static class RolePermissions
         Permission.RepresentationRead,
         Permission.RepresentationWrite,
         Permission.ProspectsRead,
-        Permission.ProspectsWrite);
+        Permission.ProspectsWrite,
+
+        // Oversight rather than operation: an administrator reads the books and
+        // holds the one grant that lets a person post to them by hand. Posting a
+        // journal entry nothing else produced is the narrowest and most dangerous
+        // act in the system, so it lives here rather than with the day-to-day
+        // finance work (ADR-0023).
+        Permission.FinanceRead,
+        Permission.FinancePaymentsRead,
+        Permission.FinanceCommissionsRead,
+        Permission.FinanceLedgerRead,
+        Permission.FinanceLedgerPost);
 
     private static readonly IReadOnlySet<string> OwnerPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -155,7 +187,13 @@ public static class RolePermissions
         Permission.RepresentationRead,
         Permission.RepresentationWrite,
         Permission.ProspectsRead,
-        Permission.ProspectsWrite);
+        Permission.ProspectsWrite,
+        Permission.FinanceRead,
+        Permission.FinancePaymentsRead,
+        Permission.FinanceCommissionsRead,
+        Permission.FinanceLedgerRead,
+        Permission.FinanceLedgerPost,
+        Permission.FinanceAdjustmentsWrite);
 
     private static readonly IReadOnlySet<string> NoPermissions = Freeze();
 

@@ -1,0 +1,56 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RaiseReceivableDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Raise receivable"
+    PrimaryButtonText="Raise"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="520">
+        <StackPanel Spacing="10" MinWidth="520">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       TextWrapping="Wrap" />
+            <TextBlock x:Name="ObligationText" Opacity="0.75" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <!--
+                The single most consequential field in the milestone. Money collected
+                against a client receivable is held and owed onward, not earned, and
+                the ledger posts it to a different account entirely (ADR-0023).
+            -->
+            <ComboBox x:Name="BeneficiaryBox" Header="Whose money is it when it arrives"
+                      HorizontalAlignment="Stretch" SelectionChanged="OnBeneficiaryChanged">
+                <ComboBoxItem Content="The client. The agency holds it and owes it onward."
+                              Tag="Client" IsSelected="True" />
+                <ComboBoxItem Content="The agency. It is the agency's own money."
+                              Tag="Agency" />
+            </ComboBox>
+
+            <InfoBar x:Name="BeneficiaryBar" Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Client funds" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="170" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="AmountBox" Grid.Column="0" Header="Amount"
+                         PlaceholderText="Leave blank to use the obligation figure"
+                         TextChanged="OnTextChanged" />
+                <TextBox x:Name="CurrencyBox" Grid.Column="1" Header="Currency"
+                         PlaceholderText="USD" MaxLength="3" TextChanged="OnTextChanged" />
+                <CalendarDatePicker x:Name="DuePicker" Grid.Column="2" Header="Due on"
+                                    PlaceholderText="Optional" />
+            </Grid>
+
+            <TextBox x:Name="ReferenceBox" Header="Reference"
+                     PlaceholderText="The agency handle for this receivable" />
+            <TextBox x:Name="NotesBox" Header="Notes" PlaceholderText="Optional"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

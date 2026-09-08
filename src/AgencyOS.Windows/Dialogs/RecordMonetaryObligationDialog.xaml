@@ -1,0 +1,134 @@
+﻿<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordMonetaryObligationDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record monetary obligation"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="600">
+        <StackPanel Spacing="10" MinWidth="560">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       TextWrapping="Wrap" />
+
+            <!--
+                The gate the milestone is built on. Agreed terms are not a
+                collectible legal amount; only an operative contract creates one
+                (ADR-0023).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="From the contract, not from the negotiation"
+                     Message="A monetary obligation comes from a contract that is executed or in force. What was agreed in a negotiation is not yet money anybody can be asked for." />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox x:Name="PayerBox" Grid.Column="0" Header="Who owes it"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnFieldChanged" />
+                <ComboBox x:Name="PayeeBox" Grid.Column="1" Header="Who is owed it"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnFieldChanged" />
+            </Grid>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox x:Name="CategoryBox" Grid.Column="0" Header="What it is for"
+                          HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Compensation" Tag="Compensation" IsSelected="True" />
+                    <ComboBoxItem Content="Instalment" Tag="Instalment" />
+                    <ComboBoxItem Content="Episodic fee" Tag="Episodic" />
+                    <ComboBoxItem Content="Signing payment" Tag="SigningPayment" />
+                    <ComboBoxItem Content="Bonus" Tag="Bonus" />
+                    <ComboBoxItem Content="Deferred" Tag="Deferred" />
+                    <ComboBoxItem Content="Option payment" Tag="OptionPayment" />
+                    <ComboBoxItem Content="Expense" Tag="Expense" />
+                    <ComboBoxItem Content="Participation" Tag="Participation" />
+                    <ComboBoxItem Content="Other" Tag="Other" />
+                </ComboBox>
+
+                <!--
+                    Unknown is a real answer. A participation nobody can value is an
+                    obligation with no figure, and recording it as zero would put a
+                    false number into every total that touches it (ADR-0023).
+                -->
+                <ComboBox x:Name="AmountKindBox" Grid.Column="1" Header="What kind of amount"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnAmountKindChanged">
+                    <ComboBoxItem Content="A fixed sum" Tag="Fixed" IsSelected="True" />
+                    <ComboBoxItem Content="A quantity times a unit rate" Tag="Formula" />
+                    <ComboBoxItem Content="Contingent on something" Tag="Contingent" />
+                    <ComboBoxItem Content="Nobody can value it yet" Tag="Unknown" />
+                </ComboBox>
+            </Grid>
+
+            <Grid x:Name="FixedPanel" ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="120" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="AmountBox" Grid.Column="0" Header="Amount"
+                         PlaceholderText="0.00" TextChanged="OnTextChanged" />
+                <TextBox x:Name="CurrencyBox" Grid.Column="1" Header="Currency"
+                         PlaceholderText="USD" MaxLength="3" TextChanged="OnTextChanged" />
+            </Grid>
+
+            <Grid x:Name="FormulaPanel" ColumnSpacing="10" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="110" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="150" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="QuantityBox" Grid.Column="0" Header="How many"
+                         PlaceholderText="10" TextChanged="OnTextChanged" />
+                <TextBox x:Name="UnitAmountBox" Grid.Column="1" Header="Per unit"
+                         PlaceholderText="0.00" TextChanged="OnTextChanged" />
+                <ComboBox x:Name="UnitBox" Grid.Column="2" Header="Unit"
+                          HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Episode" Tag="Episode" IsSelected="True" />
+                    <ComboBoxItem Content="Week" Tag="Week" />
+                    <ComboBoxItem Content="Day" Tag="Day" />
+                    <ComboBoxItem Content="Month" Tag="Month" />
+                    <ComboBoxItem Content="Year" Tag="Year" />
+                </ComboBox>
+            </Grid>
+
+            <TextBox x:Name="ConditionBox" Header="What it waits on" Visibility="Collapsed"
+                     PlaceholderText="As the contract words it" TextWrapping="Wrap" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox x:Name="DueKindBox" Grid.Column="0" Header="When it falls due"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnDueKindChanged">
+                    <ComboBoxItem Content="On a stated date" Tag="Absolute" IsSelected="True" />
+                    <ComboBoxItem Content="In words the contract uses" Tag="Unstructured" />
+                </ComboBox>
+
+                <CalendarDatePicker x:Name="DuePicker" Grid.Column="1" Header="Due date"
+                                    PlaceholderText="Pick a date" DateChanged="OnDueDateChanged" />
+            </Grid>
+
+            <TextBox x:Name="DescriptionBox" Header="Description"
+                     PlaceholderText="What the payment is for" TextChanged="OnTextChanged" />
+
+            <!--
+                A deadline stated in words carries those words, or nothing records
+                what is actually required. AgencyOS computes no date from them
+                (ADR-0022).
+            -->
+            <TextBox x:Name="DueWordingBox" Header="What the contract says about timing"
+                     Visibility="Collapsed" PlaceholderText="Quote the clause"
+                     TextWrapping="Wrap" TextChanged="OnTextChanged" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

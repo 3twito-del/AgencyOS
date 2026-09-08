@@ -4,6 +4,7 @@ using AgencyOS.Application.Search;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.Deals;
+using AgencyOS.Domain.Finance;
 using AgencyOS.Domain.Legal;
 using AgencyOS.Domain.Opportunities;
 using AgencyOS.Domain.People;
@@ -307,6 +308,28 @@ internal sealed class SearchQueries : ISearchQueries
                         + $"{(int)ContractStatus.Superseded})"));
         }
 
+        if (types.Contains(SearchEntityType.Invoice))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Invoice,
+                table: "invoices",
+                idColumn: "id",
+                titleColumn: "reference",
+
+                // The reference and nothing else. No amount, no balance and no
+                // notes are indexed, so a hit reveals that an invoice with that
+                // number exists and nothing whatsoever about what it is worth. The
+                // whole branch is gated by finance.read (ADR-0023).
+                subtitleExpression: "NULL",
+                statusColumn: "status",
+
+                // A voided invoice is history rather than part of the working set,
+                // and a draft has no number to search for.
+                archivedPredicate: includeArchived
+                    ? "t.reference IS NOT NULL"
+                    : $"t.reference IS NOT NULL AND t.status <> {(int)InvoiceStatus.Void}"));
+        }
+
         if (branches.Count == 0)
         {
             return new SearchResultModel([], HasMore: false);
@@ -407,6 +430,7 @@ internal sealed class SearchQueries : ISearchQueries
         SearchEntityType.Opportunity => ((OpportunityStatus)status).ToString(),
         SearchEntityType.Deal => ((DealStatus)status).ToString(),
         SearchEntityType.Contract => ((ContractStatus)status).ToString(),
+        SearchEntityType.Invoice => ((InvoiceStatus)status).ToString(),
         _ => status.ToString(CultureInfo.InvariantCulture),
     };
 }

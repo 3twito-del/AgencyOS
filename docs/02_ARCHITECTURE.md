@@ -68,6 +68,9 @@ Use only where algebraic modeling materially reduces illegal states:
 - contract/rights windows;
 - validation engines.
 
+Two assemblies exist: `AgencyOS.Deals.Rules` (M7, extended in M8) and
+`AgencyOS.Finance.Rules` (M9). Each is behind a single C# static facade.
+
 **Adopted in M7** as `src/AgencyOS.Deals.Rules`: the deal and offer state machines,
 negotiation-chain validation, term-value parsing and offer comparison. Pure - no
 package references but FSharp.Core, and no EF Core, HTTP, logging, clock or
@@ -88,6 +91,24 @@ enums. Tests walk every state, trigger, direction and value kind in both
 directions, because the two vocabularies agree by convention rather than by
 compilation.
 
+**A second assembly in M9**: `src/AgencyOS.Finance.Rules`. Money arithmetic, one
+rounding policy, allocation and residuals, double-entry validation, commission
+selection and reconciliation outcomes.
+
+The M8 argument for staying in one assembly does not carry over. Deal comparison
+and contract deadlines are the same kind of thing and share the term vocabulary;
+money arithmetic shares nothing with either. A change to the rounding policy should
+not rebuild the reconciliation kernel, and the finance kernel has its own
+vocabulary — sides, currencies, minor units — that would have to be kept apart
+inside a shared assembly anyway. Two kernels, two facades, no shared types
+(ADR-0023).
+
+The reason for choosing F# again is the same and is not aesthetic: the rounding
+policy is stated **once**, as a total function over a closed set of currencies,
+instead of being written five times in five handlers and drifting. `Amount` carries
+its currency inside the value, which makes cross-currency arithmetic
+unrepresentable rather than merely discouraged.
+
 Two integration facts worth knowing before adding another F# project:
 
 - `LangVersion` must be scoped to `.csproj` in `Directory.Build.props`; FSC rejects
@@ -97,7 +118,13 @@ Two integration facts worth knowing before adding another F# project:
   consuming project, because the file is never copied. Set
   `DisableImplicitFSharpCoreReference` and reference the package.
 
-See `docs/adr/ADR-0021-deal-rules-kernel-offer-immutability-and-agreed-terms.md`.
+One further gotcha, found in M9: a `[<Literal>]` decimal inside a module compiles
+and then throws `InvalidProgramException` at run time, because F# emits decimal
+literals through `DecimalConstantAttribute` and the resulting module initializer is
+rejected by the CLR. A plain `let` binding is correct.
+
+See `docs/adr/ADR-0021-deal-rules-kernel-offer-immutability-and-agreed-terms.md`
+and `docs/adr/ADR-0023-finance-money-commission-and-the-ledger.md`.
 
 ### Rust
 Candidate owner of:

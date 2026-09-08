@@ -591,6 +591,1256 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     b.ToTable("offer_terms", (string)null);
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Account", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer")
+                        .HasColumnName("category");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("ux_accounts_organization_kind");
+
+                    b.ToTable("accounts", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.CommissionAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<Guid>("CommissionEntitlementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("commission_entitlement_id");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<bool>("IsApplied")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_applied");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommissionEntitlementId")
+                        .HasDatabaseName("ix_commission_adjustments_entitlement");
+
+                    b.ToTable("commission_adjustments", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.CommissionEntitlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Basis")
+                        .HasColumnType("integer")
+                        .HasColumnName("basis");
+
+                    b.Property<decimal>("BasisAmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("basis_amount_value");
+
+                    b.Property<DateTimeOffset>("CalculatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("calculated_at");
+
+                    b.Property<Guid>("CalculatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("calculated_by");
+
+                    b.Property<Guid>("ClientPersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_person_id");
+
+                    b.Property<Guid?>("ClientReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_receivable_id");
+
+                    b.Property<Guid>("CommissionRuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("commission_rule_id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<decimal>("EntitledAmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("entitled_amount_value");
+
+                    b.Property<DateOnly>("GoverningOn")
+                        .HasColumnType("date")
+                        .HasColumnName("governing_on");
+
+                    b.Property<Guid>("MonetaryObligationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("monetary_obligation_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<decimal?>("RatePercentSnapshot")
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("rate_percent_snapshot");
+
+                    b.Property<Guid>("RepresentationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("representation_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MonetaryObligationId")
+                        .HasDatabaseName("ix_commission_entitlements_obligation");
+
+                    b.HasIndex("OrganizationId", "ClientPersonId")
+                        .HasDatabaseName("ix_commission_entitlements_organization_client");
+
+                    b.HasIndex("OrganizationId", "CommissionRuleId");
+
+                    b.HasIndex("OrganizationId", "MonetaryObligationId");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_commission_entitlements_organization_status");
+
+                    b.ToTable("commission_entitlements", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.CommissionRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Basis")
+                        .HasColumnType("integer")
+                        .HasColumnName("basis");
+
+                    b.Property<Guid>("ClientPersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_person_id");
+
+                    b.Property<Guid?>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_from");
+
+                    b.Property<DateOnly?>("EffectiveTo")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_to");
+
+                    b.Property<decimal?>("FixedAmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("fixed_amount_value");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Provenance")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("provenance");
+
+                    b.Property<decimal?>("RatePercent")
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("rate_percent");
+
+                    b.Property<Guid>("RepresentationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("representation_id");
+
+                    b.Property<int?>("TermCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("term_code");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "ClientPersonId")
+                        .HasDatabaseName("ix_commission_rules_organization_client");
+
+                    b.HasIndex("OrganizationId", "EffectiveFrom")
+                        .HasDatabaseName("ix_commission_rules_organization_effective");
+
+                    b.ToTable("commission_rules", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.FinanceEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<Guid?>("CommissionEntitlementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("commission_entitlement_id");
+
+                    b.Property<Guid?>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("detail");
+
+                    b.Property<Guid?>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<Guid?>("JournalEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("journal_entry_id");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid?>("MonetaryObligationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("monetary_obligation_id");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_id");
+
+                    b.Property<Guid?>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("summary");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_finance_events_contract");
+
+                    b.HasIndex("ReceivableId")
+                        .HasDatabaseName("ix_finance_events_receivable");
+
+                    b.HasIndex("OrganizationId", "OccurredAt")
+                        .HasDatabaseName("ix_finance_events_organization_occurred");
+
+                    b.ToTable("finance_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.FinanceTaskLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("linked_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_id");
+
+                    b.Property<Guid?>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<Guid>("TaskItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("task_item_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceivableId")
+                        .HasDatabaseName("ix_finance_task_links_receivable");
+
+                    b.HasIndex("TaskItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_finance_task_links_task");
+
+                    b.HasIndex("OrganizationId", "ReceivableId");
+
+                    b.HasIndex("OrganizationId", "TaskItemId");
+
+                    b.ToTable("finance_task_links", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Invoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<Guid>("DebtorPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("debtor_party_id");
+
+                    b.Property<DateOnly?>("DueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("due_on");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("external_reference");
+
+                    b.Property<DateOnly?>("IssuedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("issued_on");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("reference");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.Property<string>("VoidReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("void_reason");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_invoices_contract");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "DueOn")
+                        .HasDatabaseName("ix_invoices_organization_due");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_invoices_organization_status");
+
+                    b.ToTable("invoices", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.InvoiceLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId", "ReceivableId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_invoice_lines_invoice_receivable");
+
+                    b.HasIndex("OrganizationId", "ReceivableId");
+
+                    b.ToTable("invoice_lines", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.JournalEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("CommissionEntitlementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("commission_entitlement_id");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<string>("Memo")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("memo");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PaymentAdjustmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_adjustment_id");
+
+                    b.Property<Guid?>("PaymentAllocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_allocation_id");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_id");
+
+                    b.Property<DateTimeOffset?>("PostedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("posted_at");
+
+                    b.Property<Guid?>("PostedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("posted_by");
+
+                    b.Property<DateOnly>("PostingDate")
+                        .HasColumnType("date")
+                        .HasColumnName("posting_date");
+
+                    b.Property<Guid?>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid?>("ReversalOfEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversal_of_entry_id");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<Guid?>("ReversedByEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by_entry_id");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer")
+                        .HasColumnName("source");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("PaymentAllocationId")
+                        .HasDatabaseName("ix_journal_entries_allocation");
+
+                    b.HasIndex("OrganizationId", "CommissionEntitlementId");
+
+                    b.HasIndex("OrganizationId", "PaymentAllocationId");
+
+                    b.HasIndex("OrganizationId", "PaymentId");
+
+                    b.HasIndex("OrganizationId", "PostingDate")
+                        .HasDatabaseName("ix_journal_entries_organization_posting");
+
+                    b.HasIndex("OrganizationId", "ReceivableId");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_journal_entries_organization_status");
+
+                    b.HasIndex("ReceivableId", "Source")
+                        .HasDatabaseName("ix_journal_entries_receivable_source");
+
+                    b.ToTable("journal_entries", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.JournalLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<decimal>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<Guid>("JournalEntryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("journal_entry_id");
+
+                    b.Property<string>("Memo")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("memo");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<int>("Side")
+                        .HasColumnType("integer")
+                        .HasColumnName("side");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JournalEntryId")
+                        .HasDatabaseName("ix_journal_lines_entry");
+
+                    b.HasIndex("AccountId", "CurrencyCodeValue")
+                        .HasDatabaseName("ix_journal_lines_account_currency");
+
+                    b.HasIndex("OrganizationId", "AccountId");
+
+                    b.ToTable("journal_lines", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.MonetaryObligation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("AmountKind")
+                        .HasColumnType("integer")
+                        .HasColumnName("amount_kind");
+
+                    b.Property<decimal?>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer")
+                        .HasColumnName("category");
+
+                    b.Property<string>("Condition")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("condition");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_version_id");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("PayeePartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payee_party_id");
+
+                    b.Property<Guid>("PayerPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payer_party_id");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<DateOnly?>("ResolvedDueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("resolved_due_on");
+
+                    b.Property<Guid?>("SourceObligationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_obligation_id");
+
+                    b.Property<int?>("SourceTermCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("source_term_code");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<int?>("Unit")
+                        .HasColumnType("integer")
+                        .HasColumnName("unit");
+
+                    b.Property<decimal?>("UnitAmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("unit_amount_value");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_monetary_obligations_contract");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "ContractVersionId");
+
+                    b.HasIndex("OrganizationId", "ResolvedDueOn")
+                        .HasDatabaseName("ix_monetary_obligations_organization_due");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_monetary_obligations_organization_status");
+
+                    b.ToTable("monetary_obligations", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer")
+                        .HasColumnName("direction");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("external_reference");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer")
+                        .HasColumnName("method");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("PayeeName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("payee_name");
+
+                    b.Property<Guid?>("PayeePartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payee_party_id");
+
+                    b.Property<string>("PayerName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("payer_name");
+
+                    b.Property<Guid?>("PayerPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payer_party_id");
+
+                    b.Property<DateOnly>("ReceivedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("received_on");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<Guid?>("ReversalOfPaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversal_of_payment_id");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<Guid?>("ReversedByPaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by_payment_id");
+
+                    b.Property<string>("SourceSystem")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("source_system");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "ExternalReference")
+                        .HasDatabaseName("ix_payments_organization_reference");
+
+                    b.HasIndex("OrganizationId", "ReceivedOn")
+                        .HasDatabaseName("ix_payments_organization_received");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_payments_organization_status");
+
+                    b.ToTable("payments", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.PaymentAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("external_reference");
+
+                    b.Property<bool>("IsApplied")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_applied");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_id");
+
+                    b.Property<Guid>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("ReceivableId")
+                        .HasDatabaseName("ix_payment_adjustments_receivable");
+
+                    b.HasIndex("OrganizationId", "ReceivableId");
+
+                    b.ToTable("payment_adjustments", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.PaymentAllocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("amount_value");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at");
+
+                    b.Property<Guid>("AppliedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("applied_by");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<bool>("IsApplied")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_applied");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_id");
+
+                    b.Property<Guid>("ReceivableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("receivable_id");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reversed_at");
+
+                    b.Property<Guid?>("ReversedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversed_by");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentId")
+                        .HasDatabaseName("ix_payment_allocations_payment");
+
+                    b.HasIndex("ReceivableId")
+                        .HasDatabaseName("ix_payment_allocations_receivable");
+
+                    b.HasIndex("OrganizationId", "ReceivableId");
+
+                    b.ToTable("payment_allocations", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Receivable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AdjustedAmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("adjusted_amount_value");
+
+                    b.Property<decimal>("AllocatedAmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("allocated_amount_value");
+
+                    b.Property<int>("Beneficiary")
+                        .HasColumnType("integer")
+                        .HasColumnName("beneficiary");
+
+                    b.Property<Guid?>("ClientPersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_person_id");
+
+                    b.Property<string>("ClosureReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("closure_reason");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CurrencyCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency_code")
+                        .IsFixedLength();
+
+                    b.Property<DateOnly?>("DueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("due_on");
+
+                    b.Property<bool>("IsClosedByAct")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_closed_by_act");
+
+                    b.Property<bool>("IsWriteOff")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_write_off");
+
+                    b.Property<Guid>("MonetaryObligationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("monetary_obligation_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<decimal>("OriginalAmountValue")
+                        .HasColumnType("numeric(19,4)")
+                        .HasColumnName("original_amount_value");
+
+                    b.Property<Guid>("PayerPartyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payer_party_id");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("reference");
+
+                    b.Property<Guid?>("RepresentationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("representation_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId")
+                        .HasDatabaseName("ix_receivables_contract");
+
+                    b.HasIndex("MonetaryObligationId")
+                        .HasDatabaseName("ix_receivables_obligation");
+
+                    b.HasIndex("OrganizationId", "ClientPersonId")
+                        .HasDatabaseName("ix_receivables_organization_client");
+
+                    b.HasIndex("OrganizationId", "ContractId");
+
+                    b.HasIndex("OrganizationId", "DueOn")
+                        .HasDatabaseName("ix_receivables_organization_due");
+
+                    b.HasIndex("OrganizationId", "MonetaryObligationId");
+
+                    b.ToTable("receivables", (string)null);
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Idempotency.IdempotencyRecord", b =>
                 {
                     b.Property<Guid>("OrganizationId")
@@ -4558,6 +5808,235 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Account", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.CommissionAdjustment", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Finance.CommissionEntitlement", null)
+                        .WithMany("Adjustments")
+                        .HasForeignKey("CommissionEntitlementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.CommissionEntitlement", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Finance.CommissionRule", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CommissionRuleId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Finance.MonetaryObligation", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "MonetaryObligationId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.FinanceTaskLink", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Finance.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ReceivableId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AgencyOS.Domain.Tasks.TaskItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "TaskItemId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Invoice", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.InvoiceLine", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Finance.Invoice", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Finance.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ReceivableId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.JournalEntry", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Finance.CommissionEntitlement", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CommissionEntitlementId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.Finance.PaymentAllocation", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "PaymentAllocationId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.Finance.Payment", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "PaymentId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgencyOS.Domain.Finance.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ReceivableId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.JournalLine", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Finance.JournalEntry", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("JournalEntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Finance.Account", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "AccountId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.MonetaryObligation", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Legal.ContractVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("AgencyOS.Domain.Legal.DeadlineRule", "Due", b1 =>
+                        {
+                            b1.Property<Guid>("MonetaryObligationId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int?>("Anchor")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_anchor");
+
+                            b1.Property<int>("Basis")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_basis");
+
+                            b1.Property<bool>("Before")
+                                .HasColumnType("boolean")
+                                .HasColumnName("due_before");
+
+                            b1.Property<string>("Description")
+                                .HasMaxLength(1000)
+                                .HasColumnType("character varying(1000)")
+                                .HasColumnName("due_description");
+
+                            b1.Property<int>("Kind")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_kind");
+
+                            b1.Property<int?>("Offset")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_offset");
+
+                            b1.Property<DateOnly?>("On")
+                                .HasColumnType("date")
+                                .HasColumnName("due_on");
+
+                            b1.Property<int?>("Unit")
+                                .HasColumnType("integer")
+                                .HasColumnName("due_unit");
+
+                            b1.HasKey("MonetaryObligationId");
+
+                            b1.ToTable("monetary_obligations");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MonetaryObligationId");
+                        });
+
+                    b.Navigation("Due")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.PaymentAdjustment", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Finance.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ReceivableId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.PaymentAllocation", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Finance.Payment", null)
+                        .WithMany("Allocations")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Finance.Receivable", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ReceivableId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Receivable", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Legal.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContractId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgencyOS.Domain.Finance.MonetaryObligation", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "MonetaryObligationId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Idempotency.IdempotencyRecord", b =>
                 {
                     b.HasOne("AgencyOS.Domain.Organizations.Organization", null)
@@ -5565,6 +7044,26 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                     b.Navigation("Events");
 
                     b.Navigation("Terms");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.CommissionEntitlement", b =>
+                {
+                    b.Navigation("Adjustments");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Invoice", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.JournalEntry", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Finance.Payment", b =>
+                {
+                    b.Navigation("Allocations");
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Interactions.Interaction", b =>

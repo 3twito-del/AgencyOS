@@ -6,6 +6,7 @@ using AgencyOS.Application.Authorization;
 using AgencyOS.Infrastructure.Authorization;
 using AgencyOS.Application.Directory;
 using AgencyOS.Application.Idempotency;
+using AgencyOS.Application.Finance;
 using AgencyOS.Application.Legal;
 using AgencyOS.Application.SavedViews;
 using AgencyOS.Application.Representations;
@@ -113,6 +114,17 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<INoticeRepository, NoticeRepository>();
         services.AddScoped<IContractTaskLinkRepository, ContractTaskLinkRepository>();
         services.AddScoped<IContractQueries, ContractQueries>();
+
+        // Finance (M9).
+        services.AddScoped<IMonetaryObligationRepository, MonetaryObligationRepository>();
+        services.AddScoped<IReceivableRepository, ReceivableRepository>();
+        services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<ICommissionRepository, CommissionRepository>();
+        services.AddScoped<ILedgerRepository, LedgerRepository>();
+        services.AddScoped<IFinanceEventRepository, FinanceEventRepository>();
+        services.AddScoped<IFinanceTaskLinkRepository, FinanceTaskLinkRepository>();
+        services.AddScoped<IFinanceQueries, FinanceQueries>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 
