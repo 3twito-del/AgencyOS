@@ -1132,7 +1132,7 @@ Deliver:
   what happened. The condition for revisiting is a stated question somebody
   actually needs answered, and an accountant in the room.
 
-## M10 — Canonical Documents, Communications, Outlook & Office Integration — **Done** (2026-09-08)
+## M10 — Canonical Documents, Communications, Outlook & Office Integration — **Done** (2026-09-08) · promoted to ALPHA
 
 Implemented: two connected capabilities. A canonical document store — an entity
 holds a Document, a Document holds immutable DocumentVersions, and a version
@@ -1237,6 +1237,107 @@ Deliberately not built:
 - **Temporal.** The send protocol is a single-step state machine over rows in the
   same database, with an atomic lease. Adopting a workflow engine because there is
   an asynchronous operation is the argument `CLAUDE.md` rules out (ADR-0029).
+
+Workflow **CI**, run
+[34236766116](https://github.com/3twito-del/AgencyOS/actions/runs/34236766116),
+commit `702eb82`, conclusion **success**.
+
+- `Integration tests (PostgreSQL 18.6)` on ubuntu-latest: service container
+  `postgres:18.6`, server banner
+  `starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2)`. 546 passed, 0 failed,
+  0 skipped — including migrations from a clean database through M0 + M1 + M2 +
+  M3 + M4 + M5 + M6 + M7 + M8 + M9 + M10, a document recorded and versioned with
+  every earlier version still downloadable byte for byte, identical bytes stored
+  once within a tenant and twice across two, a privileged document invisible in a
+  member's list and in its count, a saved view returning different rows to two
+  people who saved the same definition, hostile filenames reduced to a leaf with
+  nothing written outside the storage root, a malformed multipart body refused as
+  a 400 with nothing stored, script and tracking images gone from a stored
+  message before anybody could render it, an ambiguous address reported as
+  ambiguous rather than resolved, a lost acknowledgement becoming `UnknownOutcome`
+  and converging to `Sent` with the provider having committed exactly one send, an
+  unanswered send proven absent before it was retried, a crash mid-send recovered
+  by reconciling rather than resending, two workers never taking the same
+  dispatch, and reads leaving no audit entry while the acts beside them do.
+- `Build and unit tests (Windows)` on windows-latest: whole solution including
+  both F# rules kernels and the WinUI 3 client, **0 warnings / 0 errors**; 3475
+  unit tests passed — among them hostile filenames and media types, HTML
+  sanitization in every shape script arrives in, the proof that an unknown outcome
+  is never worded, counted or grouped as a failure, and that no palette command
+  claims an act AgencyOS does not perform; OpenAPI 3.1.1 generated and verified
+  (199 paths, 146 schemas).
+- `Formal (TLC)` on windows-latest: `specs/OfflineWriteQueue.tla` and
+  `specs/OutboundSend.tla`, both **model checking completed, no error found**.
+  TLC 1.8.0, fetched once and pinned by SHA-256.
+
+The migration was applied, rolled back and re-applied cleanly against PostgreSQL
+before the commit, so the expand path has a proven reverse: 16 tables, 4
+immutability triggers, 2 exclusive-arc check constraints, 30 link foreign keys,
+6 seam foreign keys and 2 search vectors.
+
+Local runs continue to use PostgreSQL 19 Beta 3, which remains LAB evidence only.
+
+**One defect found by CI was not in M10.** M7's `AcceptingWhileCountering` failed
+with "an offer was both accepted and countered", and reproduced locally at one run
+in twelve. The `version` check ADR-0014 describes runs in the domain against the
+row as it was read, which is right for a stale client and cannot see two requests
+that both read the same version: both are current when they check, and without a
+database guard both writes land. Thirty-three aggregates from M2 through M9
+declared `version` as an ordinary column; only M10's four declared it a
+concurrency token, which is why M10 was unaffected. All thirty-seven now do,
+`DbUpdateConcurrencyException` answers 409 rather than 500, and
+`ConcurrencyTokenTests` asserts over the EF model that the next aggregate cannot
+forget. It costs write throughput — a token limits how EF batches writes — and the
+invariant is worth it.
+
+Known limitations, recorded rather than implied:
+
+- **No mailbox has been connected to a real Microsoft tenant.** The Graph adapter
+  compiles and satisfies the same protocol contract the fake provider does. Every
+  send, reconciliation and lost acknowledgement in the evidence above was produced
+  against the deterministic fake. Real-provider validation is a separate claim and
+  is not made.
+- **Nothing scans a file.** M10 ships no malware detection. Every version is
+  `Unscanned`, and no file is ever described as clean.
+- **The content store is a local filesystem, not object storage.** Correct for one
+  server and wrong for two, and the seam exists so the replacement does not touch
+  the domain.
+- **Credentials are protected against a leaked database, not a compromised
+  server.** The Data Protection key ring is file-backed beside the application, so
+  anything running as the service can decrypt. A managed key service is the next
+  step and is not taken here.
+- **No full-content document search and no body search over messages.** Deferred
+  rather than approximated, because a partly-correct implementation reads exactly
+  like a correct one and leaks the text of a contract through its counts.
+- **No PDF or DOCX extraction.** Those formats report `Unsupported`. Document
+  parsers are a mandatory fuzzing target and adding two before the fuzzing exists
+  would be the wrong order.
+- **No Office add-in and no TypeScript.** The integration boundary is documented
+  and server-side. A task pane is a second client with its own authentication,
+  deployment and version story, and is not added to satisfy a roadmap.
+- **AgencyOS never claims delivery.** `Sent` means a provider confirmed it accepted
+  the message. Nothing says delivered, opened or read, and nothing ever will from
+  a send call alone.
+- **A send can rest in `UnknownOutcome`.** When a provider will not say what
+  happened, that is the honest state, and it is shown rather than resolved by a
+  guess.
+
+Deliver:
+- object storage; **met as a seam with a filesystem implementation** (`IBlobStore`,
+  content-addressed, per-tenant deduplication; not distributed object storage, and
+  says so)
+- document metadata/versioning; **met** (immutable versions, derived current
+  version, database triggers refusing a rewrite)
+- Outlook/Office integration; **met as the server-side boundary** (mailbox
+  connection, delta synchronization, sending; no add-in and no TypeScript, and the
+  decision is recorded rather than deferred silently)
+- attachment ingestion; **met** (explicit, classified by a person, canonical only
+  once hashed and stored)
+- previews; **met as safe download with an inline allow-list** (`nosniff`, a
+  locked-down CSP, attachment disposition for anything that could run; no renderer
+  and no editor)
+- relationship-linked correspondence. **met** (fourteen typed link targets with
+  real composite foreign keys; a link is context and never authorization)
 
 ## M11 — Intelligence
 Deliver:
