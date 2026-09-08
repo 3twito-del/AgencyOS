@@ -345,6 +345,56 @@ public static class Permission
     /// </remarks>
     public const string CommunicationsAccountManage = "communications.account.manage";
 
+    // ---- Intelligence (M11) ----
+
+    /// <summary>
+    /// Reading ordinary intelligence: signals, theses, predictions, watchlists,
+    /// radar entries and research cases.
+    /// </summary>
+    /// <remarks>
+    /// The floor, and it is not automatic. Intelligence is what the agency thinks
+    /// rather than what it has recorded happening, and the two deserve different
+    /// doors (ADR-0030).
+    /// </remarks>
+    public const string IntelligenceRead = "intelligence.read";
+
+    /// <summary>Recording and revising intelligence.</summary>
+    public const string IntelligenceWrite = "intelligence.write";
+
+    /// <summary>
+    /// Reading intelligence classified confidential, source-sensitive or
+    /// restricted.
+    /// </summary>
+    /// <remarks>
+    /// One grant covering the three elevated classifications, on the M10 precedent:
+    /// splitting them would be three doors that in practice open for the same
+    /// people, and three chances to grant the wrong one. What it protects is
+    /// unusually sharp — a recruiting thesis about a client's dissatisfaction, or a
+    /// signal whose value is that its source will not be named (ADR-0030).
+    /// </remarks>
+    public const string IntelligenceSensitiveRead = "intelligence.sensitive.read";
+
+    /// <summary>
+    /// Stating and revising a forecast, and resolving one.
+    /// </summary>
+    /// <remarks>
+    /// Separate from ordinary intelligence writing because a forecast carries the
+    /// forecaster's name and feeds calibration. Somebody who records signals is not
+    /// thereby somebody whose probability estimates belong in the agency's track
+    /// record.
+    /// </remarks>
+    public const string IntelligencePredictionsWrite = "intelligence.predictions.write";
+
+    /// <summary>
+    /// Creating and working talent radar entries.
+    /// </summary>
+    /// <remarks>
+    /// Held apart because the radar concerns people who do not know they are being
+    /// discussed, and because it is the doorway into M4: converting an entry
+    /// creates a real prospect.
+    /// </remarks>
+    public const string IntelligenceRadarWrite = "intelligence.radar.write";
+
     /// <summary>All permissions known to this build.</summary>
     public static IReadOnlySet<string> All { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -416,5 +466,10 @@ public static class Permission
         CommunicationsSharedRead,
         CommunicationsSend,
         CommunicationsAccountManage,
+        IntelligenceRead,
+        IntelligenceWrite,
+        IntelligenceSensitiveRead,
+        IntelligencePredictionsWrite,
+        IntelligenceRadarWrite,
     };
 }

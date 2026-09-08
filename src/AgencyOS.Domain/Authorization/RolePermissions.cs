@@ -135,7 +135,17 @@ public static class RolePermissions
         Permission.DocumentsLink,
         Permission.CommunicationsRead,
         Permission.CommunicationsSend,
-        Permission.CommunicationsAccountManage);
+        Permission.CommunicationsAccountManage,
+
+        // Intelligence is the day-to-day work of an agent: noticing things,
+        // writing down what they mean, and watching people. Two grants are
+        // deliberately absent. The elevated classifications go to the people who
+        // need that material rather than to everybody who can record a signal, and
+        // forecasting is its own grant because a probability carries the
+        // forecaster's name into the agency's calibration record (ADR-0030).
+        Permission.IntelligenceRead,
+        Permission.IntelligenceWrite,
+        Permission.IntelligenceRadarWrite);
 
     private static readonly IReadOnlySet<string> AdministratorPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -181,7 +191,12 @@ public static class RolePermissions
         Permission.DocumentsPrivilegedRead,
         Permission.DocumentsRestrictedRead,
         Permission.CommunicationsRead,
-        Permission.CommunicationsSharedRead);
+        Permission.CommunicationsSharedRead,
+
+        // Oversight again: an administrator reads the agency's intelligence,
+        // including the sensitive classifications, and writes none of it.
+        Permission.IntelligenceRead,
+        Permission.IntelligenceSensitiveRead);
 
     private static readonly IReadOnlySet<string> OwnerPermissions = Freeze(
         Permission.OrganizationsRead,
@@ -231,7 +246,18 @@ public static class RolePermissions
         Permission.DocumentsLink,
 
         Permission.CommunicationsRead,
-        Permission.CommunicationsSharedRead);
+        Permission.CommunicationsSharedRead,
+
+        // The owner both reads and writes intelligence, for the same reason they
+        // gained the document write grants in M10: somebody has to be able to
+        // record a thesis at a classification only they can read, and a role that
+        // could read it but not write it would make the classification
+        // unreachable (ADR-0025, ADR-0030).
+        Permission.IntelligenceRead,
+        Permission.IntelligenceWrite,
+        Permission.IntelligenceSensitiveRead,
+        Permission.IntelligencePredictionsWrite,
+        Permission.IntelligenceRadarWrite);
 
     private static readonly IReadOnlySet<string> NoPermissions = Freeze();
 

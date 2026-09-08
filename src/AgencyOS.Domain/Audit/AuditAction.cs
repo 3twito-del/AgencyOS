@@ -256,6 +256,54 @@ public static class AuditAction
     public const string OutboundOutcomeUnknown = "communication.send.outcome.unknown";
     public const string OutboundReconciled = "communication.send.reconciled";
 
+    // ---- Intelligence (M11) ----
+    //
+    // Recording what somebody believed, and when they changed their mind. Reads
+    // are absent on purpose: opening a thesis or running a calibration query is
+    // ordinary work, and auditing it would bury the entries that matter
+    // (ADR-0012, ADR-0030).
+
+    public const string IntelligenceSourceRecorded = "intelligence.source.recorded";
+    public const string IntelligenceSourceAssessed = "intelligence.source.assessed";
+    public const string IntelligenceSourceUpdated = "intelligence.source.updated";
+
+    public const string SignalRecorded = "intelligence.signal.recorded";
+    public const string SignalUpdated = "intelligence.signal.updated";
+    public const string SignalEvidenceLinked = "intelligence.signal.evidence.linked";
+    public const string SignalEvidenceUnlinked = "intelligence.signal.evidence.unlinked";
+    public const string SignalCorroborated = "intelligence.signal.corroborated";
+    public const string SignalDisputed = "intelligence.signal.disputed";
+    public const string SignalRetracted = "intelligence.signal.retracted";
+
+    public const string ThesisCreated = "intelligence.thesis.created";
+    public const string ThesisActivated = "intelligence.thesis.activated";
+    public const string ThesisRevised = "intelligence.thesis.revised";
+    public const string ThesisEvidenceLinked = "intelligence.thesis.evidence.linked";
+    public const string ThesisRetired = "intelligence.thesis.retired";
+    public const string ThesisSuperseded = "intelligence.thesis.superseded";
+
+    public const string PredictionCreated = "intelligence.prediction.created";
+    public const string PredictionRevised = "intelligence.prediction.revised";
+    public const string PredictionResolved = "intelligence.prediction.resolved";
+    public const string PredictionCancelled = "intelligence.prediction.cancelled";
+
+    public const string WatchlistCreated = "intelligence.watchlist.created";
+    public const string WatchlistUpdated = "intelligence.watchlist.updated";
+    public const string WatchlistEntryAdded = "intelligence.watchlist.entry.added";
+    public const string WatchlistEntryRemoved = "intelligence.watchlist.entry.removed";
+    public const string WatchlistReviewed = "intelligence.watchlist.reviewed";
+
+    public const string RadarEntryCreated = "intelligence.radar.created";
+    public const string RadarEntryUpdated = "intelligence.radar.updated";
+    public const string RadarStatusChanged = "intelligence.radar.status.changed";
+    public const string RadarConvertedToProspect = "intelligence.radar.converted";
+    public const string RadarDismissed = "intelligence.radar.dismissed";
+
+    public const string ResearchCaseOpened = "intelligence.research.opened";
+    public const string ResearchCaseUpdated = "intelligence.research.updated";
+    public const string ResearchCaseLinked = "intelligence.research.linked";
+    public const string ResearchCaseStatusChanged = "intelligence.research.status.changed";
+
     public const string SavedViewCreated = "savedview.created";
     public const string SavedViewUpdated = "savedview.updated";
     public const string SavedViewDeleted = "savedview.deleted";
