@@ -302,7 +302,7 @@ function Invoke-Formal {
 
     Write-Host "tla2tools.jar verified: $($verified[$actual])"
 
-    $specs = @("OfflineWriteQueue", "OutboundSend", "AiApproval")
+    $specs = @("OfflineWriteQueue", "OutboundSend", "AiApproval", "LocalInferenceLease")
     $specsDir = Join-Path $root "specs"
     $statesDir = Join-Path $specsDir "states"
 
