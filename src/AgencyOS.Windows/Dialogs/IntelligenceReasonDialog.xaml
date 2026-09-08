@@ -1,0 +1,21 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.IntelligenceReasonDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record the reason"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="480">
+        <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+
+        <InfoBar x:Name="ConsequenceBar" Severity="Informational" IsOpen="True"
+                 IsClosable="False" Title="What this does" />
+
+        <TextBox x:Name="ReasonBox" Header="Reason" TextWrapping="Wrap" AcceptsReturn="True"
+                 Height="100" TextChanged="OnReasonChanged" />
+    </StackPanel>
+</ContentDialog>

@@ -160,7 +160,30 @@ public sealed record SavedViewFiltersModel(
     bool UnlinkedOnly = false,
     bool HasAttachments = false,
     DateOnly? OccurredAfter = null,
-    DateOnly? OccurredBefore = null);
+    DateOnly? OccurredBefore = null,
+
+    // M11. The same rule once more, against a different secret. Nothing here
+    // narrows by a probability: a saved view is a query somebody else may run, and
+    // "probability above eighty percent" would tell its reader the forecast. What
+    // is here is kind, state, subject, owner and date - the questions an
+    // intelligence desk asks to find rows, not to learn what somebody thinks
+    // (ADR-0030).
+    string? SignalKind = null,
+    string? SignalVerification = null,
+    string? IntelligenceSensitivity = null,
+    string? SubjectKind = null,
+    Guid? SubjectId = null,
+    Guid? WatchlistId = null,
+    DateOnly? ObservedAfter = null,
+    DateOnly? ObservedBefore = null,
+    string? ThesisStatus = null,
+    string? ThesisConfidence = null,
+    string? PredictionStatus = null,
+    string? PredictionOutcome = null,
+    DateOnly? ResolvesAfter = null,
+    DateOnly? ResolvesBefore = null,
+    string? RadarStatus = null,
+    string? RadarPriority = null);
 
 /// <param name="Field">Field to order by. Must be sortable for the target.</param>
 /// <param name="Direction">Ascending or Descending.</param>
@@ -223,6 +246,10 @@ public sealed record UpdateSavedViewRequest(
 /// <param name="Payments">Matching payments.</param>
 /// <param name="Documents">Matching documents.</param>
 /// <param name="Communications">Matching messages.</param>
+/// <param name="Signals">Matching signals.</param>
+/// <param name="Theses">Matching theses.</param>
+/// <param name="Predictions">Matching predictions.</param>
+/// <param name="TalentRadar">Matching radar entries.</param>
 public sealed record SavedViewResultsResponse(
     string Target,
     IReadOnlyList<AgencyOS.Contracts.PeopleSlice.PersonSummaryResponse> People,
@@ -239,7 +266,11 @@ public sealed record SavedViewResultsResponse(
     IReadOnlyList<AgencyOS.Contracts.Finance.InvoiceResponse> Invoices,
     IReadOnlyList<AgencyOS.Contracts.Finance.PaymentResponse> Payments,
     IReadOnlyList<AgencyOS.Contracts.Documents.DocumentSummaryResponse> Documents,
-    IReadOnlyList<AgencyOS.Contracts.Documents.MessageSummaryResponse> Communications);
+    IReadOnlyList<AgencyOS.Contracts.Documents.MessageSummaryResponse> Communications,
+    IReadOnlyList<AgencyOS.Contracts.Intelligence.SignalResponse> Signals,
+    IReadOnlyList<AgencyOS.Contracts.Intelligence.ThesisResponse> Theses,
+    IReadOnlyList<AgencyOS.Contracts.Intelligence.PredictionResponse> Predictions,
+    IReadOnlyList<AgencyOS.Contracts.Intelligence.TalentRadarResponse> TalentRadar);
 
 /// <param name="Id">Saved view identifier.</param>
 /// <param name="Name">What the user calls it.</param>

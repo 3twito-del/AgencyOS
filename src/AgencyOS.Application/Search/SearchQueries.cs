@@ -38,6 +38,18 @@ public enum SearchEntityType
     // anywhere, so a hit reveals that an invoice exists and nothing about what it
     // is worth. Gated by finance.read (ADR-0023).
     Invoice = 12,
+
+    // Added in M11. "What did we hear about Northgate" is asked constantly, and a
+    // claim reachable only through the intelligence surface is one nobody finds
+    // when they are looking at the company record.
+    //
+    // Deliberately narrowed to Internal claims. Global search is the least
+    // contextual surface in the product and its results are shown in a palette
+    // beside people and projects; a source-sensitive claim surfacing there would
+    // be the disclosure the classification exists to prevent, and the count alone
+    // would be one too. Anything above Internal is found on the intelligence
+    // surface, where the classification filter runs in the query (§28, ADR-0030).
+    Signal = 13,
 }
 
 /// <summary>Why a row matched, so a ranked list can explain itself.</summary>

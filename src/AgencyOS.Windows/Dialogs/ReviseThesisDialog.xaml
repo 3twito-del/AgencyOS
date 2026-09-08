@@ -1,0 +1,43 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ReviseThesisDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Revise this thesis"
+    PrimaryButtonText="Record the revision"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="520">
+        <StackPanel Spacing="10" MinWidth="540">
+            <TextBlock x:Name="PreviousText" TextWrapping="Wrap" Opacity="0.75"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <!--
+                A revision, never an edit. What the agency used to think is part of the
+                record, and a thesis that silently changed its mind is a thesis nobody
+                can hold anyone to.
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="The previous position stays on the record"
+                     Message="This adds a revision. Nothing overwrites what the thesis used to say." />
+
+            <TextBox x:Name="PropositionBox" Header="The proposition, as it now stands"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="90"
+                     TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="ChangeNoteBox" Header="What changed your mind" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70" />
+
+            <TextBox x:Name="RationaleBox" Header="Reasoning (optional)" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70" />
+
+            <ComboBox x:Name="ConfidenceBox" Header="Your confidence now" MinWidth="220">
+                <ComboBoxItem Content="Not stated" Tag="Unstated" />
+                <ComboBoxItem Content="Low" Tag="Low" />
+                <ComboBoxItem Content="Medium" Tag="Medium" />
+                <ComboBoxItem Content="High" Tag="High" />
+            </ComboBox>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

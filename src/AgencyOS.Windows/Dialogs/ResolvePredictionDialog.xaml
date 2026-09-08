@@ -1,0 +1,38 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ResolvePredictionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Resolve this prediction"
+    PrimaryButtonText="Resolve"
+    CloseButtonText="Cancel"
+    DefaultButton="Close">
+
+    <StackPanel Spacing="10" MinWidth="520">
+        <TextBlock x:Name="StatementText" TextWrapping="Wrap"
+                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <TextBlock x:Name="ForecastText" Opacity="0.7" TextWrapping="Wrap"
+                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+        <TextBlock x:Name="CriteriaText" TextWrapping="Wrap" Opacity="0.8"
+                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+        <ComboBox x:Name="OutcomeBox" Header="What happened" MinWidth="320"
+                  SelectionChanged="OnOutcomeChanged">
+            <ComboBoxItem Content="It happened" Tag="Yes" IsSelected="True" />
+            <ComboBoxItem Content="It did not happen" Tag="No" />
+            <ComboBoxItem Content="It could not be resolved" Tag="Unresolvable" />
+        </ComboBox>
+
+        <!--
+            Unresolvable is offered deliberately and never scored. Forcing a question
+            whose answer never became knowable into Yes or No would compute a
+            calibration figure against a guess.
+        -->
+        <InfoBar x:Name="ScoringBar" Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="How this will be scored" />
+
+        <TextBox x:Name="NoteBox" Header="What settled it (optional)" TextWrapping="Wrap"
+                 AcceptsReturn="True" Height="80" />
+    </StackPanel>
+</ContentDialog>

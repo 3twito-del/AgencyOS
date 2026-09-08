@@ -5,6 +5,7 @@ using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Finance;
+using AgencyOS.Domain.Intelligence;
 using AgencyOS.Domain.Legal;
 using AgencyOS.Domain.Opportunities;
 using AgencyOS.Domain.People;
@@ -308,6 +309,37 @@ internal sealed class SearchQueries : ISearchQueries
                         + $"{(int)ContractStatus.Superseded})"));
         }
 
+        if (types.Contains(SearchEntityType.Signal))
+        {
+            branches.Add(Branch(
+                typeCode: (int)SearchEntityType.Signal,
+                table: "signals",
+                idColumn: "id",
+                titleColumn: "title",
+
+                // The claim, which is the point of finding the row at all. Notes
+                // and excerpts are absent here and from the search vector: an
+                // excerpt quotes a stored document, and a hit inside one would
+                // report that document's contents to whoever ran the search
+                // (ADR-0025).
+                subtitleExpression: "t.claim",
+                statusColumn: "verification",
+
+                // Internal only, always. Global search results appear in a palette
+                // beside people and projects, and a source-sensitive claim
+                // surfacing there - or merely raising the result count - is the
+                // disclosure the classification exists to prevent. Elevated claims
+                // are found on the intelligence surface, which narrows in SQL by
+                // what the caller may read (§28, ADR-0030).
+                //
+                // A retracted claim is history rather than part of the working set,
+                // and is reachable with archived results included.
+                archivedPredicate: includeArchived
+                    ? $"t.sensitivity = {(int)IntelligenceSensitivity.Internal}"
+                    : $"t.sensitivity = {(int)IntelligenceSensitivity.Internal} "
+                        + $"AND t.verification <> {(int)SignalVerification.Retracted}"));
+        }
+
         if (types.Contains(SearchEntityType.Invoice))
         {
             branches.Add(Branch(
@@ -431,6 +463,7 @@ internal sealed class SearchQueries : ISearchQueries
         SearchEntityType.Deal => ((DealStatus)status).ToString(),
         SearchEntityType.Contract => ((ContractStatus)status).ToString(),
         SearchEntityType.Invoice => ((InvoiceStatus)status).ToString(),
+        SearchEntityType.Signal => ((SignalVerification)status).ToString(),
         _ => status.ToString(CultureInfo.InvariantCulture),
     };
 }

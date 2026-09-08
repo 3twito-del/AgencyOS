@@ -46,7 +46,7 @@ public sealed class SavedViewVersionTests
     /// <summary>A version from the future is refused rather than guessed at.</summary>
     [Theory]
     [InlineData(0)]
-    [InlineData(9)]
+    [InlineData(10)]
     [InlineData(99)]
     public void AnUnknownVersion_IsRefused(int version)
     {
@@ -70,7 +70,7 @@ public sealed class SavedViewVersionTests
     public void TheUnderstoodRange_CoversEveryVersionEverShipped()
     {
         Assert.Equal(1, SavedViewDefinition.MinimumUnderstoodVersion);
-        Assert.Equal(8, SavedViewDefinition.CurrentDefinitionVersion);
+        Assert.Equal(9, SavedViewDefinition.CurrentDefinitionVersion);
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Communications;
 using AgencyOS.Domain.Documents;
+using AgencyOS.Domain.Intelligence;
 using AgencyOS.Domain.Finance;
 using AgencyOS.Domain.Legal;
 using AgencyOS.Domain.Identity;
@@ -284,6 +285,45 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
     public DbSet<OutboundAttachment> OutboundAttachments => Set<OutboundAttachment>();
 
     public DbSet<CommunicationEvent> CommunicationEvents => Set<CommunicationEvent>();
+
+    // ---- Intelligence (M11) ----
+
+    public DbSet<IntelligenceSource> IntelligenceSources => Set<IntelligenceSource>();
+
+    public DbSet<Signal> Signals => Set<Signal>();
+
+    public DbSet<SignalEvidence> SignalEvidence => Set<SignalEvidence>();
+
+    /// <summary>
+    /// Every intelligence subject, of every owner, in one table.
+    /// </summary>
+    /// <remarks>
+    /// Table-per-hierarchy. The question people actually ask - what does the agency
+    /// know about this person - wants one scan rather than five (ADR-0030).
+    /// </remarks>
+    public DbSet<IntelligenceSubject> IntelligenceSubjects => Set<IntelligenceSubject>();
+
+    public DbSet<Thesis> Theses => Set<Thesis>();
+
+    public DbSet<ThesisRevision> ThesisRevisions => Set<ThesisRevision>();
+
+    public DbSet<ThesisEvidence> ThesisEvidence => Set<ThesisEvidence>();
+
+    public DbSet<Prediction> Predictions => Set<Prediction>();
+
+    public DbSet<PredictionRevision> PredictionRevisions => Set<PredictionRevision>();
+
+    public DbSet<PredictionEvidence> PredictionEvidence => Set<PredictionEvidence>();
+
+    public DbSet<Watchlist> Watchlists => Set<Watchlist>();
+
+    public DbSet<TalentRadarEntry> TalentRadarEntries => Set<TalentRadarEntry>();
+
+    public DbSet<ResearchCase> ResearchCases => Set<ResearchCase>();
+
+    public DbSet<ResearchCaseLink> ResearchCaseLinks => Set<ResearchCaseLink>();
+
+    public DbSet<IntelligenceEvent> IntelligenceEvents => Set<IntelligenceEvent>();
 
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.

@@ -21,8 +21,10 @@ using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
 using AgencyOS.Application.Communications;
 using AgencyOS.Application.Documents;
+using AgencyOS.Application.Intelligence;
 using AgencyOS.Domain.Communications;
 using AgencyOS.Domain.Documents;
+using AgencyOS.Domain.Intelligence;
 using Microsoft.EntityFrameworkCore;
 using static AgencyOS.Infrastructure.Persistence.Queries.PeopleSliceProjection;
 
@@ -60,6 +62,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
     // permission the direct route enforces (ADR-0025, ADR-0026).
     private readonly DocumentQueryService _documents;
     private readonly CommunicationQueryService _communications;
+    private readonly IntelligenceQueryService _intelligence;
 
     public SavedViewResultQueries(
         AgencyOsDbContext context,
@@ -70,7 +73,8 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
         IContractQueries contracts,
         IFinanceQueries finance,
         DocumentQueryService documents,
-        CommunicationQueryService communications)
+        CommunicationQueryService communications,
+        IntelligenceQueryService intelligence)
     {
         _context = context;
         _representation = representation;
@@ -81,6 +85,7 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
         _finance = finance;
         _documents = documents;
         _communications = communications;
+        _intelligence = intelligence;
     }
 
     public async Task<SavedViewResultModel> RunAsync(
@@ -152,6 +157,22 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
 
             SavedViewTarget.Communications =>
                 await RunCommunicationsAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Signals =>
+                await RunSignalsAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Theses =>
+                await RunThesesAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.Predictions =>
+                await RunPredictionsAsync(organizationId, definition, limit, cancellationToken)
+                    .ConfigureAwait(false),
+
+            SavedViewTarget.TalentRadar =>
+                await RunTalentRadarAsync(organizationId, definition, limit, cancellationToken)
                     .ConfigureAwait(false),
 
             _ => SavedViewResultModel.Empty(definition.Target),
@@ -644,6 +665,132 @@ internal sealed class SavedViewResultQueries : ISavedViewResultQueries
             .ConfigureAwait(false);
 
         return SavedViewResultModel.OfCommunications(messages);
+    }
+
+    /// <summary>
+    /// Signals matching a saved view.
+    /// </summary>
+    /// <remarks>
+    /// Runs through the authorized service, so the view narrows to the reader's own
+    /// classifications rather than the author's. A view saved by somebody who may
+    /// read source-sensitive claims returns fewer rows to somebody who may not, and
+    /// says nothing about how many were withheld (§28).
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunSignalsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        SignalFilter filter = new(
+            Parse<SignalKind>(filters.SignalKind),
+            Parse<SignalVerification>(filters.SignalVerification),
+            Parse<IntelligenceSensitivity>(filters.IntelligenceSensitivity),
+            Parse<IntelligenceSubjectKind>(filters.SubjectKind),
+            filters.SubjectId,
+            SourceId: null,
+            RecordedByUserId: null,
+            filters.WatchlistId,
+            filters.ObservedAfter,
+            filters.ObservedBefore,
+            OccurredAfter: null,
+            OccurredBefore: null,
+            filters.TextContains);
+
+        IReadOnlyList<SignalSummaryModel> signals = await _intelligence
+            .ListSignalsAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfSignals(signals);
+    }
+
+    private async Task<SavedViewResultModel> RunThesesAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        ThesisFilter filter = new(
+            Parse<ThesisStatus>(filters.ThesisStatus),
+            Parse<ThesisConfidence>(filters.ThesisConfidence),
+            Parse<IntelligenceSensitivity>(filters.IntelligenceSensitivity),
+            Parse<IntelligenceSubjectKind>(filters.SubjectKind),
+            filters.SubjectId,
+            filters.OwnerUserId,
+            UpdatedAfter: null,
+            filters.TextContains);
+
+        IReadOnlyList<ThesisSummaryModel> theses = await _intelligence
+            .ListThesesAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfTheses(theses);
+    }
+
+    /// <summary>
+    /// Predictions matching a saved view.
+    /// </summary>
+    /// <remarks>
+    /// The probability bounds the direct endpoint offers are deliberately not wired
+    /// through. A saved view is a query somebody else may run, and one narrowing by
+    /// probability would tell its reader the forecast (ADR-0030).
+    /// </remarks>
+    private async Task<SavedViewResultModel> RunPredictionsAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        PredictionFilter filter = new(
+            Parse<PredictionStatus>(filters.PredictionStatus),
+            Parse<PredictionOutcome>(filters.PredictionOutcome),
+            Parse<IntelligenceSensitivity>(filters.IntelligenceSensitivity),
+            Parse<IntelligenceSubjectKind>(filters.SubjectKind),
+            filters.SubjectId,
+            filters.OwnerUserId,
+            filters.ResolvesAfter,
+            filters.ResolvesBefore,
+            ProbabilityAtLeast: null,
+            ProbabilityAtMost: null,
+            filters.TextContains);
+
+        IReadOnlyList<PredictionSummaryModel> predictions = await _intelligence
+            .ListPredictionsAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfPredictions(predictions);
+    }
+
+    private async Task<SavedViewResultModel> RunTalentRadarAsync(
+        OrganizationId organizationId,
+        SavedViewDefinition definition,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        SavedViewFilters filters = definition.Filters;
+
+        TalentRadarFilter filter = new(
+            Parse<TalentRadarStatus>(filters.RadarStatus),
+            Parse<TalentRadarPriority>(filters.RadarPriority),
+            Parse<IntelligenceSensitivity>(filters.IntelligenceSensitivity),
+            filters.OwnerUserId,
+            PersonId: null,
+            filters.WatchlistId,
+            filters.Discipline,
+            ReviewedBefore: null,
+            filters.TextContains);
+
+        IReadOnlyList<TalentRadarSummaryModel> entries = await _intelligence
+            .ListRadarAsync(organizationId, filter, limit, cancellationToken)
+            .ConfigureAwait(false);
+
+        return SavedViewResultModel.OfTalentRadar(entries);
     }
 
     private async Task<SavedViewResultModel> RunReceivablesAsync(

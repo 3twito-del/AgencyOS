@@ -22,6 +22,7 @@ using AgencyOS.Application.Authorization;
 using AgencyOS.Application.Companies;
 using AgencyOS.Application.Directory;
 using AgencyOS.Application.Idempotency;
+using AgencyOS.Application.Intelligence;
 using AgencyOS.Application.Interactions;
 using AgencyOS.Application.People;
 using AgencyOS.Application.Relationships;
@@ -260,6 +261,21 @@ builder.Services.AddSingleton(new CommunicationWorkerOptions
     Enabled = builder.Configuration.GetValue("AgencyOS:Worker:Enabled", true),
 });
 builder.Services.AddHostedService<CommunicationWorker>();
+
+// Intelligence (M11). The conceptual chain is kept apart in the type system, not
+// merged into one "intelligence note": a source is evidence, a signal is a claim
+// with provenance, a thesis is a view somebody holds, and a prediction is a
+// falsifiable statement with a date. Nothing here summarizes, extracts or scores
+// anything on its own (ADR-0030).
+builder.Services.AddScoped<IntelligenceAuthorization>();
+builder.Services.AddScoped<IntelligenceQueryService>();
+builder.Services.AddScoped<IntelligenceSourceHandler>();
+builder.Services.AddScoped<SignalHandler>();
+builder.Services.AddScoped<ThesisHandler>();
+builder.Services.AddScoped<PredictionHandler>();
+builder.Services.AddScoped<WatchlistHandler>();
+builder.Services.AddScoped<TalentRadarHandler>();
+builder.Services.AddScoped<ResearchCaseHandler>();
 
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();

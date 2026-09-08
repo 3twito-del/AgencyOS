@@ -66,6 +66,12 @@ public sealed class SearchService
             // Finance is gated on its own. Holding contracts.read or
             // deals.economics.read confers nothing here (ADR-0023).
             [SearchEntityType.Invoice] = Permission.FinanceRead,
+
+            // Intelligence is gated on its own, and the branch is narrowed to
+            // Internal claims regardless of what else the caller holds. Nothing
+            // here confers the elevated grant, and holding it widens nothing:
+            // global search sees Internal claims for everyone (ADR-0030).
+            [SearchEntityType.Signal] = Permission.IntelligenceRead,
         };
 
     private readonly ISearchQueries _queries;

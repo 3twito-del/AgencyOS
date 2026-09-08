@@ -263,6 +263,36 @@ public sealed class CommandPaletteViewModel : ViewModelBase
         new("go.outbound.unknown", "Open sends with unknown outcome", "Communications"),
         new("go.communications.command-center", "Open communications command center", "Communications"),
 
+        // Intelligence (M11). Every verb here describes writing down what a person
+        // decided. "Record signal", never "detect signal", because nothing detects
+        // anything; "State a prediction", because the probability is the
+        // forecaster's assertion and not a system output; and there is no
+        // "summarize", "extract" or "score" command anywhere, because there is no
+        // route on the server that would answer one (§18, §54, ADR-0030).
+        new("go.intelligence", "Go to Intelligence", "Navigate", "F7"),
+        new("go.intelligence.desk", "Open the intelligence desk", "Intelligence"),
+        new("go.intelligence.predictions", "Open predictions", "Intelligence"),
+        new("go.intelligence.radar", "Open the talent radar", "Intelligence"),
+        new("intelligence.source.record", "Record a source", "Intelligence"),
+        new("intelligence.signal.record", "Record a signal", "Intelligence"),
+        new(
+            "intelligence.signal.verification",
+            "Change what corroborates a claim",
+            "Intelligence"),
+        new("intelligence.thesis.create", "State a thesis", "Intelligence"),
+        new("intelligence.thesis.revise", "Revise a thesis", "Intelligence"),
+        new("intelligence.thesis.retire", "Retire a thesis", "Intelligence"),
+        new("intelligence.prediction.create", "State a prediction", "Intelligence"),
+        new("intelligence.prediction.forecast", "State a new probability", "Intelligence"),
+        new("intelligence.prediction.resolve", "Resolve a prediction", "Intelligence"),
+        new("intelligence.watchlist.create", "Create a watchlist", "Intelligence"),
+        new("intelligence.watchlist.review", "Record a watchlist review", "Intelligence"),
+        new("intelligence.radar.add", "Put somebody on the radar", "Intelligence"),
+        new("intelligence.radar.convert", "Hand a radar entry to representation", "Intelligence"),
+        new("intelligence.radar.dismiss", "Take somebody off the radar", "Intelligence"),
+        new("intelligence.research.open", "Open a research case", "Intelligence"),
+        new("intelligence.research.link", "Attach something to a research case", "Intelligence"),
+
         new("view.save", "Save current view", "View"),
         new("view.run", "Run selected view", "View"),
         new("sync.now", "Synchronize now", "Sync", "F9"),

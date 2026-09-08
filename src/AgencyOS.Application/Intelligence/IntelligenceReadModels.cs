@@ -411,8 +411,10 @@ public sealed record IntelligenceCommandCenterModel(
 // ------------------------------------------------------------------- filters
 
 /// <param name="TextContains">
-/// Matches titles, claims and names. Never excerpts, rationales or propositions
-/// classified above what the caller may read (ADR-0030).
+/// Matches the title and the claim, and only within the classifications the caller
+/// may already read. Never an excerpt: an excerpt is a quotation from an M10
+/// artifact, and matching one would report its contents to whoever ran the search
+/// (ADR-0025, ADR-0030).
 /// </param>
 public sealed record SignalFilter(
     SignalKind? Kind = null,

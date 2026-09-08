@@ -1,0 +1,55 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreateThesisDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="State a thesis"
+    PrimaryButtonText="State it"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="520">
+        <StackPanel Spacing="10" MinWidth="540">
+            <!--
+                A thesis is a view somebody holds. The four states it can be in are
+                Draft, Active, Retired and Superseded; there is no True and no False,
+                because abandoning a position honestly means recording why.
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="This is what you think"
+                     Message="A thesis is a position, not a finding. It can be revised, retired with a reason or superseded by a better one — it is never marked true." />
+
+            <TextBox x:Name="TitleBox" Header="Short title" TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="PropositionBox" Header="The proposition" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="90" TextChanged="OnRequiredChanged"
+                     PlaceholderText="What you believe to be the case, stated so somebody could disagree with it" />
+
+            <TextBox x:Name="RationaleBox" Header="Why (optional)" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="80" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox Grid.Column="0" x:Name="ConfidenceBox" Header="Your confidence"
+                          HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Not stated" Tag="Unstated" IsSelected="True" />
+                    <ComboBoxItem Content="Low" Tag="Low" />
+                    <ComboBoxItem Content="Medium" Tag="Medium" />
+                    <ComboBoxItem Content="High" Tag="High" />
+                </ComboBox>
+
+                <ComboBox Grid.Column="1" x:Name="SensitivityBox" Header="Classification"
+                          HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Internal" Tag="Internal" IsSelected="True" />
+                    <ComboBoxItem Content="Confidential" Tag="Confidential" />
+                    <ComboBoxItem Content="Source sensitive" Tag="SourceSensitive" />
+                    <ComboBoxItem Content="Restricted" Tag="Restricted" />
+                </ComboBox>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

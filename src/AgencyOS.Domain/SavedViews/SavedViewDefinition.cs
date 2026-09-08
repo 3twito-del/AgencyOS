@@ -60,6 +60,19 @@ public enum SavedViewTarget
     // what it matched (ADR-0025, ADR-0026).
     Documents = 14,
     Communications = 15,
+
+    // Added in definition version 9. What the agency knows, thinks and expects.
+    //
+    // Sources deliberately did not become a target. A source is reached through the
+    // claim that cites it, and a saved list of evidence with no claims attached is
+    // a reading list rather than a working one. Watchlists did not either: a
+    // watchlist is already a saved list of records, and a saved view of watchlists
+    // would be a list of lists. Research cases are worked from their own queue
+    // (ADR-0030).
+    Signals = 16,
+    Theses = 17,
+    Predictions = 18,
+    TalentRadar = 19,
 }
 
 /// <summary>Sort direction for a saved view.</summary>
@@ -269,7 +282,30 @@ public sealed record SavedViewFilters(
     bool UnlinkedOnly = false,
     bool HasAttachments = false,
     DateOnly? OccurredAfter = null,
-    DateOnly? OccurredBefore = null);
+    DateOnly? OccurredBefore = null,
+
+    // M11. The economic rule from M7 through M9, applied to a different kind of
+    // secret. There is deliberately no probability filter here: a saved view is a
+    // query somebody else may run, and a predicate reading "probability above
+    // eighty percent" would tell its reader the forecast whether or not they may
+    // read the prediction. Nothing narrows by an excerpt either, for the reason M10
+    // gave - an excerpt quotes a stored document (ADR-0025, ADR-0030).
+    string? SignalKind = null,
+    string? SignalVerification = null,
+    string? IntelligenceSensitivity = null,
+    string? SubjectKind = null,
+    Guid? SubjectId = null,
+    Guid? WatchlistId = null,
+    DateOnly? ObservedAfter = null,
+    DateOnly? ObservedBefore = null,
+    string? ThesisStatus = null,
+    string? ThesisConfidence = null,
+    string? PredictionStatus = null,
+    string? PredictionOutcome = null,
+    DateOnly? ResolvesAfter = null,
+    DateOnly? ResolvesBefore = null,
+    string? RadarStatus = null,
+    string? RadarPriority = null);
 
 /// <summary>
 /// A saved view's query, as a versioned, validated document.
@@ -298,7 +334,7 @@ public sealed record SavedViewDefinition(
 {
     /// <summary>The definition schema version this build writes and understands.</summary>
     /// <summary>Definition schema this build writes.</summary>
-    public const int CurrentDefinitionVersion = 8;
+    public const int CurrentDefinitionVersion = 9;
 
     /// <summary>
     /// The oldest definition schema this build still understands.
@@ -340,6 +376,10 @@ public sealed record SavedViewDefinition(
             [SavedViewTarget.Payments] = 7,
             [SavedViewTarget.Documents] = 8,
             [SavedViewTarget.Communications] = 8,
+            [SavedViewTarget.Signals] = 9,
+            [SavedViewTarget.Theses] = 9,
+            [SavedViewTarget.Predictions] = 9,
+            [SavedViewTarget.TalentRadar] = 9,
         };
 
     /// <summary>Fields a view may sort by, per target.</summary>
@@ -391,6 +431,27 @@ public sealed record SavedViewDefinition(
             // shape of a relationship rather than a list of messages.
             [SavedViewTarget.Communications] =
                 Freeze("OccurredAt", "SynchronizedAt", "Direction", "Subject"),
+
+            // Dates, kind and verification state. Deliberately not classification,
+            // for M10's reason, and deliberately not confidence: ordering claims by
+            // how sure somebody was presents a judgment as a ranking.
+            [SavedViewTarget.Signals] =
+                Freeze("ObservedAt", "RecordedAt", "Title", "Kind", "Verification"),
+
+            [SavedViewTarget.Theses] =
+                Freeze("Title", "CreatedAt", "UpdatedAt", "Status", "Confidence"),
+
+            // Dates, status and the statement. Deliberately not probability or
+            // Brier score: ordering a list by a forecast reveals the forecast, and
+            // ordering forecasters by score is a league table this milestone
+            // refuses to build.
+            [SavedViewTarget.Predictions] =
+                Freeze("ResolvesBy", "CreatedAt", "Status", "Statement"),
+
+            // Priority is a person's judgment and is orderable because a person set
+            // it. Nothing else about a radar entry is ranked.
+            [SavedViewTarget.TalentRadar] =
+                Freeze("FirstObservedAt", "LastReviewedAt", "Priority", "Status"),
         };
 
     /// <summary>Validates the document, failing with a message that says what is wrong.</summary>
@@ -623,6 +684,49 @@ public sealed record SavedViewDefinition(
             nameof(SavedViewFilters.HasAttachments),
             nameof(SavedViewFilters.OccurredAfter),
             nameof(SavedViewFilters.OccurredBefore)),
+
+        [SavedViewTarget.Signals] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.SignalKind),
+            nameof(SavedViewFilters.SignalVerification),
+            nameof(SavedViewFilters.IntelligenceSensitivity),
+            nameof(SavedViewFilters.SubjectKind),
+            nameof(SavedViewFilters.SubjectId),
+            nameof(SavedViewFilters.WatchlistId),
+            nameof(SavedViewFilters.ObservedAfter),
+            nameof(SavedViewFilters.ObservedBefore)),
+
+        [SavedViewTarget.Theses] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.ThesisStatus),
+            nameof(SavedViewFilters.ThesisConfidence),
+            nameof(SavedViewFilters.IntelligenceSensitivity),
+            nameof(SavedViewFilters.SubjectKind),
+            nameof(SavedViewFilters.SubjectId),
+            nameof(SavedViewFilters.OwnerUserId)),
+
+        // No probability bound in this list, deliberately. A saved view is a query
+        // somebody else may run, and a predicate reading "probability above eighty
+        // percent" would tell its reader the forecast (ADR-0030).
+        [SavedViewTarget.Predictions] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.PredictionStatus),
+            nameof(SavedViewFilters.PredictionOutcome),
+            nameof(SavedViewFilters.IntelligenceSensitivity),
+            nameof(SavedViewFilters.SubjectKind),
+            nameof(SavedViewFilters.SubjectId),
+            nameof(SavedViewFilters.OwnerUserId),
+            nameof(SavedViewFilters.ResolvesAfter),
+            nameof(SavedViewFilters.ResolvesBefore)),
+
+        [SavedViewTarget.TalentRadar] = FreezeFilters(
+            nameof(SavedViewFilters.TextContains),
+            nameof(SavedViewFilters.RadarStatus),
+            nameof(SavedViewFilters.RadarPriority),
+            nameof(SavedViewFilters.IntelligenceSensitivity),
+            nameof(SavedViewFilters.OwnerUserId),
+            nameof(SavedViewFilters.WatchlistId),
+            nameof(SavedViewFilters.Discipline)),
     };
 
     /// <summary>Every filter the document could carry, by name.</summary>

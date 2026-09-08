@@ -1,0 +1,89 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordSourceDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record a source"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="520">
+            <TextBlock TextWrapping="Wrap" Opacity="0.75"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Text="A source is evidence. It is never recorded as true or false: what it is, where it came from and when it was observed are facts; how much to trust it is a judgment you make separately." />
+
+            <ComboBox x:Name="KindBox" Header="What kind of source" MinWidth="240"
+                      SelectionChanged="OnKindChanged">
+                <ComboBoxItem Content="A document AgencyOS holds" Tag="DocumentVersion" />
+                <ComboBoxItem Content="A message AgencyOS holds" Tag="Message" />
+                <ComboBoxItem Content="A page on the web" Tag="ExternalUrl" />
+                <ComboBoxItem Content="Something somebody observed" Tag="ManualObservation"
+                              IsSelected="True" />
+                <ComboBoxItem Content="Something else" Tag="Other" />
+            </ComboBox>
+
+            <!--
+                Said on the screen rather than left to be assumed. AgencyOS does not
+                archive a page it was given the address of: it holds the URL and what
+                somebody recorded about it, and cannot prove later what the page said.
+            -->
+            <InfoBar x:Name="CustodyBar" Severity="Informational" IsOpen="True"
+                     IsClosable="False" Title="What AgencyOS will hold" />
+
+            <TextBox x:Name="TitleBox" Header="Title" TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="UrlBox" Header="Address" Visibility="Collapsed"
+                     PlaceholderText="https://" TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="ReferenceBox" Header="Reference (optional)"
+                     PlaceholderText="An identifier somebody else uses for it" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0" x:Name="PublisherBox" Header="Publisher (optional)" />
+                <TextBox Grid.Column="1" x:Name="AuthorBox" Header="Author (optional)" />
+            </Grid>
+
+            <!--
+                Three dates, kept apart. When it was published, when the agency saw
+                it, and when the row was written are different facts, and collapsing
+                them loses the one that matters in a dispute.
+            -->
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <CalendarDatePicker Grid.Column="0" x:Name="PublishedPicker"
+                                    Header="Published (optional)" />
+                <CalendarDatePicker Grid.Column="1" x:Name="ObservedPicker"
+                                    Header="Observed (defaults to now)" />
+            </Grid>
+
+            <ComboBox x:Name="SensitivityBox" Header="Classification" MinWidth="240">
+                <ComboBoxItem Content="Internal" Tag="Internal" IsSelected="True" />
+                <ComboBoxItem Content="Confidential" Tag="Confidential" />
+                <ComboBoxItem Content="Source sensitive" Tag="SourceSensitive" />
+                <ComboBoxItem Content="Restricted" Tag="Restricted" />
+            </ComboBox>
+
+            <!--
+                Never inferred from the content. Whether somebody spoke in confidence
+                is something they said, not something a system can detect.
+            -->
+            <TextBlock TextWrapping="Wrap" Opacity="0.6"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Text="Source sensitive means the identity of whoever provided this must be protected. Nothing infers it; you are stating it." />
+
+            <TextBox x:Name="NotesBox" Header="Notes (optional)" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

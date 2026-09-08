@@ -1,0 +1,34 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreateWatchlistDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Create a watchlist"
+    PrimaryButtonText="Create"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="480">
+        <TextBox x:Name="NameBox" Header="Name" TextChanged="OnRequiredChanged" />
+
+        <TextBox x:Name="PurposeBox" Header="What it is for" TextWrapping="Wrap"
+                 AcceptsReturn="True" Height="80"
+                 PlaceholderText="Why these records are being watched, so somebody else can tell whether it is still worth watching" />
+
+        <ComboBox x:Name="SensitivityBox" Header="Classification" MinWidth="240">
+            <ComboBoxItem Content="Internal" Tag="Internal" IsSelected="True" />
+            <ComboBoxItem Content="Confidential" Tag="Confidential" />
+            <ComboBoxItem Content="Source sensitive" Tag="SourceSensitive" />
+            <ComboBoxItem Content="Restricted" Tag="Restricted" />
+        </ComboBox>
+
+        <!--
+            Membership is added afterwards, one record at a time. Activity is derived
+            by subject overlap at read time rather than stamped on signals, so nothing
+            has to be maintained when the list changes.
+        -->
+        <TextBlock TextWrapping="Wrap" Opacity="0.65"
+                   Style="{StaticResource CaptionTextBlockStyle}"
+                   Text="Add what to watch after it is created. AgencyOS works out what has happened around those records each time the list is opened." />
+    </StackPanel>
+</ContentDialog>

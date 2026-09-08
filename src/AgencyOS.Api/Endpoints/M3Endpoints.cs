@@ -158,7 +158,11 @@ internal static class M3Endpoints
                     [.. results.Invoices.Select(M9Endpoints.MapInvoice)],
                     [.. results.Payments.Select(M9Endpoints.MapPayment)],
                     [.. results.Documents.Select(M10Endpoints.Map)],
-                    [.. results.Communications.Select(M10Endpoints.Map)]));
+                    [.. results.Communications.Select(M10Endpoints.Map)],
+                    [.. results.Signals.Select(M11Endpoints.Map)],
+                    [.. results.Theses.Select(M11Endpoints.Map)],
+                    [.. results.Predictions.Select(M11Endpoints.Map)],
+                    [.. results.TalentRadar.Select(M11Endpoints.Map)]));
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.OrganizationsRead))
             .WithName("RunSavedView");
@@ -426,7 +430,23 @@ internal static class M3Endpoints
         UnlinkedOnly: filters.UnlinkedOnly,
         HasAttachments: filters.HasAttachments,
         OccurredAfter: filters.OccurredAfter,
-        OccurredBefore: filters.OccurredBefore);
+        OccurredBefore: filters.OccurredBefore,
+        SignalKind: filters.SignalKind,
+        SignalVerification: filters.SignalVerification,
+        IntelligenceSensitivity: filters.IntelligenceSensitivity,
+        SubjectKind: filters.SubjectKind,
+        SubjectId: filters.SubjectId,
+        WatchlistId: filters.WatchlistId,
+        ObservedAfter: filters.ObservedAfter,
+        ObservedBefore: filters.ObservedBefore,
+        ThesisStatus: filters.ThesisStatus,
+        ThesisConfidence: filters.ThesisConfidence,
+        PredictionStatus: filters.PredictionStatus,
+        PredictionOutcome: filters.PredictionOutcome,
+        ResolvesAfter: filters.ResolvesAfter,
+        ResolvesBefore: filters.ResolvesBefore,
+        RadarStatus: filters.RadarStatus,
+        RadarPriority: filters.RadarPriority);
 
     /// <inheritdoc cref="ToFilters"/>
     internal static SavedViewFiltersModel ToModel(SavedViewFilters filters) => new(
@@ -509,7 +529,23 @@ internal static class M3Endpoints
         UnlinkedOnly: filters.UnlinkedOnly,
         HasAttachments: filters.HasAttachments,
         OccurredAfter: filters.OccurredAfter,
-        OccurredBefore: filters.OccurredBefore);
+        OccurredBefore: filters.OccurredBefore,
+        SignalKind: filters.SignalKind,
+        SignalVerification: filters.SignalVerification,
+        IntelligenceSensitivity: filters.IntelligenceSensitivity,
+        SubjectKind: filters.SubjectKind,
+        SubjectId: filters.SubjectId,
+        WatchlistId: filters.WatchlistId,
+        ObservedAfter: filters.ObservedAfter,
+        ObservedBefore: filters.ObservedBefore,
+        ThesisStatus: filters.ThesisStatus,
+        ThesisConfidence: filters.ThesisConfidence,
+        PredictionStatus: filters.PredictionStatus,
+        PredictionOutcome: filters.PredictionOutcome,
+        ResolvesAfter: filters.ResolvesAfter,
+        ResolvesBefore: filters.ResolvesBefore,
+        RadarStatus: filters.RadarStatus,
+        RadarPriority: filters.RadarPriority);
 
     // --------------------------------------------------------------- mapping
 

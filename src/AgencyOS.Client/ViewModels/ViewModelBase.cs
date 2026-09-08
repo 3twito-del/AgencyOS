@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -85,6 +86,27 @@ public abstract class ViewModelBase : INotifyPropertyChanged
         {
             IsLoading = false;
             OnPropertyChanged(nameof(IsEmpty));
+        }
+    }
+
+    /// <summary>
+    /// Refills a bound collection with a freshly loaded page.
+    /// </summary>
+    /// <remarks>
+    /// Clear-then-add rather than assigning a new collection, because the binding
+    /// holds the instance. Replacing the reference would leave the screen showing
+    /// the previous page while the view model believed it had refreshed.
+    /// </remarks>
+    protected static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> items)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(items);
+
+        target.Clear();
+
+        foreach (T item in items)
+        {
+            target.Add(item);
         }
     }
 

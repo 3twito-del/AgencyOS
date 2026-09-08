@@ -907,6 +907,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -998,6 +999,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -1182,6 +1184,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -1966,6 +1969,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -2062,6 +2066,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -2276,6 +2281,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -2445,6 +2451,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -2630,6 +2637,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -2747,6 +2755,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -3010,6 +3019,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -3122,6 +3132,1108 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_users_external_subject");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.IntelligenceEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_user_id");
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("detail");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("OwnerKind")
+                        .HasColumnType("integer")
+                        .HasColumnName("owner_kind");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("summary");
+
+                    b.Property<Guid?>("prediction_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("prediction_id");
+
+                    b.Property<Guid?>("radar_entry_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("radar_entry_id");
+
+                    b.Property<Guid?>("research_case_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("research_case_id");
+
+                    b.Property<Guid?>("signal_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signal_id");
+
+                    b.Property<Guid?>("source_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.Property<Guid?>("thesis_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("thesis_id");
+
+                    b.Property<Guid?>("watchlist_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("watchlist_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "OccurredAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_intelligence_events_organization_occurred");
+
+                    b.HasIndex("OrganizationId", "OwnerKind", "OwnerId", "OccurredAt")
+                        .IsDescending(false, false, false, true)
+                        .HasDatabaseName("ix_intelligence_events_owner");
+
+                    b.ToTable("intelligence_events", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.IntelligenceSource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Author")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("author");
+
+                    b.Property<Guid?>("DocumentVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_version_id");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("external_reference");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid?>("MessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("message_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTimeOffset>("ObservedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("observed_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("published_at");
+
+                    b.Property<string>("Publisher")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("publisher");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("Reliability")
+                        .HasColumnType("integer")
+                        .HasColumnName("reliability");
+
+                    b.Property<DateTimeOffset?>("ReliabilityAssessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reliability_assessed_at");
+
+                    b.Property<Guid?>("ReliabilityAssessedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reliability_assessed_by");
+
+                    b.Property<string>("ReliabilityRationale")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reliability_rationale");
+
+                    b.Property<int>("Sensitivity")
+                        .HasColumnType("integer")
+                        .HasColumnName("sensitivity");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("url");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("OrganizationId", "Kind")
+                        .HasDatabaseName("ix_intelligence_sources_organization_kind");
+
+                    b.HasIndex("OrganizationId", "ObservedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_intelligence_sources_organization_observed");
+
+                    b.ToTable("intelligence_sources", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.IntelligenceSubject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("AddedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("subject_kind");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<Guid?>("company_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("company_id");
+
+                    b.Property<Guid?>("contract_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid?>("deal_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deal_id");
+
+                    b.Property<Guid?>("opportunity_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("opportunity_id");
+
+                    b.Property<int>("owner_kind")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("package_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("package_id");
+
+                    b.Property<Guid?>("person_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("person_id");
+
+                    b.Property<Guid?>("project_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid?>("project_role_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_role_id");
+
+                    b.Property<Guid?>("source_property_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_property_id");
+
+                    b.Property<Guid?>("talent_profile_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("talent_profile_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("owner_kind", "Kind")
+                        .HasDatabaseName("ix_intelligence_subjects_owner_subject");
+
+                    b.HasIndex("OrganizationId", "Kind", "SubjectId")
+                        .HasDatabaseName("ix_intelligence_subjects_subject");
+
+                    b.ToTable("intelligence_subjects", (string)null);
+
+                    b.HasDiscriminator<int>("owner_kind");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.Prediction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<string>("CancelledReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("cancelled_reason");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int?>("Outcome")
+                        .HasColumnType("integer")
+                        .HasColumnName("outcome");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<string>("ResolutionCriteria")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("resolution_criteria");
+
+                    b.Property<string>("ResolutionNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("resolution_note");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<Guid?>("ResolvedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by");
+
+                    b.Property<DateTimeOffset>("ResolvesBy")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolves_by");
+
+                    b.Property<int>("Sensitivity")
+                        .HasColumnType("integer")
+                        .HasColumnName("sensitivity");
+
+                    b.Property<string>("Statement")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("statement");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Outcome")
+                        .HasDatabaseName("ix_predictions_organization_outcome");
+
+                    b.HasIndex("OrganizationId", "OwnerUserId")
+                        .HasDatabaseName("ix_predictions_organization_owner");
+
+                    b.HasIndex("OrganizationId", "ResolvesBy")
+                        .HasDatabaseName("ix_predictions_organization_resolves")
+                        .HasFilter("outcome IS NULL AND cancelled_at IS NULL");
+
+                    b.ToTable("predictions", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.PredictionEvidence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("AddedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("PredictionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("prediction_id");
+
+                    b.Property<Guid?>("SignalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signal_id");
+
+                    b.Property<Guid?>("SourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PredictionId")
+                        .HasDatabaseName("ix_prediction_evidence_prediction");
+
+                    b.HasIndex("OrganizationId", "PredictionId");
+
+                    b.ToTable("prediction_evidence", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.PredictionRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("PredictionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("prediction_id");
+
+                    b.Property<decimal>("Probability")
+                        .HasColumnType("numeric(5,4)")
+                        .HasColumnName("probability");
+
+                    b.Property<string>("Rationale")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("rationale");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "PredictionId");
+
+                    b.HasIndex("PredictionId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_prediction_revisions_prediction_sequence");
+
+                    b.ToTable("prediction_revisions", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ResearchCase", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<string>("Conclusion")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("conclusion");
+
+                    b.Property<string>("Context")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("context");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset>("OpenedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("opened_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("question");
+
+                    b.Property<int>("Sensitivity")
+                        .HasColumnType("integer")
+                        .HasColumnName("sensitivity");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_research_cases_organization_status");
+
+                    b.ToTable("research_cases", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ResearchCaseLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("AddedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("LinkedId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("linked_id");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ResearchCaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("research_case_id");
+
+                    b.Property<Guid?>("prediction_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("prediction_id");
+
+                    b.Property<Guid?>("signal_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signal_id");
+
+                    b.Property<Guid?>("source_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.Property<Guid?>("task_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("task_id");
+
+                    b.Property<Guid?>("thesis_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("thesis_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "ResearchCaseId");
+
+                    b.HasIndex("OrganizationId", "Kind", "LinkedId")
+                        .HasDatabaseName("ix_research_case_links_target");
+
+                    b.HasIndex("ResearchCaseId", "Kind", "LinkedId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_research_case_links_case_target");
+
+                    b.ToTable("research_case_links", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.Signal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Claim")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("claim");
+
+                    b.Property<int>("Confidence")
+                        .HasColumnType("integer")
+                        .HasColumnName("confidence");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTimeOffset>("ObservedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("observed_at");
+
+                    b.Property<DateTimeOffset?>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("Sensitivity")
+                        .HasColumnType("integer")
+                        .HasColumnName("sensitivity");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<int>("Verification")
+                        .HasColumnType("integer")
+                        .HasColumnName("verification");
+
+                    b.Property<DateTimeOffset?>("VerificationChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("verification_changed_at");
+
+                    b.Property<Guid?>("VerificationChangedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("verification_changed_by");
+
+                    b.Property<string>("VerificationNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("verification_note");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "ObservedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_signals_organization_observed");
+
+                    b.HasIndex("OrganizationId", "Sensitivity")
+                        .HasDatabaseName("ix_signals_organization_sensitivity");
+
+                    b.HasIndex("OrganizationId", "Verification")
+                        .HasDatabaseName("ix_signals_organization_verification");
+
+                    b.ToTable("signals", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.SignalEvidence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("AddedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by");
+
+                    b.Property<string>("Excerpt")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("excerpt");
+
+                    b.Property<string>("Locator")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("locator");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.Property<Guid>("SignalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signal_id");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceId")
+                        .HasDatabaseName("ix_signal_evidence_source");
+
+                    b.HasIndex("OrganizationId", "SignalId");
+
+                    b.HasIndex("SignalId", "SourceId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_signal_evidence_signal_source");
+
+                    b.ToTable("signal_evidence", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.TalentRadarEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ConvertedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("converted_at");
+
+                    b.Property<Guid?>("ConvertedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("converted_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("DismissedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("dismissed_at");
+
+                    b.Property<string>("DismissedReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("dismissed_reason");
+
+                    b.Property<DateTimeOffset>("FirstObservedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_observed_at");
+
+                    b.Property<string>("IntendedDisciplines")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("intended_disciplines");
+
+                    b.Property<DateTimeOffset?>("LastReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_reviewed_at");
+
+                    b.Property<Guid?>("LastReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_reviewed_by");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<Guid>("PersonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("person_id");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
+
+                    b.Property<Guid?>("ProspectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("prospect_id");
+
+                    b.Property<string>("Rationale")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("rationale");
+
+                    b.Property<int>("Sensitivity")
+                        .HasColumnType("integer")
+                        .HasColumnName("sensitivity");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("TalentProfileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("talent_profile_id");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("OrganizationId", "Id");
+
+                    b.HasIndex("OrganizationId", "LastReviewedAt")
+                        .HasDatabaseName("ix_talent_radar_organization_reviewed");
+
+                    b.HasIndex("OrganizationId", "PersonId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_talent_radar_open_person")
+                        .HasFilter("status IN (1, 2, 3)");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_talent_radar_organization_status");
+
+                    b.ToTable("talent_radar_entries", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.Thesis", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<string>("ClosedReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("closed_reason");
+
+                    b.Property<int>("Confidence")
+                        .HasColumnType("integer")
+                        .HasColumnName("confidence");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<string>("Proposition")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("proposition");
+
+                    b.Property<string>("Rationale")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("rationale");
+
+                    b.Property<int>("Sensitivity")
+                        .HasColumnType("integer")
+                        .HasColumnName("sensitivity");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("SupersededByThesisId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("superseded_by_thesis_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_theses_organization_status");
+
+                    b.HasIndex("OrganizationId", "UpdatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_theses_organization_updated");
+
+                    b.ToTable("theses", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ThesisEvidence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("AddedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("SignalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signal_id");
+
+                    b.Property<int>("Stance")
+                        .HasColumnType("integer")
+                        .HasColumnName("stance");
+
+                    b.Property<Guid>("ThesisId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("thesis_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SignalId")
+                        .HasDatabaseName("ix_thesis_evidence_signal");
+
+                    b.HasIndex("OrganizationId", "ThesisId");
+
+                    b.HasIndex("ThesisId", "SignalId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_thesis_evidence_thesis_signal");
+
+                    b.ToTable("thesis_evidence", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ThesisRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ChangeNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("change_note");
+
+                    b.Property<int>("Confidence")
+                        .HasColumnType("integer")
+                        .HasColumnName("confidence");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Proposition")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("proposition");
+
+                    b.Property<string>("Rationale")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("rationale");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid>("ThesisId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("thesis_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "ThesisId");
+
+                    b.HasIndex("ThesisId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ux_thesis_revisions_thesis_sequence");
+
+                    b.ToTable("thesis_revisions", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.Watchlist", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("LastReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_reviewed_at");
+
+                    b.Property<Guid?>("LastReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_reviewed_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
+                    b.Property<string>("Purpose")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("purpose");
+
+                    b.Property<int>("Sensitivity")
+                        .HasColumnType("integer")
+                        .HasColumnName("sensitivity");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("ix_watchlists_organization_status");
+
+                    b.ToTable("watchlists", (string)null);
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Interactions.Interaction", b =>
@@ -3301,6 +4413,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -3472,6 +4585,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -3889,6 +5003,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -4059,6 +5174,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -4162,6 +5278,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -4394,6 +5511,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -4536,6 +5654,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -4659,6 +5778,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -4800,6 +5920,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -5033,6 +6154,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -5230,6 +6352,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -5309,6 +6432,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -5427,6 +6551,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -5597,6 +6722,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -5921,6 +7047,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6032,6 +7159,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6184,6 +7312,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6374,6 +7503,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6503,6 +7633,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6589,6 +7720,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6662,6 +7794,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6817,6 +7950,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6898,6 +8032,7 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer")
                         .HasColumnName("version");
 
@@ -6913,6 +8048,71 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_tasks_organization_state_due_at");
 
                     b.ToTable("tasks", (string)null);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.PredictionSubject", b =>
+                {
+                    b.HasBaseType("AgencyOS.Domain.Intelligence.IntelligenceSubject");
+
+                    b.Property<Guid>("PredictionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("prediction_id");
+
+                    b.HasIndex("OrganizationId", "PredictionId");
+
+                    b.HasDiscriminator().HasValue(4);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ResearchCaseSubject", b =>
+                {
+                    b.HasBaseType("AgencyOS.Domain.Intelligence.IntelligenceSubject");
+
+                    b.Property<Guid>("ResearchCaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("research_case_id");
+
+                    b.HasIndex("OrganizationId", "ResearchCaseId");
+
+                    b.HasDiscriminator().HasValue(7);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.SignalSubject", b =>
+                {
+                    b.HasBaseType("AgencyOS.Domain.Intelligence.IntelligenceSubject");
+
+                    b.Property<Guid>("SignalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("signal_id");
+
+                    b.HasIndex("OrganizationId", "SignalId");
+
+                    b.HasDiscriminator().HasValue(2);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ThesisSubject", b =>
+                {
+                    b.HasBaseType("AgencyOS.Domain.Intelligence.IntelligenceSubject");
+
+                    b.Property<Guid>("ThesisId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("thesis_id");
+
+                    b.HasIndex("OrganizationId", "ThesisId");
+
+                    b.HasDiscriminator().HasValue(3);
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.WatchlistEntry", b =>
+                {
+                    b.HasBaseType("AgencyOS.Domain.Intelligence.IntelligenceSubject");
+
+                    b.Property<Guid>("WatchlistId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("watchlist_id");
+
+                    b.HasIndex("OrganizationId", "WatchlistId");
+
+                    b.HasDiscriminator().HasValue(5);
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Communications.CommunicationAccount", b =>
@@ -7353,6 +8553,66 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.PredictionEvidence", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Prediction", null)
+                        .WithMany("Evidence")
+                        .HasForeignKey("OrganizationId", "PredictionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.PredictionRevision", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Prediction", null)
+                        .WithMany("Revisions")
+                        .HasForeignKey("OrganizationId", "PredictionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ResearchCaseLink", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.ResearchCase", null)
+                        .WithMany("Links")
+                        .HasForeignKey("OrganizationId", "ResearchCaseId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.SignalEvidence", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Signal", null)
+                        .WithMany("Evidence")
+                        .HasForeignKey("OrganizationId", "SignalId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ThesisEvidence", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Thesis", null)
+                        .WithMany("Evidence")
+                        .HasForeignKey("OrganizationId", "ThesisId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ThesisRevision", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Thesis", null)
+                        .WithMany("Revisions")
+                        .HasForeignKey("OrganizationId", "ThesisId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -8344,6 +9604,56 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.PredictionSubject", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Prediction", null)
+                        .WithMany("Subjects")
+                        .HasForeignKey("OrganizationId", "PredictionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ResearchCaseSubject", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.ResearchCase", null)
+                        .WithMany("Subjects")
+                        .HasForeignKey("OrganizationId", "ResearchCaseId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.SignalSubject", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Signal", null)
+                        .WithMany("Subjects")
+                        .HasForeignKey("OrganizationId", "SignalId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ThesisSubject", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Thesis", null)
+                        .WithMany("Subjects")
+                        .HasForeignKey("OrganizationId", "ThesisId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.WatchlistEntry", b =>
+                {
+                    b.HasOne("AgencyOS.Domain.Intelligence.Watchlist", null)
+                        .WithMany("Entries")
+                        .HasForeignKey("OrganizationId", "WatchlistId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AgencyOS.Domain.Communications.CommunicationMessage", b =>
                 {
                     b.Navigation("Attachments");
@@ -8397,6 +9707,43 @@ namespace AgencyOS.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AgencyOS.Domain.Finance.Payment", b =>
                 {
                     b.Navigation("Allocations");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.Prediction", b =>
+                {
+                    b.Navigation("Evidence");
+
+                    b.Navigation("Revisions");
+
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.ResearchCase", b =>
+                {
+                    b.Navigation("Links");
+
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.Signal", b =>
+                {
+                    b.Navigation("Evidence");
+
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.Thesis", b =>
+                {
+                    b.Navigation("Evidence");
+
+                    b.Navigation("Revisions");
+
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("AgencyOS.Domain.Intelligence.Watchlist", b =>
+                {
+                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("AgencyOS.Domain.Interactions.Interaction", b =>

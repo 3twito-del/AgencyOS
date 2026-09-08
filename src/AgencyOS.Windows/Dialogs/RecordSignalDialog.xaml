@@ -1,0 +1,99 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordSignalDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record a signal"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="600">
+        <StackPanel Spacing="10" MinWidth="560">
+            <!--
+                The provenance rule, stated where somebody is about to write a claim.
+                It is enforced in the aggregate, in the handler and in a database
+                trigger; saying it here is what stops it feeling arbitrary.
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="A claim is recorded with its evidence"
+                     Message="At least one source is required, and it stays required. AgencyOS does not hold unsourced claims." />
+
+            <TextBox x:Name="TitleBox" Header="Short title" TextChanged="OnRequiredChanged" />
+
+            <TextBox x:Name="ClaimBox" Header="The claim" TextWrapping="Wrap" AcceptsReturn="True"
+                     Height="80" TextChanged="OnRequiredChanged"
+                     PlaceholderText="What is being asserted, in one or two sentences" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox Grid.Column="0" x:Name="KindBox" Header="Kind" HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Personnel change" Tag="PersonnelChange" IsSelected="True" />
+                    <ComboBoxItem Content="Project movement" Tag="ProjectMovement" />
+                    <ComboBoxItem Content="Market activity" Tag="MarketActivity" />
+                    <ComboBoxItem Content="Company change" Tag="CompanyChange" />
+                    <ComboBoxItem Content="Financing" Tag="Financing" />
+                    <ComboBoxItem Content="Availability" Tag="Availability" />
+                    <ComboBoxItem Content="Relationship" Tag="Relationship" />
+                    <ComboBoxItem Content="Other" Tag="Other" />
+                </ComboBox>
+
+                <ComboBox Grid.Column="1" x:Name="ConfidenceBox" Header="Your confidence"
+                          HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Not stated" Tag="Unstated" IsSelected="True" />
+                    <ComboBoxItem Content="Low" Tag="Low" />
+                    <ComboBoxItem Content="Medium" Tag="Medium" />
+                    <ComboBoxItem Content="High" Tag="High" />
+                </ComboBox>
+            </Grid>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <CalendarDatePicker Grid.Column="0" x:Name="OccurredPicker"
+                                    Header="When it happened (optional)" />
+                <CalendarDatePicker Grid.Column="1" x:Name="ObservedPicker"
+                                    Header="When you learned it" />
+            </Grid>
+
+            <ComboBox x:Name="SensitivityBox" Header="Classification" MinWidth="240">
+                <ComboBoxItem Content="Internal" Tag="Internal" IsSelected="True" />
+                <ComboBoxItem Content="Confidential" Tag="Confidential" />
+                <ComboBoxItem Content="Source sensitive" Tag="SourceSensitive" />
+                <ComboBoxItem Content="Restricted" Tag="Restricted" />
+            </ComboBox>
+
+            <ComboBox x:Name="SourceBox" Header="Source" MinWidth="480"
+                      DisplayMemberPath="Title" SelectionChanged="OnSourceChanged" />
+
+            <ComboBox x:Name="RoleBox" Header="What this source does for the claim" MinWidth="280">
+                <ComboBoxItem Content="It is the primary evidence" Tag="Primary" IsSelected="True" />
+                <ComboBoxItem Content="It corroborates" Tag="Corroborating" />
+                <ComboBoxItem Content="It contradicts" Tag="Contradicting" />
+                <ComboBoxItem Content="It is context" Tag="Context" />
+            </ComboBox>
+
+            <!--
+                An excerpt is a selection somebody made, never the whole source. It is
+                stored under the signal's classification and withheld from readers who
+                may not open the artifact it quotes.
+            -->
+            <TextBox x:Name="ExcerptBox" Header="Excerpt (optional)" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70"
+                     PlaceholderText="The part of the source that supports this claim" />
+
+            <TextBox x:Name="LocatorBox" Header="Where in the source (optional)"
+                     PlaceholderText="Page, timestamp, paragraph" />
+
+            <TextBox x:Name="NotesBox" Header="Notes (optional)" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="60" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

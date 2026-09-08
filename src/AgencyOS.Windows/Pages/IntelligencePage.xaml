@@ -1,0 +1,832 @@
+<Page
+    x:Class="AgencyOS.Windows.Pages.IntelligencePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="16" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Spacing="4">
+            <TextBlock Text="Intelligence" Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock Opacity="0.7" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Text="Evidence, claims, views and forecasts, kept apart. AgencyOS records what people know and what they think, with provenance, and never decides which of it is true." />
+        </StackPanel>
+
+        <InfoBar Grid.Row="1" x:Name="PageError" Severity="Error" IsOpen="False"
+                 IsClosable="False" Title="Something went wrong" />
+
+        <TabView Grid.Row="2" x:Name="Tabs" IsAddTabButtonVisible="False"
+                 CanDragTabs="False" CanReorderTabs="False"
+                 SelectionChanged="OnTabChanged">
+
+            <!-- desk -->
+            <TabViewItem Header="Desk" IsClosable="False">
+                <ScrollViewer>
+                    <StackPanel Spacing="14" Padding="4,10">
+                        <TextBlock Opacity="0.7" TextWrapping="Wrap"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="What is waiting. Nothing on this screen is ranked or scored by AgencyOS: these are the states that need somebody to look, in a fixed order." />
+
+                        <ProgressBar x:Name="DeskBusy" IsIndeterminate="True" Visibility="Collapsed" />
+
+                        <InfoBar x:Name="DeskClear" Severity="Success" IsOpen="False"
+                                 IsClosable="False" Title="Nothing waiting"
+                                 Message="No overdue forecasts, disputed claims, radar reviews or late research." />
+
+                        <StackPanel Spacing="6">
+                            <TextBlock x:Name="AwaitingHeader"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="Past their resolution date and still open. A forecast nobody closes teaches nobody anything." />
+                            <ListView x:Name="AwaitingList" MaxHeight="200" SelectionMode="Single">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="2,4">
+                                            <TextBlock Text="{Binding Statement}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding ResolvesBy}" Opacity="0.6"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock x:Name="DisputedHeader"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="Claims other evidence disagrees with. Kept on the record with the disagreement attached." />
+                            <ListView x:Name="DisputedList" MaxHeight="200" SelectionMode="Single">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="2,4">
+                                            <TextBlock Text="{Binding Title}" />
+                                            <TextBlock Text="{Binding Claim}" Opacity="0.6"
+                                                       TextWrapping="Wrap"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock x:Name="RadarReviewHeader"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="RadarReviewList" MaxHeight="180" SelectionMode="Single">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="2,4">
+                                            <TextBlock Text="{Binding PersonDisplayName}" />
+                                            <TextBlock Text="{Binding Rationale}" Opacity="0.6"
+                                                       TextWrapping="Wrap"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Watchlists with new activity"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="WatchlistActivityList" MaxHeight="160"
+                                      SelectionMode="Single" DisplayMemberPath="Name" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Research with overdue work"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="OverdueResearchList" MaxHeight="160"
+                                      SelectionMode="Single" DisplayMemberPath="Question" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+
+            <!-- signals -->
+            <TabViewItem Header="Signals" IsClosable="False">
+                <Grid ColumnSpacing="16" Padding="4,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="440" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ComboBox x:Name="SignalKindBox" MinWidth="170"
+                                          SelectionChanged="OnSignalFilterChanged">
+                                    <ComboBoxItem Content="Any kind" Tag="" IsSelected="True" />
+                                    <ComboBoxItem Content="Personnel change" Tag="PersonnelChange" />
+                                    <ComboBoxItem Content="Project movement" Tag="ProjectMovement" />
+                                    <ComboBoxItem Content="Market activity" Tag="MarketActivity" />
+                                    <ComboBoxItem Content="Company change" Tag="CompanyChange" />
+                                    <ComboBoxItem Content="Financing" Tag="Financing" />
+                                    <ComboBoxItem Content="Availability" Tag="Availability" />
+                                    <ComboBoxItem Content="Relationship" Tag="Relationship" />
+                                    <ComboBoxItem Content="Other" Tag="Other" />
+                                </ComboBox>
+
+                                <ComboBox x:Name="SignalVerificationBox" MinWidth="160"
+                                          SelectionChanged="OnSignalFilterChanged">
+                                    <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
+                                    <ComboBoxItem Content="Unverified" Tag="Unverified" />
+                                    <ComboBoxItem Content="Corroborated" Tag="Corroborated" />
+                                    <ComboBoxItem Content="Disputed" Tag="Disputed" />
+                                    <ComboBoxItem Content="Retracted" Tag="Retracted" />
+                                </ComboBox>
+                            </StackPanel>
+
+                            <AutoSuggestBox x:Name="SignalSearchBox"
+                                            PlaceholderText="Title or claim"
+                                            QuerySubmitted="OnSignalSearchSubmitted" />
+
+                            <!--
+                                Said on the screen. Excerpts are quotations from M10
+                                artifacts and are deliberately not searched, so a hit
+                                can never report the contents of a document the reader
+                                may not open.
+                            -->
+                            <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="Matches titles and claims. Excerpts are not searched: an excerpt quotes a stored document, and a match would report its contents." />
+
+                            <ProgressBar x:Name="SignalBusy" IsIndeterminate="True"
+                                         Visibility="Collapsed" />
+                            <InfoBar x:Name="SignalEmpty" Severity="Informational" IsOpen="False"
+                                     IsClosable="False" Title="Nothing here"
+                                     Message="No signals match these filters." />
+                        </StackPanel>
+
+                        <ListView Grid.Row="1" x:Name="SignalList" SelectionMode="Single"
+                                  SelectionChanged="OnSignalSelected">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="4,6" ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Title}" />
+                                            <TextBlock Text="{Binding Claim}" Opacity="0.65"
+                                                       TextWrapping="Wrap" MaxLines="2"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                            <TextBlock Text="{Binding Verification}" Opacity="0.75"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                            <TextBlock Text="{Binding Sensitivity}" Opacity="0.5"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+
+                    <ScrollViewer Grid.Column="1">
+                        <StackPanel Spacing="10">
+                            <TextBlock x:Name="SignalTitleText"
+                                       Style="{StaticResource SubtitleTextBlockStyle}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock x:Name="SignalClaimText" TextWrapping="Wrap" />
+
+                            <InfoBar x:Name="SignalVerificationBar" IsOpen="False"
+                                     IsClosable="False" />
+
+                            <TextBlock x:Name="SignalMetaText" Opacity="0.7" TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+                            <TextBlock Text="Evidence"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                            <InfoBar x:Name="WithheldBar" Severity="Informational" IsOpen="False"
+                                     IsClosable="False" Title="Some excerpts are withheld"
+                                     Message="One or more of these citations quotes a document classified above your access. The citation is shown; the quotation is not." />
+
+                            <ListView x:Name="SignalEvidenceList" MaxHeight="260"
+                                      SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="2,6">
+                                            <TextBlock Text="{Binding SourceTitle}" />
+                                            <TextBlock Text="{Binding Role}" Opacity="0.6"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                            <TextBlock Text="{Binding Excerpt}" Opacity="0.8"
+                                                       TextWrapping="Wrap"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock Text="Subjects"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="SignalSubjectList" MaxHeight="140"
+                                      SelectionMode="None" DisplayMemberPath="Label" />
+
+                            <TextBlock Text="History"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="SignalHistoryList" MaxHeight="180"
+                                      SelectionMode="None" DisplayMemberPath="Summary" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabViewItem>
+
+            <!-- sources -->
+            <TabViewItem Header="Sources" IsClosable="False">
+                <Grid RowSpacing="8" Padding="4,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Spacing="6">
+                        <TextBlock Opacity="0.7" TextWrapping="Wrap"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="Evidence. A source is never marked true: what it is and where it came from are facts, and how reliable it is is a judgment recorded with the name of whoever made it." />
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox x:Name="SourceKindBox" MinWidth="200"
+                                      SelectionChanged="OnSourceFilterChanged">
+                                <ComboBoxItem Content="Any kind" Tag="" IsSelected="True" />
+                                <ComboBoxItem Content="Stored document" Tag="DocumentVersion" />
+                                <ComboBoxItem Content="Stored message" Tag="Message" />
+                                <ComboBoxItem Content="Web page" Tag="ExternalUrl" />
+                                <ComboBoxItem Content="Observation" Tag="ManualObservation" />
+                                <ComboBoxItem Content="Other" Tag="Other" />
+                            </ComboBox>
+
+                            <ComboBox x:Name="SourceReliabilityBox" MinWidth="170"
+                                      SelectionChanged="OnSourceFilterChanged">
+                                <ComboBoxItem Content="Any reliability" Tag="" IsSelected="True" />
+                                <ComboBoxItem Content="Not assessed" Tag="Unassessed" />
+                                <ComboBoxItem Content="Low" Tag="Low" />
+                                <ComboBoxItem Content="Medium" Tag="Medium" />
+                                <ComboBoxItem Content="High" Tag="High" />
+                                <ComboBoxItem Content="Primary" Tag="Primary" />
+                            </ComboBox>
+
+                            <AutoSuggestBox x:Name="SourceSearchBox" MinWidth="240"
+                                            PlaceholderText="Title, publisher or author"
+                                            QuerySubmitted="OnSourceSearchSubmitted" />
+                        </StackPanel>
+
+                        <ProgressBar x:Name="SourceBusy" IsIndeterminate="True"
+                                     Visibility="Collapsed" />
+                        <InfoBar x:Name="SourceEmpty" Severity="Informational" IsOpen="False"
+                                 IsClosable="False" Title="Nothing here"
+                                 Message="No sources match these filters." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="1" x:Name="SourceList" SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Title}" />
+                                        <TextBlock Text="{Binding Kind}" Opacity="0.6"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding Reliability}" Opacity="0.75"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding Sensitivity}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </TabViewItem>
+
+            <!-- theses -->
+            <TabViewItem Header="Theses" IsClosable="False">
+                <Grid ColumnSpacing="16" Padding="4,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Spacing="6">
+                            <ComboBox x:Name="ThesisStatusBox" MinWidth="180"
+                                      SelectionChanged="OnThesisFilterChanged">
+                                <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
+                                <ComboBoxItem Content="Draft" Tag="Draft" />
+                                <ComboBoxItem Content="Active" Tag="Active" />
+                                <ComboBoxItem Content="Retired" Tag="Retired" />
+                                <ComboBoxItem Content="Superseded" Tag="Superseded" />
+                            </ComboBox>
+
+                            <AutoSuggestBox x:Name="ThesisSearchBox"
+                                            PlaceholderText="Title or proposition"
+                                            QuerySubmitted="OnThesisSearchSubmitted" />
+
+                            <ProgressBar x:Name="ThesisBusy" IsIndeterminate="True"
+                                         Visibility="Collapsed" />
+                            <InfoBar x:Name="ThesisEmpty" Severity="Informational" IsOpen="False"
+                                     IsClosable="False" Title="Nothing here"
+                                     Message="No theses match these filters." />
+                        </StackPanel>
+
+                        <ListView Grid.Row="1" x:Name="ThesisList" SelectionMode="Single"
+                                  SelectionChanged="OnThesisSelected">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Padding="4,6">
+                                        <TextBlock Text="{Binding Title}" />
+                                        <TextBlock Text="{Binding Proposition}" Opacity="0.65"
+                                                   TextWrapping="Wrap" MaxLines="2"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding Status}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+
+                    <ScrollViewer Grid.Column="1">
+                        <StackPanel Spacing="10">
+                            <TextBlock x:Name="ThesisTitleText"
+                                       Style="{StaticResource SubtitleTextBlockStyle}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock x:Name="ThesisPropositionText" TextWrapping="Wrap" />
+                            <TextBlock x:Name="ThesisMetaText" Opacity="0.7" TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+                            <!--
+                                Supporting and challenging side by side, never netted.
+                                Five weak agreements do not outweigh one strong
+                                contradiction, and a single number would say they do.
+                            -->
+                            <TextBlock x:Name="ThesisEvidenceBalanceText"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                            <TextBlock Text="Revisions"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="ThesisRevisionList" MaxHeight="220"
+                                      SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="2,6">
+                                            <TextBlock Text="{Binding Proposition}"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding ChangeNote}" Opacity="0.6"
+                                                       TextWrapping="Wrap"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock Text="Evidence"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="ThesisEvidenceList" MaxHeight="200"
+                                      SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="2,6">
+                                            <TextBlock Text="{Binding SignalTitle}" />
+                                            <TextBlock Text="{Binding Stance}" Opacity="0.6"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabViewItem>
+
+            <!-- predictions -->
+            <TabViewItem Header="Predictions" IsClosable="False">
+                <Grid RowSpacing="10" Padding="4,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox x:Name="PredictionStatusBox" MinWidth="200"
+                                      SelectionChanged="OnPredictionFilterChanged">
+                                <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
+                                <ComboBoxItem Content="Open" Tag="Open" />
+                                <ComboBoxItem Content="Awaiting resolution"
+                                              Tag="AwaitingResolution" />
+                                <ComboBoxItem Content="Resolved" Tag="Resolved" />
+                                <ComboBoxItem Content="Cancelled" Tag="Cancelled" />
+                            </ComboBox>
+
+                            <AutoSuggestBox x:Name="PredictionSearchBox" MinWidth="260"
+                                            PlaceholderText="Statement"
+                                            QuerySubmitted="OnPredictionSearchSubmitted" />
+                        </StackPanel>
+
+                        <ProgressBar x:Name="PredictionBusy" IsIndeterminate="True"
+                                     Visibility="Collapsed" />
+                        <InfoBar x:Name="PredictionEmpty" Severity="Informational" IsOpen="False"
+                                 IsClosable="False" Title="Nothing here"
+                                 Message="No predictions match these filters." />
+                    </StackPanel>
+
+                    <!--
+                        Arithmetic and a sample count, with no label. There is no "well
+                        calibrated" badge and no forecaster ranking anywhere in M11: a
+                        mean over a handful of resolved questions supports very little.
+                    -->
+                    <Border Grid.Row="1" Padding="12" CornerRadius="6"
+                            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Calibration"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock x:Name="CalibrationText" TextWrapping="Wrap" />
+                            <TextBlock x:Name="CalibrationCaveatText" Opacity="0.6"
+                                       TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                    </Border>
+
+                    <ListView Grid.Row="2" x:Name="PredictionList" SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Statement}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding CurrentProbabilityByDisplayName}"
+                                                   Opacity="0.6"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding Status}" Opacity="0.75"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding ResolvesBy}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </TabViewItem>
+
+            <!-- watchlists -->
+            <TabViewItem Header="Watchlists" IsClosable="False">
+                <Grid ColumnSpacing="16" Padding="4,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="380" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Spacing="6">
+                            <ComboBox x:Name="WatchlistStatusBox" MinWidth="160"
+                                      SelectionChanged="OnWatchlistFilterChanged">
+                                <ComboBoxItem Content="Active" Tag="Active" IsSelected="True" />
+                                <ComboBoxItem Content="Archived" Tag="Archived" />
+                                <ComboBoxItem Content="Both" Tag="" />
+                            </ComboBox>
+
+                            <ProgressBar x:Name="WatchlistBusy" IsIndeterminate="True"
+                                         Visibility="Collapsed" />
+                            <InfoBar x:Name="WatchlistEmpty" Severity="Informational"
+                                     IsOpen="False" IsClosable="False" Title="Nothing here"
+                                     Message="No watchlists yet." />
+                        </StackPanel>
+
+                        <ListView Grid.Row="1" x:Name="WatchlistList" SelectionMode="Single"
+                                  SelectionChanged="OnWatchlistSelected">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Padding="4,6">
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock Text="{Binding Purpose}" Opacity="0.6"
+                                                   TextWrapping="Wrap" MaxLines="2"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+
+                    <ScrollViewer Grid.Column="1">
+                        <StackPanel Spacing="10">
+                            <TextBlock x:Name="WatchlistNameText"
+                                       Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <TextBlock x:Name="WatchlistReviewText" Opacity="0.7"
+                                       TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+                            <InfoBar x:Name="WatchlistNewActivityBar" Severity="Informational"
+                                     IsOpen="False" IsClosable="False"
+                                     Title="New since the last review" />
+
+                            <TextBlock Text="Recent signals about these records"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="WatchlistSignalList" MaxHeight="240"
+                                      SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="2,6">
+                                            <TextBlock Text="{Binding Title}" />
+                                            <TextBlock Text="{Binding Claim}" Opacity="0.6"
+                                                       TextWrapping="Wrap" MaxLines="2"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock Text="Open predictions about these records"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="WatchlistPredictionList" MaxHeight="180"
+                                      SelectionMode="None" DisplayMemberPath="Statement" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabViewItem>
+
+            <!-- radar -->
+            <TabViewItem Header="Radar" IsClosable="False">
+                <Grid RowSpacing="8" Padding="4,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Spacing="6">
+                        <!--
+                            The one thing the radar does not do. Priority is set by a
+                            person; AgencyOS neither ranks people nor scores fit.
+                        -->
+                        <TextBlock Opacity="0.7" TextWrapping="Wrap"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Text="People somebody is watching, with a written reason. Priority is set by a person: AgencyOS does not rank talent, score fit or suggest who to sign." />
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox x:Name="RadarStatusBox" MinWidth="190"
+                                      SelectionChanged="OnRadarFilterChanged">
+                                <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
+                                <ComboBoxItem Content="Watching" Tag="Watching" />
+                                <ComboBoxItem Content="Researching" Tag="Researching" />
+                                <ComboBoxItem Content="Ready for review" Tag="ReadyForReview" />
+                                <ComboBoxItem Content="Converted" Tag="ConvertedToProspect" />
+                                <ComboBoxItem Content="Dismissed" Tag="Dismissed" />
+                            </ComboBox>
+
+                            <ComboBox x:Name="RadarPriorityBox" MinWidth="160"
+                                      SelectionChanged="OnRadarFilterChanged">
+                                <ComboBoxItem Content="Any priority" Tag="" IsSelected="True" />
+                                <ComboBoxItem Content="Unassigned" Tag="Unassigned" />
+                                <ComboBoxItem Content="Low" Tag="Low" />
+                                <ComboBoxItem Content="Medium" Tag="Medium" />
+                                <ComboBoxItem Content="High" Tag="High" />
+                            </ComboBox>
+
+                            <AutoSuggestBox x:Name="RadarSearchBox" MinWidth="220"
+                                            PlaceholderText="Name or rationale"
+                                            QuerySubmitted="OnRadarSearchSubmitted" />
+                        </StackPanel>
+
+                        <ProgressBar x:Name="RadarBusy" IsIndeterminate="True"
+                                     Visibility="Collapsed" />
+                        <InfoBar x:Name="RadarEmpty" Severity="Informational" IsOpen="False"
+                                 IsClosable="False" Title="Nothing here"
+                                 Message="Nobody is on the radar with these filters." />
+                    </StackPanel>
+
+                    <ListView Grid.Row="1" x:Name="RadarList" SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,6" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding PersonDisplayName}" />
+                                        <TextBlock Text="{Binding Rationale}" Opacity="0.65"
+                                                   TextWrapping="Wrap" MaxLines="2"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding Status}" Opacity="0.75"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding Priority}" Opacity="0.5"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </TabViewItem>
+
+            <!-- research -->
+            <TabViewItem Header="Research" IsClosable="False">
+                <Grid ColumnSpacing="16" Padding="4,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="400" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Spacing="6">
+                            <ComboBox x:Name="ResearchStatusBox" MinWidth="170"
+                                      SelectionChanged="OnResearchFilterChanged">
+                                <ComboBoxItem Content="Open" Tag="Open" IsSelected="True" />
+                                <ComboBoxItem Content="Paused" Tag="Paused" />
+                                <ComboBoxItem Content="Completed" Tag="Completed" />
+                                <ComboBoxItem Content="Cancelled" Tag="Cancelled" />
+                                <ComboBoxItem Content="Any" Tag="" />
+                            </ComboBox>
+
+                            <AutoSuggestBox x:Name="ResearchSearchBox"
+                                            PlaceholderText="Question"
+                                            QuerySubmitted="OnResearchSearchSubmitted" />
+
+                            <ProgressBar x:Name="ResearchBusy" IsIndeterminate="True"
+                                         Visibility="Collapsed" />
+                            <InfoBar x:Name="ResearchEmpty" Severity="Informational"
+                                     IsOpen="False" IsClosable="False" Title="Nothing here"
+                                     Message="No research cases match these filters." />
+                        </StackPanel>
+
+                        <ListView Grid.Row="1" x:Name="ResearchList" SelectionMode="Single"
+                                  SelectionChanged="OnResearchSelected">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Padding="4,6">
+                                        <TextBlock Text="{Binding Question}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Status}" Opacity="0.6"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+
+                    <ScrollViewer Grid.Column="1">
+                        <StackPanel Spacing="10">
+                            <TextBlock x:Name="ResearchQuestionText"
+                                       Style="{StaticResource SubtitleTextBlockStyle}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock x:Name="ResearchContextText" TextWrapping="Wrap"
+                                       Opacity="0.8" />
+                            <TextBlock x:Name="ResearchCountsText" Opacity="0.7"
+                                       TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+                            <InfoBar x:Name="ResearchOverdueBar" Severity="Warning" IsOpen="False"
+                                     IsClosable="False" Title="Work on this case is late" />
+
+                            <TextBlock Text="Tasks"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="ResearchTaskList" MaxHeight="180"
+                                      SelectionMode="None" DisplayMemberPath="Title" />
+
+                            <TextBlock Text="Signals"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="ResearchSignalList" MaxHeight="200"
+                                      SelectionMode="None" DisplayMemberPath="Title" />
+
+                            <TextBlock Text="Sources"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="ResearchSourceList" MaxHeight="200"
+                                      SelectionMode="None" DisplayMemberPath="Title" />
+
+                            <!--
+                                A case has no findings of its own. What the research
+                                concluded belongs in a thesis, where it can be revised,
+                                challenged and retired with a reason.
+                            -->
+                            <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="A case holds no findings. What the research concluded is recorded as a thesis, so it can be argued with and revised." />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabViewItem>
+
+            <!-- relationships -->
+            <TabViewItem Header="Relationship" IsClosable="False">
+                <ScrollViewer>
+                    <StackPanel Spacing="12" Padding="4,10" MaxWidth="900">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ComboBox x:Name="RelationshipKindBox" MinWidth="140">
+                                <ComboBoxItem Content="Person" Tag="Person" IsSelected="True" />
+                                <ComboBoxItem Content="Company" Tag="Company" />
+                            </ComboBox>
+
+                            <TextBox x:Name="RelationshipIdBox" MinWidth="330"
+                                     PlaceholderText="Record identifier" />
+
+                            <Button x:Name="RelationshipLoadButton" Content="Show"
+                                    Click="OnRelationshipRequested" />
+                        </StackPanel>
+
+                        <ProgressBar x:Name="RelationshipBusy" IsIndeterminate="True"
+                                     Visibility="Collapsed" />
+
+                        <TextBlock x:Name="RelationshipNameText"
+                                   Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                        <!--
+                            Recorded assessment, kept visibly apart from everything
+                            counted below it. "4 of 5" is somebody's judgment and says
+                            so; the counts are facts and say only that. There is no
+                            composite score anywhere on this screen.
+                        -->
+                        <Border Padding="12" CornerRadius="6"
+                                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="What somebody wrote down"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock x:Name="RecordedStrengthText" TextWrapping="Wrap" />
+                                <TextBlock x:Name="RelationshipOwnerText" Opacity="0.7"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="12" CornerRadius="6"
+                                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="What the records show"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock x:Name="InteractionCountsText" TextWrapping="Wrap" />
+                                <TextBlock x:Name="LastInteractionText" Opacity="0.75"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock x:Name="RelationshipTasksText" Opacity="0.75"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock Opacity="0.55" TextWrapping="Wrap"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Text="Counts, not a conclusion. Fourteen emails is not a strong relationship, and AgencyOS will not say that it is." />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Recent signals"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <ListView x:Name="RelationshipSignalList" MaxHeight="220"
+                                  SelectionMode="None" DisplayMemberPath="Title" />
+
+                        <TextBlock Text="Watchlists they are on"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <ListView x:Name="RelationshipWatchlistList" MaxHeight="140"
+                                  SelectionMode="None" DisplayMemberPath="Name" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+        </TabView>
+    </Grid>
+</Page>

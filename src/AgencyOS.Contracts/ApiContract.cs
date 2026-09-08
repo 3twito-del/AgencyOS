@@ -65,13 +65,21 @@ public static class ApiContract
     /// outbound send reports an unknown outcome as itself rather than as a failure.
     /// </para>
     /// <para>
+    /// Version 11 adds intelligence: sources with provenance, signals that keep at
+    /// least one of them, theses whose status has no "true" in it, predictions with
+    /// a probability somebody stated and a Brier score afterwards, watchlists, a
+    /// talent radar that hands over to M4 rather than duplicating it, and research
+    /// cases. It adds no model, no summarizer and no score: every judgment in it
+    /// belongs to a named person on a stated date.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 10;
+    public const int Current = 11;
 
     /// <summary>
     /// The lowest contract version this build still serves.

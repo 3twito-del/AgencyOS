@@ -132,6 +132,15 @@ public sealed class SavedViewService
             // ADR-0026).
             [SavedViewTarget.Documents] = Permission.DocumentsRead,
             [SavedViewTarget.Communications] = Permission.CommunicationsRead,
+
+            // The intelligence floor, with the elevated grant applied where the
+            // results are projected. A view saved by somebody who may read
+            // source-sensitive claims returns fewer rows to somebody who may not,
+            // and says nothing about how many were withheld (§28, ADR-0030).
+            [SavedViewTarget.Signals] = Permission.IntelligenceRead,
+            [SavedViewTarget.Theses] = Permission.IntelligenceRead,
+            [SavedViewTarget.Predictions] = Permission.IntelligenceRead,
+            [SavedViewTarget.TalentRadar] = Permission.IntelligenceRead,
         };
 
     /// <summary>Largest page a saved view returns.</summary>

@@ -1,0 +1,56 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreatePredictionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="State a prediction"
+    PrimaryButtonText="State it"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="540">
+            <!--
+                Said before anything is typed. The number about to be entered is the
+                operator's, it will be recorded with their name and today's date, and
+                it will be scored when the question resolves. A forecast nobody is
+                accountable for is not a forecast.
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="This forecast is yours"
+                     Message="AgencyOS records the probability with your name and the date, keeps every revision, and scores it against what actually happened." />
+
+            <TextBox x:Name="StatementBox" Header="What you are predicting" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70" TextChanged="OnRequiredChanged"
+                     PlaceholderText="Something that will be plainly true or plainly false by a date" />
+
+            <TextBox x:Name="CriteriaBox" Header="How it will be resolved" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70"
+                     PlaceholderText="What evidence would settle this, so the answer is not argued about later" />
+
+            <CalendarDatePicker x:Name="ResolvesPicker" Header="Resolves by"
+                                DateChanged="OnDateChanged" />
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Probability" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                <Slider x:Name="ProbabilitySlider" Minimum="0" Maximum="100" Value="50"
+                        StepFrequency="1" TickFrequency="10" TickPlacement="Outside"
+                        ValueChanged="OnProbabilityChanged" />
+
+                <TextBlock x:Name="ProbabilityText" Opacity="0.75"
+                           Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
+
+            <TextBox x:Name="RationaleBox" Header="Why (optional)" TextWrapping="Wrap"
+                     AcceptsReturn="True" Height="70" />
+
+            <ComboBox x:Name="SensitivityBox" Header="Classification" MinWidth="240">
+                <ComboBoxItem Content="Internal" Tag="Internal" IsSelected="True" />
+                <ComboBoxItem Content="Confidential" Tag="Confidential" />
+                <ComboBoxItem Content="Source sensitive" Tag="SourceSensitive" />
+                <ComboBoxItem Content="Restricted" Tag="Restricted" />
+            </ComboBox>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

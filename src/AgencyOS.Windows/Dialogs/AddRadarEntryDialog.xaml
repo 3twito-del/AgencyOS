@@ -1,0 +1,61 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddRadarEntryDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Put somebody on the radar"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="520">
+        <StackPanel Spacing="10" MinWidth="520">
+            <ComboBox x:Name="PersonBox" Header="Who" MinWidth="440"
+                      DisplayMemberPath="DisplayName" SelectionChanged="OnRequiredSelectionChanged" />
+
+            <TextBox x:Name="RationaleBox" Header="Why they are worth watching"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="90"
+                     TextChanged="OnRequiredChanged"
+                     PlaceholderText="What you have seen, in your words. Somebody reading this in six months should understand the interest." />
+
+            <TextBox x:Name="DisciplinesBox" Header="Disciplines you have in mind (optional)"
+                     PlaceholderText="Writer, showrunner" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox Grid.Column="0" x:Name="PriorityBox" Header="Priority"
+                          HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Unassigned" Tag="Unassigned" IsSelected="True" />
+                    <ComboBoxItem Content="Low" Tag="Low" />
+                    <ComboBoxItem Content="Medium" Tag="Medium" />
+                    <ComboBoxItem Content="High" Tag="High" />
+                </ComboBox>
+
+                <ComboBox Grid.Column="1" x:Name="SensitivityBox" Header="Classification"
+                          HorizontalAlignment="Stretch">
+                    <ComboBoxItem Content="Internal" Tag="Internal" IsSelected="True" />
+                    <ComboBoxItem Content="Confidential" Tag="Confidential" />
+                    <ComboBoxItem Content="Source sensitive" Tag="SourceSensitive" />
+                    <ComboBoxItem Content="Restricted" Tag="Restricted" />
+                </ComboBox>
+            </Grid>
+
+            <!--
+                Priority is set by a person and is the only ordering the radar has.
+                There is no fit score and no ranking: whether to pursue somebody is a
+                judgment the agency makes, and a number would launder it.
+            -->
+            <TextBlock TextWrapping="Wrap" Opacity="0.65"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Text="Priority is yours to set. AgencyOS does not rank people, score fit or suggest who to sign." />
+
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="One open entry per person"
+                     Message="If somebody is already on the radar, add to that entry rather than starting a second one." />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

@@ -2,6 +2,7 @@
 using AgencyOS.Application.Communications;
 using AgencyOS.Application.Deals;
 using AgencyOS.Application.Documents;
+using AgencyOS.Application.Intelligence;
 using AgencyOS.Application.Opportunities;
 using AgencyOS.Application.Projects;
 using AgencyOS.Application.Authorization;
@@ -163,6 +164,19 @@ public static class InfrastructureServiceCollectionExtensions
         // request (ADR-0026, ADR-0028).
         services.AddSingleton<ICommunicationProvider, FakeCommunicationProvider>();
         services.AddSingleton<ICommunicationProviderRegistry, CommunicationProviderRegistry>();
+
+        // ---- Intelligence (M11) ----
+
+        services.AddScoped<IIntelligenceSourceRepository, IntelligenceSourceRepository>();
+        services.AddScoped<ISignalRepository, SignalRepository>();
+        services.AddScoped<IThesisRepository, ThesisRepository>();
+        services.AddScoped<IPredictionRepository, PredictionRepository>();
+        services.AddScoped<IWatchlistRepository, WatchlistRepository>();
+        services.AddScoped<ITalentRadarRepository, TalentRadarRepository>();
+        services.AddScoped<IResearchCaseRepository, ResearchCaseRepository>();
+        services.AddScoped<IIntelligenceEventRepository, IntelligenceEventRepository>();
+        services.AddScoped<IIntelligenceQueries, IntelligenceQueries>();
+        services.AddScoped<IIntelligenceSubjectValidator, IntelligenceSubjectLabels>();
 
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
 

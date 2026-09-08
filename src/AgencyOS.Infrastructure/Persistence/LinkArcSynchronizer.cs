@@ -1,5 +1,6 @@
 using AgencyOS.Domain.Communications;
 using AgencyOS.Domain.Documents;
+using AgencyOS.Domain.Intelligence;
 using AgencyOS.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -47,6 +48,67 @@ internal static class LinkArcSynchronizer
             {
                 Write(entry, entry.Entity.Target, entry.Entity.TargetId);
             }
+        }
+
+        // M11 adds three more arcs: what a piece of intelligence is about, what a
+        // research case has attached, and what a curated event happened to. Same
+        // reasoning as above, three more times (ADR-0030).
+        foreach (EntityEntry<IntelligenceSubject> entry in tracker.Entries<IntelligenceSubject>())
+        {
+            if (entry.State is EntityState.Added or EntityState.Modified)
+            {
+                WriteSubject(entry, entry.Entity.Kind, entry.Entity.SubjectId);
+            }
+        }
+
+        foreach (EntityEntry<ResearchCaseLink> entry in tracker.Entries<ResearchCaseLink>())
+        {
+            if (entry.State is EntityState.Added or EntityState.Modified)
+            {
+                WriteResearchLink(entry, entry.Entity.Kind, entry.Entity.LinkedId);
+            }
+        }
+
+        foreach (EntityEntry<IntelligenceEvent> entry in tracker.Entries<IntelligenceEvent>())
+        {
+            if (entry.State is EntityState.Added)
+            {
+                WriteEventOwner(entry, entry.Entity.OwnerKind, entry.Entity.OwnerId);
+            }
+        }
+    }
+
+    /// <summary>Sets the one matching subject column and nulls the other nine.</summary>
+    private static void WriteSubject(
+        EntityEntry<IntelligenceSubject> entry,
+        IntelligenceSubjectKind kind,
+        Guid subjectId)
+    {
+        foreach ((IntelligenceSubjectKind candidate, string column, _) in M11Subjects.Kinds)
+        {
+            entry.Property<Guid?>(column).CurrentValue = candidate == kind ? subjectId : null;
+        }
+    }
+
+    private static void WriteResearchLink(
+        EntityEntry<ResearchCaseLink> entry,
+        ResearchLinkKind kind,
+        Guid linkedId)
+    {
+        foreach ((ResearchLinkKind candidate, string column, _) in M11ResearchLinks.Kinds)
+        {
+            entry.Property<Guid?>(column).CurrentValue = candidate == kind ? linkedId : null;
+        }
+    }
+
+    private static void WriteEventOwner(
+        EntityEntry<IntelligenceEvent> entry,
+        IntelligenceOwnerKind owner,
+        Guid ownerId)
+    {
+        foreach ((IntelligenceOwnerKind candidate, string column, _) in M11EventOwners.Owners)
+        {
+            entry.Property<Guid?>(column).CurrentValue = candidate == owner ? ownerId : null;
         }
     }
 

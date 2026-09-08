@@ -1,4 +1,6 @@
 using AgencyOS.Application.Abstractions;
+using AgencyOS.Application.Documents;
+using AgencyOS.Domain.Documents;
 using AgencyOS.Domain.Intelligence;
 using AgencyOS.Domain.Organizations;
 
@@ -8,9 +10,16 @@ namespace AgencyOS.Application.Intelligence;
 /// Reads intelligence, narrowed to what the caller may see.
 /// </summary>
 /// <remarks>
-/// The database side of the projection. Every method takes the readable
-/// classifications and applies them <em>in the SQL</em>, so a caller never learns
-/// the size of what was withheld (ADR-0030).
+/// <para>
+/// The database side of the projection. <strong>Every</strong> method takes the
+/// readable classifications and applies them <em>in the SQL</em>, so a caller never
+/// learns the size of what was withheld (ADR-0030).
+/// </para>
+/// <para>
+/// That includes the detail reads, not only the lists. A thesis a member may open
+/// can cite a source-sensitive signal, and a citation naming that signal would
+/// disclose it just as surely as a list would.
+/// </para>
 /// </remarks>
 public interface IIntelligenceQueries
 {
@@ -23,6 +32,7 @@ public interface IIntelligenceQueries
     Task<IntelligenceSourceModel?> GetSourceAsync(
         OrganizationId organizationId,
         IntelligenceSourceId id,
+        IReadOnlySet<IntelligenceSensitivity> readable,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<SignalSummaryModel>> ListSignalsAsync(
@@ -31,9 +41,17 @@ public interface IIntelligenceQueries
         int limit,
         CancellationToken cancellationToken = default);
 
+    /// <param name="readableDocuments">
+    /// The M10 classifications the caller may read. An excerpt is a quotation from a
+    /// document, so it is withheld on the document's terms as well as on the
+    /// source's: an excerpt of a privileged contract is still the privileged
+    /// contract (ADR-0025, ADR-0030).
+    /// </param>
     Task<SignalDetailModel?> GetSignalAsync(
         OrganizationId organizationId,
         SignalId id,
+        IReadOnlySet<IntelligenceSensitivity> readable,
+        IReadOnlySet<DocumentSensitivity> readableDocuments,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<ThesisSummaryModel>> ListThesesAsync(
@@ -45,6 +63,7 @@ public interface IIntelligenceQueries
     Task<ThesisDetailModel?> GetThesisAsync(
         OrganizationId organizationId,
         ThesisId id,
+        IReadOnlySet<IntelligenceSensitivity> readable,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<PredictionSummaryModel>> ListPredictionsAsync(
@@ -57,6 +76,7 @@ public interface IIntelligenceQueries
     Task<PredictionDetailModel?> GetPredictionAsync(
         OrganizationId organizationId,
         PredictionId id,
+        IReadOnlySet<IntelligenceSensitivity> readable,
         DateTimeOffset asOf,
         CancellationToken cancellationToken = default);
 
@@ -92,6 +112,7 @@ public interface IIntelligenceQueries
     Task<WatchlistDetailModel?> GetWatchlistAsync(
         OrganizationId organizationId,
         WatchlistId id,
+        IReadOnlySet<IntelligenceSensitivity> readable,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<TalentRadarSummaryModel>> ListRadarAsync(
@@ -103,6 +124,8 @@ public interface IIntelligenceQueries
     Task<TalentRadarDetailModel?> GetRadarEntryAsync(
         OrganizationId organizationId,
         TalentRadarEntryId id,
+        IReadOnlySet<IntelligenceSensitivity> readable,
+        DateTimeOffset asOf,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<ResearchCaseSummaryModel>> ListResearchCasesAsync(
@@ -115,6 +138,7 @@ public interface IIntelligenceQueries
     Task<ResearchCaseDetailModel?> GetResearchCaseAsync(
         OrganizationId organizationId,
         ResearchCaseId id,
+        IReadOnlySet<IntelligenceSensitivity> readable,
         DateTimeOffset asOf,
         CancellationToken cancellationToken = default);
 
@@ -171,15 +195,28 @@ public sealed class IntelligenceQueryService
 
     private readonly IIntelligenceQueries _queries;
     private readonly IntelligenceAuthorization _authorization;
+
+    /// <summary>
+    /// Consulted only for excerpts.
+    /// </summary>
+    /// <remarks>
+    /// An excerpt is a quotation from an M10 artifact, and M10 decides who may read
+    /// that artifact. Re-deciding it here on intelligence grants alone would let a
+    /// signal quote a privileged contract to somebody M10 refuses (ADR-0025).
+    /// </remarks>
+    private readonly DocumentAuthorization _documents;
+
     private readonly IClock _clock;
 
     public IntelligenceQueryService(
         IIntelligenceQueries queries,
         IntelligenceAuthorization authorization,
+        DocumentAuthorization documents,
         IClock clock)
     {
         _queries = queries;
         _authorization = authorization;
+        _documents = documents;
         _clock = clock;
     }
 
@@ -203,11 +240,11 @@ public sealed class IntelligenceQueryService
         IntelligenceSourceId id,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         IntelligenceSourceModel? source = await _queries
-            .GetSourceAsync(organizationId, id, cancellationToken).ConfigureAwait(false);
+            .GetSourceAsync(organizationId, id, readable, cancellationToken).ConfigureAwait(false);
 
         if (source is null)
         {
@@ -242,11 +279,15 @@ public sealed class IntelligenceQueryService
         SignalId id,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
+
+        IReadOnlySet<DocumentSensitivity> readableDocuments = await _documents
+            .ReadableSensitivitiesAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         SignalDetailModel? signal = await _queries
-            .GetSignalAsync(organizationId, id, cancellationToken).ConfigureAwait(false);
+            .GetSignalAsync(organizationId, id, readable, readableDocuments, cancellationToken)
+            .ConfigureAwait(false);
 
         if (signal is null)
         {
@@ -279,11 +320,11 @@ public sealed class IntelligenceQueryService
         ThesisId id,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         ThesisDetailModel? thesis = await _queries
-            .GetThesisAsync(organizationId, id, cancellationToken).ConfigureAwait(false);
+            .GetThesisAsync(organizationId, id, readable, cancellationToken).ConfigureAwait(false);
 
         if (thesis is null)
         {
@@ -317,11 +358,11 @@ public sealed class IntelligenceQueryService
         PredictionId id,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         PredictionDetailModel? prediction = await _queries
-            .GetPredictionAsync(organizationId, id, _clock.UtcNow, cancellationToken)
+            .GetPredictionAsync(organizationId, id, readable, _clock.UtcNow, cancellationToken)
             .ConfigureAwait(false);
 
         if (prediction is null)
@@ -351,11 +392,8 @@ public sealed class IntelligenceQueryService
         DateOnly? resolvedBefore = null,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
-
-        IReadOnlySet<IntelligenceSensitivity> readable = await _authorization
-            .ReadableSensitivitiesAsync(organizationId, cancellationToken).ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         IReadOnlyList<(decimal Probability, PredictionOutcome Outcome)> resolved = await _queries
             .ListResolvedForecastsAsync(
@@ -407,11 +445,12 @@ public sealed class IntelligenceQueryService
         WatchlistId id,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         WatchlistDetailModel? watchlist = await _queries
-            .GetWatchlistAsync(organizationId, id, cancellationToken).ConfigureAwait(false);
+            .GetWatchlistAsync(organizationId, id, readable, cancellationToken)
+            .ConfigureAwait(false);
 
         if (watchlist is null)
         {
@@ -438,11 +477,8 @@ public sealed class IntelligenceQueryService
         WatchlistId id,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
-
-        IReadOnlySet<IntelligenceSensitivity> readable = await _authorization
-            .ReadableSensitivitiesAsync(organizationId, cancellationToken).ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         WatchlistActivityModel? activity = await _queries
             .GetWatchlistActivityAsync(
@@ -480,11 +516,12 @@ public sealed class IntelligenceQueryService
         TalentRadarEntryId id,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         TalentRadarDetailModel? entry = await _queries
-            .GetRadarEntryAsync(organizationId, id, cancellationToken).ConfigureAwait(false);
+            .GetRadarEntryAsync(organizationId, id, readable, _clock.UtcNow, cancellationToken)
+            .ConfigureAwait(false);
 
         if (entry is null)
         {
@@ -519,11 +556,11 @@ public sealed class IntelligenceQueryService
         ResearchCaseId id,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         ResearchCaseDetailModel? researchCase = await _queries
-            .GetResearchCaseAsync(organizationId, id, _clock.UtcNow, cancellationToken)
+            .GetResearchCaseAsync(organizationId, id, readable, _clock.UtcNow, cancellationToken)
             .ConfigureAwait(false);
 
         if (researchCase is null)
@@ -560,11 +597,8 @@ public sealed class IntelligenceQueryService
         Guid subjectId,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
-
-        IReadOnlySet<IntelligenceSensitivity> readable = await _authorization
-            .ReadableSensitivitiesAsync(organizationId, cancellationToken).ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         return await _queries
             .GetRelationshipIntelligenceAsync(
@@ -577,30 +611,33 @@ public sealed class IntelligenceQueryService
         OrganizationId organizationId,
         CancellationToken cancellationToken = default)
     {
-        await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
-            .ConfigureAwait(false);
-
-        IReadOnlySet<IntelligenceSensitivity> readable = await _authorization
-            .ReadableSensitivitiesAsync(organizationId, cancellationToken).ConfigureAwait(false);
+        IReadOnlySet<IntelligenceSensitivity> readable =
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
         return await _queries
             .GetCommandCenterAsync(organizationId, readable, _clock.UtcNow, cancellationToken)
             .ConfigureAwait(false);
     }
 
-    private async Task<IntelligenceScope<TFilter>> ScopeAsync<TFilter>(
+    /// <summary>Authorizes the surface, then resolves what the caller may read.</summary>
+    private async Task<IReadOnlySet<IntelligenceSensitivity>> ReadableAsync(
         OrganizationId organizationId,
-        TFilter filter,
         CancellationToken cancellationToken)
     {
         await _authorization.AuthorizeReadAsync(organizationId, cancellationToken)
             .ConfigureAwait(false);
 
-        IReadOnlySet<IntelligenceSensitivity> readable = await _authorization
+        return await _authorization
             .ReadableSensitivitiesAsync(organizationId, cancellationToken).ConfigureAwait(false);
-
-        return new IntelligenceScope<TFilter>(readable, filter);
     }
+
+    private async Task<IntelligenceScope<TFilter>> ScopeAsync<TFilter>(
+        OrganizationId organizationId,
+        TFilter filter,
+        CancellationToken cancellationToken) =>
+        new(
+            await ReadableAsync(organizationId, cancellationToken).ConfigureAwait(false),
+            filter);
 
     private static int Clamp(int? limit) =>
         limit is null ? DefaultPageSize : Math.Clamp(limit.Value, 1, MaximumPageSize);

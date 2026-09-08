@@ -28,7 +28,7 @@ namespace AgencyOS.Tests.Unit.Client;
 /// UI does goes through <see cref="IAgencyOsApi"/>, which is why substituting it
 /// exercises the actual workflow.
 /// </remarks>
-internal sealed class FakeAgencyOsApi : IAgencyOsApi
+internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
 {
     public List<PersonSummaryResponse> People { get; } = [];
 
@@ -390,7 +390,11 @@ internal sealed class FakeAgencyOsApi : IAgencyOsApi
             [.. Invoices],
             [.. Payments],
             [.. Documents],
-            [.. Messages]));
+            [.. Messages],
+            [.. Signals],
+            [.. Theses],
+            [.. Predictions],
+            [.. RadarEntries]));
     }
 
     public Task<SyncChangesResponse> ReadSyncChangesAsync(

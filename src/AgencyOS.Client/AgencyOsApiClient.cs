@@ -96,7 +96,7 @@ public sealed class AgencyOsApiException : Exception
 /// never talks to PostgreSQL; it talks to this, which talks to the versioned HTTP
 /// contract.
 /// </remarks>
-public interface IAgencyOsApi
+public partial interface IAgencyOsApi
 {
     Task<HandshakeResponse> HandshakeAsync(CancellationToken cancellationToken = default);
 
@@ -1393,7 +1393,7 @@ public sealed record DocumentContent(
 /// the server decides.
 /// </para>
 /// </remarks>
-public sealed class AgencyOsApiClient : IAgencyOsApi
+public sealed partial class AgencyOsApiClient : IAgencyOsApi
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 

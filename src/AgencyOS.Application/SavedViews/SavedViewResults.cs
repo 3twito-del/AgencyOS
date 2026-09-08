@@ -1,6 +1,7 @@
 ﻿using AgencyOS.Application.Directory;
 using AgencyOS.Application.Deals;
 using AgencyOS.Application.Documents;
+using AgencyOS.Application.Intelligence;
 using AgencyOS.Application.Finance;
 using AgencyOS.Application.Legal;
 using AgencyOS.Application.Opportunities;
@@ -45,10 +46,15 @@ public sealed record SavedViewResultModel(
     IReadOnlyList<InvoiceModel> Invoices,
     IReadOnlyList<PaymentModel> Payments,
     IReadOnlyList<DocumentSummaryModel> Documents,
-    IReadOnlyList<CommunicationMessageSummaryModel> Communications)
+    IReadOnlyList<CommunicationMessageSummaryModel> Communications,
+    IReadOnlyList<SignalSummaryModel> Signals,
+    IReadOnlyList<ThesisSummaryModel> Theses,
+    IReadOnlyList<PredictionSummaryModel> Predictions,
+    IReadOnlyList<TalentRadarSummaryModel> TalentRadar)
 {
     public static SavedViewResultModel Empty(SavedViewTarget target) =>
-        new(target, [], [], [], [], [], [], [], [], [], [], [], [], [], [], []);
+        new(target, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+            [], [], [], []);
 
     // One factory per target, so a query names only the list it filled. Building
     // these positionally meant every target's call site had to grow by an empty
@@ -109,6 +115,29 @@ public sealed record SavedViewResultModel(
     /// <summary>A payment result set.</summary>
     public static SavedViewResultModel OfPayments(IReadOnlyList<PaymentModel> payments) =>
         Empty(SavedViewTarget.Payments) with { Payments = payments };
+
+    /// <summary>A signal result set.</summary>
+    /// <remarks>
+    /// The summaries are already narrowed by classification, and their evidence
+    /// counts are counted over sources the caller may read. A saved view cannot
+    /// become a second route to a claim its runner may not see (ADR-0030).
+    /// </remarks>
+    public static SavedViewResultModel OfSignals(IReadOnlyList<SignalSummaryModel> signals) =>
+        Empty(SavedViewTarget.Signals) with { Signals = signals };
+
+    /// <summary>A thesis result set.</summary>
+    public static SavedViewResultModel OfTheses(IReadOnlyList<ThesisSummaryModel> theses) =>
+        Empty(SavedViewTarget.Theses) with { Theses = theses };
+
+    /// <summary>A prediction result set.</summary>
+    public static SavedViewResultModel OfPredictions(
+        IReadOnlyList<PredictionSummaryModel> predictions) =>
+        Empty(SavedViewTarget.Predictions) with { Predictions = predictions };
+
+    /// <summary>A talent radar result set.</summary>
+    public static SavedViewResultModel OfTalentRadar(
+        IReadOnlyList<TalentRadarSummaryModel> entries) =>
+        Empty(SavedViewTarget.TalentRadar) with { TalentRadar = entries };
 
     /// <summary>A document result set.</summary>
     /// <remarks>

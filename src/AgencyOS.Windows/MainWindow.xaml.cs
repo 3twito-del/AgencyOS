@@ -124,7 +124,7 @@ public sealed partial class MainWindow : Window
         // repoint a shortcut people already use.
         AddAccelerator(VirtualKey.Number9, VirtualKeyModifiers.Control, (_, args) =>
         {
-            SelectMenu(13);
+            SelectMenu(14);
             args.Handled = true;
         });
 
@@ -161,11 +161,20 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
         });
 
+        // Intelligence takes a function key rather than a Ctrl+Shift letter. Every
+        // obvious letter is already advertised by the palette for something else,
+        // and a shortcut that contradicts the palette is worse than one more key.
+        AddAccelerator(VirtualKey.F7, VirtualKeyModifiers.None, (_, args) =>
+        {
+            SelectMenu(13);
+            args.Handled = true;
+        });
+
         // Sync moves to F8 rather than Ctrl+0, which several keyboard layouts
         // intercept for zoom.
         AddAccelerator(VirtualKey.F8, VirtualKeyModifiers.None, (_, args) =>
         {
-            SelectMenu(14);
+            SelectMenu(15);
             args.Handled = true;
         });
 
@@ -225,6 +234,7 @@ public sealed partial class MainWindow : Window
             "finance" => typeof(FinancePage),
             "documents" => typeof(DocumentsPage),
             "communications" => typeof(CommunicationsPage),
+            "intelligence" => typeof(IntelligencePage),
             "saved-views" => typeof(SavedViewsPage),
             "sync" => typeof(SyncPage),
             _ => typeof(CommandCenterPage),
@@ -364,12 +374,16 @@ public sealed partial class MainWindow : Window
                 SelectMenu(12);
                 return;
 
-            case "go.saved-views":
+            case "go.intelligence":
                 SelectMenu(13);
                 return;
 
-            case "go.sync":
+            case "go.saved-views":
                 SelectMenu(14);
+                return;
+
+            case "go.sync":
+                SelectMenu(15);
                 return;
 
             case "search.open":
