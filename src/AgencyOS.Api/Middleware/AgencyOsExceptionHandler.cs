@@ -8,6 +8,7 @@ using AgencyOS.Domain.Common;
 using AgencyOS.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AgencyOS.Api.Middleware;
 
@@ -69,6 +70,14 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             // would produce, and a 500 there is both wrong and noisy (ADR-0024).
             InvalidDataException => (StatusCodes.Status400BadRequest, "Malformed request body"),
 
+            // Two requests read the same row and both tried to write it. The
+            // application check on `expectedVersion` catches a client working from
+            // a stale copy; this catches the case it cannot, where both callers
+            // were current when they read and only one can be current when they
+            // write. The caller is told the same thing either way: refresh and
+            // decide again (ADR-0014).
+            DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Version conflict"),
+
             // Reaching this means a defense-in-depth layer fired. It is a defect,
             // not a user error, and it is logged as one.
             AuditTrailImmutableException => (StatusCodes.Status500InternalServerError, "Audit trail violation"),
@@ -123,6 +132,11 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
         string? code = exception switch
         {
             ConcurrencyConflictException => "version_conflict",
+
+            // The same code as the checked conflict above. A client cannot act on
+            // the difference between "you were stale when you asked" and "you were
+            // current and somebody beat you", and both call for the same response.
+            DbUpdateConcurrencyException => "version_conflict",
             IdempotencyInProgressException => "idempotency_in_progress",
             IdempotencyConflictException => "idempotency_key_reused",
             SavedViewNameInUseException => "saved_view_name_in_use",

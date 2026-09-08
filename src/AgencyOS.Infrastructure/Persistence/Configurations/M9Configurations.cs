@@ -93,7 +93,7 @@ public sealed class MonetaryObligationConfiguration : IEntityTypeConfiguration<M
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(4000);
         builder.Property(x => x.RecordedAt).HasColumnName("recorded_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.RecordedBy)
             .HasColumnName("recorded_by")
@@ -213,7 +213,7 @@ public sealed class ReceivableConfiguration : IEntityTypeConfiguration<Receivabl
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(4000);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -307,7 +307,7 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.Property(x => x.VoidReason).HasColumnName("void_reason").HasMaxLength(1000);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -474,7 +474,7 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 
         builder.Property(x => x.ReversalReason).HasColumnName("reversal_reason").HasMaxLength(1000);
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.RecordedBy)
             .HasColumnName("recorded_by")
@@ -724,7 +724,7 @@ public sealed class CommissionRuleConfiguration : IEntityTypeConfiguration<Commi
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(4000);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -818,7 +818,7 @@ public sealed class CommissionEntitlementConfiguration
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(4000);
         builder.Property(x => x.CalculatedAt).HasColumnName("calculated_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CalculatedBy)
             .HasColumnName("calculated_by")
@@ -1055,7 +1055,7 @@ public sealed class JournalEntryConfiguration : IEntityTypeConfiguration<Journal
 
         builder.Property(x => x.ReversalReason).HasColumnName("reversal_reason").HasMaxLength(1000);
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")

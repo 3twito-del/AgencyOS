@@ -55,7 +55,7 @@ public sealed class OpportunityConfiguration : IEntityTypeConfiguration<Opportun
         builder.Property(x => x.StrategyNotes).HasColumnName("strategy_notes").HasMaxLength(8000);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.OwnerUserId)
             .HasColumnName("owner_user_id")
@@ -298,7 +298,7 @@ public sealed class OpportunityTargetConfiguration : IEntityTypeConfiguration<Op
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(4000);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -443,7 +443,7 @@ public sealed class SubmissionConfiguration : IEntityTypeConfiguration<Submissio
             .HasMaxLength(512);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.SentByUserId)
             .HasColumnName("sent_by_user_id")
@@ -581,7 +581,7 @@ public sealed class OpportunityPitchConfiguration : IEntityTypeConfiguration<Opp
         builder.Property(x => x.OccurredAt).HasColumnName("occurred_at").IsRequired();
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")

@@ -61,7 +61,7 @@ public sealed class DealConfiguration : IEntityTypeConfiguration<Deal>
         builder.Property(x => x.StrategyNotes).HasColumnName("strategy_notes").HasMaxLength(8000);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.OwnerUserId)
             .HasColumnName("owner_user_id")
@@ -217,7 +217,7 @@ public sealed class OfferConfiguration : IEntityTypeConfiguration<Offer>
         builder.Property(x => x.ExpiresAt).HasColumnName("expires_at");
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.RecordedByUserId)
             .HasColumnName("recorded_by_user_id")

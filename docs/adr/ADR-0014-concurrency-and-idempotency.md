@@ -44,6 +44,42 @@ An ETag header was considered. It is more HTTP-idiomatic and it splits the token
 across two mechanisms - a header for online calls, a field for queued ones -
 which is worse for the case that matters here.
 
+#### The check has to happen in the database as well (added M10)
+
+The paragraphs above describe a check the domain makes against the row as it was
+read. That is exactly right for the case it was written for - a client working
+from a stale copy is refused - and it is not enough on its own.
+
+Two requests that both read version N are both current when they check. The check
+passes for both, and without a database guard both writes land: the second simply
+overwrites the first. M7's `AcceptingWhileCountering` test reproduced it at
+roughly one run in twelve, with an offer accepted and countered at the same
+moment, and CI caught it during M10.
+
+So the `version` property is declared `IsConcurrencyToken()` on every versioned
+entity. EF Core then writes `WHERE ... AND version = @original` and checks the
+affected row count, so the loser of a race gets `DbUpdateConcurrencyException`
+instead of a silent overwrite. That is mapped to the same **409** with the same
+`version_conflict` code as the checked conflict, because a client cannot act on
+the difference between "you were stale when you asked" and "you were current and
+somebody beat you".
+
+This is not a substitute for `expectedVersion`, and does not replace it. The
+application check gives a client a precise answer with both version numbers in it
+before any work is done; the database guard catches the interval the application
+check cannot see. Both are required.
+
+**It costs something.** A concurrency token forces EF to verify affected rows per
+statement, which limits how it batches writes: the integration suite went from
+about 3m25s to about 5m55s on the same machine. That is a write-path cost paid by
+a suite that does little but write, and it is worth paying for an invariant like
+"an offer is not both accepted and countered".
+
+`ConcurrencyTokenTests` asserts over the EF model that every entity carrying a
+`version` column declares it a token, and that the token is the explicit integer
+rather than `xmin`. It needs no database and catches the next aggregate that
+forgets, at build time rather than one run in twelve.
+
 ### Idempotency: reserve, then execute, then store
 
 `idempotency_keys` is keyed on `(organization_id, key)`.

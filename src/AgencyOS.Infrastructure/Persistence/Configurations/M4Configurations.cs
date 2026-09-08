@@ -52,7 +52,7 @@ public sealed class TalentProfileConfiguration : IEntityTypeConfiguration<Talent
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -179,7 +179,7 @@ public sealed class ProspectConfiguration : IEntityTypeConfiguration<Prospect>
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -309,7 +309,7 @@ public sealed class RepresentationConfiguration : IEntityTypeConfiguration<Repre
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -562,7 +562,7 @@ public sealed class CreditConfiguration : IEntityTypeConfiguration<Credit>
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")
@@ -637,7 +637,7 @@ public sealed class MaterialConfiguration : IEntityTypeConfiguration<Material>
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.CreatedBy)
             .HasColumnName("created_by")

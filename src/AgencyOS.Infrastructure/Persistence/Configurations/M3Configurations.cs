@@ -83,7 +83,7 @@ public sealed class SavedViewConfiguration : IEntityTypeConfiguration<SavedView>
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.HasOne<Organization>()
             .WithMany()

@@ -74,7 +74,7 @@ public sealed class ContractConfiguration : IEntityTypeConfiguration<Contract>
 
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.OwnerUserId)
             .HasColumnName("owner_user_id")
@@ -381,7 +381,7 @@ public sealed class ContractVersionConfiguration : IEntityTypeConfiguration<Cont
         builder.Property(x => x.MediaType).HasColumnName("media_type").HasMaxLength(100);
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(4000);
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.RecordedBy)
             .HasColumnName("recorded_by")
@@ -573,7 +573,7 @@ public sealed class RightsGrantConfiguration : IEntityTypeConfiguration<RightsGr
 
         builder.Property(x => x.RecordedAt).HasColumnName("recorded_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.RecordedBy)
             .HasColumnName("recorded_by")
@@ -695,7 +695,7 @@ public sealed class ContractOptionConfiguration : IEntityTypeConfiguration<Contr
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(4000);
         builder.Property(x => x.RecordedAt).HasColumnName("recorded_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.RecordedBy)
             .HasColumnName("recorded_by")
@@ -844,7 +844,7 @@ public sealed class ObligationConfiguration : IEntityTypeConfiguration<Obligatio
         builder.Property(x => x.Privilege).HasColumnName("privilege").HasConversion<int>().IsRequired();
         builder.Property(x => x.RecordedAt).HasColumnName("recorded_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.RecordedBy)
             .HasColumnName("recorded_by")
@@ -1004,7 +1004,7 @@ public sealed class NoticeRequirementConfiguration : IEntityTypeConfiguration<No
         builder.Property(x => x.Notes).HasColumnName("notes").HasMaxLength(4000);
         builder.Property(x => x.RecordedAt).HasColumnName("recorded_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
-        builder.Property(x => x.Version).HasColumnName("version").IsRequired();
+        builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
 
         builder.Property(x => x.RecordedBy)
             .HasColumnName("recorded_by")
