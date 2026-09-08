@@ -111,3 +111,76 @@ LAB may intentionally:
 - serve old/new API versions simultaneously.
 
 No release is called resilient merely because happy-path tests pass.
+
+## M12 — testing an untrusted component
+
+### CI never reaches a model provider
+
+`FakeModelProvider` is registered in every environment and is the authoritative
+test infrastructure, not a stub. Two reasons, and the second is the important one.
+
+A green build that depends on somebody else's service being reachable goes red for
+reasons that have nothing to do with the code. And no real provider will emit a
+forged approval, a request for `sql.execute`, or a claim to have been granted
+administrator rights on demand — which is exactly the class of response that has
+to be proved harmless.
+
+An unscripted call returns `ProviderUnavailable` rather than something plausible,
+so a test that forgot to say what should happen fails rather than passing by
+accident.
+
+**Promotion to ALPHA does not depend on live external provider availability.**
+
+### The prompt-injection corpus asserts the envelope, not obedience
+
+Fifteen literal payloads — direct override, role confusion, exfiltration, false
+authority, fence escape. For each, three assertions: it arrives labelled as data,
+it cannot close the fence containing it, and it is not silently discarded. An
+end-to-end test stores one in a research case and reads what the provider was
+actually sent.
+
+None of them asserts that a model resists injection. AgencyOS cannot test that and
+does not depend on it: the defences that matter are a closed tool registry and an
+approval, and they are tested separately.
+
+### Architecture tests pin the write surface
+
+Every tool derives from the base class whose authorization check is sealed;
+exactly one tool is a canonical write and it is `task.create`; no tool has an
+external effect; no tool constructor takes a `DbContext`, an `IConfiguration`, an
+`HttpClient`, a `Process` or a `FileStream`; every allow-listed name resolves;
+every agent has a versioned prompt; every tool names a real permission.
+
+Each of those is a rule a future change could break by writing perfectly
+reasonable code, and none would fail a behavioural test.
+
+### `specs/AiApproval.tla`
+
+Models the approval-to-execution protocol under every interleaving of a person
+deciding, an approval expiring, a permission revoked between the decision and the
+execution, a run cancelled, a client retrying, and an attempt to rewrite the
+proposed arguments after the fact. 236 distinct states, depth 9, no error.
+
+Checked: at most one canonical effect; no effect without an approval; rejected and
+expired never execute; only the approved arguments execute; the permission is held
+at the moment of execution; committed effects never roll back; an executed request
+is terminal; approved arguments are frozen; a decision is made once; a pending
+approval always settles.
+
+**The language model is deliberately not modelled.** It is untrusted input, and a
+specification of untrusted input is a specification of "anything"; writing one
+would mean recording assumptions about model behaviour, and the entire design
+exists because no such assumption is safe.
+
+Weak fairness is asserted on expiry and on execution and on nothing else. Deciding
+is deliberately not fair: AgencyOS does not assume a person ever answers, and a
+liveness property resting on that would be a specification of somebody else's
+behaviour.
+
+### The property that turned out to be false
+
+The natural claim — that a tool request always reaches a terminal status — does
+not hold. A request approved and never executed stays `Approved`: the approval
+lapses so it can never run, but nothing sweeps the row. `LapsedApprovalNeverExecutes`
+is why that is untidy rather than unsafe. Finding it is most of what the
+specification was worth writing for.

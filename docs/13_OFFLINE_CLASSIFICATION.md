@@ -316,6 +316,31 @@ The cache schema therefore stays at **version 2**. M11 adds no migration and no
 `QueuedOperation` member; intelligence writes are online-only by construction
 rather than by a check somebody could forget.
 
+## ONLINE_ONLY (all M12 runs, approvals and reads)
+
+M12 is online-only in both directions, and unlike the milestones above it is not
+a close call.
+
+| Command | Why it is not queued |
+|---|---|
+| StartAgentRun | A run reads the caller's authorized data through server-side tools and calls a model. Neither exists on a laptop, and a queued run would drain hours later against a record that has moved. |
+| CancelAgentRun | Version-guarded, and it abandons whatever is waiting on a decision. Queued, it would abandon something a person has since approved. |
+| DecideApproval | **The reason the milestone is online-only.** An approval is a decision about a state of the world that keeps moving, and it lapses in thirty minutes. A decision queued offline would drain after its own window closed, and the honest outcome would be a refusal a person believes they already made. |
+| ExecuteApprovedTool | Re-derives the fingerprint, re-checks the permission and calls a canonical command. Every one of those is a server-side question about the present. |
+| SetAiProviderPolicy | What may leave the building. A queued change to that is a decision applied at a moment nobody chose. |
+
+### Why the M12 reads are online-only too
+
+A run carries the question somebody asked and what it turned up. That is M11's
+content — a signal, a note, a deal term — assembled into one place and written
+down beside somebody's question about it, which makes a cached run a more
+concentrated disclosure than any single record it drew on.
+
+There is a second reason that is M12's own. A pending approval read from a cache
+would show a person an action to decide, minutes or hours after the window closed
+and the proposal stopped being executable. A screen that offers a decision that
+cannot be made is worse than a screen that shows nothing.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |

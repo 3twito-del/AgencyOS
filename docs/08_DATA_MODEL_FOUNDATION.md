@@ -1085,3 +1085,55 @@ true then. A derived balance records nothing, because it is recomputed from the
 rows that decided it every time somebody asks. The distinction matters because a
 stored balance and its allocations are two facts that can disagree, and in finance
 they eventually do.
+
+## M12 — the AI runtime
+
+Five tables: `ai_runs`, `ai_run_steps`, `ai_tool_requests`, `ai_approvals` and
+`ai_provider_policies`. Every one carries `organization_id` and takes part in the
+composite `(organization_id, id)` alternate keys from ADR-0011.
+
+**`ai_runs`** carries an exclusive subject arc: `subject_kind`, `subject_id` and
+five typed columns, each with a composite tenant foreign key into a research case,
+person, company, deal or contract. `ck_ai_runs_subject_arc` requires that a run
+either names a subject with the discriminator, `subject_id` and exactly one typed
+column agreeing, or names none of them — a subject_id with no typed column behind
+it would have no foreign key.
+
+`LinkArcSynchronizer` fills the typed column. The M12 arc has a case the earlier
+ones do not: a run about nothing must clear every column, so a stale value cannot
+survive a change of subject.
+
+Two more coherence constraints on the same table. `ck_ai_runs_terminal` requires
+that a finished run says when, so a cancelled run is distinguishable from a
+running one to anything reading `completed_at`. `ck_ai_runs_failure` requires that
+a failed run names a category and a run that did not fail claims none.
+
+**`ai_approvals`** — `ck_ai_approvals_decision` requires that a decision names who
+made it and when, together or not at all, with expiry as the one case that has a
+moment and no person. `ck_ai_approvals_window` refuses an approval that is already
+expired when written.
+
+**`ai_tool_requests`** — `ck_ai_tool_requests_effect` restricts the effect to
+`ReadOnly` or `CanonicalWrite`. `ExternalEffect` exists in the enumeration and is
+refused here as well as in the aggregate: no external-effect tool is reachable by
+a model in this build, and the database says so rather than trusting that no code
+path ever will.
+
+**`ai_provider_policies`** — `ck_ai_provider_policies_ceiling` restricts the
+ceiling to Internal, Confidential or Protected. Restricted is deliberately absent
+at the schema level, which is the layer no future code path goes around.
+
+### Three immutability triggers
+
+- `trg_ai_run_steps_immutable` — a step records what happened; steps are appended,
+  never edited, and never deleted while the run exists.
+- `trg_ai_approvals_monotonic` — a decided approval cannot be re-decided, and the
+  fingerprint, the tool request and the organization cannot change afterwards.
+  This is the one that matters: swapping the action underneath an approval is the
+  attack the fingerprint exists to stop, enforced where no application path can
+  miss it.
+- `trg_ai_tool_requests_once` — an executed request cannot move back to a state
+  from which it could run again, and the arguments, tool name, version and
+  fingerprint are frozen from the moment they are proposed.
+
+No provider credential is stored on any of these tables, encrypted or otherwise.

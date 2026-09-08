@@ -114,3 +114,51 @@ Stable builds should include:
 - secret scanning;
 - code signing;
 - MSIX signing.
+
+## AI (M12)
+
+Five grants, deliberately separate. `ai.use` starts and reads your own runs;
+`ai.sensitive.use` permits transmitting protected material where policy also
+permits it; `ai.propose` permits a model to be offered a canonical write tool at
+all; `ai.approve` permits deciding what is put to you; `ai.administer` permits
+changing what may be transmitted.
+
+Member holds use, propose and approve. Administrator holds use and administer —
+administering the runtime is an operational job, and approving a business act is a
+business judgment. Owner holds all five. **Observer holds none**: a model reading
+on somebody's behalf reads everything they may read and assembles it into one
+place, and handing that to the least-trusted role would make the role's careful
+omissions pointless.
+
+### Authorization to read is not permission to transmit
+
+`AiProviderPolicy` answers a different question from every grant above. It is
+per-organization and per-provider, closed by default, and `Restricted` has no
+reachable ceiling at any level. Provider credentials live in server configuration
+and never in PostgreSQL.
+
+### Audited
+
+`ai.run.started`, `ai.run.cancelled`, `ai.approval.granted`, `ai.approval.rejected`,
+`ai.proposal.executed`, `ai.provider.policy.changed`.
+
+An executed proposal produces **two** entries: the canonical command's own, naming
+the human actor because a human authorized it, and one recording that the proposal
+came from a run. A model is never an actor — it holds no permissions and cannot be
+held to account.
+
+The approval entries record the tool, its version and the fingerprint. Not the
+arguments: what was approved is identified by a hash that can be compared, without
+copying whatever the arguments named into a second store with different readers.
+
+### Never in telemetry
+
+The prompt, the model's answer, a fragment of either, a document body, a
+communication body, a provider key, or any finance or legal content. Duration,
+provider, model, outcome and tool-call count only.
+
+### Run privacy
+
+A run is readable only by the person who started it, and an approval only by the
+person it was put to — narrowed in SQL, and answered as missing rather than as
+forbidden. There is no permission that widens either.

@@ -265,3 +265,28 @@ The one schema mechanism M11 introduces is a deferred constraint: the seven
 foreign keys on `intelligence_events` are `DEFERRABLE INITIALLY DEFERRED`, because
 an event is written in the same unit of work as the object it happened to. See
 `docs/adr/ADR-0030-intelligence-provenance-judgment-and-no-scores.md`.
+
+## The AI runtime adds one seam and no infrastructure (M12)
+
+M12 adds a language model to a system that had none, and adds nothing else to the
+stack: no Python service, no Rust service, no C++ module, no Temporal, no broker,
+no vector database, no embeddings, no search engine, no Neo4j and no Kubernetes.
+Five PostgreSQL tables and one provider seam.
+
+The seam is `IModelProvider`, and everything provider-shaped stops at
+`ModelGateway`: model selection, capability checking, timeout, failure
+normalization. `FakeModelProvider` is the only adapter in this build and is
+registered in every environment, so CI needs no network and no credential.
+
+There is one distributed protocol worth specifying, and it is not the model call.
+It is the interval between a person approving an action and that action running —
+during which the approval can expire, the permission can be revoked, the run can
+be cancelled and the client can retry. `specs/AiApproval.tla` model-checks it.
+
+Retrieval is deliberately not a vector store. `AiContextAssembler` reads through
+the existing authorized query services, which is the only way the classification
+and the tenant boundary come along for free; an embedding index would be a second
+copy of the data with its own answer to who may read it, and M12 has no capability
+that requires one.
+
+See `docs/adr/ADR-0031-ai-runtime-untrusted-models-and-the-approval-protocol.md`.

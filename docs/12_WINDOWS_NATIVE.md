@@ -98,3 +98,47 @@ not something a later revocation takes back.
 
 ## UI rule
 Windows UI optimizes for Windows. It must not be constrained by a hypothetical future cross-platform UI framework.
+
+## M12 — the AI workspace
+
+`AiPage` carries five surfaces: **Ask** (start a task, read what came back),
+**Approvals** (decide one exact proposed action), **Runs** (your own history),
+**Trace** (what the model asked for beside what AgencyOS did) and **Policy** (what
+may be transmitted at all). Navigation item after Intelligence, F6, palette
+commands `go.ai`, `ai.ask`, `ai.approvals`, `ai.runs`.
+
+Ctrl+9 still means Saved Views. The digit accelerators follow each item's access
+key rather than its position, so inserting AI above Saved Views does not repoint a
+shortcut people already use.
+
+### The approval dialog
+
+**The default button is Reject.** Not neutral, and not Approve: a dialog whose
+default commits a canonical write turns a keypress into a business act, and the
+whole point of the approval is that somebody chose.
+
+Everything it shows comes from the server's account of the tool request — the
+summary AgencyOS wrote from the validated arguments, and the arguments themselves.
+The model's own words about what it is asking for appear nowhere, because a model
+that could word its own approval prompt could describe one action and request
+another.
+
+There is deliberately no "approve everything from this run" and no "don't ask
+again". A standing approval is a permission grant wearing a button.
+
+### Wording
+
+Model output is labelled as model output wherever it appears: "This is what the
+model said — a draft, not a record. Nothing here has been filed against any
+person, deal or contract."
+
+Every trace line says whether the model asked or AgencyOS acted. Failures are
+rendered from the category, in terms of what a person can do about it, and never
+as a provider message.
+
+The cancel button says what it means before the fact: stopping a run cancels what
+has not happened yet, and anything already approved stays.
+
+### Offline
+
+The whole surface is ONLINE_ONLY. Nothing is cached and nothing is queued.
