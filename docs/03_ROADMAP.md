@@ -1604,13 +1604,12 @@ actor, so a reader can always tell what the model said from what AgencyOS did.
 
 ### Evidence
 
-- **Migration.** Empty PostgreSQL through M0…M11 to M12, then M12 rolled back and
-  re-applied, cleanly — and the rollback is a test rather than a note, because EF
-  orders its own DropTable calls around relationships it knows about and knows
-  about none of the constraints M12 declares in SQL. Five tables, two composite
-  alternate keys, five composite
-  tenant foreign keys declared in SQL, nine check constraints, three immutability
-  triggers and ten indexes.
+- **Migration.** Empty PostgreSQL through M0…M11 to M12, then M12 rolled back to
+  M11 and re-applied, cleanly. Five tables, two composite alternate keys, five
+  composite tenant foreign keys declared in SQL, nine check constraints, three
+  immutability triggers and ten indexes. The rollback is a test rather than a
+  note, because EF orders its own `DropTable` calls around relationships it
+  knows about, and it knows about none of the constraints M12 declares in SQL.
 - **3,691 unit tests and 656 integration tests**, all passing, on a build with
   zero warnings and zero errors. Thirty-six of the integration tests are M12's,
   and four of those issue SQL directly — testing only the aggregate would prove
