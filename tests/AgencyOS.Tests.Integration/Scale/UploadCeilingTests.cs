@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using AgencyOS.Contracts;
 using AgencyOS.Domain.Authorization;
 using AgencyOS.Tests.Integration.Infrastructure;
 using Xunit;
@@ -21,16 +20,29 @@ namespace AgencyOS.Tests.Integration.Scale;
 /// answer (§27, ADR-0037).
 /// </para>
 /// <para>
-/// Run against a host configured with a deliberately tiny ceiling. Reaching the
-/// real 256 MB limit in a test would mean pushing 256 MB through a CI runner to
-/// learn something a small number proves exactly as well.
+/// The test host declares a 1 MB ceiling. Reaching the real 256 MB limit would mean
+/// pushing 256 MB through a CI runner to learn what 2 MB proves exactly as well.
+/// </para>
+/// <para>
+/// The refusal is made by <c>UploadLimitMiddleware</c> rather than by a framework
+/// limit, and the first attempt at these tests is why. Kestrel's
+/// <c>MaxRequestBodySize</c> is not honoured by <c>TestServer</c> at all, and
+/// setting the multipart limit to the same number made the form reader trip first
+/// and report an oversized upload as a malformed body — a 400 saying the wrong
+/// thing. An explicit check answers the same way under both servers.
 /// </para>
 /// </remarks>
 [Collection(AgencyOsCollection.Name)]
 public sealed class UploadCeilingTests
 {
-    /// <summary>Small enough to cross in a test, large enough to be a real body.</summary>
-    private const int TinyCeiling = 8 * 1024;
+    /// <summary>The ceiling the test host declares.</summary>
+    /// <remarks>
+    /// Set on the shared host rather than on a second one built for these tests.
+    /// A second host would be a second set of startup assumptions to keep in step
+    /// with the first, and the suite's largest upload anywhere is sixteen bytes,
+    /// so one megabyte constrains nothing else.
+    /// </remarks>
+    private const int Ceiling = 1024 * 1024;
 
     private readonly AgencyOsTestFixture _fixture;
 
@@ -48,12 +60,10 @@ public sealed class UploadCeilingTests
     public async Task AnUploadOverTheCeilingIsRefusedAndSaysTheCeiling()
     {
         SeededActor actor = await _fixture.SeedActorAsync(AgencyRole.Owner, "m14-upload-big");
-
-        await using AgencyOsApiFactory host = Constrained();
-        using HttpClient client = Client(host, actor);
+        using HttpClient client = _fixture.CreateClient(actor.Subject);
 
         using HttpResponseMessage response = await UploadAsync(
-            client, actor, new byte[TinyCeiling * 4], "oversized.txt");
+            client, actor, new byte[Ceiling * 2], "oversized.txt");
 
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
 
@@ -64,7 +74,7 @@ public sealed class UploadCeilingTests
             "Upload too large", problem.RootElement.GetProperty("title").GetString());
 
         Assert.Equal(
-            TinyCeiling,
+            Ceiling,
             problem.RootElement.GetProperty("maximumUploadBytes").GetInt64());
 
         // The refusal names a size a person can act on.
@@ -86,12 +96,10 @@ public sealed class UploadCeilingTests
     public async Task AnUploadUnderTheCeilingIsAccepted()
     {
         SeededActor actor = await _fixture.SeedActorAsync(AgencyRole.Owner, "m14-upload-ok");
-
-        await using AgencyOsApiFactory host = Constrained();
-        using HttpClient client = Client(host, actor);
+        using HttpClient client = _fixture.CreateClient(actor.Subject);
 
         using HttpResponseMessage response = await UploadAsync(
-            client, actor, new byte[TinyCeiling / 4], "ordinary.txt");
+            client, actor, new byte[64 * 1024], "ordinary.txt");
 
         Assert.True(
             response.IsSuccessStatusCode,
@@ -100,35 +108,6 @@ public sealed class UploadCeilingTests
     }
 
     // ------------------------------------------------------------- helpers
-
-    private AgencyOsApiFactory Constrained() =>
-        new(
-            _fixture.ConnectionString,
-            settings: new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["AgencyOS:Limits:MaximumUploadBytes"] =
-                    TinyCeiling.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            });
-
-    private static HttpClient Client(AgencyOsApiFactory host, SeededActor actor)
-    {
-        HttpClient client = host.CreateClient();
-
-        client.DefaultRequestHeaders.Add(
-            AgencyOS.Api.Authentication.AgencyOsAuthentication.SubjectHeader, actor.Subject);
-
-        // The compatibility middleware refuses a request that does not say what
-        // client it is. This host is built by hand, so it says so by hand.
-        client.DefaultRequestHeaders.Add(ClientHeaders.Platform, AgencyOsTestFixture.Platform);
-        client.DefaultRequestHeaders.Add(ClientHeaders.Channel, AgencyOsTestFixture.Channel);
-        client.DefaultRequestHeaders.Add(
-            ClientHeaders.ClientVersion, AgencyOsTestFixture.LatestVersion);
-        client.DefaultRequestHeaders.Add(
-            ClientHeaders.ApiContractVersion,
-            ApiContract.Current.ToString(System.Globalization.CultureInfo.InvariantCulture));
-
-        return client;
-    }
 
     private static async Task<HttpResponseMessage> UploadAsync(
         HttpClient client,

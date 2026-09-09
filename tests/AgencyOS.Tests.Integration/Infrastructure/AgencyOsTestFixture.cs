@@ -337,6 +337,12 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
         // Stored bytes go somewhere disposable, not beside the test binaries.
         builder.UseSetting("AgencyOS:BlobStore:RootPath", BlobRoot);
 
+        // An upload ceiling small enough for a test to cross and far above
+        // anything the suite actually uploads — the largest is sixteen bytes. The
+        // production default is 256 MB; what is under test is the mechanism, not
+        // the number.
+        builder.UseSetting("AgencyOS:Limits:MaximumUploadBytes", "1048576");
+
         if (_bootstrapToken is not null)
         {
             builder.UseSetting("AgencyOS:Bootstrap:Token", _bootstrapToken);

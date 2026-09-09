@@ -70,10 +70,9 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             AlreadyExistsException => (StatusCodes.Status409Conflict, "Already exists"),
             DomainException => (StatusCodes.Status400BadRequest, "Invalid request"),
 
-            // Larger than this deployment accepts. Mapped explicitly so the caller
-            // is told the ceiling rather than meeting an unhandled framework
-            // exception, and so the number appears somewhere a person can read
-            // (§27, ADR-0037).
+            // The backstop. UploadLimitMiddleware refuses anything that declares
+            // an oversized length; this catches a chunked body that declared none
+            // and was stopped by the framework instead (§27, ADR-0037).
             BadHttpRequestException { StatusCode: StatusCodes.Status413PayloadTooLarge } =>
                 (StatusCodes.Status413PayloadTooLarge, "Upload too large"),
 

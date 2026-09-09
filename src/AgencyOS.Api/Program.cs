@@ -133,8 +133,11 @@ builder.Services.Configure<KestrelServerOptions>(
 
 builder.Services.Configure<FormOptions>(options =>
 {
-    // Both, so the two limits cannot disagree about what is too large.
-    options.MultipartBodyLengthLimit = maximumUploadBytes;
+    // Set clear of the ceiling on purpose. When this limit and the real one are
+    // equal the multipart reader trips first and reports an oversized upload as a
+    // malformed body, which is both the wrong status and the wrong explanation.
+    // UploadLimitMiddleware is the authority; this is the backstop underneath it.
+    options.MultipartBodyLengthLimit = maximumUploadBytes * 2;
 });
 
 builder.Services.AddSingleton(new UploadLimit(maximumUploadBytes));
@@ -462,6 +465,10 @@ app.UseExceptionHandler();
 // Release enforcement is the outermost gate on mutations: a revoked or
 // incompatible client is refused before authentication, authorization or any
 // handler is consulted.
+// Before anything reads a body: an oversized upload is refused having cost only
+// the bandwidth already spent.
+app.UseMiddleware<UploadLimitMiddleware>();
+
 app.UseMiddleware<ClientCompatibilityMiddleware>();
 
 app.UseAuthentication();
