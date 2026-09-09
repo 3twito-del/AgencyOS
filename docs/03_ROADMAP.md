@@ -1907,7 +1907,7 @@ under an M13 heading.
 
 **Four inherited M9/M11 dialogs remain unreachable**, as recorded above.
 
-## M14 — Scale, Architectural Fitness & Specialized Services — **Done** (2026-09-09)
+## M14 — Scale, Architectural Fitness & Specialized Services — **Done** (2026-09-09) · promoted to ALPHA
 
 Implemented: the milestone that asked whether any part of AgencyOS needs to leave
 the modular monolith, and answered with evidence rather than with topology.
@@ -1997,6 +1997,37 @@ filesystem identity: the Data Protection key ring and the blob root both default
 beside the application. Rate limiting was evaluated and **deferred**: no measured
 need exists, and adding it because M14 is the scale milestone is the reasoning this
 milestone was built to refuse.
+
+### Promotion evidence
+
+Authoritative CI run **34340308545** at commit `7e330cc`, both jobs green.
+
+| Gate | Result |
+|---|---|
+| Build (whole solution) | 0 warnings, 0 errors |
+| Unit tests | 3,743 passed |
+| Windows tests | 521 passed |
+| Integration tests (`postgres:18.6`) | 744 passed |
+| Migrations | **none added** — M14 changed no schema |
+| OpenAPI contract | 3.1.1; 260 paths; 185 schemas; contract **13**, unchanged |
+| TLA+ (four specs) | no error, at `v1.7.4` verified from a clean fetch |
+
+**The API contract did not move, deliberately.** M14 added no endpoint and no
+capability a client must know about. The one externally visible change is a
+refusal that is strictly more informative than the unhandled failure it replaces,
+so a client on contract 13 is unaffected and 13 stands.
+
+**Local verification was again incomplete**, for the same reason and verified
+again rather than assumed: Docker Desktop's Linux engine returns HTTP 500. Build,
+unit, Windows, formal and the OpenAPI gate ran locally and passed; the database
+gates did not run. The verify script was not weakened. Promotion rests on the
+remote `postgres:18.6` gate.
+
+**Three real defects were found and fixed**, none of which needed a new process: a
+NUL byte destroying an entire document ingestion, `IBlobStore.ExistsAsync` and
+`DeleteAsync` throwing where the contract says they answer, and an upload ceiling
+nobody had chosen surfacing as an unhandled failure. The milestone's argument is
+that the monolith did not need decomposing — but it did need measuring.
 
 ## M15 — Production Hardening
 Deliver:
