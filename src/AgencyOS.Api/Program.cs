@@ -150,6 +150,57 @@ builder.Services.AddAgencyOSInfrastructure(connectionString);
 string? blobRoot = builder.Configuration["AgencyOS:BlobStore:RootPath"];
 string? keyPath = builder.Configuration["AgencyOS:DataProtection:KeyPath"];
 
+// ---------------------------------------------------------------------------
+// Production configuration, refused at startup rather than discovered later
+//
+// A ring that permits real data must be told where its state lives. Both of
+// these have convenient defaults that are correct for a developer and wrong for
+// an agency, and both fail in ways nobody notices until it matters (M15 §58,
+// ADR-0039).
+// ---------------------------------------------------------------------------
+if (ringAllowsRealData)
+{
+    if (string.IsNullOrWhiteSpace(blobRoot))
+    {
+        throw new InvalidOperationException(
+            $"No AgencyOS:BlobStore:RootPath is configured and ring '{BuildInfo.Channel}' permits "
+                + "real data. Document content would be written beside the application binaries, "
+                + "where a redeployment can remove it and a backup will not find it.");
+    }
+
+    // The one that fails silently. Without an explicit path, Data Protection
+    // falls back to whatever the host offers, which in a container or under a
+    // service account with no profile is an in-memory key ring: every restart
+    // would issue new keys and every stored mailbox credential would stop
+    // decrypting, with nothing logged that names the cause.
+    if (string.IsNullOrWhiteSpace(keyPath))
+    {
+        throw new InvalidOperationException(
+            $"No AgencyOS:DataProtection:KeyPath is configured and ring '{BuildInfo.Channel}' permits "
+                + "real data. Key persistence would depend on the host environment, and an ephemeral "
+                + "key ring makes stored mailbox credentials undecryptable after every restart.");
+    }
+
+    // Checked by writing, because a path that exists and is read-only fails at
+    // the first upload rather than at startup.
+    try
+    {
+        Directory.CreateDirectory(blobRoot);
+
+        string probe = Path.Combine(blobRoot, $".agencyos-startup-{Guid.NewGuid():N}");
+
+        File.WriteAllText(probe, string.Empty);
+        File.Delete(probe);
+    }
+    catch (Exception failure) when (failure is IOException or UnauthorizedAccessException)
+    {
+        throw new InvalidOperationException(
+            $"AgencyOS:BlobStore:RootPath '{blobRoot}' is not writable by this service identity. "
+                + "Documents could be recorded and their content lost.",
+            failure);
+    }
+}
+
 builder.Services.AddAgencyOSContentStorage(blobRoot, keyPath);
 
 
