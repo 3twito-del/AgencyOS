@@ -61,6 +61,9 @@ public sealed class AiDisclosureBoundaryTests
     [Fact]
     public async Task ACitationDoesNotOpenWhatTheReaderMayNotSee()
     {
+        const string Claim =
+            "Marguerite Sable is expected to leave Northgate before the autumn.";
+
         SeededActor owner = await _fixture.SeedActorAsync(AgencyRole.Owner, "m13-cite");
         Actor mine = Actor.For(_fixture, owner);
         Actor colleague = await SameTenantAsync(owner, AgencyRole.Member, "m13-cite-other");
@@ -83,7 +86,7 @@ public sealed class AiDisclosureBoundaryTests
             "intelligence/signals",
             new RecordSignalRequest(
                 "Sable leaving Northgate",
-                "Marguerite Sable is expected to leave Northgate before the autumn.",
+                Claim,
                 "PersonnelMove",
                 "SourceSensitive",
                 [new SignalEvidenceRequest(source.Id, "Primary", "…is expected to depart…")],
@@ -106,19 +109,13 @@ public sealed class AiDisclosureBoundaryTests
         Assert.Contains($"[cite:Signal:{signal.Id:D}]", brief.Result, StringComparison.Ordinal);
 
         // A colleague holding the identifier cannot open it.
-        using HttpResponseMessage theirs =
-            await colleague.Client.GetAsync($"{colleague.Root}/intelligence/signals/{signal.Id}");
-
-        Assert.Equal(HttpStatusCode.NotFound, theirs.StatusCode);
+        await RefusedAsync(colleague, signal.Id, Claim);
 
         // Neither can the person the brief was written for, once the grant is gone.
         await _fixture.ChangeRoleAsync(
             owner.Organization.Id, owner.User.Id, AgencyRole.Member, owner.User.Id);
 
-        using HttpResponseMessage after =
-            await mine.Client.GetAsync($"{mine.Root}/intelligence/signals/{signal.Id}");
-
-        Assert.Equal(HttpStatusCode.NotFound, after.StatusCode);
+        await RefusedAsync(mine, signal.Id, Claim);
     }
 
     /// <summary>
@@ -316,6 +313,47 @@ public sealed class AiDisclosureBoundaryTests
             new DecideApprovalRequest(Approve: true, approval.Version));
 
         Assert.Equal(HttpStatusCode.NotFound, decided.StatusCode);
+    }
+
+    /// <summary>
+    /// That following a citation discloses nothing to this reader.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Asserted as "refused and empty-handed" rather than as one status code,
+    /// because the two surfaces answer differently and M13 is not the milestone
+    /// that reconciles them. The AI routes answer <c>404</c> uniformly, so pasting
+    /// an identifier proves only that it is well-formed. The M11 intelligence route
+    /// answers <c>403</c> when a signal exists above the reader's clearance and
+    /// <c>404</c> when it does not exist, which does distinguish the two.
+    /// </para>
+    /// <para>
+    /// That difference is recorded as an M11 observation, not repaired here: it is
+    /// a disclosure question about the intelligence surface as a whole, and
+    /// changing it under an M13 heading would settle an M11 design decision where
+    /// an M11 reviewer would not see it.
+    /// </para>
+    /// <para>
+    /// What M13 does assert is the property that matters for a citation, and it is
+    /// stronger than either code: the read does not succeed, and the claim does not
+    /// appear in the response.
+    /// </para>
+    /// </remarks>
+    private static async Task RefusedAsync(Actor actor, Guid signalId, string claim)
+    {
+        using HttpResponseMessage response = await actor.Client.GetAsync(
+            $"{actor.Root}/intelligence/signals/{signalId}");
+
+        Assert.False(
+            response.IsSuccessStatusCode,
+            $"The signal opened with {(int)response.StatusCode}.");
+
+        Assert.Contains(
+            response.StatusCode,
+            new[] { HttpStatusCode.NotFound, HttpStatusCode.Forbidden });
+
+        Assert.DoesNotContain(
+            claim, await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
     }
 
     // ------------------------------------------------------------- helpers

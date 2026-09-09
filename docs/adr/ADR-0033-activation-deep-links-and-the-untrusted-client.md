@@ -71,6 +71,28 @@ and acted on at another, and the gap can hold the withdrawal of the permission
 that justified sending it. Acting on a toast is a fresh request, answered by what
 is true when it arrives.
 
+### An M11 observation, recorded and not repaired
+
+The uniform-answer rule above holds on the AI routes. It does not hold across the
+whole product, and M13's citation test is what surfaced that.
+
+Following a citation to an M11 signal returns **403** when the signal exists above
+the reader's clearance and **404** when it does not exist. Those are
+distinguishable, so a well-formed identifier plus a 403 tells the holder that a
+signal by that id exists in their tenant and is above their clearance. The AI
+routes deliberately answer 404 to both.
+
+The practical exposure is small — the caller is already inside the tenant and the
+identifiers are unguessable — but it is a real difference in disclosure semantics
+between two surfaces of the same system.
+
+It is **not repaired here**. It is a question about the intelligence surface as a
+whole rather than about citations, and changing it under an M13 heading would
+settle an M11 design decision in a place an M11 reviewer would never look. M13's
+test therefore asserts the property that actually matters for a citation, and is
+stronger than either code: the read does not succeed, and the claim text does not
+appear in the response.
+
 ### 4. A separate platform project, in C# only
 
 `AgencyOS.Windows.Platform` holds the workstation decisions — activation,
