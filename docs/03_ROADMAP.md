@@ -1761,7 +1761,7 @@ Deliver:
   routes by configured model key, so a second provider is configuration; local
   inference, Windows AI Foundry and NPU routing are M13 and no part of this build)
 
-## M13 — Advanced Native Windows & Local AI Platform — **Done** (2026-09-09)
+## M13 — Advanced Native Windows & Local AI Platform — **Done** (2026-09-09) · promoted to ALPHA
 
 Implemented: the milestone that makes AgencyOS a Windows workstation rather than a
 Windows-shaped UI, and asks whether a model can run on that workstation without
@@ -1852,6 +1852,58 @@ suite covering twenty-one named properties, and an accessibility pass that named
 `AddIntelligenceSubjectDialog` (M11) are complete and tested, and no list surface
 opens them. These are M9 and M11 gaps; M13 deliberately did not repair them under
 an M13 heading.
+
+### Promotion evidence
+
+Authoritative CI run **34330707885** at commit `a040701`, both jobs green.
+
+| Gate | Result |
+|---|---|
+| Build (whole solution) | 0 warnings, 0 errors |
+| Unit tests | 3,735 passed |
+| Windows tests | 521 passed |
+| Integration tests (`postgres:18.6`) | 709 passed |
+| Migration zero→M13, rollback M13→M12, reapply | passed, inside the integration suite |
+| OpenAPI contract | 3.1.1; 260 paths; 185 schemas; contract 13 |
+| TLA+ (four specs) | no error found |
+
+**Local verification was incomplete, and that is not what promotion rests on.**
+Build, unit, Windows, formal and the OpenAPI gate all ran locally and passed. The
+database integration and migration gates **did not run locally**: Docker Desktop's
+Linux engine returns HTTP 500, so Testcontainers cannot provision a container and
+704 of 709 integration tests fail at fixture initialization. The separately
+installed PostgreSQL 19 service needs elevation, was found listening on 5432 with
+unknown credentials, and was stopped again to leave the machine unchanged. The
+verify script was not weakened to paper over any of it. Promotion rests on the
+remote `postgres:18.6` gate, which is the authoritative one by release policy.
+
+**Three real failures were found by CI and fixed, not worked around.**
+
+The first authoritative run failed five integration tests. Four asserted that a
+sensitive AI result is withheld after a grant is revoked — and revoked nothing:
+`SeedMembershipAsync` adds a membership, permissions are the union across active
+memberships, so "demoting" the owner granted a second membership beside the first.
+A fifth test was passing for exactly the same reason. They had been written
+against a database nobody could run. `ChangeRoleAsync` now revokes what is held
+before granting the replacement, and the product's withholding behaviour is
+verified for the first time.
+
+The second was the `tla2tools.jar` pin. `v1.8.0` is not a fixed release: upstream
+re-publishes that tag from current master, three times in five days. The 09-09
+build carries revision `65fbace6` at 8,925 commits rather than `b123b22` at 8,905,
+with 53 of 2,223 entries differing — a different model checker, not a restamp. It
+was accepted only after re-checking every specification against it and finding
+identical state spaces. **This pin will keep breaking**; pinning `v1.7.4` or
+vendoring the jar would fix it, and both change a pinned technology, so neither
+was decided here.
+
+The third was a citation drill-down returning 403 where the test expected 404.
+That surfaced a real inconsistency: the AI routes answer 404 uniformly, while the
+M11 intelligence route distinguishes "exists above your clearance" from "does not
+exist". Recorded in ADR-0033 as an M11 observation and deliberately not repaired
+under an M13 heading.
+
+**Four inherited M9/M11 dialogs remain unreachable**, as recorded above.
 
 ## M14 — Scale & Specialized Services
 Only when justified:
