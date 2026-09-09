@@ -77,7 +77,7 @@ public sealed class AiResultRevocationTests
             "Somebody close to the company expects a departure.", generated.Result);
 
         // The sensitive grant goes away. The person keeps ai.use and keeps the run.
-        await _fixture.SeedMembershipAsync(
+        await _fixture.ChangeRoleAsync(
             owner.Organization.Id, owner.User.Id, AgencyRole.Member, owner.User.Id);
 
         AgentRunDetailResponse later = await GetAsync<AgentRunDetailResponse>(
@@ -123,7 +123,7 @@ public sealed class AiResultRevocationTests
             new StartAgentRunRequest(
                 "ResearchCopilot", "Summarize this case.", "ResearchCase", research.Id));
 
-        await _fixture.SeedMembershipAsync(
+        await _fixture.ChangeRoleAsync(
             owner.Organization.Id, owner.User.Id, AgencyRole.Member, owner.User.Id);
 
         AgentRunDetailResponse later = await GetAsync<AgentRunDetailResponse>(
@@ -171,7 +171,7 @@ public sealed class AiResultRevocationTests
         // said when it was sensitive.
         IntelligenceIdResponse reclassified = research;
 
-        await _fixture.SeedMembershipAsync(
+        await _fixture.ChangeRoleAsync(
             owner.Organization.Id, owner.User.Id, AgencyRole.Member, owner.User.Id);
 
         AgentRunDetailResponse later = await GetAsync<AgentRunDetailResponse>(

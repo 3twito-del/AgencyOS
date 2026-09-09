@@ -152,6 +152,50 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
     }
 
     /// <summary>
+    /// Changes what somebody may do, by revoking what they held and granting the
+    /// rest.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="SeedMembershipAsync"/> <em>adds</em> a membership, and permissions
+    /// are the union across every active one. Calling it a second time to "demote"
+    /// somebody therefore grants a second membership beside the first and takes
+    /// nothing away — the person keeps everything they had.
+    /// </para>
+    /// <para>
+    /// Four M13 tests were written that way and passed for months against a
+    /// database nobody could run. They asserted that a sensitive AI result is
+    /// withheld after a grant is revoked, having revoked nothing. This helper
+    /// exists so a test that says "revoke" revokes.
+    /// </para>
+    /// </remarks>
+    public async Task ChangeRoleAsync(
+        OrganizationId organizationId,
+        UserId userId,
+        AgencyRole role,
+        UserId changedBy)
+    {
+        await using AgencyOsDbContext context = CreateDbContext();
+
+        List<Membership> held = await context.Memberships
+            .Where(x => x.OrganizationId == organizationId
+                && x.UserId == userId
+                && x.RevokedAt == null)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        foreach (Membership membership in held)
+        {
+            membership.Revoke(changedBy, DateTimeOffset.UtcNow);
+        }
+
+        context.Memberships.Add(
+            Membership.Grant(organizationId, userId, role, changedBy, DateTimeOffset.UtcNow));
+
+        await context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Seeds a user, an organization and a membership binding them, and returns the
     /// subject that authenticates as that user.
     /// </summary>

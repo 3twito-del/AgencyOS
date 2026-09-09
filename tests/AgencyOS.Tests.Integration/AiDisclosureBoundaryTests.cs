@@ -73,7 +73,7 @@ public sealed class AiDisclosureBoundaryTests
             mine,
             "intelligence/sources",
             new RecordSourceRequest(
-                "Conversation",
+                "ManualObservation",
                 "Told over dinner",
                 "SourceSensitive",
                 Publisher: "A person who was there"));
@@ -112,7 +112,7 @@ public sealed class AiDisclosureBoundaryTests
         Assert.Equal(HttpStatusCode.NotFound, theirs.StatusCode);
 
         // Neither can the person the brief was written for, once the grant is gone.
-        await _fixture.SeedMembershipAsync(
+        await _fixture.ChangeRoleAsync(
             owner.Organization.Id, owner.User.Id, AgencyRole.Member, owner.User.Id);
 
         using HttpResponseMessage after =
@@ -161,7 +161,7 @@ public sealed class AiDisclosureBoundaryTests
 
         Assert.False(arrived.ResultWithheld);
 
-        await _fixture.SeedMembershipAsync(
+        await _fixture.ChangeRoleAsync(
             owner.Organization.Id, owner.User.Id, AgencyRole.Member, owner.User.Id);
 
         // The same identifier, followed later, the way opening the toast would.
@@ -215,7 +215,7 @@ public sealed class AiDisclosureBoundaryTests
             new StartAgentRunRequest(
                 "ResearchCopilot", "Summarize this case.", "ResearchCase", research.Id));
 
-        await _fixture.SeedMembershipAsync(
+        await _fixture.ChangeRoleAsync(
             owner.Organization.Id, owner.User.Id, AgencyRole.Member, owner.User.Id);
 
         AgentRunDetailResponse later = await GetAsync<AgentRunDetailResponse>(

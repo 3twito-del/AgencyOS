@@ -258,22 +258,35 @@ function Invoke-Formal {
     # make a green run mean something different from one to the next.
     #
     # More than one hash is accepted, and each entry says what was verified about
-    # it. A GitHub release asset is mutable: the v1.8.0 jar was re-published on
-    # 2026-09-08 and the pin caught it, which is the mechanism working rather than
-    # failing. The two builds were compared entry by entry - 2,223 entries each,
-    # identical CRCs on all of them except META-INF/MANIFEST.MF, which differs
-    # only in a build timestamp and the release tag, and both carry the same
-    # X-Git-Revision b123b22654942bd7f8b1bcadcc47da4ee2cf4c0e.
+    # it. A GitHub release asset is mutable, and v1.8.0 turns out not to be a
+    # fixed release at all: upstream re-publishes that tag from current master.
+    # It moved on 2026-09-04, 2026-09-08 and again on 2026-09-09. Each time the
+    # pin caught it, which is the mechanism working rather than failing.
     #
-    # A third hash still fails loudly. Adding one means doing that comparison
-    # again and writing down what it showed; it is deliberately not a matter of
-    # copying whatever the download produced today.
+    # A new hash still fails loudly. Adding one means comparing the archive
+    # against a known build, re-checking every specification, and writing down
+    # what it showed. It is deliberately not a matter of copying whatever the
+    # download produced today.
+    #
+    # KNOWN PROBLEM, not yet decided: because v1.8.0 rolls, this pin will keep
+    # failing every time upstream builds. The durable fixes are to pin v1.7.4 -
+    # untouched since 2024-08-05 and therefore actually immutable - or to vendor
+    # the jar. Both change a pinned technology, so both need a decision rather
+    # than a commit.
     $verified = @{
         "b658b4e504fdf0b721caf7066320f6b6fe5805f4dd2f717d0e47baba4097205e" =
             "v1.8.0 asset as published 2026-09-04; used from M0 to M11"
         "4c7bb1f6b050d56c197ee9ddd6e57fe521eae175f5043c9fb98b169f7b2d5407" =
             "v1.8.0 asset re-published 2026-09-08 from the same revision; " +
             "manifest build stamp only, every class byte-identical"
+        "a1fc0bfe391d99fdd86f579a63ff68c0950010e9dde551f1192b867d5c8f4efd" =
+            "v1.8.0 asset re-published 2026-09-09 from a DIFFERENT revision " +
+            "65fbace6 (8,925 commits) rather than b123b22 (8,905). 2,223 " +
+            "entries in both; 53 differ - the manifest and 52 tla2sany parser " +
+            "and semantic-analyser classes. Accepted because all four specs " +
+            "re-check green with identical state counts: OfflineWriteQueue " +
+            "2853/1024, OutboundSend 83/48, AiApproval 755/236, " +
+            "LocalInferenceLease 796/160, the same as the 2026-09-04 build"
     }
 
     $release = "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"

@@ -66,17 +66,37 @@ and pinned by SHA-256; a checksum mismatch or an unreachable release fails loudl
 because a formal check that quietly skips itself is worse than none.
 
 **The pin accepts more than one hash, each with what was verified about it.** A
-GitHub release asset is mutable, and the v1.8.0 jar was re-published on 2026-09-08
-during M11 — the pin caught it, which is the mechanism working rather than
-failing. The two builds were compared entry by entry: 2,223 entries each,
-identical CRCs on all of them except `META-INF/MANIFEST.MF`, which differs only in
-a build timestamp and the release tag, with the same `X-Git-Revision`
-`b123b22654942bd7f8b1bcadcc47da4ee2cf4c0e` in both.
+GitHub release asset is mutable, and `v1.8.0` turns out not to be a fixed release
+at all: upstream re-publishes that tag from current master. It has moved three
+times — 2026-09-04, 2026-09-08 and 2026-09-09 — and the pin caught it every time,
+which is the mechanism working rather than failing.
 
-Adding a third hash means doing that comparison again and writing down what it
-showed. Copying whatever the download produced today is the one thing this is
-built to prevent, and an unrecognized checksum still fails with the known-good
-list in the message.
+The 09-08 build was the same revision as the 09-04 one: 2,223 entries each,
+identical CRCs on all but `META-INF/MANIFEST.MF`, differing only in a build
+timestamp and the release tag, with the same `X-Git-Revision`
+`b123b22654942bd7f8b1bcadcc47da4ee2cf4c0e`.
+
+**The 09-09 build is not.** It carries revision `65fbace6` at 8,925 commits rather
+than `b123b22` at 8,905 — twenty commits of upstream change — and 53 of the 2,223
+entries differ: the manifest and 52 `tla2sany` parser and semantic-analyser
+classes. That is a different model checker, not a restamp.
+
+It was accepted only after re-checking every specification against it, and the
+evidence is that all four explore **identical state spaces**: OfflineWriteQueue
+2853/1024, OutboundSend 83/48, AiApproval 755/236, LocalInferenceLease 796/160 —
+the same counts as the 09-04 build, with no error. Identical state counts across a
+changed parser is the strongest available evidence that the semantics these specs
+rely on did not move.
+
+Adding a hash means doing that comparison and writing down what it showed. Copying
+whatever the download produced today is the one thing this is built to prevent,
+and an unrecognized checksum still fails with the known-good list in the message.
+
+**An open problem, recorded rather than solved.** Because `v1.8.0` rolls, this pin
+will keep failing every time upstream builds — three times in five days so far.
+The durable fixes are to pin `v1.7.4`, untouched since 2024-08-05 and therefore
+actually immutable, or to vendor the jar. Both change a pinned technology, so both
+are a decision rather than a commit, and neither was taken under M13.
 
 - **`specs/OfflineWriteQueue.tla`** (M3) — the offline write queue. Checks that a
   queued command has at most one effect however often it is retried.
