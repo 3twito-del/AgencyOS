@@ -118,6 +118,8 @@ public sealed class AiQueries : IAiQueries
         return new AgentRunDetailModel(
             ToSummary(run, users),
             run.Result,
+            run.ResultSensitivity,
+            ResultWithheld: false,
             run.FailureDetail,
             run.PromptTemplateId,
             run.PromptTemplateVersion,

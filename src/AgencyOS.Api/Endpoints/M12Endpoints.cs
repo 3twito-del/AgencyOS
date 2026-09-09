@@ -401,6 +401,7 @@ internal static class M12Endpoints
         new(
             Map(run.Run),
             run.Result,
+            run.ResultWithheld,
             run.FailureDetail,
             run.PromptTemplateId,
             run.PromptTemplateVersion,

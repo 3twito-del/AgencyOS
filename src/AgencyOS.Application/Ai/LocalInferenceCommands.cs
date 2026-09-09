@@ -465,6 +465,7 @@ public sealed class LocalInferenceHandler
         // run was not given resolves to nothing whichever machine produced it.
         run.Complete(
             AiCitationValidator.Strip(command.Text, assembled.Citable),
+            assembled.HighestIncluded,
             _clock.UtcNow,
             run.Version);
 

@@ -77,9 +77,15 @@ public sealed record AgentRunResponse(
 /// Which wording produced this. The wording itself lives in source control; a run
 /// is traceable to it without the prompt being readable here.
 /// </param>
+/// <param name="ResultWithheld">
+/// The run produced a result and the caller may no longer read it, because the
+/// material it was drawn from needs a grant they no longer hold. Distinct from a
+/// run that produced nothing (ADR-0035).
+/// </param>
 public sealed record AgentRunDetailResponse(
     AgentRunResponse Run,
     string? Result,
+    bool ResultWithheld,
     string? FailureDetail,
     string PromptTemplateId,
     int PromptTemplateVersion,

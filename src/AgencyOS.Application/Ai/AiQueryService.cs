@@ -29,9 +29,19 @@ public sealed record AgentRunSummaryModel(
 /// What happened, in order. This is what lets a reader tell what the model said
 /// from what AgencyOS did, which is the point of keeping it (§64).
 /// </param>
+/// <param name="ResultSensitivity">
+/// What the result was produced from. Carried so the read surface can authorize
+/// against the material rather than against who started the run.
+/// </param>
+/// <param name="ResultWithheld">
+/// Whether the result exists and was not returned, because the caller no longer
+/// holds the grant its material needs. Distinct from a run that produced nothing.
+/// </param>
 public sealed record AgentRunDetailModel(
     AgentRunSummaryModel Run,
     string? Result,
+    ModelDataSensitivity ResultSensitivity,
+    bool ResultWithheld,
     string? FailureDetail,
     string PromptTemplateId,
     int PromptTemplateVersion,
@@ -235,8 +245,47 @@ public sealed class AiQueryService
                 cancellationToken)
             .ConfigureAwait(false) is { } mine
             && mine.Any(x => x.Id == id)
-                ? run
+                ? await ReauthorizeResultAsync(run, organizationId, cancellationToken)
+                    .ConfigureAwait(false)
                 : null;
+    }
+
+    /// <summary>
+    /// Re-authorizes a stored result against the material it came from.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>Every read, not only the first.</strong> Having started the run is
+    /// historical authorization and does not expire, so it cannot be what governs
+    /// access to what the run produced. The classification recorded at generation
+    /// time does the work instead: somebody whose sensitive grant is withdrawn
+    /// stops being able to read a brief drawn from sensitive material, even though
+    /// they are the person who asked for it (ADR-0035, §L).
+    /// </para>
+    /// <para>
+    /// The run itself stays visible and the withholding is stated. Hiding the run
+    /// would tell the reader less than the truth — they asked this question, and
+    /// the answer is one they may no longer see — and a run that vanished would
+    /// look like data loss.
+    /// </para>
+    /// </remarks>
+    private async Task<AgentRunDetailModel> ReauthorizeResultAsync(
+        AgentRunDetailModel run,
+        OrganizationId organizationId,
+        CancellationToken cancellationToken)
+    {
+        if (run.ResultSensitivity <= ModelDataSensitivity.Internal || run.Result is null)
+        {
+            return run;
+        }
+
+        bool permitted = await _guard
+            .HasPermissionAsync(Permission.AiSensitiveUse, organizationId, cancellationToken)
+            .ConfigureAwait(false);
+
+        return permitted
+            ? run
+            : run with { Result = null, ResultWithheld = true };
     }
 
     public async Task<IReadOnlyList<AiApprovalModel>> ListPendingApprovalsAsync(

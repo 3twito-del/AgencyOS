@@ -70,13 +70,13 @@ public sealed class AgentRunTests
     {
         AgentRun run = Start();
         run.Begin(Now, run.Version);
-        run.Complete("Here is the brief.", Now.AddSeconds(30), run.Version);
+        run.Complete("Here is the brief.", ModelDataSensitivity.Internal, Now.AddSeconds(30), run.Version);
 
         Assert.Equal(AgentRunStatus.Completed, run.Status);
         Assert.Equal(Now.AddSeconds(30), run.CompletedAt);
         Assert.True(run.IsTerminal);
         Assert.Throws<DomainException>(() =>
-            run.Complete("Different.", Now.AddMinutes(1), run.Version));
+            run.Complete("Different.", ModelDataSensitivity.Internal, Now.AddMinutes(1), run.Version));
     }
 
     /// <summary>
@@ -134,7 +134,7 @@ public sealed class AgentRunTests
     {
         AgentRun run = Start();
         run.Begin(Now, run.Version);
-        run.Complete("Done.", Now, run.Version);
+        run.Complete("Done.", ModelDataSensitivity.Internal, Now, run.Version);
 
         Assert.Throws<DomainException>(() =>
             run.AppendStep(AgentStepKind.ModelInvocation, "One more turn.", Now));

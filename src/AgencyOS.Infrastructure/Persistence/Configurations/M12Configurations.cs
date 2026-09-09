@@ -91,6 +91,14 @@ public sealed class AgentRunConfiguration : IEntityTypeConfiguration<AgentRun>
         builder.Property(x => x.ExecutionDevice)
             .HasColumnName("execution_device").HasMaxLength(100);
 
+        // The classification a stored result is read back under. Defaults to
+        // Internal because every run written before M13 predates the concept, and
+        // Internal is the classification that grants nothing extra.
+        builder.Property(x => x.ResultSensitivity)
+            .HasColumnName("result_sensitivity")
+            .HasDefaultValue(Domain.Ai.ModelDataSensitivity.Internal)
+            .IsRequired();
+
         builder.Property(x => x.PromptTemplateId)
             .HasColumnName("prompt_template_id").HasMaxLength(100).IsRequired();
 

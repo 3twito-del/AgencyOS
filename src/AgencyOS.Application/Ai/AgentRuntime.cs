@@ -389,8 +389,14 @@ public sealed class AgentRuntime
         }
         else
         {
+            // The result inherits the strongest classification it was produced
+            // from, so a later reader is authorized against the material rather
+            // than against having started the run (ADR-0035).
             run.Complete(
-                AiCitationValidator.Strip(text, context.Citable), _clock.UtcNow, run.Version);
+                AiCitationValidator.Strip(text, context.Citable),
+                context.HighestIncluded,
+                _clock.UtcNow,
+                run.Version);
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

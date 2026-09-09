@@ -211,6 +211,26 @@ public sealed class AgentRun
     /// <summary>The model identifier this run was configured to use.</summary>
     public string ModelKey { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// How sensitive the material this result was produced from was.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Recorded at generation time and never recomputed. A result is a derived
+    /// work of everything the run was given, so it inherits the strongest
+    /// classification among its inputs: a paragraph drawn from a source-sensitive
+    /// signal is source-sensitive even though nothing in it looks like one
+    /// (ADR-0035, §L).
+    /// </para>
+    /// <para>
+    /// This is what makes a stored result re-authorizable. Without it a run would
+    /// carry prose whose provenance nobody could reconstruct, and the only
+    /// available check would be "did this person start the run" - which is
+    /// historical authorization, and does not expire.
+    /// </para>
+    /// </remarks>
+    public ModelDataSensitivity ResultSensitivity { get; private set; }
+
     /// <summary>Where this run's inference executes.</summary>
     /// <remarks>
     /// Recorded on the run so a reader can tell afterwards where the material
@@ -398,7 +418,15 @@ public sealed class AgentRun
         Touch(now);
     }
 
-    public void Complete(string result, DateTimeOffset now, int expectedVersion)
+    /// <param name="sensitivity">
+    /// The strongest classification among the inputs this result was produced
+    /// from. Stored so later reads can be authorized against it.
+    /// </param>
+    public void Complete(
+        string result,
+        ModelDataSensitivity sensitivity,
+        DateTimeOffset now,
+        int expectedVersion)
     {
         Guard(expectedVersion);
 
@@ -412,6 +440,7 @@ public sealed class AgentRun
 
         Status = AgentRunStatus.Completed;
         Result = Ensure.NotBlankMax(result, nameof(result), 60_000);
+        ResultSensitivity = sensitivity;
         CompletedAt = now;
         Touch(now);
     }
