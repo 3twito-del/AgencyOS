@@ -206,6 +206,55 @@ public sealed class ActivationRouterTests
     }
 
     /// <summary>
+    /// Resolving a link is not evidence that the object exists or may be read.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Stated as a test because the opposite is the tempting optimization: the
+    /// router could be given a cache and made to answer "no such approval" without
+    /// a round trip. That answer is itself a disclosure — it tells whoever sent
+    /// the link whether the identifier is real — and a client that decided which
+    /// links were worth following would be making an authorization decision on the
+    /// untrusted side of the boundary (§2, §3, ADR-0033).
+    /// </para>
+    /// <para>
+    /// So a route for an identifier that names nothing resolves exactly like one
+    /// that names something. What comes back is a destination, and the server
+    /// decides what the person may see when the client asks. This is the same
+    /// reason a stale notification restores nothing: both are pointers, and
+    /// neither is a grant.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData("agencyos://person/{id}")]
+    [InlineData("agencyos://company/{id}")]
+    [InlineData("agencyos://deal/{id}")]
+    [InlineData("agencyos://contract/{id}")]
+    [InlineData("agencyos://research/{id}")]
+    [InlineData("agencyos://ai/run/{id}")]
+    [InlineData("agencyos://ai/approval/{id}")]
+    public void ARouteIsADestinationAndNotAGrant(string template)
+    {
+        // An identifier that names nothing anywhere.
+        string nothing = Guid.CreateVersion7().ToString("D");
+
+        ActivationRoute parsed = ActivationRouter.Parse(
+            template.Replace("{id}", nothing, StringComparison.Ordinal));
+
+        Assert.True(parsed.IsResolved);
+        Assert.Equal(ActivationFailure.None, parsed.Failure);
+        Assert.Equal(Guid.Parse(nothing), parsed.Id);
+
+        // And it resolves identically to one that does name something, so the
+        // client cannot tell the two apart and does not try.
+        ActivationRoute real = ActivationRouter.Parse(
+            template.Replace("{id}", Id.ToString("D"), StringComparison.Ordinal));
+
+        Assert.Equal(real.Kind, parsed.Kind);
+        Assert.Equal(real.Workspace, parsed.Workspace);
+    }
+
+    /// <summary>
     /// The parser is a pure function of its input.
     /// </summary>
     /// <remarks>

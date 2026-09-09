@@ -93,6 +93,49 @@ public sealed class AiContextLeaseTests
     }
 
     /// <summary>
+    /// A lease is for one subject.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The subject is bound through the fingerprint rather than compared as a
+    /// field, which is worth stating because it looks like an omission:
+    /// <c>Authorizes</c> never mentions the subject. It does not need to. The
+    /// subject is part of the material the fingerprint is computed over, so a
+    /// lease issued to brief one person cannot be presented for another — the
+    /// arithmetic disagrees before any comparison would have run.
+    /// </para>
+    /// <para>
+    /// This matters most for the arc that shares everything else. Two runs by the
+    /// same user in the same tenant, differing only in who they are about, are
+    /// exactly the substitution somebody would attempt.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void ALeaseCannotCrossASubject()
+    {
+        AiContextLease lease = Issue();
+
+        string other = AiContextLease.ComputeFingerprint(
+            Org,
+            User,
+            Run,
+            AgentSubjectKind.Person,
+            Guid.CreateVersion7(),
+            ModelResidency.DeviceLocal,
+            Context);
+
+        Assert.False(lease.Authorizes(
+            Org, User, Run, ModelResidency.DeviceLocal, other, Now));
+
+        // And the same subject id under a different kind is a different subject.
+        string kind = AiContextLease.ComputeFingerprint(
+            Org, User, Run, AgentSubjectKind.Company, Subject, ModelResidency.DeviceLocal, Context);
+
+        Assert.False(lease.Authorizes(
+            Org, User, Run, ModelResidency.DeviceLocal, kind, Now));
+    }
+
+    /// <summary>
     /// A lease is for one residency.
     /// </summary>
     /// <remarks>

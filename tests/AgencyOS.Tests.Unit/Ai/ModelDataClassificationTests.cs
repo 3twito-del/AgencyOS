@@ -149,6 +149,87 @@ public sealed class ModelDataClassificationTests
         Assert.False(policy.Permits(ModelDataSensitivity.Restricted));
     }
 
+    /// <summary>
+    /// Restricted is refused at device-local residency too.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The question M13 had to answer, because device-local execution makes the
+    /// obvious argument available: the material never leaves the workstation, the
+    /// person is already allowed to read it, so why refuse? Because residency is
+    /// an execution decision and Restricted is a disclosure decision, and letting
+    /// the first override the second would make "restricted" mean "restricted
+    /// unless the model runs nearby" (ADR-0032, §37).
+    /// </para>
+    /// <para>
+    /// The refusal is structural rather than a rule the local path also happens to
+    /// check. It is returned before the provider is looked up at all, which is what
+    /// this test demonstrates: the service is given a repository that throws if it
+    /// is consulted, and a guard that would throw if it were used. Restricted is
+    /// still refused, so no configuration of the device-local provider — and no
+    /// grant to the person asking — can reach it.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData("windows")]
+    [InlineData("fake")]
+    [InlineData("anthropic")]
+    public async Task RestrictedIsRefusedBeforeAnyProviderIsConsulted(string providerKey)
+    {
+        ModelDataPolicy policy = new(guard: null!, new ThrowingPolicies());
+
+        ModelDataVerdict verdict = await policy.EvaluateAsync(
+            Org, providerKey, ModelDataSensitivity.Restricted);
+
+        Assert.False(verdict.IsAllowed);
+        Assert.Contains("never", verdict.Reason!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// The device-local provider gets no ceiling of its own.
+    /// </summary>
+    /// <remarks>
+    /// The same rule stated where somebody would try to change it. A policy row for
+    /// "windows" is an ordinary policy row: it cannot be created at Restricted and
+    /// cannot be raised to it, so there is no configuration that turns the local
+    /// path into an exception.
+    /// </remarks>
+    [Fact]
+    public void TheLocalProviderCannotBeConfiguredToReachRestricted()
+    {
+        Assert.Throws<DomainException>(() => AiProviderPolicy.Create(
+            Org, "windows", true, ModelDataSensitivity.Restricted, false, Admin, Now));
+
+        AiProviderPolicy local = AiProviderPolicy.Create(
+            Org, "windows", true, ModelDataSensitivity.Protected, false, Admin, Now);
+
+        Assert.Throws<DomainException>(() => local.Update(
+            true, ModelDataSensitivity.Restricted, false, Admin, Now, local.Version));
+
+        Assert.False(local.Permits(ModelDataSensitivity.Restricted));
+    }
+
+    /// <summary>A repository that fails the test if it is consulted at all.</summary>
+    private sealed class ThrowingPolicies : IAiProviderPolicyRepository
+    {
+        public Task<AiProviderPolicy?> FindAsync(
+            OrganizationId organizationId,
+            string providerKey,
+            CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException(
+                "Restricted material must be refused before any policy is read.");
+
+        public Task<IReadOnlyList<AiProviderPolicy>> ListAsync(
+            OrganizationId organizationId,
+            CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException(
+                "Restricted material must be refused before any policy is read.");
+
+        public void Add(AiProviderPolicy policy) =>
+            throw new InvalidOperationException(
+                "Restricted material must be refused before any policy is read.");
+    }
+
     /// <summary>A ceiling permits itself and everything below it.</summary>
     [Theory]
     [InlineData(ModelDataSensitivity.Internal, ModelDataSensitivity.Internal, true)]
