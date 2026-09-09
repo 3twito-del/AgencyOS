@@ -37,13 +37,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4, pinned 2026-09-09
         with:
           # Full history so build metadata can resolve a real commit.
           fetch-depth: 0
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4, pinned 2026-09-09
         with:
           global-json-file: global.json
 
@@ -51,7 +51,7 @@ jobs:
       # runner image happens to ship, so a model-checking result means the same
       # thing from one run to the next.
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4, pinned 2026-09-09
         with:
           distribution: temurin
           java-version: '21'
@@ -104,7 +104,7 @@ jobs:
         run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 formal
 
       - name: Upload API contract
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4, pinned 2026-09-09
         with:
           name: openapi-contract
           path: artifacts/openapi/*.json
@@ -132,17 +132,33 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4, pinned 2026-09-09
         with:
           fetch-depth: 0
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4, pinned 2026-09-09
         with:
           global-json-file: global.json
 
       # The suite creates and drops its own databases on this server, so it needs
       # a connection string rather than a prepared schema.
+      # The restore drill runs pg_dump and pg_restore against the 18.6 service
+      # container. A client older than the server refuses to dump it, and the
+      # runner image does not carry an 18 client, so the drill would fail for a
+      # reason that has nothing to do with AgencyOS (M15, ADR-0039).
+      - name: PostgreSQL 18 client tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-18
+          pg_dump --version
+          pg_restore --version
+
       - name: Integration tests
         shell: pwsh
         env:
