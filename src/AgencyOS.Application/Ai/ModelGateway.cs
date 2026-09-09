@@ -210,4 +210,17 @@ public sealed record ModelDescriptor(
     bool SupportsStructuredOutput,
     bool SupportsStreaming,
     int? MaxContextTokens,
-    bool IsEnabled);
+    bool IsEnabled,
+    ModelResidency Residency = ModelResidency.ExternalCloud)
+{
+    /// <summary>
+    /// Whether calling this model means handing context to something outside the
+    /// server process.
+    /// </summary>
+    /// <remarks>
+    /// Anything that is not the server's own connection needs a lease, because a
+    /// lease is what binds disclosed context to one run, one user and one
+    /// execution (ADR-0035).
+    /// </remarks>
+    public bool RequiresContextLease => Residency != ModelResidency.ExternalCloud;
+}

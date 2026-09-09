@@ -331,6 +331,19 @@ public static class AuditAction
     /// </remarks>
     public const string AiProposedWriteExecuted = "ai.proposal.executed";
 
+    /// <summary>
+    /// Authorized context was disclosed to a user's workstation.
+    /// </summary>
+    /// <remarks>
+    /// Recorded because it is the one fact a reviewer cannot reconstruct
+    /// afterwards from anything else: material left the server for a device, and
+    /// no later revocation reaches into that device's memory (ADR-0035).
+    /// </remarks>
+    public const string AiContextLeaseIssued = "ai.lease.issued";
+
+    /// <summary>A device-local result was validated and became part of a run.</summary>
+    public const string AiLocalResultAccepted = "ai.local.accepted";
+
     public const string AiProviderPolicyChanged = "ai.provider.policy.changed";
 
     public const string SavedViewCreated = "savedview.created";

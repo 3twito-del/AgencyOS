@@ -47,6 +47,7 @@ public sealed class AgentRunHandler
 {
     private readonly AgentRuntime _runtime;
     private readonly IAgentRunRepository _runs;
+    private readonly IAiContextLeaseRepository _leases;
     private readonly IAiToolRequestRepository _toolRequests;
     private readonly IModelGateway _gateway;
     private readonly IUnitOfWork _unitOfWork;
@@ -57,6 +58,7 @@ public sealed class AgentRunHandler
     public AgentRunHandler(
         AgentRuntime runtime,
         IAgentRunRepository runs,
+        IAiContextLeaseRepository leases,
         IAiToolRequestRepository toolRequests,
         IModelGateway gateway,
         IUnitOfWork unitOfWork,
@@ -66,6 +68,7 @@ public sealed class AgentRunHandler
     {
         _runtime = runtime;
         _runs = runs;
+        _leases = leases;
         _toolRequests = toolRequests;
         _gateway = gateway;
         _unitOfWork = unitOfWork;
@@ -168,13 +171,30 @@ public sealed class AgentRunHandler
             request.Abandon(_clock.UtcNow, request.Version);
         }
 
+        // An outstanding lease is withdrawn so a workstation that comes back after
+        // the cancellation is refused. It does not reach the context already in
+        // that device's memory - nothing can - but it stops that disclosure from
+        // becoming an accepted result (ADR-0035, §C.3).
+        IReadOnlyList<AiContextLease> leases = await _leases
+            .ListOutstandingAsync(command.OrganizationId, run.Id, cancellationToken)
+            .ConfigureAwait(false);
+
+        foreach (AiContextLease lease in leases)
+        {
+            lease.Invalidate(_clock.UtcNow, lease.Version);
+        }
+
         _audit.Record(
             AuditAction.AgentRunCancelled,
             entityType: nameof(AgentRun),
             entityId: run.Id.ToString(),
             organizationId: command.OrganizationId,
             permission: Permission.AiUse,
-            semanticDelta: new { abandonedRequests = pending.Count },
+            semanticDelta: new
+            {
+                abandonedRequests = pending.Count,
+                withdrawnLeases = leases.Count,
+            },
             reason: "Cancelled by the user. Anything already committed stands.");
 
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

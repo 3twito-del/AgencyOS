@@ -41,7 +41,40 @@ public sealed record ModelOptions(
     bool SupportsStructuredOutput = true,
     bool SupportsStreaming = false,
     int? MaxContextTokens = null,
-    bool IsEnabled = true);
+    bool IsEnabled = true,
+    ModelResidency Residency = ModelResidency.ExternalCloud);
+
+/// <summary>
+/// The device-local model AgencyOS knows how to ask a Windows client to run.
+/// </summary>
+/// <remarks>
+/// Declared here rather than in configuration because its capabilities are a
+/// property of the Windows API, not of a deployment. The inspected
+/// <c>Microsoft.Windows.AI.Text.LanguageModel</c> surface offers
+/// <c>GenerateResponseAsync</c> and <c>GenerateStructuredJsonResponseAsync</c>
+/// and no function-calling contract of any kind, so tool support is declared
+/// false — truthfully, rather than emulated by asking a model to print JSON and
+/// treating that as a tool call (§H, ADR-0035).
+/// </remarks>
+public static class WindowsLocalModel
+{
+    /// <summary>How AgencyOS refers to the Windows device-local model.</summary>
+    public const string Key = "windows-local";
+
+    /// <summary>The provider key it belongs to.</summary>
+    public const string ProviderKey = "windows";
+
+    internal static ModelDescriptor Descriptor { get; } = new(
+        Key,
+        ProviderKey,
+        ModelId: "windows-ai-languagemodel",
+        SupportsTools: false,
+        SupportsStructuredOutput: true,
+        SupportsStreaming: false,
+        MaxContextTokens: null,
+        IsEnabled: true,
+        Residency: ModelResidency.DeviceLocal);
+}
 
 /// <summary>
 /// The one way AgencyOS calls a model.
@@ -88,7 +121,8 @@ public sealed class ModelGateway : IModelGateway
                 model.SupportsStructuredOutput,
                 model.SupportsStreaming,
                 model.MaxContextTokens,
-                model.IsEnabled);
+                model.IsEnabled,
+                model.Residency);
         }
 
         // The deterministic model always exists. A server with no AI configuration
@@ -105,6 +139,12 @@ public sealed class ModelGateway : IModelGateway
                 SupportsStreaming: false,
                 MaxContextTokens: null,
                 IsEnabled: true));
+
+        // The device-local model always exists, for the same reason the
+        // deterministic one does: a server with no AI configuration can still
+        // describe what a Windows client could run, and CI can exercise the whole
+        // lease protocol without a model file or an NPU (§63, ADR-0035).
+        models.TryAdd(WindowsLocalModel.Key, WindowsLocalModel.Descriptor);
 
         _models = models;
         _defaultKey = options.Value.DefaultModelKey;
@@ -130,6 +170,22 @@ public sealed class ModelGateway : IModelGateway
             return ModelResponse.Failed(
                 AgentFailureKind.ProviderUnavailable,
                 $"No model is configured under the key '{request.Model}'.");
+        }
+
+        // THE NO-FALLBACK GUARANTEE, at the layer everything goes through.
+        //
+        // A device-local model executes on the user's workstation and nowhere
+        // else. Asking the gateway to complete one means some code path lost track
+        // of where the material was permitted to go, and the only safe answer is a
+        // refusal: quietly reaching for a cloud provider instead would move
+        // material the policy admitted only on-device (§E, ADR-0035).
+        if (descriptor.RequiresContextLease)
+        {
+            return ModelResponse.Failed(
+                AgentFailureKind.LocalProviderUnavailable,
+                $"'{descriptor.Key}' runs on the user's device under a context lease. "
+                    + "The server does not execute it, and will not send its context "
+                    + "anywhere else.");
         }
 
         if (!_providers.TryGetValue(descriptor.ProviderKey, out IModelProvider? provider))

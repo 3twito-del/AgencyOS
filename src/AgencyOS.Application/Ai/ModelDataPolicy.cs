@@ -176,6 +176,27 @@ public sealed class ModelDataPolicy
         return ModelDataVerdict.Allowed;
     }
 
+    /// <summary>
+    /// The version of the policy currently in force for a provider.
+    /// </summary>
+    /// <remarks>
+    /// Carried on a context lease so a lease issued under one policy can be
+    /// recognized after the policy changes. Zero means no row exists, which is the
+    /// closed default and is a version like any other (ADR-0035).
+    /// </remarks>
+    public async Task<int> PolicyVersionAsync(
+        OrganizationId organizationId,
+        string providerKey,
+        CancellationToken cancellationToken = default)
+    {
+        AiProviderPolicy policy = await _policies
+            .FindAsync(organizationId, providerKey, cancellationToken)
+            .ConfigureAwait(false)
+            ?? AiProviderPolicy.ClosedDefault(organizationId, providerKey);
+
+        return policy.Version;
+    }
+
     /// <summary>Whether an organization allows AI to propose canonical writes at all.</summary>
     public async Task<bool> AllowsWriteProposalsAsync(
         OrganizationId organizationId,

@@ -62,6 +62,7 @@ internal static class ApiEndpoints
         M10Endpoints.MapDocumentsAndCommunications(api);
         M11Endpoints.MapIntelligence(api);
         M12Endpoints.MapAiRuntime(api);
+        M13Endpoints.MapLocalInference(api);
 
         // Idempotency is applied to the whole versioned surface and skipped for
         // reads. Opting in per endpoint would mean a mutation added later is

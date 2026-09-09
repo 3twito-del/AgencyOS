@@ -290,6 +290,7 @@ builder.Services.AddScoped<AiQueryService>();
 builder.Services.AddScoped<AgentRunHandler>();
 builder.Services.AddScoped<AiApprovalHandler>();
 builder.Services.AddScoped<AiProviderPolicyHandler>();
+builder.Services.AddScoped<LocalInferenceHandler>();
 
 builder.Services.AddScoped<CreateTalentProfileHandler>();
 builder.Services.AddScoped<UpdateTalentProfileHandler>();

@@ -323,6 +323,9 @@ public sealed partial class OpenApiContractTests
     [InlineData("/api/v1/organizations/{organizationId}/ai/models")]
     [InlineData("/api/v1/organizations/{organizationId}/ai/policies")]
     [InlineData("/api/v1/organizations/{organizationId}/ai/policies/{providerKey}")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/runs/{runId}/local-lease")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/runs/{runId}/local-result")]
+    [InlineData("/api/v1/organizations/{organizationId}/ai/execution-targets")]
     public async Task Contract_DescribesTheImplementedSurface(string path)
     {
         using JsonDocument document = await GetContractAsync();

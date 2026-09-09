@@ -586,7 +586,10 @@ function Invoke-Contract {
         "/api/v1/organizations/{organizationId}/ai/agents/{kind}/tools",
         "/api/v1/organizations/{organizationId}/ai/models",
         "/api/v1/organizations/{organizationId}/ai/policies",
-        "/api/v1/organizations/{organizationId}/ai/policies/{providerKey}"
+        "/api/v1/organizations/{organizationId}/ai/policies/{providerKey}",
+        "/api/v1/organizations/{organizationId}/ai/runs/{runId}/local-lease",
+        "/api/v1/organizations/{organizationId}/ai/runs/{runId}/local-result",
+        "/api/v1/organizations/{organizationId}/ai/execution-targets"
     )
 
     $paths = @($contract.paths.PSObject.Properties.Name)

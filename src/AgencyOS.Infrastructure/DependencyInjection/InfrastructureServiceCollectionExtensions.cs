@@ -192,6 +192,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IAiContextAssembler, AiContextAssembler>();
         services.AddScoped<IAiToolRegistry, AiToolRegistry>();
         services.AddScoped<IModelGateway, ModelGateway>();
+        services.AddScoped<IAiContextLeaseRepository, AiContextLeaseRepository>();
 
         // Registered explicitly, one line each. There is no scanning and no
         // attribute discovery: a tool exists because somebody wrote it down here,
