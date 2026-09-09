@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Security.Cryptography;
 using AgencyOS.Application.Abstractions;
 using AgencyOS.Domain.Organizations;
@@ -172,11 +173,19 @@ public sealed class FileSystemBlobStore : IBlobStore
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Answers, never raises. A key belonging to another organization, or one this
+    /// store did not make, is simply not here — which is the true answer and the
+    /// only one a caller asking "does this exist" can use. Throwing would also make
+    /// a foreign key distinguishable from an absent one, which is a difference
+    /// nobody outside the tenant should be able to observe (ADR-0037).
+    /// </remarks>
     public Task<bool> ExistsAsync(
         OrganizationId organizationId,
         string storageKey,
         CancellationToken cancellationToken = default) =>
-        Task.FromResult(File.Exists(ResolvePath(organizationId, storageKey)));
+        Task.FromResult(
+            TryResolvePath(organizationId, storageKey, out string? path) && File.Exists(path));
 
     /// <inheritdoc />
     public Task DeleteAsync(
@@ -184,7 +193,13 @@ public sealed class FileSystemBlobStore : IBlobStore
         string storageKey,
         CancellationToken cancellationToken = default)
     {
-        string path = ResolvePath(organizationId, storageKey);
+        // The orphan sweeper may meet a key it cannot resolve, and a sweep that
+        // threw on one row would stop before the rest. Nothing to delete is the
+        // outcome deletion was asked for.
+        if (!TryResolvePath(organizationId, storageKey, out string? path))
+        {
+            return Task.CompletedTask;
+        }
 
         if (File.Exists(path))
         {
@@ -243,14 +258,32 @@ public sealed class FileSystemBlobStore : IBlobStore
     /// assumption a future caller will break, and the consequence would be reading
     /// or deleting an arbitrary file on the server.
     /// </remarks>
-    private string ResolvePath(OrganizationId organizationId, string storageKey)
+    private string ResolvePath(OrganizationId organizationId, string storageKey) =>
+        TryResolvePath(organizationId, storageKey, out string? path)
+            ? path
+            : throw new BlobNotFoundException(storageKey);
+
+    /// <summary>
+    /// Turns a key into a path, or reports that it is not one of this store's.
+    /// </summary>
+    /// <remarks>
+    /// The same checks, without deciding what the caller should do about a failure.
+    /// Reading a key that names nothing is an error worth raising; asking whether
+    /// one exists, or deleting one, is not.
+    /// </remarks>
+    private bool TryResolvePath(
+        OrganizationId organizationId,
+        string storageKey,
+        [NotNullWhen(true)] out string? path)
     {
+        path = null;
+
         string expectedPrefix = organizationId.Value.ToString("N", CultureInfo.InvariantCulture);
 
         if (string.IsNullOrWhiteSpace(storageKey)
             || !storageKey.StartsWith(expectedPrefix, StringComparison.Ordinal))
         {
-            throw new BlobNotFoundException(storageKey);
+            return false;
         }
 
         foreach (string segment in storageKey.Split('/'))
@@ -259,7 +292,7 @@ public sealed class FileSystemBlobStore : IBlobStore
 
             if (!safe)
             {
-                throw new BlobNotFoundException(storageKey);
+                return false;
             }
         }
 
@@ -269,10 +302,12 @@ public sealed class FileSystemBlobStore : IBlobStore
         // the root the store owns.
         if (!candidate.StartsWith(_root, StringComparison.Ordinal))
         {
-            throw new BlobNotFoundException(storageKey);
+            return false;
         }
 
-        return candidate;
+        path = candidate;
+
+        return true;
     }
 
     private void TryDelete(string path)
