@@ -338,6 +338,14 @@ public sealed class AgencyOsDbContext : DbContext, IUnitOfWork
 
     public DbSet<AiProviderPolicy> AiProviderPolicies => Set<AiProviderPolicy>();
 
+    /// <summary>Permission to execute one run's context on one device, once.</summary>
+    /// <remarks>
+    /// One-time consumption is enforced here rather than on the client, because
+    /// the client is not trusted to report whether it already used a lease
+    /// (ADR-0035).
+    /// </remarks>
+    public DbSet<AiContextLease> AiContextLeases => Set<AiContextLease>();
+
     /// <summary>
     /// Saves, recording a change-feed entry for every cached record that moved.
     /// </summary>

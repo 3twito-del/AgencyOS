@@ -292,6 +292,157 @@ public sealed class MigrationTests
         Assert.Empty(await context.Database.GetPendingMigrationsAsync());
     }
 
+    /// <summary>The lease table arrives with the rest of M13.</summary>
+    [Fact]
+    public async Task Migrations_CreateTheContextLeaseTable()
+    {
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
+
+        await clean.MigrateAsync();
+
+        object? table = await clean.ScalarAsync(
+            "SELECT to_regclass('public.ai_context_leases')::text");
+
+        Assert.True(table is not null and not DBNull, "ai_context_leases was not created.");
+
+        foreach (string column in new[] { "residency", "execution_device" })
+        {
+            object? found = await clean.ScalarAsync(
+                "SELECT column_name FROM information_schema.columns "
+                    + $"WHERE table_name = 'ai_runs' AND column_name = '{column}'");
+
+            Assert.Equal(column, found);
+        }
+    }
+
+    /// <summary>
+    /// The constraints that hold when the application layer does not.
+    /// </summary>
+    /// <remarks>
+    /// <c>ck_ai_context_leases_residency</c> carries the most weight: it makes a
+    /// cloud lease impossible to write at all, so there is no second and weaker
+    /// path to context that the device-local protocol was meant to govern
+    /// (ADR-0035).
+    /// </remarks>
+    [Fact]
+    public async Task Migrations_InstallTheLeaseConstraints()
+    {
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
+
+        await clean.MigrateAsync();
+
+        string[] expected =
+        [
+            "fk_ai_context_leases_run",
+            "fk_ai_context_leases_user",
+            "ck_ai_context_leases_residency",
+            "ck_ai_context_leases_window",
+            "ck_ai_context_leases_state",
+            "ck_ai_context_leases_subject",
+            "ck_ai_context_leases_fingerprint",
+            "ck_ai_runs_residency",
+        ];
+
+        foreach (string constraint in expected)
+        {
+            object? found = await clean.ScalarAsync(
+                $"SELECT conname FROM pg_constraint WHERE conname = '{constraint}'");
+
+            Assert.Equal(constraint, found);
+        }
+    }
+
+    /// <summary>A lease cannot be un-consumed, by any path.</summary>
+    [Fact]
+    public async Task Migrations_InstallTheLeaseTrigger()
+    {
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
+
+        await clean.MigrateAsync();
+
+        object? found = await clean.ScalarAsync(
+            "SELECT tgname FROM pg_trigger WHERE tgname = 'trg_ai_context_leases_once'");
+
+        Assert.Equal("trg_ai_context_leases_once", found);
+    }
+
+    /// <summary>
+    /// The run's terminal constraint learned about the eighth status.
+    /// </summary>
+    /// <remarks>
+    /// M12 wrote it over seven. A run awaiting local execution is non-terminal for
+    /// the same reason one awaiting approval is, and a constraint that had not
+    /// been told would refuse every device-local run at insert.
+    /// </remarks>
+    [Fact]
+    public async Task Migrations_TeachTheTerminalConstraintAboutLocalExecution()
+    {
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
+
+        await clean.MigrateAsync();
+
+        object? definition = await clean.ScalarAsync(
+            "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                + "WHERE conname = 'ck_ai_runs_terminal'");
+
+        Assert.Contains("8", Assert.IsType<string>(definition), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// M13 rolls back to M12 and re-applies.
+    /// </summary>
+    /// <remarks>
+    /// The rollback restores M12's terminal constraint rather than merely dropping
+    /// M13's, so a database rolled back is identical to one that never went
+    /// forward instead of merely working.
+    /// </remarks>
+    [Fact]
+    public async Task Migrations_RollBackAndReapplyLocalInference()
+    {
+        await using TemporaryDatabase clean =
+            await TemporaryDatabase.CreateAsync(_fixture.ConnectionString, "agencyos_migr");
+
+        await clean.MigrateAsync();
+
+        await using (AgencyOsDbContext down = clean.CreateDbContext())
+        {
+            IMigrator migrator = down.GetInfrastructure().GetRequiredService<IMigrator>();
+            await migrator.MigrateAsync(AiRuntimeMigration);
+        }
+
+        object? gone = await clean.ScalarAsync(
+            "SELECT to_regclass('public.ai_context_leases')::text");
+
+        Assert.True(gone is null or DBNull, "ai_context_leases survived the rollback.");
+
+        object? restored = await clean.ScalarAsync(
+            "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                + "WHERE conname = 'ck_ai_runs_terminal'");
+
+        Assert.DoesNotContain(
+            "8", Assert.IsType<string>(restored), StringComparison.Ordinal);
+
+        object? kept = await clean.ScalarAsync("SELECT to_regclass('public.ai_runs')::text");
+        Assert.True(kept is not null and not DBNull, "The rollback took M12 with it.");
+
+        await clean.MigrateAsync();
+
+        object? back = await clean.ScalarAsync(
+            "SELECT to_regclass('public.ai_context_leases')::text");
+
+        Assert.True(back is not null and not DBNull, "ai_context_leases did not come back.");
+
+        await using AgencyOsDbContext context = clean.CreateDbContext();
+        Assert.Empty(await context.Database.GetPendingMigrationsAsync());
+    }
+
+    /// <summary>The migration M13 rolls back to.</summary>
+    private const string AiRuntimeMigration = "20260908210740_AiRuntime";
+
     /// <summary>The migration M12 rolls back to.</summary>
     private const string PreviousMigration = "20260908184322_Intelligence";
 }

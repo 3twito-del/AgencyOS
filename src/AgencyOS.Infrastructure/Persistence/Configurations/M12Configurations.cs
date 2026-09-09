@@ -79,6 +79,18 @@ public sealed class AgentRunConfiguration : IEntityTypeConfiguration<AgentRun>
         builder.Property(x => x.ModelKey)
             .HasColumnName("model_key").HasMaxLength(200).IsRequired();
 
+        // M13. Where inference executed, and on what. Residency defaults to
+        // ExternalCloud because every run written before M13 went to the server's
+        // own provider; the device is provenance the client reported and nothing
+        // depends on it (ADR-0035).
+        builder.Property(x => x.Residency)
+            .HasColumnName("residency")
+            .HasDefaultValue(Domain.Ai.ModelResidency.ExternalCloud)
+            .IsRequired();
+
+        builder.Property(x => x.ExecutionDevice)
+            .HasColumnName("execution_device").HasMaxLength(100);
+
         builder.Property(x => x.PromptTemplateId)
             .HasColumnName("prompt_template_id").HasMaxLength(100).IsRequired();
 
