@@ -147,9 +147,12 @@ builder.Services.AddAgencyOSInfrastructure(connectionString);
 // Where stored bytes and protection keys live. Beside the application by default,
 // which is right for a single-server ALPHA deployment and wrong for anything
 // larger; ADR-0024 says so rather than leaving it to be discovered.
-builder.Services.AddAgencyOSContentStorage(
-    builder.Configuration["AgencyOS:BlobStore:RootPath"],
-    builder.Configuration["AgencyOS:DataProtection:KeyPath"]);
+string? blobRoot = builder.Configuration["AgencyOS:BlobStore:RootPath"];
+string? keyPath = builder.Configuration["AgencyOS:DataProtection:KeyPath"];
+
+builder.Services.AddAgencyOSContentStorage(blobRoot, keyPath);
+
+
 
 // Microsoft Graph is offered only when an operator has registered an application.
 // Without one the adapter would refuse every call, and offering a mailbox provider
@@ -459,6 +462,36 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<AgencyOsExceptionHandler>();
 
 WebApplication app = builder.Build();
+
+// ---------------------------------------------------------------------------
+// Single-host assumptions, said out loud
+//
+// Both of these default to a directory beside the application. That is right for
+// a single-server ALPHA deployment and silently wrong for a second instance: two
+// hosts would hold separate blob stores and separate Data Protection key rings,
+// so each would serve documents the other could not find and neither could
+// decrypt the other's stored mailbox credentials.
+//
+// M14 found these while asking what blocks running more than one instance. They
+// are not defects and they are not fixed here - they are assumptions, and an
+// assumption nobody states is discovered by whoever scales the deployment
+// (§41, ADR-0024, ADR-0037).
+// ---------------------------------------------------------------------------
+if (blobRoot is null || keyPath is null)
+{
+    app.Logger.LogWarning(
+        "This host is using a process-local default for {Defaults}. That is correct "
+            + "for one server and unsafe for more than one: separate instances would "
+            + "hold separate blob stores and key rings. Configure "
+            + "AgencyOS:BlobStore:RootPath and AgencyOS:DataProtection:KeyPath on "
+            + "shared storage before running a second instance.",
+        (blobRoot, keyPath) switch
+        {
+            (null, null) => "blob storage and data protection keys",
+            (null, _) => "blob storage",
+            _ => "data protection keys",
+        });
+}
 
 app.UseExceptionHandler();
 

@@ -1907,15 +1907,96 @@ under an M13 heading.
 
 **Four inherited M9/M11 dialogs remain unreachable**, as recorded above.
 
-## M14 — Scale & Specialized Services
-Only when justified:
-- service extraction;
-- Temporal;
-- event broker;
-- OpenSearch;
-- graph projection;
-- Redis;
-- Rust/C++ specialized services.
+## M14 — Scale, Architectural Fitness & Specialized Services — **Done** (2026-09-09)
+
+Implemented: the milestone that asked whether any part of AgencyOS needs to leave
+the modular monolith, and answered with evidence rather than with topology.
+
+**Nothing does.** Seventeen module families were assessed against the extraction
+admission test and none passes. Every one fails at the same item — a measured
+problem or a hard runtime boundary — and the only candidate with a genuine runtime
+argument, document text extraction, fails because the feature it would isolate
+does not exist. Building PDF or OCR extraction inside M14 so that it could then be
+extracted would have been manufacturing the evidence (ADR-0037).
+
+**The mechanisms this milestone would have built are already here.**
+`CommunicationWorker` claims work with `FOR UPDATE SKIP LOCKED` under an expiring
+lease and is documented as safe to run concurrently — so the PostgreSQL work queue
+that a broker or Temporal would replace already exists and is correct. There is no
+publish step anywhere, so an outbox has nothing to make atomic. And every read
+path was already clamped, so the `limit=1000000` bug M14 expected to close does
+not exist.
+
+**Fifteen technologies were considered and none adopted:** domain microservices,
+Kafka, RabbitMQ, Redis, OpenSearch, Neo4j, a vector database, Temporal,
+Kubernetes, a service mesh, multi-region, Rust, Python, C++ and gRPC.
+
+**Measurement had to move to CI**, because Docker's Linux engine on the
+development host still returns HTTP 500. The harness asserts no wall-clock figure:
+a hosted runner's timings move for reasons unrelated to the code. It asserts an
+algorithmic invariant instead — the count of database round trips a read makes may
+not depend on how many rows come back — which needs no baseline and no magic
+number, and which is what an N+1 actually is. Measured result: **no N+1 in the
+read paths under test.**
+
+**Three real defects, none of which needed a new process to fix.**
+
+- **A NUL byte destroyed an entire document ingestion.** NUL is valid UTF-8, so it
+  passed a decoder that is otherwise strict, and PostgreSQL cannot store it in a
+  text column. The search projection's INSERT failed, the transaction failed, and
+  the document did not file at all — a 500 and no record. Any UTF-16 file saved as
+  `.txt` would have done it. Now refused with a reason, keeping faith with the rule
+  the extractor already followed for invalid UTF-8: the document files, only its
+  projection is declined.
+- **`IBlobStore.ExistsAsync` and `DeleteAsync` threw where the contract says they
+  answer.** Found by writing a second implementation and a shared conformance
+  suite. Asking whether another tenant's key existed raised instead of returning
+  false, and an orphan sweep meeting one unresolvable row would have stopped
+  before the rest.
+- **The upload ceiling was inherited, not chosen.** Kestrel at roughly 28.6 MiB,
+  multipart buffering at 128 MiB, no decision recorded anywhere, and the resulting
+  exception unmapped. Now 256 MB, declared, and refused by an explicit check that
+  names the number.
+
+**The 403/404 question was answered by writing down a rule that already existed.**
+M13 recorded it as an inconsistency between the AI and Intelligence surfaces; the
+review found it wider (M10 Documents and Communications share the pattern) and
+more deliberate (ADR-0025 chose it). Hide existence wherever the asker has no
+standing to know the record exists; refuse openly wherever they do. No behaviour
+changed; four regression tests pin it (ADR-0038).
+
+**The model-checker pin moved to `v1.7.4`**, because `v1.8.0` was never a fixed
+release — upstream re-publishes that tag from current master, three times in five
+days. That work also corrected an M13 claim: the state-count comparison that
+accepted the 09-09 build had missed an `OutboundSend` search-depth change of
+17→14. Depth is recorded evidence now (ADR-0036).
+
+Delivered against the original M14 list:
+
+- service extraction. **not delivered, deliberate** (nothing passes the admission
+  test)
+- Temporal. **deferred again** (no workflow exceeds what PostgreSQL state handles;
+  the longest wait, AI approval, already has correct lapse semantics and a formal
+  model)
+- event broker. **not delivered** (a correct PostgreSQL work queue already exists)
+- OpenSearch. **not delivered** (no requirement shown to fail in PostgreSQL FTS)
+- graph projection. **not delivered** (graph-shaped data is not evidence; no
+  traversal shown to fail)
+- Redis. **not delivered** (one host; in-process suffices)
+- Rust/C++ specialized services. **not delivered** (no benchmark, therefore no
+  admission)
+
+Also delivered, not on the original list: a CI scale harness, architectural fitness
+tests over the project graph and page-size clamps, a blob-store conformance suite
+run against two implementations, an explicit upload ceiling, and a startup warning
+naming the two single-host assumptions that block running a second instance.
+
+**Known limitations.** No wall-clock evidence exists for anything — the harness
+measures round trips, not latency. Two multi-instance blockers remain, both
+filesystem identity: the Data Protection key ring and the blob root both default
+beside the application. Rate limiting was evaluated and **deferred**: no measured
+need exists, and adding it because M14 is the scale milestone is the reasoning this
+milestone was built to refuse.
 
 ## M15 — Production Hardening
 Deliver:

@@ -319,3 +319,41 @@ the protocol is HTTP and JSON, and the policy code is arithmetic over enums.
 Nothing needed a second toolchain, a second build or a second supply chain to
 review.
 
+## M14 measured the monolith and kept it
+
+Seventeen module families were assessed against an extraction admission test and
+none passes. The deciding item is the same everywhere: no measured problem and no
+hard runtime boundary. A clean module boundary is not evidence for a separate
+process, and cross-domain workflows benefit from one transaction, relational
+integrity and composite tenant keys — none of which is worth trading for topology
+(ADR-0037).
+
+**The topology after M14 is unchanged**: one API host, one PostgreSQL, one Windows
+client, and one in-process background worker. No broker, no queue service, no
+search engine, no cache server, no orchestrator, no second language.
+
+Three things the review established rather than assumed:
+
+- **The async mechanism already exists.** `CommunicationWorker` claims rows with
+  `FOR UPDATE SKIP LOCKED` under an expiring lease and is designed for concurrent
+  workers. A broker would replace something correct with something unproven.
+- **There is no publish step.** Direct command handlers and a sequence-ordered
+  change feed clients poll. The `SaveChanges(); Publish();` hazard cannot occur
+  here, so an outbox has nothing to make atomic.
+- **Reads are bounded.** Every read path clamps its page size, and there are 279
+  indexes with 20 generated search vectors behind them.
+
+**The layering is now asserted, not described.** A test reads the project graph:
+Contracts depends on nothing, Domain on the F# rules only, Application on Domain,
+Infrastructure on Application and Domain, Api on all three. Another asserts the
+domain names no persistence technology. "Keep the modular monolith" is worth
+something only while the modularity is real, and a layering rule that lives in a
+document degrades one convenient reference at a time.
+
+**Two single-host assumptions are stated rather than fixed.** The Data Protection
+key ring and the blob store root both default to a directory beside the
+application, so two instances would hold separate key rings and separate stores.
+The host now says so at startup when either is left at its default. Neither is a
+defect and neither is an argument for extraction; they are the honest answer to
+"what blocks a second instance" (§41).
+

@@ -301,3 +301,55 @@ the detail route proves nothing if the list route carries it or the trace quotes
 it, so both are tested. The second holds only because run steps record what
 AgencyOS did rather than what the model said.
 
+## M14 — measuring without a stopwatch
+
+### Round trips, not wall-clock
+
+Hosted CI cannot assert a time. A shared runner's numbers move for reasons that
+have nothing to do with the code, and a flaky performance gate teaches people to
+ignore the gate (§53).
+
+What it can assert is an algorithmic invariant with no baseline and no magic
+number: **the count of database round trips a read makes must not depend on how
+many rows come back.** That is the definition of an N+1, and it is the defect that
+hides in development where every tenant has four people. Each test compares two
+measurements of the same endpoint — five rows against fifty — so it cannot drift,
+cannot be tuned, and never needs re-baselining when the schema changes.
+
+`QueryCounter` hooks in through `IDbContextOptionsConfiguration` rather than by
+re-registering the DbContext, so the harness measures the options the application
+actually built instead of a copy that would drift.
+
+**It carries an `EverObserved` flag, and one test asserts only that.** A counter
+never wired into the host would report zero on both sides of every comparison and
+pass every N+1 assertion — the most convincing false green available. There is a
+test whose only job is to fail in that case.
+
+Measured result: no N+1 in the people-list or search paths.
+
+### Structural tests over things behaviour cannot reach
+
+- **Architectural fitness.** The project graph, the domain's freedom from
+  persistence technology, and the rule that every paged read clamps its page size.
+  The clamp test counts what it examined and fails if the scan stops finding
+  services, because a structural test that quietly matches nothing is the failure
+  mode these are most prone to.
+- **Blob store conformance.** One suite, two implementations — the shipped
+  filesystem store and a second that shares no code with it. Writing the second one
+  immediately found a defect in the first: `ExistsAsync` and `DeleteAsync` threw
+  where the contract says they answer.
+- **Existence disclosure.** Four cases pinning when a refusal may admit that
+  something exists (ADR-0038), so a future change to one surface has to be a
+  decision about the rule rather than a local edit.
+
+### When a test cannot say why it failed
+
+An unexplained 500 reaches a test as a status, a title and a trace id that leads
+nowhere, and the test host's console does not survive into a CI run's output.
+`CapturedLogs` keeps the host's recent errors so an assertion can quote them.
+
+It was written after two CI cycles spent guessing at a 500, and it identified the
+cause on its first run: `22021: invalid byte sequence for encoding "UTF8": 0x00`.
+A NUL byte in an uploaded text file was destroying the entire ingestion. One cycle
+spent building an instrument beat three spent eliminating hypotheses.
+
