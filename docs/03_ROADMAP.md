@@ -2113,3 +2113,37 @@ correctness and says nothing about recovery time at real volumes. No wall-clock
 latency baseline exists. Single-instance remains the only supported topology. No
 production signing certificate exists.
 
+### Promotion evidence
+
+Authoritative CI run **34347486702** at commit `1481387`, both jobs green.
+
+| Gate | Result |
+|---|---|
+| Build (whole solution) | 0 warnings, 0 errors |
+| Unit tests | 3,745 passed |
+| Windows tests | 521 passed |
+| Integration tests (`postgres:18.6`) | 751 passed, including three backup/restore drills |
+| Migrations | **none added** — M15 changed no schema |
+| OpenAPI contract | 3.1.1; 260 paths; 185 schemas; contract **13**, unchanged |
+| TLA+ (four specs) | no error, at `v1.7.4` |
+| Release artifact | 111 artifacts, SBOM CycloneDX 1.6, `migrate.sql`, manifest verified |
+| Signing | **unsigned** — recorded, not omitted |
+
+**Ring: ALPHA retained.** M15 does not promote. STABLE requires signing and staged
+rollout, and both are external prerequisites that cannot be manufactured.
+
+**Readiness: PRIVATE_ALPHA_READY.**
+
+**No CI run was created for the final push.** Both commits reached
+`origin/master`, the workflow has no path filters, and no run appeared after two
+checks over roughly ninety seconds. The run above was dispatched manually rather
+than assume an earlier run covered the new tip, which would have meant promoting
+on evidence from a different commit. The cause is unexplained and is recorded
+rather than guessed at.
+
+**Local verification was incomplete**, checked once and not retried: Docker
+Desktop's Linux engine returns HTTP 500, so the database gates and the restore
+drill could not run here. `release-gate` reports that honestly — 7 of 8 gates
+passed locally, exit code 4, `PARTIAL`. PARTIAL is not a promotion, and promotion
+rests on the remote `postgres:18.6` gate.
+
