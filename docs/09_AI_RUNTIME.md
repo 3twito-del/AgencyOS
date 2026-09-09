@@ -233,3 +233,99 @@ route:
 
 Do not require local AI for novelty; use it where privacy, latency, offline use or
 cost justify it.
+
+## M13 — running the model somewhere else
+
+### Residency is not authority
+
+`ModelResidency` has three values: `ExternalCloud`, `OrganizationControlled`,
+`DeviceLocal`. It records which machine ran the arithmetic. It confers nothing.
+
+A `DeviceLocal` run is authorized by the server, before disclosure, exactly as a
+cloud run is. The argument this refuses is worth stating because it is genuinely
+persuasive: the material is already on the machine, the person may already read
+it, so what is being protected? The answer is that "already allowed to read it" is
+a statement about a moment, and authorization is a server decision. A workstation
+that assembled its own context would have made itself the authority on what it may
+see, and every guarantee from M0 forward would then rest on a process AgencyOS
+does not control.
+
+### Restricted is refused before the provider is looked up
+
+Not after checking whether the provider is local — before consulting any policy at
+all. At `DeviceLocal` the exception argument is at its most convincing and still
+wrong: "restricted" would come to mean "restricted unless the model runs nearby",
+and a classification whose meaning depends on an execution detail is not a
+classification.
+
+### The context lease
+
+Context reaches a device only under an `AiContextLease`: single-use, ten minutes,
+bound to the organization, user, run, subject kind and id, residency, model key,
+policy version, and a SHA-256 fingerprint over the binding fields and the rendered
+context.
+
+The client half of this protocol is unobservable. AgencyOS hands over context and
+later receives text; it cannot watch what happened in between. The lease makes the
+return checkable without trusting the machine: a result is accepted only against a
+lease still `Issued`, matching every binding field, carrying a fingerprint the
+server recomputes for itself. If the context changed underneath, the recomputed
+fingerprint differs and the result is refused — it is an answer to a question
+nobody asked.
+
+The fingerprint is **not** a confidentiality mechanism. The context is disclosed to
+the device in the clear, because the device has to read it.
+
+`AiContextLease.Issue` throws for `ExternalCloud`. There is no lease that could
+authorize a fallback.
+
+### Capability first, then the lease
+
+The client probes readiness **before** requesting a lease, because issuing the
+lease *is* the disclosure. A workstation that cannot run the model gets zero
+leases and sees no context.
+
+### No silent fallback
+
+A device-local run that cannot execute fails with a category —
+`LocalProviderUnavailable`, `LocalModelNotReady`, `LocalExecutionAbandoned` — and
+sends nothing anywhere else. Somebody choosing device-local residency is usually
+choosing it for the material; re-routing that material because the local model was
+busy would invert the one choice they made. Failing visibly is the feature.
+
+### The local result is untrusted, and the client adds nothing
+
+Returned text is fenced as untrusted data and has its citations validated against
+what the run was given, exactly as a cloud answer does. `task.create` remains the
+only canonical AI write. The client renders the leased context, calls the model,
+returns what came back and reports the device — it does not summarize, re-prompt,
+retry with a different model, or interpret.
+
+### `SupportsTools = false`, and no emulation
+
+The Windows `LanguageModel` API has `GenerateResponseAsync` and
+`GenerateStructuredJsonResponseAsync` and **no function-calling contract**. Faking
+one by parsing model JSON into tool calls would route a text generator's output
+into the tool runtime through a path the provider never guaranteed, on the least
+controlled machine in the system. The Relationship Brief needs prose, not tools.
+
+### A stored result re-authorizes on every read
+
+`ResultSensitivity` is recorded at generation time. Reads above `Internal` re-check
+`AiSensitiveUse`; a reader who no longer holds it gets the run with
+`ResultWithheld = true` and no result. Recorded rather than recomputed, because
+recomputing asks a different question and needs context the reader may no longer
+be allowed to see.
+
+**The limit, plainly:** this governs what AgencyOS will show from now on. It does
+not reach a copy somebody already read, pasted or remembered. The mitigation is
+upstream, in the classification that decided what could be sent at all.
+
+### What has not happened
+
+**No local model generation has ever executed.** The code compiles against the real
+Windows AI APIs, the probe and runner are real adapters, and the protocol is
+exercised end to end against a deterministic fake. The development workstation has
+no NPU and is not a Copilot+ PC, so the Windows `LanguageModel` cannot run on it.
+No NPU claim, no local-generation claim, no performance claim (ADR-0035).
+

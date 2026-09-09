@@ -1761,17 +1761,97 @@ Deliver:
   routes by configured model key, so a second provider is configuration; local
   inference, Windows AI Foundry and NPU routing are M13 and no part of this build)
 
-## M13 — Advanced Native Windows
-Deliver:
-- multi-window;
-- global capture hotkey;
-- Explorer integration;
-- Jump Lists;
-- notifications/actions;
-- deep links;
-- Windows Search;
-- Windows Hello/passkeys;
-- local AI/NPU experiments.
+## M13 — Advanced Native Windows & Local AI Platform — **Done** (2026-09-09)
+
+Implemented: the milestone that makes AgencyOS a Windows workstation rather than a
+Windows-shaped UI, and asks whether a model can run on that workstation without
+moving any authority onto it.
+
+**Residency is where execution happens. It is never who decides.** A model may now
+run on the user's machine, and that changes nothing about who is allowed to see
+what. A `DeviceLocal` run is authorized by the server, before disclosure, exactly
+as a cloud run is. The confusion this milestone had to refuse is seductive — the
+material is already on the machine and the person may already read it, so what is
+being protected? — and the answer is that "already allowed" is a statement about a
+moment, and authorization is a server decision (ADR-0035).
+
+**Context reaches a device only under a lease.** Single-use, ten-minute,
+fingerprint-bound to the organization, user, run, subject, residency and the exact
+rendered context. The client half of the protocol is unobservable, so the lease is
+what makes the return checkable without trusting the machine: a result is accepted
+only against a lease still `Issued`, matching every binding field, carrying a
+fingerprint the server recomputes for itself. Capability is probed **before** a
+lease is requested, because issuing the lease *is* the disclosure.
+
+**Nothing falls back to the cloud.** A device-local run that cannot execute fails
+with a category and sends nothing anywhere. Somebody choosing device-local
+residency is usually choosing it for the material, and quietly re-routing that
+material because the local model was busy would invert the one choice they made.
+
+**The keyboard was already broken and nobody could have noticed.** `Ctrl+9` had
+silently changed meaning when M12 inserted a workspace, because accelerators
+addressed the navigation pane by index and the index table existed twice. The
+audit also found twenty-six palette commands that dispatched to nothing and
+thirteen shortcuts the window never installed. Destinations are now named, one
+registry holds all 129 commands across 17 workspaces, and it validates at
+construction (ADR-0032).
+
+**Nineteen advertised commands were removed rather than implemented.** They
+described actions this build does not perform. The palette documents itself as
+listing only implemented commands, and that had stopped being true.
+
+**Material that leaves the application does so through a decided channel.**
+Notification detail needs three separate yeses, and a notification carries no money
+amount at all — not an optional one, a missing one. A materialized document is a
+copy with a lifetime and never a canonical identity. Diagnostics are an allow-list
+of twelve reviewed fields. The update UI reports the server's decision rather than
+computing its own (ADR-0034).
+
+**A fourth TLA+ specification.** `LocalInferenceLease`: 796 states, 160 distinct,
+depth 9, no error, thirteen named properties. It deliberately does **not** claim a
+run terminates — a workstation that takes the context and never returns leaves the
+run non-terminal for ever, because AgencyOS cannot make somebody else's process
+answer. What is proved is that the lease always stops authorizing, which is what
+makes that untidy rather than dangerous.
+
+**No local generation has ever executed.** The code compiles against the real
+Windows AI APIs, the probe and runner are real adapters, and the protocol is
+exercised end to end against a deterministic fake. This workstation — HP Victus,
+i7-13700H, RTX 4070 Laptop, Windows 10.0.26200 — has **no NPU** and is not a
+Copilot+ PC, so the Windows `LanguageModel` cannot run on it. No NPU claim, no
+local-generation claim, no performance claim.
+
+Delivered against the original M13 list:
+
+- multi-window. **not delivered, deliberate** (one primary window; the agency's
+  work is cross-referential, and a document-per-window shell is machinery in
+  service of a workflow nobody has asked for — ADR-0032)
+- global capture hotkey. **not delivered**
+- Explorer integration. **not delivered** (document handoff writes a copy with a
+  lifetime; no shell extension and no file-type registration)
+- Jump Lists. **not delivered**
+- notifications/actions. **notifications met, actions not delivered** (a
+  notification opens a place; it never carries an instruction, because a link that
+  could approve would route around the whole M12 approval protocol)
+- deep links. **met** (`agencyos` scheme, seven routes, pure router; resolving a
+  link is not evidence that the object exists or may be read)
+- Windows Search. **not delivered**
+- Windows Hello/passkeys. **not delivered**
+- local AI/NPU experiments. **integration and capability detection met;
+  generation not evidenced** (real APIs, real probe, real protocol; no NPU on this
+  hardware, and no claim made without one)
+
+Also delivered, not on the original list: API contract 13, the `ai_context_leases`
+table with its trigger and check constraints, result classification recorded at
+generation time and re-authorized on every read, a permanent security regression
+suite covering twenty-one named properties, and an accessibility pass that named
+176 controls across 27 files.
+
+**Four inherited dialogs remain unreachable.** `RaiseReceivableDialog`,
+`CalculateCommissionDialog`, `RecordMonetaryObligationDialog` (M9) and
+`AddIntelligenceSubjectDialog` (M11) are complete and tested, and no list surface
+opens them. These are M9 and M11 gaps; M13 deliberately did not repair them under
+an M13 heading.
 
 ## M14 — Scale & Specialized Services
 Only when justified:

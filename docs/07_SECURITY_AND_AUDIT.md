@@ -162,3 +162,46 @@ provider, model, outcome and tool-call count only.
 A run is readable only by the person who started it, and an approval only by the
 person it was put to — narrowed in SQL, and answered as missing rather than as
 forbidden. There is no permission that widens either.
+
+## Local AI and the workstation (M13)
+
+**Residency is not authority.** A model may run on the user's machine; that
+changes nothing about who decides what may be read. A `DeviceLocal` run is
+authorized server-side before any disclosure, exactly as a cloud run is
+(ADR-0035).
+
+**Restricted is unreachable at every residency**, refused before the provider is
+looked up at all. The device-local case is where the exception argument is most
+persuasive and it is still refused, because a classification whose meaning depends
+on where the arithmetic ran is not a classification.
+
+**Context is disclosed under a lease.** Single-use, ten minutes, bound to the
+organization, user, run, subject, residency and a SHA-256 fingerprint over the
+rendered context. Capability is probed before the lease is requested, because
+issuing the lease is the disclosure. Two audit actions record the boundary
+crossings: `ai.lease.issued` when context leaves for a device, and
+`ai.local.accepted` when a result is taken back.
+
+**No credential exists on the Windows client**, and no client project can
+reference `AgencyOS.Infrastructure`, `AgencyOS.Application`, `AgencyOS.Domain` or
+`AgencyOS.Api`. Both are asserted by tests over the project graph and the source
+rather than left to review. The device-local path needs no credential: the model
+is already on the machine.
+
+**Pointers are not grants.** A citation, a toast and a deep link are each minted
+while somebody was authorized and followed later. Resolving a link proves nothing
+about the object — a route for an identifier that names nothing resolves exactly
+like one that names something real, because telling them apart would itself be a
+disclosure. Every drill-down re-authorizes on the server.
+
+**Stored AI results re-authorize on every read**, against the classification
+recorded when they were generated. The honest limit: this governs what AgencyOS
+will show from now on, and does not reach a copy somebody already read or pasted.
+
+**What leaves the application is narrowed at each exit.** A notification carries no
+money amount and needs three separate yeses for any detail. A materialized
+document is a copy with a lifetime and never a canonical identity; Restricted
+material is never written to disk. A diagnostic summary is an allow-list of twelve
+reviewed fields. No crash dump is collected — a dump of this process is a dump of
+the agency's material.
+

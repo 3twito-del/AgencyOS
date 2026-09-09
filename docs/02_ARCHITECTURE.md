@@ -290,3 +290,32 @@ copy of the data with its own answer to who may read it, and M12 has no capabili
 that requires one.
 
 See `docs/adr/ADR-0031-ai-runtime-untrusted-models-and-the-approval-protocol.md`.
+
+## M13 adds a client-side project and a lease, and no infrastructure
+
+`AgencyOS.Windows.Platform` is new: the workstation's decisions — activation,
+notification policy, diagnostics, document handoff, capability description, the
+local inference protocol — as pure code with **no WinRT**. The WinUI project
+provides thin adapters over the operating system. That split is what makes the
+decisions testable without a UI thread.
+
+The reference graph is asserted, not conventional. No client project references
+`AgencyOS.Infrastructure`, `AgencyOS.Application`, `AgencyOS.Domain` or
+`AgencyOS.Api`; `AgencyOS.Client` references only `AgencyOS.Contracts`. A client
+that referenced Application could call a business rule in-process and reach an
+answer the server never gave.
+
+On the server, M13 adds one table — `ai_context_leases`, with a trigger enforcing
+single use and check constraints on residency, window, state, subject and
+fingerprint length — two columns on `ai_runs`, and three endpoints at API contract
+13. Device-local execution is a **residency**, not a topology: no new service, no
+new process, no broker, no queue, no vector store, no NPU scheduler. The model
+moves; the authority does not.
+
+**No C++, Rust or Python.** CLAUDE.md §2 permits all three for exactly this kind
+of work — native interop, local infrastructure, ML services — so refusing them is
+a decision rather than an oversight. The Windows AI APIs are projected into C#,
+the protocol is HTTP and JSON, and the policy code is arithmetic over enums.
+Nothing needed a second toolchain, a second build or a second supply chain to
+review.
+

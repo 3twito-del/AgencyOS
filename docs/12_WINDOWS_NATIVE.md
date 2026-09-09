@@ -107,9 +107,22 @@ Windows UI optimizes for Windows. It must not be constrained by a hypothetical f
 may be transmitted at all). Navigation item after Intelligence, F6, palette
 commands `go.ai`, `ai.ask`, `ai.approvals`, `ai.runs`.
 
-Ctrl+9 still means Saved Views. The digit accelerators follow each item's access
-key rather than its position, so inserting AI above Saved Views does not repoint a
-shortcut people already use.
+> **This paragraph was wrong, and M13 found out.** It read: "Ctrl+9 still means
+> Saved Views. The digit accelerators follow each item's access key rather than
+> its position, so inserting AI above Saved Views does not repoint a shortcut
+> people already use."
+>
+> The accelerators did **not** follow the access key. They addressed the
+> navigation pane by index, from an index table that existed twice — once in the
+> window constructor and once in the palette dispatch — and inserting the AI
+> workspace shifted both. Ctrl+9 had silently changed meaning, and documentation
+> asserting otherwise is part of why nobody noticed. It is recorded here rather
+> than deleted, because a milestone that quietly corrected its own record would
+> teach the next reader nothing.
+>
+> M13 made the claim true by making it structural: destinations are named, one
+> registry defines every command, and a gesture collision fails at construction
+> (ADR-0032).
 
 ### The approval dialog
 
@@ -162,3 +175,98 @@ because there is no audience to save it for.
 
 Both are revisitable if approvals ever become long-lived. Neither is a deferral of
 something the milestone needed.
+
+## M13 — the workstation
+
+### One window, named destinations
+
+AgencyOS opens a single primary window with a navigation pane. Multi-window is on
+the power-user list above and was **deliberately not built**: the agency's work is
+cross-referential — a deal read against a contract read against what somebody said
+last week — and a document-per-window shell needs window lifetime, per-window
+state and cross-window navigation before it shows a useful screen. It is
+revisitable when somebody has a concrete second-monitor workflow.
+
+Every navigation command carries a destination **tag**, never an index.
+`SelectMenu(int)` is gone. Reordering the pane, inserting a workspace or hiding one
+cannot repoint a shortcut, because nothing about a shortcut refers to position.
+
+### One command registry
+
+`AgencyOsCommands.All` holds all **129** commands across **17** workspaces. The
+palette lists them, the window installs accelerators by iterating them, and pages
+dispatch the same identifiers. `CommandRegistry` refuses a duplicate identifier, a
+duplicate global gesture, a page gesture shadowed by a global one, a malformed
+gesture, or a `Navigate` command with no workspace — at construction, so a
+collision fails the build rather than a person.
+
+Building the list found **twenty-six palette commands that dispatched to nothing**
+and **thirteen shortcuts the window never installed**. Seven were real destinations
+never wired and became `Navigate` commands; **nineteen were removed**, because they
+described actions this build does not perform and the palette documents itself as
+listing only what exists.
+
+### Activation
+
+The `agencyos` scheme resolves seven routes — `person`, `company`, `deal`,
+`contract`, `research`, `ai/run`, `ai/approval` — through one pure
+`ActivationRouter`. Identifiers must parse exactly; trailing segments are refused;
+failures are typed rather than thrown.
+
+A link carries a destination and never an instruction. There is no route that
+approves, executes, sends or deletes, and `?approve=true` is refused as an unknown
+route — a link that could approve would route around the whole M12 approval
+protocol, and it is a link an attacker can put in an email.
+
+Resolving a link proves nothing about the object. A route for an identifier that
+names nothing resolves exactly like one that names something real, because
+teaching the client to tell them apart would be a disclosure and would put an
+authorization decision on the untrusted side (ADR-0033).
+
+### Notifications
+
+Seven categories, and the categories are the vocabulary. Detail requires three
+separate yeses — the organization allows it, the user asked for it, the material
+is at or below `Confidential` — because those answer three different questions and
+none implies the others.
+
+**A notification carries no money amount.** There is no amount field on the
+request at all. A receivable's value is the fact most likely to matter to a
+bystander and least necessary for the notice to do its job.
+
+### Documents, diagnostics, updates
+
+A materialized document is a copy with a lifetime — four hours ordinary, thirty
+minutes sensitive — under `LocalApplicationData/AgencyOS/materialized`.
+**Restricted material is never written to disk.** The copy never becomes an M10
+document identity, is never linked, and is never read back as canonical.
+
+Diagnostics are an allow-list of **twelve** reviewed field names, screened,
+flattened and bounded, because the summary exists to be pasted to somebody outside
+the agency.
+
+The update UI reports the server's `BlocksProtectedMutations` and does not compute
+its own severity. An old client deciding it is fine after all is exactly what M2's
+server-side enforcement exists to prevent.
+
+### The AI workspace at device-local residency
+
+`AiPage` gains an execution-target surface: what this organization permits and what
+this workstation can actually run. Capability is probed **before** a lease is
+requested, so a machine that cannot run the model discloses nothing.
+
+The local-provider-unavailable state says what is refused and offers no install.
+AgencyOS will not download a model, and saying so is more useful than a button
+that cannot work.
+
+### Accessibility
+
+`XamlAccessibilityTests` parses the shipped XAML and fails on an interactive
+control with no accessible name, a notice with no title anywhere, a text control
+with a fixed height, or a hard-coded colour. The M13 pass added
+`AutomationProperties.Name` to **176 controls across 27 files**.
+
+Automated evidence about markup is not evidence that anybody has operated the
+application with a screen reader or at 200% scaling. Manual LAB checks at 100%,
+125%, 150% and 200% and across monitors have **not** been performed.
+

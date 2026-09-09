@@ -159,7 +159,7 @@ public sealed class ModelDataClassificationTests
     /// person is already allowed to read it, so why refuse? Because residency is
     /// an execution decision and Restricted is a disclosure decision, and letting
     /// the first override the second would make "restricted" mean "restricted
-    /// unless the model runs nearby" (ADR-0032, §37).
+    /// unless the model runs nearby" (ADR-0035, §37).
     /// </para>
     /// <para>
     /// The refusal is structural rather than a rule the local path also happens to

@@ -341,6 +341,39 @@ would show a person an action to decide, minutes or hours after the window close
 and the proposal stopped being executable. A screen that offers a decision that
 cannot be made is worse than a screen that shows nothing.
 
+## ONLINE_ONLY (all M13 local-inference protocol steps)
+
+M13 is the milestone where "online only" stops being obvious, so it is worth
+stating why it still holds.
+
+Device-local inference looks like the one AI feature that ought to work on a
+plane. The model is on the machine. The person is sitting in front of it. Nothing
+needs to leave the building. Every instinct says this is the offline case.
+
+It is not, because **the model is not what the run needs from the server**. The run
+needs authorized context, and context is assembled server-side from records the
+server decides this caller may see, at this moment, under this organization's
+transmission policy. A laptop that assembled its own context would be deciding
+what it may read, which is the one thing ADR-0035 exists to prevent. The model
+being local moves the arithmetic; it does not move the authority.
+
+| Command | Why it is not queued |
+|---|---|
+| IssueContextLease | Issuing the lease *is* the disclosure. It re-checks the permission, reassembles the context and fingerprints it — three server-side questions about the present. A queued lease would be an authorization written in advance for a state of the world nobody has looked at yet. |
+| SubmitLocalResult | The lease is single-use and expires in ten minutes. A result queued offline would drain against a lease that had already lapsed, and the honest outcome would be a refusal after the person watched the model produce an answer. |
+| GetExecutionTargets | What this organization permits and this workstation can run. Both are answers about now; a cached one would offer a residency the policy has since withdrawn. |
+
+### The reads are online-only for a reason M12 already established
+
+An AI result is a derived work of everything the run was given, so a brief drawn
+from a source-sensitive signal carries that signal's confidence even though
+nothing in it looks like one. M13 added re-authorization on every read for exactly
+that reason, and a cached copy on a laptop is a copy that cannot be
+re-authorized — it is the residual risk of ADR-0035 made permanent and portable.
+
+The ten-minute lease window is also, deliberately, shorter than any plausible
+offline episode.
+
 ## OFFLINE_READ_ONLY
 
 | Read | Cached since |

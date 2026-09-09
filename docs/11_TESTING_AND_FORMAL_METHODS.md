@@ -60,7 +60,7 @@ Use TLA+/PlusCal selectively for:
 - financial posting/ledger invariants;
 - distributed/idempotent workflows.
 
-Two specifications exist and both are model-checked by
+Four specifications exist and all are model-checked by
 `scripts/Invoke-AgencyOS.ps1 formal`, which runs as a CI step. TLC is fetched once
 and pinned by SHA-256; a checksum mismatch or an unreachable release fails loudly,
 because a formal check that quietly skips itself is worse than none.
@@ -89,6 +89,9 @@ list in the message.
   `SentIsMonotonic`, `UnknownIsNeverAssumedFailed`, `CommittedIsNeverCalledFailed`,
   `SendRequiresDraft`, `CancelOnlyBeforeProvider` and `EventuallySettles`.
   *83 states generated, 48 distinct, no error found.*
+
+The other two are introduced where they belong: `specs/AiApproval.tla` (M12)
+below, and `specs/LocalInferenceLease.tla` (M13) after it.
 
 Inbox synchronization is deliberately not formalized: it is idempotent by
 construction — every write is keyed on the provider's message id within the
@@ -184,3 +187,83 @@ not hold. A request approved and never executed stays `Approved`: the approval
 lapses so it can never run, but nothing sweeps the row. `LapsedApprovalNeverExecutes`
 is why that is untidy rather than unsafe. Finding it is most of what the
 specification was worth writing for.
+
+## M13 — testing a protocol whose other half you cannot see
+
+### `specs/LocalInferenceLease.tla`
+
+Models device-local inference: a lease issued, context disclosed to a workstation,
+a result returned — under every interleaving of the client returning twice, the
+context changing underneath, the lease expiring, the run being cancelled and the
+permission being revoked. **796 states generated, 160 distinct, depth 9, no
+error**, with `MaxReturns = 2` (one return reaches the effect; the second is the
+replay that must not produce a second one).
+
+Thirteen named properties. Six as invariants — `TypeOK`, `AtMostOneEffect`,
+`LocalOnlyNeverFallsBackToCloud`, `ClientResultIsNeverAuthorityAlone`,
+`ChangedContextCannotReuseLease`, `NoDisclosureWithoutLease` — and seven as
+temporal formulas: `NoEffectWithoutCurrentPermission`, `NoEffectWithoutValidLease`,
+`MismatchedPresentationNeverTakesEffect`, `ExpiredLeaseCannotAuthorize`,
+`CancelledRunCreatesNothing`, `CancellationNeverErasesEffects`,
+`LeaseAlwaysStopsAuthorizing`.
+
+### The property that turned out to be false, again
+
+A run does **not** always reach a terminal state. A workstation that takes the
+context and never comes back leaves the run in `AwaitingLocalExecution` for ever,
+because AgencyOS cannot make somebody else's process answer. Writing a termination
+property would have been writing something untrue.
+
+What is proved instead is that the *lease* always stops authorizing — consumed, or
+invalidated with the run, or simply expired, and the last needs nobody to do
+anything. That is what makes an abandoned run untidy rather than exploitable.
+`LocalExecutionAbandoned` exists in the domain for a sweeper a later milestone may
+add.
+
+Two milestones running, the specification's value was the property it refused to
+prove.
+
+### The client half is tested as decisions, not as a UI
+
+`AgencyOS.Windows.Platform` holds the workstation decisions — activation,
+notification policy, diagnostics, document handoff, capability description, the
+local inference protocol — and contains **no WinRT**. That is what makes 521
+Windows tests possible without a UI thread; the WinUI project provides thin
+adapters over the operating system and holds no decisions to test.
+
+### Structural tests over things behavioural tests cannot reach
+
+Three kinds, each guarding a rule that a plausible change would break silently:
+
+- **`XamlAccessibilityTests`** parses the shipped XAML. An interactive control
+  with no accessible name, a notice with no title anywhere, a text control with a
+  fixed height or a hard-coded colour fails the build. Accessibility regressions
+  are silent — the page still looks right — so a periodic review is the wrong
+  instrument.
+- **`ClientBoundaryTests`** reads the project graph and the client source. No
+  client project may reference `AgencyOS.Infrastructure`, `AgencyOS.Application`,
+  `AgencyOS.Domain` or `AgencyOS.Api`, name provider credential material, or
+  address a model provider. `DiagnosticSummary.cs` is excluded from the credential
+  scan by name, because it lists those words in order to redact them.
+- **`AiPersistenceCompletenessTests`** compares the mapped model against the
+  database. It exists because M13 shipped two properties that were added to an
+  aggregate and never mapped, and the migration failed at run time with
+  `42703: column "residency" does not exist`. The column-naming check is the one
+  that would have caught it.
+
+### The twenty-one security regressions
+
+M13's new surfaces — a citation, a toast, a deep link — are each a pointer minted
+while somebody was authorized and followed later. The suite asserts that none
+carries authority, across unit, Windows and integration levels: capability before
+disclosure, no cloud fallback, the lease crossing no tenant, user, run, subject,
+residency or altered context, expiry, replay, cancellation, untrusted local
+output, stored results re-authorizing, citation drill-down, approval privacy,
+stale notifications, Restricted at every residency, no client credential,
+allow-listed diagnostics, and a temp path that never becomes a document identity.
+
+The alternate paths are asserted rather than assumed: withholding a result from
+the detail route proves nothing if the list route carries it or the trace quotes
+it, so both are tested. The second holds only because run steps record what
+AgencyOS did rather than what the model said.
+
