@@ -23,7 +23,7 @@
 #>
 param(
     [Parameter(Position=0)]
-    [ValidateSet("doctor","build","test","test-unit","test-windows","test-integration","verify","verify-fast","version","contract","formal","ci","nightly","release")]
+    [ValidateSet("doctor","build","test","test-unit","test-windows","test-integration","verify","verify-fast","version","contract","formal","ci","nightly","release","release-gate")]
     [string]$Target = "doctor",
 
     [ValidateSet("forge","lab","nightly","alpha","beta","rc","stable")]
@@ -647,6 +647,91 @@ function Invoke-Verify {
     }
 }
 
+function Invoke-ReleaseGate {
+    # One command that runs every gate a promotion depends on, and reports each
+    # one by name. It orchestrates the existing targets rather than duplicating
+    # them, so there is no second definition of "green" to drift (M15 SS59).
+    #
+    # There is deliberately no switch to skip a gate. A gate that can be turned
+    # off is a gate somebody will turn off on the night it matters. What the
+    # command does instead is tell the truth about what could not run: any gate
+    # that was unavailable makes the whole result PARTIAL, and PARTIAL is not a
+    # promotion.
+    Write-Section "Release Gate"
+
+    $results = [System.Collections.Generic.List[object]]::new()
+
+    function Invoke-Gate {
+        param(
+            [Parameter(Mandatory = $true)][string] $Name,
+            [Parameter(Mandatory = $true)][scriptblock] $Action,
+            [scriptblock] $Available
+        )
+
+        if ($Available -and -not (& $Available)) {
+            Write-Host ""
+            Write-Host "[UNAVAILABLE] $Name"
+            $results.Add([pscustomobject]@{ Name = $Name; Status = "UNAVAILABLE" })
+            return
+        }
+
+        try {
+            & $Action
+            $results.Add([pscustomobject]@{ Name = $Name; Status = "PASS" })
+        }
+        catch {
+            $results.Add([pscustomobject]@{ Name = $Name; Status = "FAIL"; Detail = $_.Exception.Message })
+        }
+    }
+
+    Invoke-Gate -Name "Build"              -Action { Invoke-Build }
+    Invoke-Gate -Name "Unit tests"         -Action { Invoke-TestUnit }
+    Invoke-Gate -Name "Windows tests"      -Action { Invoke-TestWindows } -Available { $IsWindows }
+    Invoke-Gate -Name "OpenAPI contract"   -Action { Invoke-Contract }
+    Invoke-Gate -Name "Formal (TLC)"       -Action { Invoke-Formal }
+    Invoke-Gate -Name "Release artifact"   -Action { Invoke-Release }
+    Invoke-Gate -Name "Release manifest"   -Action {
+        & (Join-Path $PSScriptRoot "Test-ReleaseManifest.ps1") -ReleasePath (Join-Path $root "artifacts/release")
+        if ($LASTEXITCODE -ne 0) { throw "Release manifest verification failed." }
+    }
+
+    # The database gates, including the backup and restore drill, live in the
+    # integration suite. They need a real PostgreSQL 18.6; where none is reachable
+    # this reports UNAVAILABLE rather than passing quietly.
+    Invoke-Gate -Name "Integration + restore drill" -Action { Invoke-TestIntegration } -Available {
+        [bool]$env:AGENCYOS_TEST_POSTGRES -or (Test-DockerRunning)
+    }
+
+    Write-Section "Release Gate Summary"
+
+    foreach ($result in $results) {
+        $line = "{0,-32} {1}" -f $result.Name, $result.Status
+        Write-Host $line
+        if ($result.Detail) { Write-Host "    $($result.Detail)" }
+    }
+
+    $failed = @($results | Where-Object { $_.Status -eq "FAIL" })
+    $unavailable = @($results | Where-Object { $_.Status -eq "UNAVAILABLE" })
+
+    Write-Host ""
+
+    if ($failed.Count -gt 0) {
+        throw "Release gate FAILED: $($failed.Count) of $($results.Count) gates failed."
+    }
+
+    if ($unavailable.Count -gt 0) {
+        Write-Host "[PARTIAL] $($results.Count - $unavailable.Count) of $($results.Count) gates ran and passed."
+        Write-Host "          $($unavailable.Count) could not run in this environment:"
+        foreach ($gate in $unavailable) { Write-Host "            - $($gate.Name)" }
+        Write-Host ""
+        Write-Host "          PARTIAL is not a promotion. The missing gates must run somewhere"
+        Write-Host "          before this build is promoted - authoritative CI is where."
+        exit 4
+    }
+
+    Write-Host "[OK] Release gate: all $($results.Count) gates passed."
+}
+
 function Invoke-Ci {
     Invoke-Doctor
     Invoke-Build
@@ -828,6 +913,7 @@ try {
         "ci"          { Invoke-Ci }
         "nightly"     { Invoke-Nightly }
         "release"     { Invoke-Release }
+        "release-gate" { Invoke-ReleaseGate }
     }
 }
 finally {
