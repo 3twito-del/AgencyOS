@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AgencyOS.Windows.Pages.ProspectsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -34,7 +34,8 @@
             </StackPanel>
 
             <StackPanel Grid.Row="2" Spacing="6">
-                <ProgressBar x:Name="ListBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <ProgressBar x:Name="ListBusy"
+                             AutomationProperties.Name="List progress" IsIndeterminate="True" Visibility="Collapsed" />
                 <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False"
                          Title="Could not load prospects" />
                 <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
@@ -42,7 +43,8 @@
                          Message="Nobody is currently being pursued under these filters." />
             </StackPanel>
 
-            <ListView Grid.Row="3" x:Name="ProspectList" SelectionMode="Single"
+            <ListView Grid.Row="3" x:Name="ProspectList"
+                      AutomationProperties.Name="Prospects" SelectionMode="Single"
                       SelectionChanged="OnProspectSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>

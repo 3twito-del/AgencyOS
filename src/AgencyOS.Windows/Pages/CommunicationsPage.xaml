@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AgencyOS.Windows.Pages.CommunicationsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -26,7 +26,8 @@
         </StackPanel>
 
         <StackPanel Grid.Row="1" Spacing="6">
-            <ProgressBar x:Name="Busy" IsIndeterminate="True" Visibility="Collapsed" />
+            <ProgressBar x:Name="Busy"
+                         AutomationProperties.Name="Working" IsIndeterminate="True" Visibility="Collapsed" />
 
             <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" IsClosable="False"
                      Title="That did not happen" />
@@ -62,7 +63,8 @@
                                       PlaceholderText="All mailboxes I may read"
                                       SelectionChanged="OnMessageFilterChanged" />
 
-                            <ComboBox x:Name="DirectionBox" MinWidth="130"
+                            <ComboBox x:Name="DirectionBox"
+                                      AutomationProperties.Name="Direction" MinWidth="130"
                                       SelectionChanged="OnMessageFilterChanged">
                                 <ComboBoxItem Content="Both ways" Tag="" IsSelected="True" />
                                 <ComboBoxItem Content="Inbound" Tag="Inbound" />
@@ -93,7 +95,8 @@
                                        Style="{StaticResource CaptionTextBlockStyle}" />
                         </StackPanel>
 
-                        <ListView Grid.Row="2" x:Name="MessageList" SelectionMode="Single"
+                        <ListView Grid.Row="2" x:Name="MessageList"
+                                  AutomationProperties.Name="Messages" SelectionMode="Single"
                                   SelectionChanged="OnMessageSelected">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
@@ -151,13 +154,15 @@
                                  CanReorderTabs="False">
 
                             <TabViewItem Header="Message" IsClosable="False">
-                                <TextBox x:Name="MessageBody" IsReadOnly="True" TextWrapping="Wrap"
+                                <TextBox x:Name="MessageBody"
+                                         AutomationProperties.Name="Message body" IsReadOnly="True" TextWrapping="Wrap"
                                          AcceptsReturn="True" Margin="0,10,0,0"
                                          ScrollViewer.VerticalScrollBarVisibility="Auto" />
                             </TabViewItem>
 
                             <TabViewItem Header="Participants" IsClosable="False">
-                                <ListView x:Name="ParticipantList" SelectionMode="Single"
+                                <ListView x:Name="ParticipantList"
+                                          AutomationProperties.Name="Participants" SelectionMode="Single"
                                           Padding="0,10,0,0"
                                           SelectionChanged="OnParticipantSelected">
                                     <ListView.ItemTemplate>
@@ -191,7 +196,8 @@
                             </TabViewItem>
 
                             <TabViewItem Header="Attachments" IsClosable="False">
-                                <ListView x:Name="AttachmentList" SelectionMode="Single"
+                                <ListView x:Name="AttachmentList"
+                                          AutomationProperties.Name="Attachments" SelectionMode="Single"
                                           Padding="0,10,0,0"
                                           SelectionChanged="OnAttachmentSelected">
                                     <ListView.ItemTemplate>
@@ -220,7 +226,8 @@
                             </TabViewItem>
 
                             <TabViewItem Header="Filed against" IsClosable="False">
-                                <ListView x:Name="MessageLinkList" SelectionMode="Single"
+                                <ListView x:Name="MessageLinkList"
+                                          AutomationProperties.Name="Filed against" SelectionMode="Single"
                                           Padding="0,10,0,0" SelectionChanged="OnMessageLinkSelected">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
@@ -247,7 +254,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
-                        <ComboBox x:Name="OutboundStateBox" MinWidth="210"
+                        <ComboBox x:Name="OutboundStateBox"
+                                  AutomationProperties.Name="Outbound state" MinWidth="210"
                                   SelectionChanged="OnOutboundFilterChanged">
                             <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
                             <ComboBoxItem Content="Draft" Tag="Draft" />
@@ -277,7 +285,8 @@
                                  Message="AgencyOS has not been asked to send anything matching this filter." />
                     </StackPanel>
 
-                    <ListView Grid.Row="2" x:Name="OutboundList" SelectionMode="Single"
+                    <ListView Grid.Row="2" x:Name="OutboundList"
+                              AutomationProperties.Name="Outbound messages" SelectionMode="Single"
                               SelectionChanged="OnOutboundSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
@@ -340,7 +349,8 @@
                                  Message="Connecting one requires an administrator to have provisioned the provider first." />
                     </StackPanel>
 
-                    <ListView Grid.Row="2" x:Name="MailboxList" SelectionMode="Single"
+                    <ListView Grid.Row="2" x:Name="MailboxList"
+                              AutomationProperties.Name="Mailboxes" SelectionMode="Single"
                               SelectionChanged="OnMailboxSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
@@ -398,7 +408,8 @@
                                  Message="Every send has a known outcome and every mailbox is connected." />
                     </StackPanel>
 
-                    <ListView Grid.Row="1" x:Name="DeskList">
+                    <ListView Grid.Row="1" x:Name="DeskList"
+                              AutomationProperties.Name="Desk">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="4,6" ColumnSpacing="12">

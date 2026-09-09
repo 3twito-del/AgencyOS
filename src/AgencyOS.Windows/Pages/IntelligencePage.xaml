@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AgencyOS.Windows.Pages.IntelligencePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -32,7 +32,8 @@
                                    Style="{StaticResource CaptionTextBlockStyle}"
                                    Text="What is waiting. Nothing on this screen is ranked or scored by AgencyOS: these are the states that need somebody to look, in a fixed order." />
 
-                        <ProgressBar x:Name="DeskBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                        <ProgressBar x:Name="DeskBusy"
+                                     AutomationProperties.Name="Desk progress" IsIndeterminate="True" Visibility="Collapsed" />
 
                         <InfoBar x:Name="DeskClear" Severity="Success" IsOpen="False"
                                  IsClosable="False" Title="Nothing waiting"
@@ -43,7 +44,8 @@
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
                             <TextBlock Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"
                                        Text="Past their resolution date and still open. A forecast nobody closes teaches nobody anything." />
-                            <ListView x:Name="AwaitingList" MaxHeight="200" SelectionMode="Single">
+                            <ListView x:Name="AwaitingList"
+                                      AutomationProperties.Name="Predictions awaiting resolution" MaxHeight="200" SelectionMode="Single">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Padding="2,4">
@@ -61,7 +63,8 @@
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
                             <TextBlock Opacity="0.6" Style="{StaticResource CaptionTextBlockStyle}"
                                        Text="Claims other evidence disagrees with. Kept on the record with the disagreement attached." />
-                            <ListView x:Name="DisputedList" MaxHeight="200" SelectionMode="Single">
+                            <ListView x:Name="DisputedList"
+                                      AutomationProperties.Name="Disputed signals" MaxHeight="200" SelectionMode="Single">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Padding="2,4">
@@ -78,7 +81,8 @@
                         <StackPanel Spacing="6">
                             <TextBlock x:Name="RadarReviewHeader"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="RadarReviewList" MaxHeight="180" SelectionMode="Single">
+                            <ListView x:Name="RadarReviewList"
+                                      AutomationProperties.Name="Radar reviews" MaxHeight="180" SelectionMode="Single">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Padding="2,4">
@@ -95,14 +99,16 @@
                         <StackPanel Spacing="6">
                             <TextBlock Text="Watchlists with new activity"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="WatchlistActivityList" MaxHeight="160"
+                            <ListView x:Name="WatchlistActivityList"
+                                      AutomationProperties.Name="Watchlist activity" MaxHeight="160"
                                       SelectionMode="Single" DisplayMemberPath="Name" />
                         </StackPanel>
 
                         <StackPanel Spacing="6">
                             <TextBlock Text="Research with overdue work"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="OverdueResearchList" MaxHeight="160"
+                            <ListView x:Name="OverdueResearchList"
+                                      AutomationProperties.Name="Research with overdue work" MaxHeight="160"
                                       SelectionMode="Single" DisplayMemberPath="Question" />
                         </StackPanel>
                     </StackPanel>
@@ -125,7 +131,8 @@
 
                         <StackPanel Grid.Row="0" Spacing="6">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <ComboBox x:Name="SignalKindBox" MinWidth="170"
+                                <ComboBox x:Name="SignalKindBox"
+                                          AutomationProperties.Name="Signal kind" MinWidth="170"
                                           SelectionChanged="OnSignalFilterChanged">
                                     <ComboBoxItem Content="Any kind" Tag="" IsSelected="True" />
                                     <ComboBoxItem Content="Somebody moved" Tag="PersonnelMove" />
@@ -138,7 +145,8 @@
                                     <ComboBoxItem Content="Observation" Tag="Observation" />
                                 </ComboBox>
 
-                                <ComboBox x:Name="SignalVerificationBox" MinWidth="160"
+                                <ComboBox x:Name="SignalVerificationBox"
+                                          AutomationProperties.Name="Signal verification" MinWidth="160"
                                           SelectionChanged="OnSignalFilterChanged">
                                     <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
                                     <ComboBoxItem Content="Unverified" Tag="Unverified" />
@@ -162,14 +170,16 @@
                                        Style="{StaticResource CaptionTextBlockStyle}"
                                        Text="Matches titles and claims. Excerpts are not searched: an excerpt quotes a stored document, and a match would report its contents." />
 
-                            <ProgressBar x:Name="SignalBusy" IsIndeterminate="True"
+                            <ProgressBar x:Name="SignalBusy"
+                                         AutomationProperties.Name="Signal progress" IsIndeterminate="True"
                                          Visibility="Collapsed" />
                             <InfoBar x:Name="SignalEmpty" Severity="Informational" IsOpen="False"
                                      IsClosable="False" Title="Nothing here"
                                      Message="No signals match these filters." />
                         </StackPanel>
 
-                        <ListView Grid.Row="1" x:Name="SignalList" SelectionMode="Single"
+                        <ListView Grid.Row="1" x:Name="SignalList"
+                                  AutomationProperties.Name="Signals" SelectionMode="Single"
                                   SelectionChanged="OnSignalSelected">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
@@ -218,7 +228,8 @@
                                      IsClosable="False" Title="Some excerpts are withheld"
                                      Message="One or more of these citations quotes a document classified above your access. The citation is shown; the quotation is not." />
 
-                            <ListView x:Name="SignalEvidenceList" MaxHeight="260"
+                            <ListView x:Name="SignalEvidenceList"
+                                      AutomationProperties.Name="Signal evidence" MaxHeight="260"
                                       SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
@@ -236,12 +247,14 @@
 
                             <TextBlock Text="Subjects"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="SignalSubjectList" MaxHeight="140"
+                            <ListView x:Name="SignalSubjectList"
+                                      AutomationProperties.Name="Signal subjects" MaxHeight="140"
                                       SelectionMode="None" DisplayMemberPath="Label" />
 
                             <TextBlock Text="History"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="SignalHistoryList" MaxHeight="180"
+                            <ListView x:Name="SignalHistoryList"
+                                      AutomationProperties.Name="Signal history" MaxHeight="180"
                                       SelectionMode="None" DisplayMemberPath="Summary" />
                         </StackPanel>
                     </ScrollViewer>
@@ -262,7 +275,8 @@
                                    Text="Evidence. A source is never marked true: what it is and where it came from are facts, and how reliable it is is a judgment recorded with the name of whoever made it." />
 
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox x:Name="SourceKindBox" MinWidth="200"
+                            <ComboBox x:Name="SourceKindBox"
+                                      AutomationProperties.Name="Source kind" MinWidth="200"
                                       SelectionChanged="OnSourceFilterChanged">
                                 <ComboBoxItem Content="Any kind" Tag="" IsSelected="True" />
                                 <ComboBoxItem Content="Stored document" Tag="DocumentVersion" />
@@ -272,7 +286,8 @@
                                 <ComboBoxItem Content="Other" Tag="Other" />
                             </ComboBox>
 
-                            <ComboBox x:Name="SourceReliabilityBox" MinWidth="170"
+                            <ComboBox x:Name="SourceReliabilityBox"
+                                      AutomationProperties.Name="Source reliability" MinWidth="170"
                                       SelectionChanged="OnSourceFilterChanged">
                                 <ComboBoxItem Content="Any reliability" Tag="" IsSelected="True" />
                                 <ComboBoxItem Content="Not assessed" Tag="Unassessed" />
@@ -287,14 +302,16 @@
                                             QuerySubmitted="OnSourceSearchSubmitted" />
                         </StackPanel>
 
-                        <ProgressBar x:Name="SourceBusy" IsIndeterminate="True"
+                        <ProgressBar x:Name="SourceBusy"
+                                     AutomationProperties.Name="Source progress" IsIndeterminate="True"
                                      Visibility="Collapsed" />
                         <InfoBar x:Name="SourceEmpty" Severity="Informational" IsOpen="False"
                                  IsClosable="False" Title="Nothing here"
                                  Message="No sources match these filters." />
                     </StackPanel>
 
-                    <ListView Grid.Row="1" x:Name="SourceList" SelectionMode="Single">
+                    <ListView Grid.Row="1" x:Name="SourceList"
+                              AutomationProperties.Name="Sources" SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="4,6" ColumnSpacing="10">
@@ -337,7 +354,8 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Spacing="6">
-                            <ComboBox x:Name="ThesisStatusBox" MinWidth="180"
+                            <ComboBox x:Name="ThesisStatusBox"
+                                      AutomationProperties.Name="Thesis status" MinWidth="180"
                                       SelectionChanged="OnThesisFilterChanged">
                                 <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
                                 <ComboBoxItem Content="Draft" Tag="Draft" />
@@ -350,14 +368,16 @@
                                             PlaceholderText="Title or proposition"
                                             QuerySubmitted="OnThesisSearchSubmitted" />
 
-                            <ProgressBar x:Name="ThesisBusy" IsIndeterminate="True"
+                            <ProgressBar x:Name="ThesisBusy"
+                                         AutomationProperties.Name="Thesis progress" IsIndeterminate="True"
                                          Visibility="Collapsed" />
                             <InfoBar x:Name="ThesisEmpty" Severity="Informational" IsOpen="False"
                                      IsClosable="False" Title="Nothing here"
                                      Message="No theses match these filters." />
                         </StackPanel>
 
-                        <ListView Grid.Row="1" x:Name="ThesisList" SelectionMode="Single"
+                        <ListView Grid.Row="1" x:Name="ThesisList"
+                                  AutomationProperties.Name="Theses" SelectionMode="Single"
                                   SelectionChanged="OnThesisSelected">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
@@ -393,7 +413,8 @@
 
                             <TextBlock Text="Revisions"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="ThesisRevisionList" MaxHeight="220"
+                            <ListView x:Name="ThesisRevisionList"
+                                      AutomationProperties.Name="Thesis revisions" MaxHeight="220"
                                       SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
@@ -410,7 +431,8 @@
 
                             <TextBlock Text="Evidence"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="ThesisEvidenceList" MaxHeight="200"
+                            <ListView x:Name="ThesisEvidenceList"
+                                      AutomationProperties.Name="Thesis evidence" MaxHeight="200"
                                       SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
@@ -438,7 +460,8 @@
 
                     <StackPanel Grid.Row="0" Spacing="6">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox x:Name="PredictionStatusBox" MinWidth="200"
+                            <ComboBox x:Name="PredictionStatusBox"
+                                      AutomationProperties.Name="Prediction status" MinWidth="200"
                                       SelectionChanged="OnPredictionFilterChanged">
                                 <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
                                 <ComboBoxItem Content="Open" Tag="Open" />
@@ -453,7 +476,8 @@
                                             QuerySubmitted="OnPredictionSearchSubmitted" />
                         </StackPanel>
 
-                        <ProgressBar x:Name="PredictionBusy" IsIndeterminate="True"
+                        <ProgressBar x:Name="PredictionBusy"
+                                     AutomationProperties.Name="Prediction progress" IsIndeterminate="True"
                                      Visibility="Collapsed" />
                         <InfoBar x:Name="PredictionEmpty" Severity="Informational" IsOpen="False"
                                  IsClosable="False" Title="Nothing here"
@@ -477,7 +501,8 @@
                         </StackPanel>
                     </Border>
 
-                    <ListView Grid.Row="2" x:Name="PredictionList" SelectionMode="Single">
+                    <ListView Grid.Row="2" x:Name="PredictionList"
+                              AutomationProperties.Name="Predictions" SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="4,6" ColumnSpacing="10">
@@ -521,21 +546,24 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Spacing="6">
-                            <ComboBox x:Name="WatchlistStatusBox" MinWidth="160"
+                            <ComboBox x:Name="WatchlistStatusBox"
+                                      AutomationProperties.Name="Watchlist status" MinWidth="160"
                                       SelectionChanged="OnWatchlistFilterChanged">
                                 <ComboBoxItem Content="Active" Tag="Active" IsSelected="True" />
                                 <ComboBoxItem Content="Archived" Tag="Archived" />
                                 <ComboBoxItem Content="Both" Tag="" />
                             </ComboBox>
 
-                            <ProgressBar x:Name="WatchlistBusy" IsIndeterminate="True"
+                            <ProgressBar x:Name="WatchlistBusy"
+                                         AutomationProperties.Name="Watchlist progress" IsIndeterminate="True"
                                          Visibility="Collapsed" />
                             <InfoBar x:Name="WatchlistEmpty" Severity="Informational"
                                      IsOpen="False" IsClosable="False" Title="Nothing here"
                                      Message="No watchlists yet." />
                         </StackPanel>
 
-                        <ListView Grid.Row="1" x:Name="WatchlistList" SelectionMode="Single"
+                        <ListView Grid.Row="1" x:Name="WatchlistList"
+                                  AutomationProperties.Name="Watchlists" SelectionMode="Single"
                                   SelectionChanged="OnWatchlistSelected">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
@@ -564,7 +592,8 @@
 
                             <TextBlock Text="Recent signals about these records"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="WatchlistSignalList" MaxHeight="240"
+                            <ListView x:Name="WatchlistSignalList"
+                                      AutomationProperties.Name="Watchlist signals" MaxHeight="240"
                                       SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
@@ -580,7 +609,8 @@
 
                             <TextBlock Text="Open predictions about these records"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="WatchlistPredictionList" MaxHeight="180"
+                            <ListView x:Name="WatchlistPredictionList"
+                                      AutomationProperties.Name="Watchlist predictions" MaxHeight="180"
                                       SelectionMode="None" DisplayMemberPath="Statement" />
                         </StackPanel>
                     </ScrollViewer>
@@ -605,7 +635,8 @@
                                    Text="People somebody is watching, with a written reason. Priority is set by a person: AgencyOS does not rank talent, score fit or suggest who to sign." />
 
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox x:Name="RadarStatusBox" MinWidth="190"
+                            <ComboBox x:Name="RadarStatusBox"
+                                      AutomationProperties.Name="Radar status" MinWidth="190"
                                       SelectionChanged="OnRadarFilterChanged">
                                 <ComboBoxItem Content="Any state" Tag="" IsSelected="True" />
                                 <ComboBoxItem Content="Watching" Tag="Watching" />
@@ -615,7 +646,8 @@
                                 <ComboBoxItem Content="Dismissed" Tag="Dismissed" />
                             </ComboBox>
 
-                            <ComboBox x:Name="RadarPriorityBox" MinWidth="160"
+                            <ComboBox x:Name="RadarPriorityBox"
+                                      AutomationProperties.Name="Radar priority" MinWidth="160"
                                       SelectionChanged="OnRadarFilterChanged">
                                 <ComboBoxItem Content="Any priority" Tag="" IsSelected="True" />
                                 <ComboBoxItem Content="Unassigned" Tag="Unassigned" />
@@ -629,14 +661,16 @@
                                             QuerySubmitted="OnRadarSearchSubmitted" />
                         </StackPanel>
 
-                        <ProgressBar x:Name="RadarBusy" IsIndeterminate="True"
+                        <ProgressBar x:Name="RadarBusy"
+                                     AutomationProperties.Name="Radar progress" IsIndeterminate="True"
                                      Visibility="Collapsed" />
                         <InfoBar x:Name="RadarEmpty" Severity="Informational" IsOpen="False"
                                  IsClosable="False" Title="Nothing here"
                                  Message="Nobody is on the radar with these filters." />
                     </StackPanel>
 
-                    <ListView Grid.Row="1" x:Name="RadarList" SelectionMode="Single">
+                    <ListView Grid.Row="1" x:Name="RadarList"
+                              AutomationProperties.Name="Radar entries" SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="4,6" ColumnSpacing="10">
@@ -680,7 +714,8 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Spacing="6">
-                            <ComboBox x:Name="ResearchStatusBox" MinWidth="170"
+                            <ComboBox x:Name="ResearchStatusBox"
+                                      AutomationProperties.Name="Research status" MinWidth="170"
                                       SelectionChanged="OnResearchFilterChanged">
                                 <ComboBoxItem Content="Open" Tag="Open" IsSelected="True" />
                                 <ComboBoxItem Content="Paused" Tag="Paused" />
@@ -693,14 +728,16 @@
                                             PlaceholderText="Question"
                                             QuerySubmitted="OnResearchSearchSubmitted" />
 
-                            <ProgressBar x:Name="ResearchBusy" IsIndeterminate="True"
+                            <ProgressBar x:Name="ResearchBusy"
+                                         AutomationProperties.Name="Research progress" IsIndeterminate="True"
                                          Visibility="Collapsed" />
                             <InfoBar x:Name="ResearchEmpty" Severity="Informational"
                                      IsOpen="False" IsClosable="False" Title="Nothing here"
                                      Message="No research cases match these filters." />
                         </StackPanel>
 
-                        <ListView Grid.Row="1" x:Name="ResearchList" SelectionMode="Single"
+                        <ListView Grid.Row="1" x:Name="ResearchList"
+                                  AutomationProperties.Name="Research cases" SelectionMode="Single"
                                   SelectionChanged="OnResearchSelected">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
@@ -730,17 +767,20 @@
 
                             <TextBlock Text="Tasks"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="ResearchTaskList" MaxHeight="180"
+                            <ListView x:Name="ResearchTaskList"
+                                      AutomationProperties.Name="Research tasks" MaxHeight="180"
                                       SelectionMode="None" DisplayMemberPath="Title" />
 
                             <TextBlock Text="Signals"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="ResearchSignalList" MaxHeight="200"
+                            <ListView x:Name="ResearchSignalList"
+                                      AutomationProperties.Name="Research signals" MaxHeight="200"
                                       SelectionMode="None" DisplayMemberPath="Title" />
 
                             <TextBlock Text="Sources"
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <ListView x:Name="ResearchSourceList" MaxHeight="200"
+                            <ListView x:Name="ResearchSourceList"
+                                      AutomationProperties.Name="Research sources" MaxHeight="200"
                                       SelectionMode="None" DisplayMemberPath="Title" />
 
                             <!--
@@ -761,7 +801,8 @@
                 <ScrollViewer>
                     <StackPanel Spacing="12" Padding="4,10" MaxWidth="900">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ComboBox x:Name="RelationshipKindBox" MinWidth="140"
+                            <ComboBox x:Name="RelationshipKindBox"
+                                      AutomationProperties.Name="Relationship kind" MinWidth="140"
                                       SelectionChanged="OnRelationshipKindChanged">
                                 <ComboBoxItem Content="Person" Tag="Person" IsSelected="True" />
                                 <ComboBoxItem Content="Company" Tag="Company" />
@@ -775,7 +816,8 @@
                                     Click="OnRelationshipRequested" />
                         </StackPanel>
 
-                        <ProgressBar x:Name="RelationshipBusy" IsIndeterminate="True"
+                        <ProgressBar x:Name="RelationshipBusy"
+                                     AutomationProperties.Name="Relationship progress" IsIndeterminate="True"
                                      Visibility="Collapsed" />
 
                         <TextBlock x:Name="RelationshipNameText"
@@ -819,12 +861,14 @@
 
                         <TextBlock Text="Recent signals"
                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <ListView x:Name="RelationshipSignalList" MaxHeight="220"
+                        <ListView x:Name="RelationshipSignalList"
+                                  AutomationProperties.Name="Relationship signals" MaxHeight="220"
                                   SelectionMode="None" DisplayMemberPath="Title" />
 
                         <TextBlock Text="Watchlists they are on"
                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <ListView x:Name="RelationshipWatchlistList" MaxHeight="140"
+                        <ListView x:Name="RelationshipWatchlistList"
+                                  AutomationProperties.Name="Relationship watchlists" MaxHeight="140"
                                   SelectionMode="None" DisplayMemberPath="Name" />
                     </StackPanel>
                 </ScrollViewer>

@@ -96,7 +96,8 @@
                                 KeyDown="OnSearchKeyDown" />
 
                             <StackPanel Grid.Row="1" Spacing="4">
-                                <ProgressBar x:Name="SearchBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                                <ProgressBar x:Name="SearchBusy"
+                                             AutomationProperties.Name="Search progress" IsIndeterminate="True" Visibility="Collapsed" />
 
                                 <InfoBar
                                     x:Name="SearchOfflineBar"
@@ -123,6 +124,7 @@
 
                             <ListView
                                 x:Name="SearchResults"
+                                      AutomationProperties.Name="Search results"
                                 Grid.Row="2"
                                 SelectionMode="Single"
                                 IsItemClickEnabled="True"
@@ -202,6 +204,7 @@
 
                             <ListView
                                 x:Name="PaletteResults"
+                                      AutomationProperties.Name="Palette results"
                                 Grid.Row="1"
                                 SelectionMode="Single"
                                 IsItemClickEnabled="True"

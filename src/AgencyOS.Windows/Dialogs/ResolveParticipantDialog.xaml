@@ -1,4 +1,4 @@
-<ContentDialog
+﻿<ContentDialog
     x:Class="AgencyOS.Windows.Dialogs.ResolveParticipantDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -27,7 +27,8 @@
                  Title="No match"
                  Message="Nobody in AgencyOS is recorded with this address. Leaving it unidentified is a valid answer." />
 
-        <ListView x:Name="SuggestionList" MaxHeight="220" SelectionMode="Single"
+        <ListView x:Name="SuggestionList"
+                  AutomationProperties.Name="Suggestions" MaxHeight="220" SelectionMode="Single"
                   SelectionChanged="OnChanged">
             <ListView.ItemTemplate>
                 <DataTemplate>

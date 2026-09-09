@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AgencyOS.Windows.Pages.SavedViewsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -26,7 +26,8 @@
             </Grid>
 
             <StackPanel Grid.Row="1" Spacing="6">
-                <ProgressBar x:Name="ListBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <ProgressBar x:Name="ListBusy"
+                             AutomationProperties.Name="List progress" IsIndeterminate="True" Visibility="Collapsed" />
                 <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False"
                          Title="Could not load saved views" />
                 <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
@@ -36,6 +37,7 @@
 
             <ListView
                 x:Name="ViewList"
+                      AutomationProperties.Name="Saved views"
                 Grid.Row="2"
                 SelectionMode="Single"
                 SelectionChanged="OnViewSelected">
@@ -118,7 +120,8 @@
                     Title="Nothing matched"
                     Message="This view is correct; there is simply nothing that fits it right now." />
 
-                <ListView Grid.Row="2" x:Name="ResultList" SelectionMode="Single">
+                <ListView Grid.Row="2" x:Name="ResultList"
+                          AutomationProperties.Name="Results" SelectionMode="Single">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid Padding="4,6" ColumnSpacing="12">

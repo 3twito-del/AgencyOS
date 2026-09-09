@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AgencyOS.Windows.Pages.PeoplePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -34,7 +34,8 @@
                 KeyDown="OnSearchKeyDown" />
 
             <StackPanel Grid.Row="2" Spacing="6">
-                <ProgressBar x:Name="ListBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <ProgressBar x:Name="ListBusy"
+                             AutomationProperties.Name="List progress" IsIndeterminate="True" Visibility="Collapsed" />
                 <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False" Title="Could not load people" />
                 <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
                          Title="No people yet" Message="Create the first person to begin." />
@@ -42,6 +43,7 @@
 
             <ListView
                 x:Name="PeopleList"
+                      AutomationProperties.Name="People"
                 Grid.Row="3"
                 SelectionMode="Single"
                 ItemTemplate="{StaticResource PersonRowTemplate}"
@@ -74,7 +76,8 @@
             </Grid>
 
             <StackPanel Grid.Row="1" Spacing="6">
-                <ProgressBar x:Name="DetailBusy" IsIndeterminate="True" Visibility="Collapsed" />
+                <ProgressBar x:Name="DetailBusy"
+                             AutomationProperties.Name="Detail progress" IsIndeterminate="True" Visibility="Collapsed" />
                 <InfoBar x:Name="DetailError" Severity="Error" IsOpen="False" IsClosable="False" Title="Could not load this person" />
                 <InfoBar x:Name="DetailEmpty" Severity="Informational" IsOpen="True" IsClosable="False"
                          Title="Select a person" Message="Choose someone from the directory to see their record." />
@@ -98,6 +101,7 @@
                     <ListView
                         Grid.Column="0"
                         x:Name="RelationshipList"
+                              AutomationProperties.Name="Relationships"
                         MaxHeight="160"
                         SelectionMode="Single"
                         ItemTemplate="{StaticResource RelationshipRowTemplate}" />
@@ -110,6 +114,7 @@
                 <ListView
                     Grid.Row="2"
                     x:Name="TimelineList"
+                          AutomationProperties.Name="Timeline"
                     SelectionMode="None"
                     ItemTemplate="{StaticResource TimelineEntryTemplate}" />
             </Grid>
