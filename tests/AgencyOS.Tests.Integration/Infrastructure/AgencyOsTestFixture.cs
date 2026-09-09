@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace AgencyOS.Tests.Integration.Infrastructure;
@@ -313,6 +314,9 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
         Directory.CreateDirectory(BlobRoot);
     }
 
+    /// <summary>The host's own errors, so a failing test can quote the server.</summary>
+    public CapturedLogs Logs { get; } = new();
+
     /// <summary>Where this host stores blob content, so a test can inspect it.</summary>
     /// <remarks>
     /// Inspected deliberately in the hostile-filename tests: the assertion that
@@ -359,6 +363,8 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
         // The scale harness needs to know how many round trips a request made.
         // Added as extra configuration rather than by re-registering the context,
         // so the harness measures the options the application actually built.
+        builder.ConfigureLogging(logging => logging.AddProvider(Logs));
+
         builder.ConfigureServices(services =>
         {
             services.AddSingleton<Scale.QueryCounter>();

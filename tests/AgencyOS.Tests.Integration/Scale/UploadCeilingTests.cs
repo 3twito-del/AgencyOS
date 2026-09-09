@@ -98,13 +98,17 @@ public sealed class UploadCeilingTests
         SeededActor actor = await _fixture.SeedActorAsync(AgencyRole.Owner, "m14-upload-ok");
         using HttpClient client = _fixture.CreateClient(actor.Subject);
 
+        _fixture.Factory.Logs.Clear();
+
         using HttpResponseMessage response = await UploadAsync(
             client, actor, new byte[64 * 1024], "ordinary.txt");
 
         Assert.True(
             response.IsSuccessStatusCode,
             $"An ordinary document was refused with {(int)response.StatusCode}: "
-                + await response.Content.ReadAsStringAsync());
+                + await response.Content.ReadAsStringAsync()
+                + Environment.NewLine
+                + "Server said: " + _fixture.Factory.Logs.Describe());
     }
 
     // ------------------------------------------------------------- helpers
