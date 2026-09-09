@@ -156,8 +156,13 @@ jobs:
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update
           sudo apt-get install -y postgresql-client-18
-          pg_dump --version
-          pg_restore --version
+          # /usr/bin/pg_dump is Debian's pg_wrapper, and on this image it
+          # resolves to the pre-installed 16 even once 18 is present. The
+          # versioned binaries go first on PATH so the drill gets the client
+          # it asked for.
+          echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
+          /usr/lib/postgresql/18/bin/pg_dump --version
+          /usr/lib/postgresql/18/bin/pg_restore --version
 
       - name: Integration tests
         shell: pwsh
