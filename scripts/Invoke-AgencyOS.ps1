@@ -23,7 +23,7 @@
 #>
 param(
     [Parameter(Position=0)]
-    [ValidateSet("doctor","build","test","test-unit","test-windows","test-integration","verify","verify-fast","version","contract","formal","ci","nightly")]
+    [ValidateSet("doctor","build","test","test-unit","test-windows","test-integration","verify","verify-fast","version","contract","formal","ci","nightly","release")]
     [string]$Target = "doctor",
 
     [ValidateSet("forge","lab","nightly","alpha","beta","rc","stable")]
@@ -659,6 +659,111 @@ function Invoke-Ci {
 # Produces the NIGHTLY ring artifact required by the M0 exit criteria.
 # The channel is stamped into build metadata so the artifact cannot misreport
 # which ring it belongs to (docs/06_FORCED_UPDATE_PROTOCOL.md).
+function Invoke-Release {
+    # Produces the artifact set a deployment actually needs, and binds it together
+    # so that what is installed can be traced back to what was built. Filenames are
+    # not evidence: the manifest carries a SHA-256 for every artifact, the commit,
+    # the CI run and the schema the database must be at (M15 SS25/SS60, ADR-0039).
+    $releaseChannel = if ($Channel) { $Channel } else { "alpha" }
+    $releaseBuildId = if ($BuildId) { $BuildId } else { [DateTime]::UtcNow.ToString("yyyyMMdd.HHmm") }
+    $config = Get-Configuration "Release"
+
+    $stamp = @("-p:AgencyOSChannel=$releaseChannel", "-p:AgencyOSBuildId=$releaseBuildId")
+
+    $solution = Get-Solution
+    $output = Join-Path $root "artifacts/release"
+
+    Write-Section "Release ($releaseChannel / $releaseBuildId / $config)"
+
+    if (Test-Path $output) { Remove-Item $output -Recurse -Force }
+    New-Item -ItemType Directory -Force -Path $output | Out-Null
+
+    Write-Section "Release: Build"
+    dotnet build $solution --nologo -c $config @stamp
+    if ($LASTEXITCODE -ne 0) { throw "Release build failed." }
+
+    Write-Section "Release: Publish API"
+    dotnet publish (Join-Path $root "src/AgencyOS.Api/AgencyOS.Api.csproj") --nologo -c $config --no-build -o (Join-Path $output "api") @stamp
+    if ($LASTEXITCODE -ne 0) { throw "Release API publish failed." }
+
+    Write-Section "Release: Publish Windows client"
+    dotnet publish (Join-Path $root "src/AgencyOS.Windows/AgencyOS.Windows.csproj") --nologo -c $config -r win-x64 --self-contained false -o (Join-Path $output "windows") @stamp
+    if ($LASTEXITCODE -ne 0) { throw "Release Windows publish failed." }
+
+    # A production host has the runtime, not the SDK, and certainly not the source
+    # tree. Without this an operator cannot migrate a database at all - which was
+    # true until M15 and is the kind of gap nobody notices until an upgrade night.
+    Write-Section "Release: Migration script"
+    $migrationScript = Join-Path $output "migrate.sql"
+
+    # Infrastructure is both project and startup project: it owns the
+    # DesignTimeDbContextFactory, and the API deliberately carries no design-time
+    # dependency at all.
+    dotnet ef migrations script --idempotent `
+        --project (Join-Path $root "src/AgencyOS.Infrastructure/AgencyOS.Infrastructure.csproj") `
+        --startup-project (Join-Path $root "src/AgencyOS.Infrastructure/AgencyOS.Infrastructure.csproj") `
+        --configuration $config `
+        --output $migrationScript
+    if ($LASTEXITCODE -ne 0) { throw "Migration script generation failed." }
+
+    Write-Section "Release: SBOM"
+    $sbomDirectory = Join-Path $output "sbom"
+    New-Item -ItemType Directory -Force -Path $sbomDirectory | Out-Null
+    dotnet CycloneDX $solution --output $sbomDirectory --filename sbom.json --json --exclude-dev
+    if ($LASTEXITCODE -ne 0) { throw "SBOM generation failed." }
+
+    Write-Section "Release: Manifest"
+
+    # The last migration in the script is the schema a deployment of this build
+    # expects, and it is read from the generated script rather than typed.
+    $expectedSchema = ""
+    $migrationIds = Select-String -Path $migrationScript -Pattern "INSERT INTO ""__EFMigrationsHistory""" -Context 0, 1
+    if ($migrationIds) {
+        $last = ($migrationIds | Select-Object -Last 1).Context.PostContext -join " "
+        if ($last -match "'([0-9]{14}_[A-Za-z0-9]+)'") { $expectedSchema = $Matches[1] }
+    }
+
+    $artifacts = @()
+    foreach ($file in Get-ChildItem -LiteralPath $output -Recurse -File) {
+        $artifacts += [ordered]@{
+            path   = ([System.IO.Path]::GetRelativePath($output, $file.FullName)) -replace "\\", "/"
+            bytes  = $file.Length
+            sha256 = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        }
+    }
+
+    $manifest = [ordered]@{
+        formatVersion      = 1
+        version            = (Get-BuildProperty "VersionPrefix")
+        channel            = $releaseChannel
+        buildId            = $releaseBuildId
+        gitCommit          = (git -C $root rev-parse HEAD).Trim()
+        gitBranch          = (git -C $root rev-parse --abbrev-ref HEAD).Trim()
+        apiContractVersion = [int](Get-BuildProperty "AgencyOSApiContractVersion")
+        expectedSchema     = $expectedSchema
+        ciRun              = $env:GITHUB_RUN_ID
+        signing            = "unsigned"
+        createdAt          = ([DateTimeOffset]::UtcNow).ToString("o")
+        artifacts          = $artifacts
+    }
+
+    $manifestPath = Join-Path $output "release-manifest.json"
+    $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $manifestPath -Encoding utf8
+
+    Write-Host ""
+    Write-Host "[OK] Release: $($artifacts.Count) artifacts, contract $($manifest.apiContractVersion), schema $expectedSchema"
+    Write-Host "     $manifestPath"
+}
+
+function Get-BuildProperty {
+    param([Parameter(Mandatory = $true)][string] $Name)
+
+    $value = dotnet msbuild (Join-Path $root "src/AgencyOS.Contracts/AgencyOS.Contracts.csproj") `
+        -getProperty:$Name -nologo 2>$null
+
+    return ($value | Out-String).Trim()
+}
+
 function Invoke-Nightly {
     $nightlyChannel = if ($Channel) { $Channel } else { "nightly" }
     $nightlyBuildId = if ($BuildId) { $BuildId } else { [DateTime]::UtcNow.ToString("yyyyMMdd.HHmm") }
@@ -722,6 +827,7 @@ try {
         "formal"           { Invoke-Formal }
         "ci"          { Invoke-Ci }
         "nightly"     { Invoke-Nightly }
+        "release"     { Invoke-Release }
     }
 }
 finally {

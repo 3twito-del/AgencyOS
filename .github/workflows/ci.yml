@@ -103,6 +103,35 @@ jobs:
           CI: 'true'
         run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 formal
 
+      # Produces the artifact set a deployment needs and the manifest binding it
+      # to this commit: publishes, an idempotent migration script an operator can
+      # apply with psql alone, a CycloneDX SBOM, and a SHA-256 for every file.
+      # Runs in CI because a release artifact nobody has built is not a release
+      # artifact (M15 SS25/SS60, ADR-0039).
+      - name: Release artifact
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: >
+          pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 release
+          -Channel alpha
+          -BuildId ${{ github.run_number }}
+
+      - name: Verify release manifest
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/Test-ReleaseManifest.ps1 -ReleasePath artifacts/release
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4, pinned 2026-09-09
+        with:
+          name: agencyos-release-${{ github.run_number }}
+          path: |
+            artifacts/release/release-manifest.json
+            artifacts/release/migrate.sql
+            artifacts/release/sbom/**
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload API contract
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4, pinned 2026-09-09
         with:
