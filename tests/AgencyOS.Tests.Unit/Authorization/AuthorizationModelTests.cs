@@ -16,6 +16,65 @@ public sealed class AuthorizationModelTests
 {
     private static readonly DateTimeOffset Now = new(2026, 9, 7, 12, 0, 0, TimeSpan.Zero);
 
+    /// <summary>
+    /// A stronger role never sees less than a weaker one.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Written after M15 found the owner of an agency unable to read their own
+    /// deals, contracts and projects. Twenty-nine grants a member held were absent
+    /// from the owner, and nine of those an <em>observer</em> held — the weakest
+    /// role in the system could read records the strongest could not.
+    /// </para>
+    /// <para>
+    /// It survived because the four role sets were four independent literal lists,
+    /// and because every deal and project integration test acts as a member. Only
+    /// running the application as the owner exposed it, as three workspaces
+    /// answering 403.
+    /// </para>
+    /// <para>
+    /// This asserts the shape of the model rather than individual grants, so a
+    /// future milestone that adds a permission to one role cannot quietly leave a
+    /// stronger role behind.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData(AgencyRole.Observer, AgencyRole.Member)]
+    [InlineData(AgencyRole.Member, AgencyRole.Owner)]
+    [InlineData(AgencyRole.Administrator, AgencyRole.Owner)]
+    public void AStrongerRoleContainsTheWeakerOne(AgencyRole weaker, AgencyRole stronger)
+    {
+        IReadOnlySet<string> lesser = RolePermissions.For(weaker);
+        IReadOnlySet<string> greater = RolePermissions.For(stronger);
+
+        List<string> missing = [.. lesser.Except(greater).Order()];
+
+        Assert.True(
+            missing.Count == 0,
+            $"{stronger} is missing {missing.Count} permission(s) that {weaker} holds, "
+                + $"so the weaker role can reach what the stronger cannot: "
+                + string.Join(", ", missing));
+    }
+
+    /// <summary>
+    /// Administrator and Member are different axes, not a ladder.
+    /// </summary>
+    /// <remarks>
+    /// Asserted so the containment above is not mistaken for a total order. An
+    /// administrator oversees and does not trade: they read the agency's records
+    /// and cannot write a deal. A member does the opposite. Only the owner holds
+    /// both, which is what makes ownership distinct from seniority.
+    /// </remarks>
+    [Fact]
+    public void AdministratorAndMemberAreNotComparable()
+    {
+        IReadOnlySet<string> administrator = RolePermissions.For(AgencyRole.Administrator);
+        IReadOnlySet<string> member = RolePermissions.For(AgencyRole.Member);
+
+        Assert.NotEmpty(administrator.Except(member));
+        Assert.NotEmpty(member.Except(administrator));
+    }
+
     [Fact]
     public void EveryRoleGrantsOnlyKnownPermissions()
     {

@@ -214,76 +214,52 @@ public static class RolePermissions
         Permission.AiUse,
         Permission.AiAdminister);
 
-    private static readonly IReadOnlySet<string> OwnerPermissions = Freeze(
-        Permission.OrganizationsRead,
-        Permission.OrganizationsCreate,
-        Permission.OrganizationsArchive,
-        Permission.MembershipsRead,
-        Permission.MembershipsGrant,
-        Permission.MembershipsRevoke,
-        Permission.AuditRead,
-        Permission.ReleasePolicyRead,
-        Permission.ReleasePolicyManage,
-        Permission.PeopleRead,
-        Permission.PeopleWrite,
-        Permission.CompaniesRead,
-        Permission.CompaniesWrite,
-        Permission.RelationshipsRead,
-        Permission.RelationshipsWrite,
-        Permission.InteractionsRead,
-        Permission.InteractionsRecord,
-        Permission.TasksRead,
-        Permission.TasksWrite,
-        Permission.TalentRead,
-        Permission.TalentWrite,
-        Permission.TalentNotesRead,
-        Permission.RepresentationRead,
-        Permission.RepresentationWrite,
-        Permission.ProspectsRead,
-        Permission.ProspectsWrite,
-        Permission.FinanceRead,
-        Permission.FinancePaymentsRead,
-        Permission.FinanceCommissionsRead,
-        Permission.FinanceLedgerRead,
-        Permission.FinanceLedgerPost,
-        Permission.FinanceAdjustmentsWrite,
-        Permission.DocumentsRead,
-        Permission.DocumentsPrivilegedRead,
-        Permission.DocumentsRestrictedRead,
+    /// <summary>
+    /// Everything a member does, everything an administrator oversees, and the
+    /// four decisions that belong to ownership alone.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>Composed rather than listed.</strong> Until M15 this was a fourth
+    /// literal list maintained beside the other three, and it had silently fallen
+    /// behind: the owner of an agency could not read their own deals, contracts,
+    /// projects, packages, opportunities, offers, rights, obligations or
+    /// submissions. Twenty-nine grants a member held were missing, and nine of
+    /// them an <em>observer</em> held — so the weakest role in the system could
+    /// read records the owner could not.
+    /// </para>
+    /// <para>
+    /// Nothing caught it because every deal and project integration test acts as a
+    /// member, and the authorization tests pinned three specific permissions rather
+    /// than the shape of the model. It surfaced the first time somebody ran the
+    /// application and signed in as the owner: three workspaces answered 403.
+    /// </para>
+    /// <para>
+    /// Composition is the fix for the cause rather than the symptom. A milestone
+    /// that adds a permission to Member or Administrator now adds it to Owner by
+    /// construction, and <c>AuthorizationModelTests</c> fails if the containment
+    /// ever stops holding.
+    /// </para>
+    /// </remarks>
+    private static readonly IReadOnlySet<string> OwnerPermissions = Compose(
+        MemberPermissions,
+        AdministratorPermissions,
+        Freeze(
+            // Ownership itself: retiring the organization, and deciding which
+            // builds its people may run.
+            Permission.OrganizationsArchive,
+            Permission.ReleasePolicyManage,
 
-        // The owner writes documents where the administrator does not, and the
-        // reason is a rule the milestone enforces elsewhere: a writer may not file
-        // a document into a classification they could not then read. Without these
-        // two grants no role in the system could record privileged material at all
-        // - members write but cannot read privileged, administrators read but
-        // cannot write - and counsel's advice would have nowhere to go
-        // (ADR-0025).
-        Permission.DocumentsWrite,
-        Permission.DocumentsLink,
+            // The owner both reads and writes intelligence, for the reason they
+            // hold the document write grants: somebody has to be able to record a
+            // thesis at a classification only they can read, and a role that could
+            // read it but not write it would make the classification unreachable
+            // (ADR-0025, ADR-0030).
+            Permission.IntelligencePredictionsWrite,
 
-        Permission.CommunicationsRead,
-        Permission.CommunicationsSharedRead,
-
-        // The owner both reads and writes intelligence, for the same reason they
-        // gained the document write grants in M10: somebody has to be able to
-        // record a thesis at a classification only they can read, and a role that
-        // could read it but not write it would make the classification
-        // unreachable (ADR-0025, ADR-0030).
-        Permission.IntelligenceRead,
-        Permission.IntelligenceWrite,
-        Permission.IntelligenceSensitiveRead,
-        Permission.IntelligencePredictionsWrite,
-        Permission.IntelligenceRadarWrite,
-
-        // All five, for the reason the intelligence block gives: a role that could
-        // not reach an elevated classification through AI while being able to read
-        // it directly would make the sensitive path unreachable in a fresh tenant,
-        // and somebody has to be able to configure the provider policy at all.
-        Permission.AiUse,
-        Permission.AiSensitiveUse,
-        Permission.AiPropose,
-        Permission.AiApprove,
-        Permission.AiAdminister);
+            // The strongest AI grant, which decides what may be transmitted at an
+            // elevated classification (ADR-0031).
+            Permission.AiSensitiveUse));
 
     private static readonly IReadOnlySet<string> NoPermissions = Freeze();
 
@@ -303,4 +279,21 @@ public static class RolePermissions
 
     private static IReadOnlySet<string> Freeze(params string[] permissions) =>
         new HashSet<string>(permissions, StringComparer.Ordinal);
+
+    /// <summary>Unions several grants into one role.</summary>
+    /// <remarks>
+    /// Static fields initialize in declaration order, so every set named here is
+    /// already built by the time a composed role is.
+    /// </remarks>
+    private static IReadOnlySet<string> Compose(params IReadOnlySet<string>[] sets)
+    {
+        HashSet<string> composed = new(StringComparer.Ordinal);
+
+        foreach (IReadOnlySet<string> set in sets)
+        {
+            composed.UnionWith(set);
+        }
+
+        return composed;
+    }
 }
