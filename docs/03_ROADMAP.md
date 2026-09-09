@@ -2029,13 +2029,87 @@ NUL byte destroying an entire document ingestion, `IBlobStore.ExistsAsync` and
 nobody had chosen surfacing as an unhandled failure. The milestone's argument is
 that the monolith did not need decomposing — but it did need measuring.
 
-## M15 — Production Hardening
-Deliver:
-- BETA/RC/STABLE pipeline;
-- staged rollout;
-- SBOM/provenance/signing;
-- recovery/read-only/forensic builds;
-- disaster recovery;
-- backup/restore drills;
-- chaos tests;
-- security review.
+## M15 — Production Hardening, Operational Readiness & Release Integrity — **Done** (2026-09-09)
+
+Implemented: the milestone that asked whether AgencyOS can be operated — recovered,
+upgraded, audited and trusted under real failure — rather than whether it is built
+correctly.
+
+**The gap was operational, not architectural.** Every domain guarantee M0–M14 built
+was intact and tested. What did not exist was the ability to lose something and get
+it back: no backup script, no restore script, no drill, no reconciliation between
+the database and the document bytes that live outside it, and no runbook an
+operator who did not build AgencyOS could follow. "The agency can recover its data"
+was a belief; it is now a finding (ADR-0039).
+
+**Backup covers both halves, because the database is not all of the data.** M10 put
+document content in a content-addressed store outside the relational rows, so a
+database-only restore returns every document's metadata, hash and version history
+and none of its content — healthy-looking and empty. The drill seeds real blobs and
+verifies each restored byte against the digest the database recorded.
+
+**Restore verifies before it destroys.** The dump is checked against the manifest
+hash before the target is dropped, and `-Force` is required. A restore that
+destroyed a working database and then found a truncated dump would turn a
+recoverable situation into an unrecoverable one; the drill proves the refusal with
+a deliberately corrupted backup.
+
+**The drill runs the operator's own scripts** rather than a reimplementation, so
+what is tested is what a person runs. Three cases, green in CI against
+`postgres:18.6`: the round trip with audit continuity and every blob hash; restore
+refusing without `-Force`; and a damaged backup refused before anything is
+destroyed.
+
+**Two things the drills taught that no amount of reading would have.** A restore
+terminates every database connection, so an application running during one does not
+recover on its own — the runbook says restart the API. And a version guard caught
+`pg_wrapper` resolving to PostgreSQL 16 while `postgresql-client-18` was correctly
+installed, which would otherwise have surfaced as an opaque dump failure.
+
+**An operator can now migrate a database without a developer machine.** AgencyOS
+deliberately does not migrate at startup, but until M15 doing so required the SDK
+and the source tree, neither of which exists on a server. The release ships an
+idempotent `migrate.sql` applied with `psql` alone.
+
+**The configuration that fails silently is refused at startup.** On a ring that
+permits real data the host now requires an explicit blob root and Data Protection
+key path. Without the latter, ASP.NET falls back to an in-memory key ring under a
+profile-less service account: every restart issues new keys and every stored
+mailbox credential stops decrypting, with nothing logged that names the cause.
+
+Delivered against the original M15 list:
+
+- BETA/RC/STABLE pipeline. **not delivered** (the ring gates are evidence claims;
+  see below)
+- staged rollout. **not delivered** (no distribution infrastructure exists)
+- SBOM/provenance. **met** (CycloneDX 1.6, 81 components; manifest binding every
+  artifact hash to commit, channel, contract and expected schema)
+- signing. **not delivered** (no production certificate exists; recorded as an
+  external prerequisite, and the manifest states `unsigned` rather than omitting
+  the question)
+- recovery/read-only/forensic builds. **not delivered** (no evidence of need)
+- disaster recovery. **met** (`docs/15_RECOVERY.md`, seven scenarios)
+- backup/restore drills. **met** (three, green in CI)
+- chaos tests. **not delivered** (one process and one database; there is no
+  topology to perturb)
+- security review. **met** (threat review, secret scan, Actions pinned by SHA,
+  authorization regressions retained)
+
+**Release classification: ALPHA is retained, and M15 does not promote the ring.**
+The policy in `docs/05_RELEASE_ENGINEERING.md` requires four things of STABLE —
+signed, SBOM/provenance, staged rollout, tested backup/restore and rollback. M15
+closed two of them. The other two are **external**: a certificate somebody must buy
+and a distribution channel somebody must operate. A release ring is an evidence
+claim, and M15 being numerically last is not evidence.
+
+**Readiness: PRIVATE_ALPHA_READY.** AgencyOS can be operated with real private
+agency data on the ALPHA ring, with recovery proven rather than assumed. BETA
+additionally wants production-like observability and an exercised compatibility
+window, and neither has operating history behind it.
+
+**Known limitations.** Backup scheduling, off-machine storage and backup encryption
+are operator responsibilities. The drill runs on a synthetic dataset, so it proves
+correctness and says nothing about recovery time at real volumes. No wall-clock
+latency baseline exists. Single-instance remains the only supported topology. No
+production signing certificate exists.
+
