@@ -24,6 +24,16 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
+  <!--
+    The prompt renderer is internal: it is the client's half of the M12 untrusted
+    content envelope, not an API anybody should call. The Windows suite tests it
+    directly because that envelope is a security property, and a test that could
+    only reach it through the whole protocol would be testing the protocol.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="AgencyOS.Tests.Windows" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
     <ProjectReference Include="../AgencyOS.Client/AgencyOS.Client.csproj" />

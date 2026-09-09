@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../AgencyOS.Client/AgencyOS.Client.csproj" />
+    <ProjectReference Include="../AgencyOS.Windows.Platform/AgencyOS.Windows.Platform.csproj" />
     <ProjectReference Include="../AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
   </ItemGroup>
 

@@ -137,3 +137,38 @@ internal sealed partial class FakeAgencyOsApi
         return Task.CompletedTask;
     }
 }
+
+/// <summary>
+/// The M13 half of the fake API.
+/// </summary>
+/// <remarks>
+/// The device-local protocol is exercised properly in AgencyOS.Tests.Windows,
+/// where the runner and a deterministic model live. These members exist so the
+/// M12 view-model tests keep compiling against one client interface rather than
+/// two, and they refuse rather than pretend: a view model that reached the lease
+/// protocol from here would be doing something no screen should.
+/// </remarks>
+internal sealed partial class FakeAgencyOsApi
+{
+    public Task<ContextLeaseResponse> IssueAiContextLeaseAsync(
+        Guid runId,
+        IssueContextLeaseRequest request,
+        CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(
+            "The device-local protocol is tested in AgencyOS.Tests.Windows.");
+
+    public Task<SubmitLocalResultResponse> SubmitAiLocalResultAsync(
+        Guid runId,
+        SubmitLocalResultRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(
+            "The device-local protocol is tested in AgencyOS.Tests.Windows.");
+
+    public Task<IReadOnlyList<AiExecutionTargetResponse>> ListAiExecutionTargetsAsync(
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<AiExecutionTargetResponse>>([.. ExecutionTargets]);
+
+    /// <summary>What a test says this server can execute.</summary>
+    public List<AiExecutionTargetResponse> ExecutionTargets { get; } = [];
+}
