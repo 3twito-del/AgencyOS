@@ -368,7 +368,15 @@ public sealed class AgentRun
     public void AwaitLocalExecution(DateTimeOffset now, int expectedVersion)
     {
         Guard(expectedVersion);
-        Require(AgentRunStatus.Queued, AgentRunStatus.Running);
+
+        // Re-enterable. A run enters this state when it starts and again whenever
+        // a lease is issued, because a workstation may legitimately take a second
+        // lease after the first lapsed or was refused. "Waiting for the device" is
+        // a state you can arrive at more than once.
+        Require(
+            AgentRunStatus.Queued,
+            AgentRunStatus.Running,
+            AgentRunStatus.AwaitingLocalExecution);
 
         Status = AgentRunStatus.AwaitingLocalExecution;
         Touch(now);
@@ -393,7 +401,14 @@ public sealed class AgentRun
     public void Complete(string result, DateTimeOffset now, int expectedVersion)
     {
         Guard(expectedVersion);
-        Require(AgentRunStatus.Running, AgentRunStatus.AwaitingApproval);
+
+        // AwaitingLocalExecution completes for the same reason AwaitingApproval
+        // does: the run was waiting on something outside this process, and that
+        // something answered. The answer is validated before it reaches here.
+        Require(
+            AgentRunStatus.Running,
+            AgentRunStatus.AwaitingApproval,
+            AgentRunStatus.AwaitingLocalExecution);
 
         Status = AgentRunStatus.Completed;
         Result = Ensure.NotBlankMax(result, nameof(result), 60_000);

@@ -10,6 +10,8 @@ public sealed record AgentRunSummaryModel(
     AgentRunId Id,
     AgentKind Kind,
     AgentRunStatus Status,
+    ModelResidency Residency,
+    string? ExecutionDevice,
     string Task,
     AgentSubjectKind SubjectKind,
     Guid? SubjectId,

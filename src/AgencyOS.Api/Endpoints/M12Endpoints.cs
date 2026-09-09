@@ -115,7 +115,9 @@ internal static class M12Endpoints
                             EndpointParsing.ParseEnum<AgentSubjectKind>(
                                 request.SubjectKind, nameof(request.SubjectKind)),
                             request.SubjectId,
-                            request.ModelKey),
+                            request.ModelKey,
+                            EndpointParsing.ParseEnum<ModelResidency>(
+                                request.Residency, nameof(request.Residency))),
                         cancellationToken)
                     .ConfigureAwait(false);
 
@@ -380,6 +382,8 @@ internal static class M12Endpoints
             run.Id.Value,
             run.Kind.ToString(),
             run.Status.ToString(),
+            run.Residency.ToString(),
+            run.ExecutionDevice,
             run.Task,
             run.SubjectKind.ToString(),
             run.SubjectId,

@@ -17,7 +17,8 @@ public sealed record StartAgentRunCommand(
     string Task,
     AgentSubjectKind SubjectKind = AgentSubjectKind.None,
     Guid? SubjectId = null,
-    string? ModelKey = null);
+    string? ModelKey = null,
+    ModelResidency Residency = ModelResidency.ExternalCloud);
 
 public sealed record CancelAgentRunCommand(
     OrganizationId OrganizationId,
@@ -89,13 +90,30 @@ public sealed class AgentRunHandler
 
         AgentDefinition definition = AgentCatalog.For(command.Kind);
 
-        string modelKey = command.ModelKey ?? "fake-default";
+        // A device-local run defaults to the device-local model rather than to the
+        // server's, because "run this on my machine" names a residency and the
+        // model follows from it.
+        string modelKey = command.ModelKey
+            ?? (command.Residency == ModelResidency.DeviceLocal
+                ? "windows-local"
+                : "fake-default");
 
         // The model is resolved before the run exists, so an unknown key is a
         // refusal the caller sees rather than a run that fails a moment later.
         ModelDescriptor descriptor = _gateway.Describe(modelKey)
             ?? throw new DomainException(
                 $"No model is configured under the key '{modelKey}'.");
+
+        // The model and the residency have to agree. Asking for a device-local run
+        // against a cloud model, or the reverse, is a request whose two halves
+        // contradict each other, and guessing which half was meant would put
+        // material somewhere nobody chose (ADR-0035).
+        if (descriptor.Residency != command.Residency)
+        {
+            throw new DomainException(
+                $"'{descriptor.Key}' executes {descriptor.Residency} and the run asked "
+                    + $"for {command.Residency}. A run cannot change where it executes.");
+        }
 
         AgentRun run = AgentRun.Start(
             command.OrganizationId,
@@ -108,7 +126,8 @@ public sealed class AgentRunHandler
             definition.PromptTemplateVersion,
             _clock.UtcNow,
             command.SubjectKind,
-            command.SubjectId);
+            command.SubjectId,
+            command.Residency);
 
         _runs.Add(run);
 
@@ -126,8 +145,28 @@ public sealed class AgentRunHandler
                 agent = command.Kind.ToString(),
                 provider = descriptor.ProviderKey,
                 model = descriptor.Key,
+                residency = descriptor.Residency.ToString(),
                 promptVersion = definition.PromptTemplateVersion,
             });
+
+        // A run that executes somewhere else does not execute here. It waits for
+        // the workstation to take a lease, and the server does no inference on its
+        // behalf -- which is what makes "no silent cloud fallback" true of the
+        // start path as well as of the gateway (ADR-0035).
+        if (descriptor.RequiresContextLease)
+        {
+            run.AwaitLocalExecution(_clock.UtcNow, run.Version);
+
+            run.AppendStep(
+                AgentStepKind.ContextAssembled,
+                "Waiting for this workstation to run the model.",
+                _clock.UtcNow,
+                "Nothing has been sent to any provider.");
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+            return run.Id;
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 

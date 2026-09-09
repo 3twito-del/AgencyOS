@@ -287,6 +287,8 @@ public sealed class AiQueries : IAiQueries
             run.Id,
             run.Kind,
             run.Status,
+            run.Residency,
+            run.ExecutionDevice,
             run.Task,
             run.SubjectKind,
             run.SubjectId,

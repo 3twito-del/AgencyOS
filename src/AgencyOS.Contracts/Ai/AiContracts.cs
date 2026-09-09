@@ -11,12 +11,18 @@ namespace AgencyOS.Contracts.Ai;
 /// <param name="SubjectKind">
 /// ResearchCase, Person, Company, Deal or Contract, or None.
 /// </param>
+/// <param name="Residency">
+/// Where inference should execute: <c>ExternalCloud</c> or <c>DeviceLocal</c>.
+/// A device-local run does not execute when it starts — it waits for the user's
+/// workstation to take a lease and run the model (ADR-0035).
+/// </param>
 public sealed record StartAgentRunRequest(
     string Kind,
     string Task,
     string SubjectKind = "None",
     Guid? SubjectId = null,
-    string? ModelKey = null);
+    string? ModelKey = null,
+    string Residency = "ExternalCloud");
 
 public sealed record CancelAgentRunRequest(int ExpectedVersion);
 
@@ -48,6 +54,8 @@ public sealed record AgentRunResponse(
     Guid Id,
     string Kind,
     string Status,
+    string Residency,
+    string? ExecutionDevice,
     string Task,
     string SubjectKind,
     Guid? SubjectId,
