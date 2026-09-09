@@ -10,6 +10,7 @@ using AgencyOS.Infrastructure.Time;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace AgencyOS.Tests.Integration.Infrastructure;
@@ -329,6 +330,18 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
         {
             builder.UseSetting("AgencyOS:Bootstrap:Token", _bootstrapToken);
         }
+
+        // The scale harness needs to know how many round trips a request made.
+        // Added as extra configuration rather than by re-registering the context,
+        // so the harness measures the options the application actually built.
+        builder.ConfigureServices(services =>
+        {
+            services.AddSingleton<Scale.QueryCounter>();
+            services.AddSingleton<
+                Microsoft.EntityFrameworkCore.Infrastructure.IDbContextOptionsConfiguration<AgencyOsDbContext>>(
+                provider => new Scale.CountingOptionsConfiguration(
+                    provider.GetRequiredService<Scale.QueryCounter>()));
+        });
     }
 }
 
