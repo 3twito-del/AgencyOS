@@ -110,8 +110,13 @@ function Assert-PostgresTooling {
 
     $reported = & $Tool --version 2>&1 | Out-String
 
-    if ($reported -notmatch '(\d+)\.(\d+)') {
-        throw "$Tool did not report a version. Got: $reported"
+    # Only the major version matters, and it is the only part reported
+    # consistently. A release says "pg_dump (PostgreSQL) 18.6"; a pre-release says
+    # "pg_dump (PostgreSQL) 19beta3", with no minor at all. Matching major.minor
+    # rejected the beta outright - a correct client refused by a broken check,
+    # which is worse than no check. Found by running against 19beta3.
+    if ($reported -notmatch '\(PostgreSQL\)\s+(\d+)') {
+        throw "$Tool did not report a recognizable version. Got: $reported"
     }
 
     $major = [int]$Matches[1]
