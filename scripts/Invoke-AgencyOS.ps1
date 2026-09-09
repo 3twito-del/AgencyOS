@@ -257,39 +257,42 @@ function Invoke-Formal {
     # Pinned exactly, never "latest". A model checker that changed under us would
     # make a green run mean something different from one to the next.
     #
-    # More than one hash is accepted, and each entry says what was verified about
-    # it. A GitHub release asset is mutable, and v1.8.0 turns out not to be a
-    # fixed release at all: upstream re-publishes that tag from current master.
-    # It moved on 2026-09-04, 2026-09-08 and again on 2026-09-09. Each time the
-    # pin caught it, which is the mechanism working rather than failing.
+    # Pinned to v1.7.4, and the version choice is the point.
     #
-    # A new hash still fails loudly. Adding one means comparing the archive
-    # against a known build, re-checking every specification, and writing down
-    # what it showed. It is deliberately not a matter of copying whatever the
-    # download produced today.
+    # v1.8.0 is not a fixed release. Upstream re-publishes that tag from current
+    # master: it moved on 2026-09-04, 2026-09-08 and 2026-09-09, twice within a
+    # week of M13. The pin caught every move, which is the mechanism working -
+    # but a tag that rolls cannot be pinned, and each move cost a full archive
+    # comparison before CI could go green again.
     #
-    # KNOWN PROBLEM, not yet decided: because v1.8.0 rolls, this pin will keep
-    # failing every time upstream builds. The durable fixes are to pin v1.7.4 -
-    # untouched since 2024-08-05 and therefore actually immutable - or to vendor
-    # the jar. Both change a pinned technology, so both need a decision rather
-    # than a commit.
+    # v1.7.4 was published 2024-08-05 and has not been touched since. Its
+    # manifest carries X-Git-Tag v1.7.4 and revision 5a47802b, so it is built
+    # from the tag rather than from whatever master happened to be. That is the
+    # property this pin needed all along (M14, ADR-0036).
+    #
+    # Verified before switching: all four specifications check green with
+    # identical state counts to the v1.8.0 builds - OfflineWriteQueue 2853/1024,
+    # OutboundSend 83/48, AiApproval 755/236, LocalInferenceLease 796/160.
+    #
+    # One difference was found, and it is why counts alone are no longer the
+    # acceptance evidence: the 2026-09-04 build reported an OutboundSend search
+    # depth of 17, while the 2026-09-09 build and v1.7.4 both report 14, with
+    # the same 83/48 state space. No property went unchecked and no run reported
+    # an error, but the checker's search behaviour did move between two builds
+    # wearing the same version number, and M13's acceptance compared only state
+    # counts and therefore missed it. The 09-04 artifact is no longer obtainable
+    # upstream, so that discrepancy can no longer be examined - which is the
+    # concrete cost of pinning a mutable tag.
+    #
+    # Depth is part of the recorded evidence from here on.
     $verified = @{
-        "b658b4e504fdf0b721caf7066320f6b6fe5805f4dd2f717d0e47baba4097205e" =
-            "v1.8.0 asset as published 2026-09-04; used from M0 to M11"
-        "4c7bb1f6b050d56c197ee9ddd6e57fe521eae175f5043c9fb98b169f7b2d5407" =
-            "v1.8.0 asset re-published 2026-09-08 from the same revision; " +
-            "manifest build stamp only, every class byte-identical"
-        "a1fc0bfe391d99fdd86f579a63ff68c0950010e9dde551f1192b867d5c8f4efd" =
-            "v1.8.0 asset re-published 2026-09-09 from a DIFFERENT revision " +
-            "65fbace6 (8,925 commits) rather than b123b22 (8,905). 2,223 " +
-            "entries in both; 53 differ - the manifest and 52 tla2sany parser " +
-            "and semantic-analyser classes. Accepted because all four specs " +
-            "re-check green with identical state counts: OfflineWriteQueue " +
-            "2853/1024, OutboundSend 83/48, AiApproval 755/236, " +
-            "LocalInferenceLease 796/160, the same as the 2026-09-04 build"
+        "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88" =
+            "v1.7.4, published 2024-08-05 and unchanged since; built from tag " +
+            "v1.7.4 at revision 5a47802b; all four specs verified green at " +
+            "2853/1024 d15, 83/48 d14, 755/236 d9, 796/160 d9"
     }
 
-    $release = "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"
+    $release = "https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar"
 
     if (-not (Test-Path $jar)) {
         New-Item -ItemType Directory -Force -Path $toolsDir | Out-Null

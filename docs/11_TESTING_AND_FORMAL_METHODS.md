@@ -81,26 +81,40 @@ than `b123b22` at 8,905 — twenty commits of upstream change — and 53 of the 
 entries differ: the manifest and 52 `tla2sany` parser and semantic-analyser
 classes. That is a different model checker, not a restamp.
 
-It was accepted only after re-checking every specification against it, and the
-evidence is that all four explore **identical state spaces**: OfflineWriteQueue
-2853/1024, OutboundSend 83/48, AiApproval 755/236, LocalInferenceLease 796/160 —
-the same counts as the 09-04 build, with no error. Identical state counts across a
-changed parser is the strongest available evidence that the semantics these specs
-rely on did not move.
+It was accepted after re-checking every specification against it, all four green
+with identical **state counts**: OfflineWriteQueue 2853/1024, OutboundSend 83/48,
+AiApproval 755/236, LocalInferenceLease 796/160.
+
+**That evidence was incomplete, and M14 found the gap.** This paragraph originally
+said the four specs explored "identical state spaces". They did not, quite: the
+09-04 build reported an `OutboundSend` search depth of **17**, while the 09-09
+build reports **14** over the same 83/48 state space. No property went unchecked
+and no run reported an error, but the checker's search behaviour moved between two
+builds wearing one version number, and comparing state counts alone did not catch
+it. The 09-04 artifact is no longer obtainable upstream, so the discrepancy can no
+longer be examined — the concrete cost of pinning a mutable tag. **Search depth is
+recorded evidence from now on.**
 
 Adding a hash means doing that comparison and writing down what it showed. Copying
 whatever the download produced today is the one thing this is built to prevent,
 and an unrecognized checksum still fails with the known-good list in the message.
 
-**An open problem, recorded rather than solved.** Because `v1.8.0` rolls, this pin
-will keep failing every time upstream builds — three times in five days so far.
-The durable fixes are to pin `v1.7.4`, untouched since 2024-08-05 and therefore
-actually immutable, or to vendor the jar. Both change a pinned technology, so both
-are a decision rather than a commit, and neither was taken under M13.
+**Resolved under M14: the pin is now `v1.7.4`.** The problem was never the hash
+list — it was that `v1.8.0` is not a fixed release. Upstream re-publishes that tag
+from current master, three times in five days, so no hash could hold. `v1.7.4` was
+published 2024-08-05 and has not moved since; its manifest carries `X-Git-Tag
+v1.7.4` at revision `5a47802b`, meaning it is built from the tag rather than from
+whatever master happened to be.
+
+All four specifications were re-verified against it before the switch and are
+green at the same state counts, now recorded with their search depths:
+OfflineWriteQueue 2853/1024 d15, OutboundSend 83/48 d14, AiApproval 755/236 d9,
+LocalInferenceLease 796/160 d9. One accepted hash, and it is expected to stay one
+(ADR-0036).
 
 - **`specs/OfflineWriteQueue.tla`** (M3) — the offline write queue. Checks that a
   queued command has at most one effect however often it is retried.
-  *2853 states generated, 1024 distinct, no error found.*
+  *2853 states generated, 1024 distinct, depth 15, no error found.*
 - **`specs/OutboundSend.tla`** (M10) — the outbound send protocol, whose failure
   mode is sending a client the same commercial email twice. Models the canonical
   row, the provider's own state, a worker that crashes at any point,
@@ -108,7 +122,7 @@ are a decision rather than a commit, and neither was taken under M13.
   reconciliation with all three verdicts. Checks `NeverSendsTwice`,
   `SentIsMonotonic`, `UnknownIsNeverAssumedFailed`, `CommittedIsNeverCalledFailed`,
   `SendRequiresDraft`, `CancelOnlyBeforeProvider` and `EventuallySettles`.
-  *83 states generated, 48 distinct, no error found.*
+  *83 states generated, 48 distinct, depth 14, no error found.*
 
 The other two are introduced where they belong: `specs/AiApproval.tla` (M12)
 below, and `specs/LocalInferenceLease.tla` (M13) after it.
@@ -182,7 +196,7 @@ reasonable code, and none would fail a behavioural test.
 Models the approval-to-execution protocol under every interleaving of a person
 deciding, an approval expiring, a permission revoked between the decision and the
 execution, a run cancelled, a client retrying, and an attempt to rewrite the
-proposed arguments after the fact. 236 distinct states, depth 9, no error.
+proposed arguments after the fact. 236 distinct states, depth 9, no error (755 generated).
 
 Checked: at most one canonical effect; no effect without an approval; rejected and
 expired never execute; only the approved arguments execute; the permission is held

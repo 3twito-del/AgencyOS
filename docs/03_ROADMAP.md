@@ -1893,9 +1893,11 @@ re-publishes that tag from current master, three times in five days. The 09-09
 build carries revision `65fbace6` at 8,925 commits rather than `b123b22` at 8,905,
 with 53 of 2,223 entries differing — a different model checker, not a restamp. It
 was accepted only after re-checking every specification against it and finding
-identical state spaces. **This pin will keep breaking**; pinning `v1.7.4` or
+identical state counts. **This pin will keep breaking**; pinning `v1.7.4` or
 vendoring the jar would fix it, and both change a pinned technology, so neither
-was decided here.
+was decided here. (M14 pinned `v1.7.4`, and found that the state-count comparison
+had missed an `OutboundSend` search-depth change of 17→14 between the two v1.8.0
+builds — see ADR-0036.)
 
 The third was a citation drill-down returning 403 where the test expected 404.
 That surfaced a real inconsistency: the AI routes answer 404 uniformly, while the
