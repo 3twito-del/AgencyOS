@@ -63,7 +63,7 @@ public sealed class UploadCeilingTests
         using HttpClient client = _fixture.CreateClient(actor.Subject);
 
         using HttpResponseMessage response = await UploadAsync(
-            client, actor, new byte[Ceiling * 2], "oversized.txt");
+            client, actor, Text(Ceiling * 2), "oversized.txt");
 
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
 
@@ -101,7 +101,7 @@ public sealed class UploadCeilingTests
         _fixture.Factory.Logs.Clear();
 
         using HttpResponseMessage response = await UploadAsync(
-            client, actor, new byte[64 * 1024], "ordinary.txt");
+            client, actor, Text(64 * 1024), "ordinary.txt");
 
         Assert.True(
             response.IsSuccessStatusCode,
@@ -112,6 +112,17 @@ public sealed class UploadCeilingTests
     }
 
     // ------------------------------------------------------------- helpers
+
+    /// <summary>
+    /// Realistic bytes of a given size.
+    /// </summary>
+    /// <remarks>
+    /// Not <c>new byte[n]</c>. Sending zeroes as text/plain is how M14 discovered
+    /// that NUL broke ingestion outright, and a test about size should not depend
+    /// on what the extractor makes of its content.
+    /// </remarks>
+    private static byte[] Text(int size) =>
+        System.Text.Encoding.UTF8.GetBytes(new string('a', size));
 
     private static async Task<HttpResponseMessage> UploadAsync(
         HttpClient client,
