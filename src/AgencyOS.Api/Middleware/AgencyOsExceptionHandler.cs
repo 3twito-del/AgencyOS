@@ -1,3 +1,4 @@
+using AgencyOS.Api.Http;
 using AgencyOS.Api.Observability;
 using AgencyOS.Application.Authorization;
 using AgencyOS.Application.Provisioning;
@@ -24,8 +25,15 @@ namespace AgencyOS.Api.Middleware;
 internal sealed class AgencyOsExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<AgencyOsExceptionHandler> _logger;
+    private readonly UploadLimit _uploadLimit;
 
-    public AgencyOsExceptionHandler(ILogger<AgencyOsExceptionHandler> logger) => _logger = logger;
+    public AgencyOsExceptionHandler(
+        ILogger<AgencyOsExceptionHandler> logger,
+        UploadLimit uploadLimit)
+    {
+        _logger = logger;
+        _uploadLimit = uploadLimit;
+    }
 
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
@@ -61,6 +69,13 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             // rather than a bad request: nothing about the request was malformed.
             AlreadyExistsException => (StatusCodes.Status409Conflict, "Already exists"),
             DomainException => (StatusCodes.Status400BadRequest, "Invalid request"),
+
+            // Larger than this deployment accepts. Mapped explicitly so the caller
+            // is told the ceiling rather than meeting an unhandled framework
+            // exception, and so the number appears somewhere a person can read
+            // (§27, ADR-0037).
+            BadHttpRequestException { StatusCode: StatusCodes.Status413PayloadTooLarge } =>
+                (StatusCodes.Status413PayloadTooLarge, "Upload too large"),
 
             // A body the framework itself could not parse - a multipart section
             // with a broken Content-Disposition, a malformed boundary. The caller
@@ -120,6 +135,16 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             Title = title,
             Detail = status >= StatusCodes.Status500InternalServerError ? null : exception.Message,
         };
+
+        if (status == StatusCodes.Status413PayloadTooLarge)
+        {
+            // The framework's own message names no number. A refusal that does
+            // not say what would have fit is not actionable.
+            problem.Detail =
+                $"This deployment accepts uploads up to {_uploadLimit.Describe()}.";
+
+            problem.Extensions["maximumUploadBytes"] = _uploadLimit.Bytes;
+        }
 
         if (exception is PermissionDeniedException denied)
         {

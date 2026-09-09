@@ -283,16 +283,27 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
 {
     private readonly string _connectionString;
     private readonly string? _bootstrapToken;
+    private readonly IReadOnlyDictionary<string, string>? _settings;
 
     /// <param name="connectionString">Database the host should use.</param>
     /// <param name="bootstrapToken">
     /// Bootstrap token to configure, or <see langword="null"/> to leave first-run
     /// initialization disabled so the route is never mapped.
     /// </param>
-    public AgencyOsApiFactory(string connectionString, string? bootstrapToken = null)
+    /// <param name="settings">
+    /// Extra host configuration. Used where a test needs a host configured
+    /// differently from the shared one — an upload ceiling small enough to reach,
+    /// for instance, which cannot be set on the shared host without breaking every
+    /// other document test.
+    /// </param>
+    public AgencyOsApiFactory(
+        string connectionString,
+        string? bootstrapToken = null,
+        IReadOnlyDictionary<string, string>? settings = null)
     {
         _connectionString = connectionString;
         _bootstrapToken = bootstrapToken;
+        _settings = settings;
 
         BlobRoot = Path.Combine(
             Path.GetTempPath(),
@@ -329,6 +340,14 @@ public sealed class AgencyOsApiFactory : WebApplicationFactory<Program>
         if (_bootstrapToken is not null)
         {
             builder.UseSetting("AgencyOS:Bootstrap:Token", _bootstrapToken);
+        }
+
+        if (_settings is not null)
+        {
+            foreach ((string key, string value) in _settings)
+            {
+                builder.UseSetting(key, value);
+            }
         }
 
         // The scale harness needs to know how many round trips a request made.

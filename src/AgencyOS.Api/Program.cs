@@ -53,6 +53,8 @@ using AgencyOS.Infrastructure.DependencyInjection;
 using AgencyOS.Infrastructure.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Http.Features;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -104,6 +106,38 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
     connectionString = "Host=localhost;Port=5432;Database=agencyos_dev;Username=postgres;Password=postgres";
 }
+
+// ---------------------------------------------------------------------------
+// Upload ceiling
+//
+// Declared, because until M14 it was inherited. Kestrel defaults to roughly
+// 28.6 MiB and multipart buffering to 128 MiB, so AgencyOS had a maximum
+// document size that nobody had chosen, that appeared in no document, and that
+// two different framework defaults disagreed about. An accidental limit is the
+// wrong way to hold that line in either direction (§27, ADR-0037).
+//
+// 256 MiB is a deliberate value: comfortably above the contracts, decks,
+// scripts and scans an agency files, and far below the point where one request
+// can monopolise the host. It streams to the blob store rather than buffering
+// in memory, so the cost is disk and time rather than the managed heap.
+// Video screeners are not a document-management workload for ALPHA, and a
+// deployment that needs a different ceiling sets one.
+long maximumUploadBytes =
+    long.TryParse(builder.Configuration["AgencyOS:Limits:MaximumUploadBytes"], out long configured)
+        && configured > 0
+        ? configured
+        : 256L * 1024 * 1024;
+
+builder.Services.Configure<KestrelServerOptions>(
+    options => options.Limits.MaxRequestBodySize = maximumUploadBytes);
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    // Both, so the two limits cannot disagree about what is too large.
+    options.MultipartBodyLengthLimit = maximumUploadBytes;
+});
+
+builder.Services.AddSingleton(new UploadLimit(maximumUploadBytes));
 
 builder.Services.AddAgencyOSInfrastructure(connectionString);
 
