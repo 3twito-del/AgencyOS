@@ -92,6 +92,13 @@ public sealed class BackupRestoreDrillTests
         Assert.Contains("restore.success", restore.Output, StringComparison.Ordinal);
 
         // ----------------------------------------------------- what returned
+        // Restoring drops the database, which terminates every connection to it,
+        // and the pooled ones are dead without knowing it. An application that was
+        // running during a restore must reconnect - which is why the disaster
+        // recovery runbook restarts the API after a restore rather than assuming it
+        // will recover on its own (ADR-0039).
+        NpgsqlConnection.ClearAllPools();
+
         await using AgencyOsDbContext restored = drill.Database.CreateDbContext();
 
         Person person = await restored.People.SingleAsync(x => x.Id == seeded.PersonId);
