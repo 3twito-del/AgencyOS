@@ -118,35 +118,36 @@ internal sealed class Keyboard
         return Send((ushort)(0x70 + number - 1), modifiers);
     }
 
-    /// <summary>Types text into whatever already has focus.</summary>
+    /// <summary>
+    /// Types text into whatever already has focus.
+    /// </summary>
     /// <remarks>
-    /// Used only after the harness has put focus in a named text box on purpose.
-    /// Restricted to characters a review fixture actually needs.
+    /// <para>
+    /// The character is sent as a character, not as a key. A virtual-key code is
+    /// mapped through the active keyboard layout, so the first version of this
+    /// method typed "State a thesis" and the application received Hebrew — on a
+    /// machine whose layout happened not to be English. Every result that depended
+    /// on it was wrong in a way no screenshot would have explained.
+    /// </para>
+    /// <para>
+    /// Used only after the harness has put focus in a text box on purpose.
+    /// </para>
     /// </remarks>
+    /// <param name="text">What to type.</param>
+    /// <returns>True when every character was delivered.</returns>
     internal bool Type(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
 
         foreach (char character in text)
         {
-            if (character is not ((>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9')
-                or ' ' or '-' or '.'))
+            // Control characters are keys, not text, and are sent by Press.
+            if (char.IsControl(character))
             {
                 continue;
             }
 
-            ReviewModifiers modifiers = char.IsUpper(character) ? ReviewModifiers.Shift : ReviewModifiers.None;
-            ushort code = char.IsLetter(character)
-                ? char.ToUpperInvariant(character)
-                : character switch
-                {
-                    ' ' => (ushort)0x20,
-                    '-' => (ushort)0xBD,
-                    '.' => (ushort)0xBE,
-                    _ => character,
-                };
-
-            if (!Send(code, modifiers))
+            if (!SendCharacter(character))
             {
                 return false;
             }
@@ -156,6 +157,48 @@ internal sealed class Keyboard
 
         return true;
     }
+
+    /// <summary>Sends one character literally, whatever the keyboard layout is.</summary>
+    private bool SendCharacter(char character)
+    {
+        if (!OwnsForeground())
+        {
+            RefusedSends++;
+
+            return false;
+        }
+
+        Native.Input[] inputs =
+        [
+            Character(character, false),
+            Character(character, true),
+        ];
+
+        uint sent = Native.SendInput(
+            (uint)inputs.Length,
+            inputs,
+            System.Runtime.InteropServices.Marshal.SizeOf<Native.Input>());
+
+        return sent == inputs.Length;
+    }
+
+    /// <summary>One keyboard input that delivers a character literally.</summary>
+    /// <param name="character">The character to deliver.</param>
+    /// <param name="up">Whether this is the release rather than the press.</param>
+    /// <returns>The input structure, as SendInput expects it.</returns>
+    internal static Native.Input Character(char character, bool up) => new()
+    {
+        Type = Native.InputKeyboard,
+        Data = new Native.InputUnion
+        {
+            Keyboard = new Native.KeyboardInput
+            {
+                VirtualKey = 0,
+                ScanCode = character,
+                Flags = Native.KeyEventUnicode | (up ? Native.KeyEventKeyUp : 0),
+            },
+        },
+    };
 
     private bool Send(ushort key, ReviewModifiers modifiers)
     {

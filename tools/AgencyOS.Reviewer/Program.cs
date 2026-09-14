@@ -64,6 +64,8 @@ public static class Program
                 "observe" => Observe(options),
                 "layout" => Layout(options),
                 "rebaseline" => Rebaseline(options),
+                "dialogs" => Dialogs(options),
+                "dialog-runtime" => DialogRuntime(options),
                 "report" => Render(options),
                 "reproduce" => Reproduce(options),
                 "repair" => Repair(),
@@ -244,6 +246,175 @@ public static class Program
         }
 
         Console.WriteLine("AGENCYOS_ORGANIZATION_ID=" + organizationId.ToString("D", CultureInfo.InvariantCulture));
+
+        return 0;
+    }
+
+    // -------------------------------------------------------- dialog-runtime
+
+    /// <summary>
+    /// Opens every reachable dialog from the real interface and operates it.
+    /// </summary>
+    /// <remarks>
+    /// The gate Audit 002 exists for. Audit 001 inventoried 61 dialogs and opened
+    /// none; constructing one from a test would skip the precondition, the button
+    /// and the enabling rule, which are most of what decides whether a person can
+    /// use it.
+    /// </remarks>
+    private static int DialogRuntime(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+        string repository = Option(options, "repo", Directory.GetCurrentDirectory());
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string subject = Option(options, "subject", "review-owner");
+        string only = Option(options, "only", string.Empty);
+
+        if (executable.Length == 0 || runDirectory.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: dialog-runtime needs --exe and --out.");
+
+            return 2;
+        }
+
+        IReadOnlyList<DialogRecord> inventory = DialogScanner.Scan(SourceIndex.Load(repository));
+
+        if (only.Length > 0)
+        {
+            HashSet<string> wanted = new(
+                only.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                StringComparer.OrdinalIgnoreCase);
+
+            inventory = [.. inventory.Where(x => wanted.Contains(x.DialogId))];
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = apiBase,
+            ["AGENCYOS_ORGANIZATION_ID"] = organization,
+            ["AGENCYOS_DEV_SUBJECT"] = subject,
+        };
+
+        DateTimeOffset started = DateTimeOffset.UtcNow;
+
+        Console.WriteLine("Launching " + executable);
+
+        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+
+        DialogPass pass = new(app, runDirectory);
+        List<DialogObservation> observations = [];
+
+        foreach (DialogRecord dialog in inventory)
+        {
+            DialogObservation observation = pass.Operate(dialog);
+
+            observations.Add(observation);
+
+            Console.WriteLine("  " + observation.Outcome.PadRight(22) + dialog.DialogId.PadRight(34)
+                + observation.How.PadRight(9)
+                + (observation.Outcome == "OPENED"
+                    ? "focus-in=" + (observation.FocusEnteredDialog ? "yes" : "NO")
+                        + " escape-closed=" + (observation.ClosedOnEscape ? "yes" : "NO")
+                        + " a11y=" + observation.Accessibility.Count
+                            .ToString(CultureInfo.InvariantCulture)
+                    : observation.Detail));
+        }
+
+        Write(Path.Combine(runDirectory, "dialog-runtime.json"), new
+        {
+            RunId = Option(options, "run", "AUDIT-002"),
+            StartedUtc = started,
+            FinishedUtc = DateTimeOffset.UtcNow,
+            Executable = executable,
+            Environment = environment,
+            Observations = observations,
+            RefusedKeystrokes = app.Keys.RefusedSends,
+        });
+
+        Console.WriteLine();
+
+        foreach (IGrouping<string, DialogObservation> group in observations
+            .GroupBy(x => x.Outcome, StringComparer.Ordinal)
+            .OrderByDescending(x => x.Count()))
+        {
+            Console.WriteLine("  " + group.Key.PadRight(24)
+                + group.Count().ToString(CultureInfo.InvariantCulture));
+        }
+
+        return 0;
+    }
+
+    // --------------------------------------------------------------- dialogs
+
+    /// <summary>
+    /// Reads every dialog the client declares, and what opens it.
+    /// </summary>
+    /// <remarks>
+    /// Static only. It says what a person could reach if the code does what it
+    /// reads like; whether they actually can is a runtime question, and Audit 002
+    /// answers that separately by opening them.
+    /// </remarks>
+    private static int Dialogs(IReadOnlyDictionary<string, string> options)
+    {
+        string repository = Option(options, "repo", Directory.GetCurrentDirectory());
+        string output = Option(options, "out", Path.Combine(
+            repository, "artifacts", "reviewer", "run-002-audit", "dialog-inventory.json"));
+
+        SourceIndex source = SourceIndex.Load(repository);
+        IReadOnlyList<DialogRecord> dialogs = DialogScanner.Scan(source);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(output)!);
+        Write(output, new
+        {
+            GeneratedAtUtc = DateTimeOffset.UtcNow,
+            RepositoryCommit = source.Commit,
+            Dialogs = dialogs,
+        });
+
+        int reachable = dialogs.Count(x => x.Openings.Any(o => o.HasControl));
+        int constructed = dialogs.Count(x => x.Openings.Count > 0);
+
+        Console.WriteLine("dialogs declared          "
+            + dialogs.Count.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  constructed somewhere   "
+            + constructed.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  with an opening control "
+            + reachable.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  enabled at rest         "
+            + dialogs.Count(x => x.Openings.Any(o => o.EnabledAtRest))
+                .ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  opened from >1 page     "
+            + dialogs.Count(x => x.Openings.Select(o => o.Page).Distinct(StringComparer.Ordinal).Count() > 1)
+                .ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  with a raw-identifier field "
+            + dialogs.Count(x => x.Fields.Any(f => f.TakesRawIdentifier))
+                .ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  named by a test         "
+            + dialogs.Count(x => x.TestReferences.Count > 0).ToString(CultureInfo.InvariantCulture));
+
+        foreach (DialogRecord dialog in dialogs.Where(x => x.Openings.Count == 0))
+        {
+            Console.WriteLine("  NOTHING CONSTRUCTS      " + dialog.DialogId);
+        }
+
+        Console.WriteLine("  reachable by a command  "
+            + dialogs.Count(x => x.Openings.Any(o => o.CommandId is not null))
+                .ToString(CultureInfo.InvariantCulture));
+
+        foreach (DialogRecord dialog in dialogs.Where(x =>
+            x.Openings.Count > 0 && !x.Openings.Any(o => o.HasControl)))
+        {
+            DialogOpening first = dialog.Openings[0];
+
+            Console.WriteLine("  NO OPENING CONTROL      " + dialog.DialogId
+                + " (constructed in " + (first.Method ?? "?")
+                + ", command " + (first.CommandId ?? "none") + ")");
+        }
+
+        Console.WriteLine("Written to " + output);
 
         return 0;
     }
@@ -730,6 +901,8 @@ public static class Program
         Console.WriteLine("  observe    --exe <path> --out <run-dir> --org <guid> [--api <url>] [--subject <s>]");
         Console.WriteLine("  layout     --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...] [--pages Deals,...]");
         Console.WriteLine("  rebaseline --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...]  re-runs corrected detectors only");
+        Console.WriteLine("  dialogs    --repo <path> [--out <file>]                      the static dialog inventory");
+        Console.WriteLine("  dialog-runtime --exe <path> --out <run-dir> --org <guid> [--only <DialogId,...>]  opens and operates them");
         Console.WriteLine("  report     --out <run-dir> [--static <dir>]");
         Console.WriteLine("  reproduce  --finding <id> --out <run-dir>");
         Console.WriteLine("  repair     refused during an audit");

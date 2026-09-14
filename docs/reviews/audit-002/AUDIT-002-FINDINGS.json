@@ -1,0 +1,217 @@
+[
+  {
+    "id": "AOS-R002-001",
+    "category": "Bug",
+    "severity": "S1",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "workspace": [
+      "workspace.intelligence",
+      "workspace.communications",
+      "workspace.pipeline"
+    ],
+    "dialog": [
+      "CreatePredictionDialog",
+      "RecordSignalDialog",
+      "RecordSourceDialog",
+      "RecordInteractionDialog",
+      "RecordPitchDialog"
+    ],
+    "role": "owner",
+    "preconditions": "The operator's machine is set to any time zone other than UTC.",
+    "steps": [
+      "Open Intelligence on a machine whose time zone is not UTC.",
+      "Run 'Make a prediction' from the command palette.",
+      "Fill in the statement and leave the date picker at its default.",
+      "Press the primary button."
+    ],
+    "expected": "The prediction is created, or the request is refused with a message the operator can act on.",
+    "actual": "HTTP 500 with a trace identifier and no usable message. The server logs an unhandled DbUpdateException: 'Cannot write DateTimeOffset with Offset=02:00:00 to PostgreSQL type timestamp with time zone, only offset 0 (UTC) is supported.'",
+    "mutationAttempted": "POST /api/v1/organizations/{org}/intelligence/predictions",
+    "persistedResult": "Nothing is written. The transaction fails on the batch that inserts audit_events, intelligence_events, predictions and prediction_revisions together.",
+    "httpResult": "500",
+    "evidence": [
+      "Probed directly against the running API with four forms of the same instant: resolvesBy '2026-12-31' -> 500; '2026-12-31T00:00:00+02:00' -> 500; '2026-12-31T00:00:00Z' -> 201; '2026-12-31T00:00:00+00:00' -> 201.",
+      "Reproduced on a second endpoint: POST intelligence/signals with observedAt '2026-09-01T10:00:00+03:00' -> 500, the same instant as '...Z' -> 201. The defect is the offset, not the field.",
+      "Reachable from the Windows client: CreatePredictionDialog.ToRequest() sends 'ResolvesPicker.Date ?? DateTimeOffset.Now.AddMonths(3)'. A WinUI CalendarDatePicker's Date carries the machine's local offset, so on any non-UTC machine the client sends exactly the value the server rejects.",
+      "Five dialogs send a picker date with no UTC normalisation: CreatePredictionDialog, RecordInteractionDialog, RecordPitchDialog, RecordSignalDialog, RecordSourceDialog. Eighteen other date-carrying dialogs do call ToUniversalTime or use DateOnly and are unaffected.",
+      "Server stack: PredictionHandler.HandleAsync -> AgencyOsDbContext.SaveChangesAsync -> Npgsql DateTimeOffsetConverter.WriteCore."
+    ],
+    "logs": "scratchpad api log, EventId 10000 Microsoft.EntityFrameworkCore.Update, trace e5abc24cec10bd532a4912832abee37a",
+    "likelySource": [
+      "src/AgencyOS.Application/Intelligence/PredictionCommands.cs:184",
+      "src/AgencyOS.Windows/Dialogs/CreatePredictionDialog.xaml.cs:40",
+      "src/AgencyOS.Windows/Dialogs/RecordSignalDialog.xaml.cs:64-65"
+    ],
+    "userImpact": "A whole create path is unusable for any operator outside UTC, which is most of them, and the failure presents as an internal error rather than as anything the user could correct. It is not data loss and nothing is written, which is why this is S1 and not S0.",
+    "suggestedCorrection": "Normalise to UTC at one boundary and refuse the rest with 400 rather than 500. Whether that boundary belongs in the client, the contract binding or the persistence layer is a design choice this audit does not make.",
+    "repairRisk": "Low per site. Choosing the single boundary is the decision, and doing it in more than one place is how half-normalised timestamps get written.",
+    "suggestedRepairWave": "003A",
+    "ownerDecisionRequired": false
+  },
+  {
+    "id": "AOS-R002-002",
+    "category": "ApiUiGap",
+    "severity": "S2",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "workspace": [],
+    "dialog": [],
+    "role": "owner",
+    "preconditions": "An organization exists and has been bootstrapped.",
+    "steps": [
+      "Bootstrap an organization, which registers exactly one user as its owner.",
+      "Try to give a second person access, from the Windows client or from the API."
+    ],
+    "expected": "Some path exists to bring a colleague into the organization.",
+    "actual": "There is none. POST /organizations/{id}/memberships requires a userId, and User.Register is called from exactly one place in the whole repository: BootstrapSystemHandler, the first-run path. No endpoint, command, dialog or client method creates a user afterwards.",
+    "mutationAttempted": "None. The audit stopped rather than writing users into PostgreSQL, which would have manufactured state the product cannot reach.",
+    "persistedResult": "n/a",
+    "httpResult": "n/a",
+    "evidence": [
+      "grep for User.Register across src/ returns BootstrapSystemHandler.cs:155 and the domain factory it calls. Nothing else.",
+      "The published contract has one membership endpoint, POST /organizations/{id}/memberships, whose required fields are userId and role.",
+      "The integration test fixture creates users by writing to the DbContext directly (AgencyOsTestFixture.SeedUserAsync), which is available to tests and to nothing else."
+    ],
+    "logs": null,
+    "likelySource": [
+      "src/AgencyOS.Application/Provisioning/BootstrapSystemHandler.cs:155",
+      "src/AgencyOS.Api/Endpoints/ApiEndpoints.cs:235"
+    ],
+    "userImpact": "An agency is a group of people and this one holds exactly one. It also blocks Audit 002 section 14 entirely: no Member, Observer or Administrator profile can be created through any canonical path, so multi-role review could not be performed at all.",
+    "suggestedCorrection": "None proposed. Identity provisioning plausibly waits on the identity provider this product intends to use, in which case the membership endpoint is correctly ahead of it and the gap is a sequencing decision rather than a defect. That is the owner's call.",
+    "repairRisk": "High. It is identity provisioning, not a form.",
+    "suggestedRepairWave": "003E",
+    "ownerDecisionRequired": true
+  },
+  {
+    "id": "AOS-R002-003",
+    "category": "Ux",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "workspace": [
+      "workspace.intelligence",
+      "workspace.finance",
+      "workspace.contracts",
+      "workspace.communications"
+    ],
+    "dialog": [
+      "AddRadarEntryDialog",
+      "ChangeVerificationDialog",
+      "CreatePredictionDialog",
+      "CreateThesisDialog",
+      "CreateWatchlistDialog",
+      "IntelligenceReasonDialog",
+      "LinkResearchItemDialog",
+      "OpenResearchCaseDialog",
+      "RecordAdjustmentDialog",
+      "RecordForecastDialog",
+      "RecordInvoiceDialog",
+      "RecordSignalDialog",
+      "RecordSourceDialog",
+      "ResolveObligationDialog",
+      "ResolveParticipantDialog",
+      "ResolvePredictionDialog",
+      "ReviseThesisDialog"
+    ],
+    "role": "owner",
+    "preconditions": "None.",
+    "steps": [
+      "Open Intelligence.",
+      "Look for a way to record a signal, state a thesis or open a research case."
+    ],
+    "expected": "The actions a workspace offers are visible on it.",
+    "actual": "Seventeen dialogs have no button anywhere in the markup. They are reachable only by opening the command palette and typing the command's label. Eleven of the seventeen are the whole of the Intelligence workspace's authoring surface.",
+    "mutationAttempted": "None.",
+    "persistedResult": "n/a",
+    "httpResult": "n/a",
+    "evidence": [
+      "Static scan of all 61 dialogs against every page's markup: 40 have a control whose Click is wired to the handler that constructs them, 17 have none but do have a registry command, 4 have neither.",
+      "All seventeen were opened at run time through the palette by this audit, so the path works. The finding is that it is the only path.",
+      "The palette is discoverable by Ctrl+P, which is itself not announced anywhere on the Intelligence page."
+    ],
+    "logs": null,
+    "likelySource": [
+      "src/AgencyOS.Windows/Pages/IntelligencePage.xaml"
+    ],
+    "userImpact": "An operator who has not been told the palette exists cannot author anything in Intelligence. This is discoverability rather than capability, which is why it is S3.",
+    "suggestedCorrection": "Whether these belong as buttons on their tabs, as a single 'New' menu, or deliberately as palette-only power-user actions is a design question. The audit establishes only that no on-screen affordance exists.",
+    "repairRisk": "Low per button; the question is which of the seventeen deserve one.",
+    "suggestedRepairWave": "003B",
+    "ownerDecisionRequired": true
+  },
+  {
+    "id": "AOS-R002-004",
+    "category": "Accessibility",
+    "severity": "S2",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "workspace": [
+      "workspace.deals"
+    ],
+    "dialog": [
+      "RecordOfferDialog"
+    ],
+    "role": "owner",
+    "preconditions": "The dialog is open.",
+    "steps": [
+      "Open Deals and select a deal.",
+      "Press 'Record offer'.",
+      "Observe where focus is when the dialog appears.",
+      "Press Tab repeatedly and watch where focus goes."
+    ],
+    "expected": "Opening a modal puts focus inside it, and Tab cycles within it. That is what modal means, and it is how a keyboard or screen-reader user knows where they are.",
+    "actual": "Focus does not enter the dialog when it opens - it stays on the page behind - and tabbing from there walks the page rather than the dialog. RecordOfferDialog is the only one of the thirty opened that does either.",
+    "mutationAttempted": "None.",
+    "persistedResult": "n/a",
+    "httpResult": "n/a",
+    "evidence": [
+      "Fourteen Tab presses inside each of the thirty opened dialogs, with the focused element read from UI Automation after each press and compared against the dialog's own subtree by control identity.",
+      "29 of 30 put focus inside the dialog on opening and kept it there. RecordOfferDialog did neither.",
+      "All 30 closed on Escape, and focus never vanished and never stayed inside a dismissed dialog.",
+      "An earlier pass of this audit reported six dialogs with escaping focus. That was the harness comparing screen rectangles as well as identity, so a control that had moved a pixel between the tree snapshot and the focus read counted as a different control. Corrected before this result was recorded; the six were an artefact and only RecordOfferDialog is real."
+    ],
+    "logs": null,
+    "likelySource": [
+      "src/AgencyOS.Windows/Dialogs/RecordOfferDialog.xaml"
+    ],
+    "userImpact": "A keyboard user opens the dialog and their keystrokes go to the page behind it. The next Enter presses something they cannot see.",
+    "suggestedCorrection": "Not proposed. RecordOfferDialog differs from its neighbours in ways this audit did not isolate; the repair wave should establish why before changing it.",
+    "repairRisk": "Medium. Focus containment inside a templated ContentDialog is not a one-line change.",
+    "suggestedRepairWave": "003D",
+    "ownerDecisionRequired": false
+  },
+  {
+    "id": "AOS-R002-005",
+    "category": "TestGap",
+    "severity": "S2",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "workspace": [],
+    "dialog": [],
+    "role": "owner",
+    "preconditions": "None.",
+    "steps": [
+      "Search the test suites for any test that names a dialog class."
+    ],
+    "expected": "The dialogs an operator spends their day in are exercised somewhere.",
+    "actual": "Three of sixty-one dialogs are named by any test. The other fifty-eight had never been opened by anything until this audit, and AOS-R002-001 is the kind of defect that survives in that gap: a create path that fails on every non-UTC machine, behind a dialog no test opens.",
+    "mutationAttempted": "None.",
+    "persistedResult": "n/a",
+    "httpResult": "n/a",
+    "evidence": [
+      "Static scan across tests/ for every dialog class name: 3 of 61 appear.",
+      "Audit 001 inventoried 61 dialogs and opened none. Audit 002 is the first time any of them was opened from the real interface."
+    ],
+    "logs": null,
+    "likelySource": [
+      "tests/AgencyOS.Tests.Windows"
+    ],
+    "userImpact": "Not user-facing. It is the reason the other findings in this audit were available to be found.",
+    "suggestedCorrection": "The dialog pass built for this audit is repeatable and could run in a LAB job. Hosted CI cannot do it: the runner has no interactive desktop.",
+    "repairRisk": "Low.",
+    "suggestedRepairWave": "003A",
+    "ownerDecisionRequired": false
+  }
+]

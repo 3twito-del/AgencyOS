@@ -116,6 +116,17 @@ internal static class Native
     internal const uint KeyEventKeyUp = 0x0002;
     internal const uint KeyEventExtendedKey = 0x0001;
 
+    /// <summary>
+    /// Send the character itself rather than a key on the keyboard.
+    /// </summary>
+    /// <remarks>
+    /// A virtual-key code is interpreted through whatever layout is active, so
+    /// typing "State a thesis" on a machine set to Hebrew produces Hebrew. Audit
+    /// 002 found that the hard way. With this flag the character in
+    /// <c>ScanCode</c> is delivered literally and the layout is not consulted.
+    /// </remarks>
+    internal const uint KeyEventUnicode = 0x0004;
+
     [StructLayout(LayoutKind.Sequential)]
     internal struct Rect
     {
