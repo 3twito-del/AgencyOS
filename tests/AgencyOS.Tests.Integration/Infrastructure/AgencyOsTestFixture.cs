@@ -1,9 +1,11 @@
 ﻿using AgencyOS.Api.Authentication;
 using AgencyOS.Contracts;
 using AgencyOS.Domain.Authorization;
+using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.People;
 using AgencyOS.Domain.Releases;
 using AgencyOS.Infrastructure.Persistence;
 using AgencyOS.Infrastructure.Time;
@@ -270,6 +272,99 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
         }
 
         return client;
+    }
+
+    // ------------------------------------------------- directory seeding
+
+    /// <summary>Adds a company to a tenant directly, bypassing the command path.</summary>
+    public async Task<Company> SeedCompanyAsync(SeededActor actor, string name)
+    {
+        ArgumentNullException.ThrowIfNull(actor);
+
+        await using AgencyOsDbContext context = CreateDbContext();
+
+        Company company = Company.Create(
+            actor.Organization.Id,
+            name,
+            CompanyType.Studio,
+            actor.User.Id,
+            DateTimeOffset.UtcNow);
+
+        context.Companies.Add(company);
+        await context.SaveChangesAsync().ConfigureAwait(false);
+
+        return company;
+    }
+
+    /// <summary>
+    /// Adds people to a tenant, most of whom have an employer.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong><see cref="Person.PrimaryCompanyId"/> is populated on purpose, and
+    /// that is the whole point of this helper.</strong> Audit 001 found that the
+    /// people directory answered 500 for any organization where somebody had an
+    /// employer, and that 751 integration tests had never noticed, because not one
+    /// of them ever set that field. The query it broke returns early when no person
+    /// on the page has a company, so a suite that always seeds the minimal valid
+    /// person cannot reach it (<c>AOS-R001-001</c>, <c>AOS-R001-014</c>).
+    /// </para>
+    /// <para>
+    /// The blind spot was the fixture's shape rather than the suite's size. A
+    /// record built with only its required fields exercises only the paths that
+    /// required fields reach, and every optional relationship in the model is a
+    /// branch nothing runs. Seeding the employer here makes the ordinary case
+    /// ordinary for every test that lists people.
+    /// </para>
+    /// <para>
+    /// Not all of them: one person in four is left without an employer, so a page
+    /// carries both shapes at once and a projection that assumes either would fail.
+    /// <c>FixtureShapeTests</c> asserts both halves, so a future simplification of
+    /// this helper fails a test that explains why it exists.
+    /// </para>
+    /// </remarks>
+    /// <param name="actor">Tenant and creating user.</param>
+    /// <param name="count">How many people to add.</param>
+    /// <param name="surname">Family name, so a test can search for its own rows.</param>
+    /// <param name="employer">
+    /// The company to set as the primary company, or null to create one.
+    /// </param>
+    public async Task<IReadOnlyList<Person>> SeedPeopleAsync(
+        SeededActor actor,
+        int count,
+        string surname = "Scale",
+        Company? employer = null)
+    {
+        ArgumentNullException.ThrowIfNull(actor);
+
+        employer ??= await SeedCompanyAsync(actor, $"Employer {Guid.NewGuid():N}"[..20])
+            .ConfigureAwait(false);
+
+        await using AgencyOsDbContext context = CreateDbContext();
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        List<Person> people = [];
+
+        for (int index = 0; index < count; index++)
+        {
+            Person person = Person.Create(
+                actor.Organization.Id,
+                $"Person{Guid.NewGuid():N}"[..12],
+                surname,
+                actor.User.Id,
+                now,
+
+                // Three in four have an employer. A page with only one shape on it
+                // tests only that shape.
+                primaryCompanyId: index % 4 == 3 ? null : employer.Id);
+
+            people.Add(person);
+            context.People.Add(person);
+        }
+
+        await context.SaveChangesAsync().ConfigureAwait(false);
+
+        return people;
     }
 }
 

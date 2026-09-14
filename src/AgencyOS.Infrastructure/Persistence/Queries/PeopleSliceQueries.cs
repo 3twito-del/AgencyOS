@@ -89,7 +89,7 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
 
         Dictionary<Guid, string> companyNames = await LoadCompanyNamesAsync(
             organizationId,
-            people.Where(p => p.PrimaryCompanyId.HasValue).Select(p => p.PrimaryCompanyId!.Value.Value),
+            people.Where(p => p.PrimaryCompanyId.HasValue).Select(p => p.PrimaryCompanyId!.Value),
             cancellationToken).ConfigureAwait(false);
 
         return [.. people.Select(person => ToSummary(person, companyNames))];
@@ -502,12 +502,36 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
 
     // --------------------------------------------------------------- naming
 
+    /// <summary>
+    /// Names the primary companies of a page of people, in one query.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The <c>Contains</c> filters on <see cref="CompanyId"/> against the mapped
+    /// key, before the projection rather than after it. Written the other way
+    /// round — project to <c>x.Id.Value</c> and then filter the anonymous type —
+    /// the provider is asked to match a parameter list against an expression it
+    /// has already flattened, cannot translate it, and the whole directory answers
+    /// 500 (<c>AOS-R001-001</c>).
+    /// </para>
+    /// <para>
+    /// That defect reached ALPHA because of the early return below: a page of
+    /// people where nobody has an employer never runs the query, and no fixture in
+    /// the suite set <c>PrimaryCompanyId</c>. The early return is still here
+    /// because saving a round trip is worth it, but it is no longer the only thing
+    /// standing between this query and a caller.
+    /// </para>
+    /// <para>
+    /// One query per page, never one per person: the caller passes every company
+    /// the page mentions and gets a lookup back.
+    /// </para>
+    /// </remarks>
     private async Task<Dictionary<Guid, string>> LoadCompanyNamesAsync(
         OrganizationId organizationId,
-        IEnumerable<Guid> companyIds,
+        IEnumerable<CompanyId> companyIds,
         CancellationToken cancellationToken)
     {
-        List<Guid> ids = [.. companyIds.Distinct()];
+        List<CompanyId> ids = [.. companyIds.Distinct()];
 
         if (ids.Count == 0)
         {
@@ -516,9 +540,8 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
 
         return await _context.Companies
             .AsNoTracking()
-            .Where(x => x.OrganizationId == organizationId)
+            .Where(x => x.OrganizationId == organizationId && ids.Contains(x.Id))
             .Select(x => new { Id = x.Id.Value, x.Name })
-            .Where(x => ids.Contains(x.Id))
             .ToDictionaryAsync(x => x.Id, x => x.Name, cancellationToken)
             .ConfigureAwait(false);
     }

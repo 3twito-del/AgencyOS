@@ -216,26 +216,20 @@ public sealed class ReadPathScaleTests
     /// Adds people directly, because the harness is measuring reads.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Going through the API would make seeding two hundred rows the slowest part
     /// of the suite and would measure the write path, which is not what is under
     /// test here.
+    /// </para>
+    /// <para>
+    /// Delegates to the shared fixture helper, which gives most of them an
+    /// employer. Before REPAIR-001 this method created people with no
+    /// <c>PrimaryCompanyId</c>, so the N+1 invariant below measured a list whose
+    /// company lookup never ran — it compared two identical counts of a query that
+    /// was not being executed, and would have passed however that lookup behaved
+    /// (<c>AOS-R001-014</c>).
+    /// </para>
     /// </remarks>
-    private async Task SeedPeopleAsync(SeededActor actor, int count, string surname = "Scale")
-    {
-        await using AgencyOsDbContext context = _fixture.CreateDbContext();
-
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-
-        for (int index = 0; index < count; index++)
-        {
-            context.People.Add(Person.Create(
-                actor.Organization.Id,
-                $"Person{Guid.NewGuid():N}"[..12],
-                surname,
-                actor.User.Id,
-                now));
-        }
-
-        await context.SaveChangesAsync();
-    }
+    private Task SeedPeopleAsync(SeededActor actor, int count, string surname = "Scale") =>
+        _fixture.SeedPeopleAsync(actor, count, surname);
 }

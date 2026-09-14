@@ -672,38 +672,73 @@ public sealed partial class IntelligenceQueries
                 organizationId, cases.SelectMany(x => x.Subjects), cancellationToken)
             .ConfigureAwait(false);
 
+        // Each of these narrows an entity set to the rows the caller may read, then
+        // keeps the ones this page's cases actually link to.
+        //
+        // The filter goes before the projection, and matches on the identity type
+        // rather than on its unwrapped Guid. Written the other way round — project
+        // x.Id.Value first and then filter the projection — the unwrap becomes a
+        // client-side step the provider cannot put in SQL, and the request answers
+        // 500. That is the same defect as AOS-R001-001 and AOS-R001-002, in four
+        // more places on this one code path; every linked source, signal, thesis or
+        // prediction on a research case would have hit it.
         HashSet<Guid> readableSources = await ReadableIdsAsync(
-                NarrowSources(organizationId, readable).Select(x => x.Id.Value),
+                NarrowSources(organizationId, readable),
                 Linked(cases, ResearchLinkKind.Source),
+                static (rows, wanted) =>
+                {
+                    List<IntelligenceSourceId> ids = [.. wanted.Select(x => new IntelligenceSourceId(x))];
+
+                    return rows.Where(x => ids.Contains(x.Id)).Select(x => x.Id.Value);
+                },
                 cancellationToken)
             .ConfigureAwait(false);
 
         HashSet<Guid> readableSignals = await ReadableIdsAsync(
-                NarrowSignals(organizationId, readable).Select(x => x.Id.Value),
+                NarrowSignals(organizationId, readable),
                 Linked(cases, ResearchLinkKind.Signal),
+                static (rows, wanted) =>
+                {
+                    List<SignalId> ids = [.. wanted.Select(x => new SignalId(x))];
+
+                    return rows.Where(x => ids.Contains(x.Id)).Select(x => x.Id.Value);
+                },
                 cancellationToken)
             .ConfigureAwait(false);
 
         HashSet<Guid> readableTheses = await ReadableIdsAsync(
-                NarrowTheses(organizationId, readable).Select(x => x.Id.Value),
+                NarrowTheses(organizationId, readable),
                 Linked(cases, ResearchLinkKind.Thesis),
+                static (rows, wanted) =>
+                {
+                    List<ThesisId> ids = [.. wanted.Select(x => new ThesisId(x))];
+
+                    return rows.Where(x => ids.Contains(x.Id)).Select(x => x.Id.Value);
+                },
                 cancellationToken)
             .ConfigureAwait(false);
 
         HashSet<Guid> readablePredictions = await ReadableIdsAsync(
-                NarrowPredictions(organizationId, readable).Select(x => x.Id.Value),
+                NarrowPredictions(organizationId, readable),
                 Linked(cases, ResearchLinkKind.Prediction),
+                static (rows, wanted) =>
+                {
+                    List<PredictionId> ids = [.. wanted.Select(x => new PredictionId(x))];
+
+                    return rows.Where(x => ids.Contains(x.Id)).Select(x => x.Id.Value);
+                },
                 cancellationToken)
             .ConfigureAwait(false);
 
         Guid[] allTasks = Linked(cases, ResearchLinkKind.Task);
+        List<TaskItemId> linkedTasks = [.. allTasks.Select(id => new TaskItemId(id))];
 
         HashSet<Guid> openTasks = allTasks.Length == 0
             ? []
             : [.. await _context.Tasks
                 .AsNoTracking()
                 .Where(x => x.OrganizationId == organizationId
-                    && allTasks.Contains(x.Id.Value)
+                    && linkedTasks.Contains(x.Id)
                     && x.State == TaskState.Open)
                 .Select(x => x.Id.Value)
                 .ToListAsync(cancellationToken)
@@ -1131,13 +1166,96 @@ public sealed partial class IntelligenceQueries
         DateTimeOffset asOf,
         CancellationToken cancellationToken)
     {
+        // Which open research cases have overdue work, in three bounded steps.
+        //
+        // The original shape asked it as one expression, from inside the case:
+        //
+        //     x.Links.Any(l => _context.Tasks.Any(t => t.Id.Value == l.LinkedId && ...))
+        //
+        // and the provider could not translate it, so the Intelligence desk
+        // answered 500 on every tenant including an empty one (AOS-R001-002).
+        //
+        // The obstacle is narrower than it looks, and it is worth naming because it
+        // is the same obstacle as AOS-R001-001. A task's identity is a value object
+        // behind a conversion, so `t.Id.Value` is a client-side unwrap rather than a
+        // column reference. Comparing it to a column — `t.Id.Value == l.LinkedId` —
+        // asks the provider to run that unwrap in SQL, and it cannot. Comparing two
+        // converted values (`t.OrganizationId == l.OrganizationId`) translates
+        // perfectly well, and so does `Contains` over a list of the converted type.
+        // A link's `LinkedId` is a bare Guid by design: it points at one of five
+        // kinds of thing, so it cannot be any one of their identity types.
+        //
+        // So the join between a link and a task cannot be expressed in SQL here,
+        // and the question is asked in steps that can:
+        //
+        //   1. the task links of this tenant's open, readable cases — narrowed in
+        //      SQL by a subquery over the cases themselves;
+        //   2. which of exactly those identifiers name an open, overdue task —
+        //      bounded by step 1, never the tenant's whole task table;
+        //   3. the cases behind the ones that did.
+        //
+        // Three round trips, and three whatever the result size: the count does not
+        // grow with the number of cases, links or tasks, so this is not an N+1. It
+        // deliberately does not read the tenant's overdue tasks to make the
+        // expression translate, which would answer a question about at most
+        // PanelLimit cases by loading an unbounded set.
+        //
+        // The tenant filters on both the links and the tasks are new. The previous
+        // shape matched a link against any task anywhere holding that identifier and
+        // relied on the link being tenant-scoped for the answer to come out right.
+        // That held, and it was nowhere stated.
+        IQueryable<ResearchCaseId> openReadableCaseIds =
+            NarrowResearchCases(organizationId, readable)
+                .Where(x => x.Status == ResearchCaseStatus.Open)
+                .Select(x => x.Id);
+
+        var taskLinks = await _context
+            .Set<ResearchCaseLink>()
+            .AsNoTracking()
+            .Where(l => l.OrganizationId == organizationId
+                && l.Kind == ResearchLinkKind.Task
+                && openReadableCaseIds.Contains(l.ResearchCaseId))
+            .Select(l => new { l.ResearchCaseId, l.LinkedId })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (taskLinks.Count == 0)
+        {
+            return [];
+        }
+
+        List<TaskItemId> linked =
+            [.. taskLinks.Select(x => new TaskItemId(x.LinkedId)).Distinct()];
+
+        HashSet<TaskItemId> overdue =
+        [
+            .. await _context.Tasks
+                .AsNoTracking()
+                .Where(t => t.OrganizationId == organizationId
+                    && t.State == TaskState.Open
+                    && t.DueAt != null
+                    && t.DueAt < asOf
+                    && linked.Contains(t.Id))
+                .Select(t => t.Id)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false),
+        ];
+
+        if (overdue.Count == 0)
+        {
+            return [];
+        }
+
+        List<ResearchCaseId> caseIds =
+        [
+            .. taskLinks
+                .Where(x => overdue.Contains(new TaskItemId(x.LinkedId)))
+                .Select(x => x.ResearchCaseId)
+                .Distinct(),
+        ];
+
         List<ResearchCase> cases = await NarrowResearchCases(organizationId, readable)
-            .Where(x => x.Status == ResearchCaseStatus.Open
-                && x.Links.Any(l => l.Kind == ResearchLinkKind.Task
-                    && _context.Tasks.Any(t => t.Id.Value == l.LinkedId
-                        && t.State == TaskState.Open
-                        && t.DueAt != null
-                        && t.DueAt < asOf)))
+            .Where(x => x.Status == ResearchCaseStatus.Open && caseIds.Contains(x.Id))
             .Include(x => x.Subjects)
             .Include(x => x.Links)
             .OrderBy(x => x.OpenedAt)
@@ -1284,22 +1402,49 @@ public sealed partial class IntelligenceQueries
                 .Distinct(StringComparer.OrdinalIgnoreCase)];
 
     /// <summary>Which of these identifiers name something the caller may read.</summary>
-    private static async Task<HashSet<Guid>> ReadableIdsAsync(
-        IQueryable<Guid> readable,
+    /// <summary>
+    /// Of the things this page links to, which the caller may actually read.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Takes the narrowed entity set and a selector that matches it against the
+    /// wanted identifiers, rather than taking a projection of identifiers and
+    /// filtering that. The distinction is the whole point: the previous signature
+    /// was <c>IQueryable&lt;Guid&gt;</c> built by <c>Select(x =&gt; x.Id.Value)</c>,
+    /// and filtering that projection asks the provider to run a value-object unwrap
+    /// in SQL, which it cannot. Every research case linking a source, signal, thesis
+    /// or prediction answered 500 (the AOS-R001-001 defect class, found again while
+    /// repairing AOS-R001-002).
+    /// </para>
+    /// <para>
+    /// Each caller writes the match in ordinary LINQ over its own identity type, so
+    /// the rule — filter on the identity, project afterwards — is visible at the
+    /// four places that have to obey it rather than hidden behind a generic.
+    /// </para>
+    /// </remarks>
+    /// <typeparam name="TEntity">The narrowed entity.</typeparam>
+    /// <param name="readable">Rows the caller may read, already narrowed.</param>
+    /// <param name="wanted">Identifiers this page links to.</param>
+    /// <param name="matching">Keeps the wanted rows and yields their identifiers.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    private static async Task<HashSet<Guid>> ReadableIdsAsync<TEntity>(
+        IQueryable<TEntity> readable,
         Guid[] wanted,
+        Func<IQueryable<TEntity>, Guid[], IQueryable<Guid>> matching,
         CancellationToken cancellationToken)
+        where TEntity : class
     {
         if (wanted.Length == 0)
         {
             return [];
         }
 
-        List<Guid> found = await readable
-            .Where(x => wanted.Contains(x))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        return [.. found];
+        return
+        [
+            .. await matching(readable, wanted)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false),
+        ];
     }
 
     private static Guid[] Linked(ResearchCase researchCase, ResearchLinkKind kind) =>
