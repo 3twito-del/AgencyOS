@@ -25,7 +25,7 @@ the matched pre-repair control under `artifacts/reviewer/run-002-before/`.
 | `AOS-R001-012` | Lists display raw PascalCase domain tokens | **Repaired** |
 | `AOS-R001-013` | The pane shows eleven of seventeen destinations | **Partly repaired** — see §6 |
 
-Two defects were found during the wave and are recorded in §7: one in the review
+Two defects were found during the wave and are recorded in §8: one in the review
 harness, which had been reporting zeroes from checks that could not run, and one
 I introduced and then removed while repairing 007.
 
@@ -69,7 +69,7 @@ property it has. The deal row was 894 characters and six identifiers, beginning
 screen, so this was invisible to a sighted reviewer and total for anybody using a
 screen reader.
 
-**Repair.** One formatter rather than ninety-nine bindings:
+**Repair.** One formatter rather than a hundred and four bindings:
 
 - `src/AgencyOS.Client/Presentation/RowLabel.cs` — a pure function from a bound
   row to the phrase it should announce. It reads the same fields the row
@@ -77,7 +77,7 @@ screen reader.
   `DisplayLabel`, caps the result at 160 characters, and falls back to a friendly
   type name rather than `ToString()`.
 - `src/AgencyOS.Windows/Presentation/PresentationConverters.cs` — `RowLabelConverter`.
-- 99 `DataTemplate` roots across 25 XAML files now carry
+- 104 `DataTemplate` roots across 25 XAML files now carry
   `AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}"`.
 
 The deal row now announces:
@@ -91,7 +91,7 @@ state — which is what a sighted user sees.
 
 **Not claimed.** No GUID is exposed anywhere a row announces, and no row uses the
 default record `ToString()`. This is automated evidence about a running
-automation tree. Nobody has operated AgencyOS with a screen reader; §8 says so.
+automation tree. Nobody has operated AgencyOS with a screen reader; §12 says so.
 
 ---
 
@@ -351,6 +351,35 @@ suite is green.
 
 Neither the path count, the schema count nor the contract version moved. Nothing
 in this wave touched an endpoint, a request shape or a response shape.
+
+### Hosted CI
+
+The authoritative evidence is the GitHub Actions run dispatched against the exact
+commit, not the local run above. The local database is PostgreSQL 19beta3, which
+is LAB and is not promotion evidence.
+
+| | |
+| --- | --- |
+| Run | [34858183704](https://github.com/3twito-del/AgencyOS/actions/runs/34858183704) |
+| Commit | `93c7a012a2546c7bc728c51a6490e024ec634010` |
+| Trigger | `workflow_dispatch` |
+| Conclusion | **success** |
+| Build and unit tests (Windows) | success |
+| Integration tests (PostgreSQL 18.6) | success |
+
+Counts read from that run's log:
+
+```
+Unit           Failed: 0, Passed: 3749, Total: 3749
+Windows        Failed: 0, Passed:  715, Total:  715
+Reviewer       Failed: 0, Passed:   48, Total:   48
+Integration    Failed: 0, Passed:  790, Total:  790   (postgres:18.6)
+OpenAPI        3.1.1; 260 paths; 185 schemas
+TLC            OfflineWriteQueue, OutboundSend, AiApproval, LocalInferenceLease
+```
+
+The reviewer tests ran rather than merely building — the step added in Wave 001.5
+is still doing its job, and `48` is the count this wave leaves behind.
 
 ---
 
