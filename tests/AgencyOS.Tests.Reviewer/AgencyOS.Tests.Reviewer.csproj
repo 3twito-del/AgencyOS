@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Deterministic tests for the review harness.
+
+    Only the parts of the reviewer that belong in CI are tested here: the source
+    scanners, the reachability graph, the style inventory, the ledger's evidence
+    rule and the project-boundary check. Interactive WinUI traversal and screen
+    capture are deliberately absent - they need a real desktop session, and a
+    headless substitute would produce evidence that looks like visual QA and is
+    not (review brief section 29).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <IsPackable>false</IsPackable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../tools/AgencyOS.Reviewer/AgencyOS.Reviewer.csproj" />
+  </ItemGroup>
+
+</Project>

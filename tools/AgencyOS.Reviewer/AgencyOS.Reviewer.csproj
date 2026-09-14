@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    AgencyOS Review Harness. Engineering tooling, not product.
+
+    This project references the product one way only: reviewer -> product. No
+    product project references it, and ReviewerBoundaryTests asserts that by
+    reading the project files rather than by convention. If that direction ever
+    reverses, the reviewer has become a dependency of the thing it reviews and
+    its findings stop being independent.
+
+    UseWPF is here for two framework assemblies, not for WPF. UIAutomationClient
+    gives the managed UI Automation client that reads a running WinUI 3 window,
+    and PresentationCore gives PngBitmapEncoder. Both ship in
+    Microsoft.WindowsDesktop.App, so the harness adds no NuGet package at all -
+    which is the point: a review tool that drags in a testing stack changes the
+    thing it is measuring.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>AgencyOS.Reviewer</RootNamespace>
+    <AssemblyName>AgencyOS.Reviewer</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <IsPackable>false</IsPackable>
+    <AgencyOSStrict>true</AgencyOSStrict>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/AgencyOS.Client/AgencyOS.Client.csproj" />
+    <ProjectReference Include="../../src/AgencyOS.Windows.Platform/AgencyOS.Windows.Platform.csproj" />
+    <ProjectReference Include="../../src/AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
