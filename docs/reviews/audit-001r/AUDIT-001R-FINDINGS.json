@@ -1,0 +1,124 @@
+[
+  {
+    "id": "AOS-R001R-001",
+    "category": "Ui",
+    "severity": "S2",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "surface": ["overlay.navigation", "workspace.intelligence", "workspace.ai", "workspace.saved-views", "workspace.sync"],
+    "windowSize": "1600x1000, 1280x720, 1024x768",
+    "role": "owner",
+    "preconditions": "The navigation pane is expanded. The current destination is one of the four below the fold.",
+    "steps": [
+      "Open the Windows client at 1600x1000.",
+      "Select Sync and Offline.",
+      "Look at the navigation pane."
+    ],
+    "expected": "The pane shows which destination is current, either by scrolling it into view or by some other indication.",
+    "actual": "The pane still shows Command Center through Communications and nothing is marked as selected. The page is Sync and Offline; the navigation pane says nothing about where the user is. The same holds for Intelligence, AI and Saved Views.",
+    "evidence": [
+      "Measured on all 17 destinations in three independent Audit 001R passes: 13 are visible at rest at 1600x1000, and selecting any of the remaining 4 does not bring it into view within 1500ms.",
+      "The same 4 are brought onto the window immediately by an explicit ScrollItemPattern.ScrollIntoView, landing at 53,855,330,60 in every case, so the pane can show them and does not.",
+      "evidence/workspace.sync/01-loaded.png: the page title reads Sync and Offline; the pane's last visible destination is Communications and no item carries a selection indicator.",
+      "Audit 001 recorded the opposite - 'Selecting Intelligence scrolls it into view' - which was an artefact of the harness's own keyboard pass calling SetFocus on the previous workspace's navigation item before the next snapshot was taken. The product has never done this."
+    ],
+    "screenshots": ["evidence/workspace.sync/01-loaded.png", "evidence/workspace.intelligence/01-loaded.png"],
+    "uiTree": ["evidence/workspace.sync/ui-tree.json", "evidence/workspace.intelligence/ui-tree.json"],
+    "whyAudit001MissedIt": "Audit 001 did not miss the area - AOS-R001-013 covers the pane - but it described the mechanism backwards, because its own keyboard pass had scrolled the pane before every snapshot it reasoned from. This is a correction of that description, not a new area.",
+    "suggestedNextWave": "Bring the selected destination into view when it is selected, and give the pane an overflow affordance. Both are shell changes in MainWindow.xaml and neither is in scope for a rebaseline.",
+    "repairRisk": "Low for scroll-into-view. The overflow affordance is an information-architecture decision and is not low risk.",
+    "relatedTo": "AOS-R001-013"
+  },
+  {
+    "id": "AOS-R001R-002",
+    "category": "Ui",
+    "severity": "S2",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "surface": ["workspace.saved-views"],
+    "windowSize": "900x700, 1024x768, 1280x720",
+    "role": "owner",
+    "preconditions": "The window is smaller than 1600x1000.",
+    "steps": [
+      "Open the Windows client and resize the window to 1280x720.",
+      "Open Saved Views.",
+      "Edit a saved view in the right-hand form.",
+      "Look for the Save button."
+    ],
+    "expected": "The form's actions - Save, Run, Delete, Refresh and the overdue-tasks-only filter - are reachable.",
+    "actual": "The whole action row is off the window and reports no rectangle. At 900x700 and 1024x768 neither Save nor Refresh can be brought into view at all; at 1280x720 they can. The form can be filled in and not saved.",
+    "evidence": [
+      "Layout pass, 17 workspaces at 4 sizes: at 1600x1000 all five controls are on the window (OverdueOnlyBox 942,840,219,48; SaveButton 942,903,98,48; RunButton 1052,903; DeleteButton 1137,903; Refresh 1245,903).",
+      "At 1280x720, 1024x768 and 900x700 all five report Bounds=null and IsOffscreen=true.",
+      "Asked to scroll themselves into view: OverdueOnlyBox arrives at 900x700 and 1024x768; Save and Refresh do not, and are recorded INCONCLUSIVE rather than guessed either way.",
+      "Not a Repair Wave 002 regression. The same probe against the pre-Wave-002 build f5ff940 found the same five controls unreachable at the same three sizes, plus all three text boxes unreachable at 900x700 which Wave 002 fixed. Wave 002 improved this page at every size and introduced nothing.",
+      "Saved Views has no tabs, so this is not a control hidden behind an unselected tab."
+    ],
+    "screenshots": ["evidence/layout.1280x720.saved-views/01-layout.png", "evidence/layout.1600x1000.saved-views/01-layout.png"],
+    "uiTree": ["evidence/layout.1280x720.saved-views/ui-tree.json", "evidence/layout.1600x1000.saved-views/ui-tree.json", "pre-wave-002/evidence/layout.1280x720.saved-views/ui-tree.json"],
+    "whyAudit001MissedIt": "The clipping detector could not fire. Audit 001's narrow-window probe covered Deals and Command Center only, and reported zero clipped controls on both because the detector asked whether a control supported Invoke and nothing ever did.",
+    "suggestedNextWave": "The shell's content floor of 640x560 effective units is not tall enough for this page. Either the page's action row belongs above its list, or the floor needs to come from the page rather than the shell.",
+    "repairRisk": "Low if the page is changed. Medium if the shell's floor is changed, because that affects every page.",
+    "relatedTo": "AOS-R001-007"
+  },
+  {
+    "id": "AOS-R001R-003",
+    "category": "Keyboard",
+    "severity": "S2",
+    "confidence": "LikelyDefect",
+    "reproducibility": "Sometimes",
+    "surface": ["overlay.global-search"],
+    "windowSize": "1600x1000",
+    "role": "owner",
+    "preconditions": "The command palette has been opened and closed with Escape earlier in the session, and the navigation pane has been scrolled.",
+    "steps": [
+      "Open the Windows client.",
+      "Press Ctrl+P to open the command palette, then Escape.",
+      "Select Command Center.",
+      "Press Ctrl+K."
+    ],
+    "expected": "Global search opens and focus moves into the search box, as it does when the same probe runs in Audit 001 and in the Repair Wave 002 run.",
+    "actual": "Nothing happens. The search overlay's elements - SearchQuery, SearchResults - are absent from the automation tree entirely, and focus stays on the navigation item. Ctrl+P opens the palette correctly from the same state in the same pass.",
+    "evidence": [
+      "Three independent Audit 001R passes: overlay.global-search contains no SearchQuery, no SearchResults and no SearchLayer, and the screenshot shows the Command Center page undisturbed.",
+      "The same probe against the same product commit in run-001 and run-002 found SearchQuery present at 543,213,927,48 with keyboard focus. The product binary is identical, so this is state-dependent rather than a code difference.",
+      "The keystroke was delivered: the harness refused no sends in any pass, and RefusedKeystrokes is 0.",
+      "The palette probe, which runs immediately before and presses Escape to close, succeeded in every pass - so this is not a failure to deliver modified keystrokes in general."
+    ],
+    "screenshots": ["evidence/overlay.global-search/01-open.png", "evidence/overlay.command-palette/01-open.png"],
+    "uiTree": ["evidence/overlay.global-search/ui-tree.json"],
+    "whyAudit001MissedIt": "Audit 001 ran the same check and it passed, on the same product. The difference is what the harness did beforehand: Audit 001R drives 68 layout probes and a destination sweep first. Whatever state that leaves is part of the reproduction and is not yet isolated.",
+    "suggestedNextWave": "Isolate it before repairing it. A targeted probe that varies one preceding action at a time would say which state breaks the accelerator; repairing on this evidence would be guessing.",
+    "repairRisk": "Unknown until reproduced deliberately.",
+    "relatedTo": "AOS-R001-015"
+  },
+  {
+    "id": "AOS-R001R-004",
+    "category": "Ui",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "surface": ["workspace.finance"],
+    "windowSize": "900x700",
+    "role": "owner",
+    "preconditions": "The window is at 900x700.",
+    "steps": [
+      "Resize the window to 900x700.",
+      "Open Finance.",
+      "Look at the tab strip."
+    ],
+    "expected": "All seven tabs are reachable, or it is visible that more exist.",
+    "actual": "Reconciliation is clipped to 24 pixels of its width and Activity is off the strip entirely. The tab strip carries no scroll affordance of its own; the tabs can still be reached by scrolling the shell's content host sideways, which is not an affordance anybody would look for on a tab strip.",
+    "evidence": [
+      "evidence/layout.900x700.finance/ui-tree.json: TabItem 'Reconciliation' bounds 900,281,24,48; TabItem 'Activity' Bounds=null, IsOffscreen=true; the other five are fully on the window.",
+      "No element with a scroll-button class or name exists in the tab container's subtree at this size.",
+      "The shell's ContentHost ScrollViewer is present with a horizontal scroll bar, so the tabs are reachable rather than lost - which is why this is S3 and not S2."
+    ],
+    "screenshots": ["evidence/layout.900x700.finance/01-layout.png"],
+    "uiTree": ["evidence/layout.900x700.finance/ui-tree.json"],
+    "whyAudit001MissedIt": "The narrow-window probe covered Deals and Command Center only, and its clipping detector could not fire in any case.",
+    "suggestedNextWave": "TabView offers scroll buttons when its strip overflows; the page does not appear to enable them. One property, on one page.",
+    "repairRisk": "Low.",
+    "relatedTo": "AOS-R001-007"
+  }
+]

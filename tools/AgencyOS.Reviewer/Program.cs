@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using AgencyOS.Client;
+using AgencyOS.Client.Commands;
 using AgencyOS.Contracts;
 using AgencyOS.Reviewer.Fixture;
 using AgencyOS.Reviewer.Reachability;
@@ -40,6 +41,11 @@ public static class Program
     {
         ArgumentNullException.ThrowIfNull(args);
 
+        // Before anything measures a rectangle. A process that has not claimed DPI
+        // awareness is told the display runs at 96 whatever it is really doing,
+        // and every effective-unit conclusion drawn from that is wrong.
+        Native.SetProcessDpiAwarenessContext(Native.PerMonitorAwareV2);
+
         if (args.Length == 0)
         {
             Usage();
@@ -57,6 +63,7 @@ public static class Program
                 "fixture" => Fixture(options).GetAwaiter().GetResult(),
                 "observe" => Observe(options),
                 "layout" => Layout(options),
+                "rebaseline" => Rebaseline(options),
                 "report" => Render(options),
                 "reproduce" => Reproduce(options),
                 "repair" => Repair(),
@@ -239,6 +246,177 @@ public static class Program
         Console.WriteLine("AGENCYOS_ORGANIZATION_ID=" + organizationId.ToString("D", CultureInfo.InvariantCulture));
 
         return 0;
+    }
+
+    // ------------------------------------------------------------ rebaseline
+
+    /// <summary>
+    /// Re-runs only the detectors whose negative evidence was invalidated.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Audit 001 reported five accessibility checks and one clipping check. Three
+    /// of the accessibility checks and the clipping check depended on a UI
+    /// Automation pattern name that the harness trimmed with the wrong suffix, so
+    /// none of them could fire and their zeroes were not evidence. Repair Wave 002
+    /// found the defect; this pass re-establishes what those detectors actually
+    /// say.
+    /// </para>
+    /// <para>
+    /// Not a second audit. It walks the seventeen workspaces because the original
+    /// negative coverage across all of them is suspect, and it does not open the
+    /// sixty-one dialogs, test other roles, or run anything that mutates.
+    /// </para>
+    /// </remarks>
+    private static int Rebaseline(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string subject = Option(options, "subject", "review-owner");
+        string runId = Option(options, "run", "AUDIT-001R");
+        string commit = Option(options, "commit", "unknown");
+
+        if (executable.Length == 0 || runDirectory.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: rebaseline needs --exe and --out.");
+
+            return 2;
+        }
+
+        (int Width, int Height)[] sizes = ParseSizes(
+            Option(options, "sizes", "900x700,1024x768,1280x720,1600x1000"));
+
+        if (sizes.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: rebaseline needs at least one size.");
+
+            return 2;
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = apiBase,
+            ["AGENCYOS_ORGANIZATION_ID"] = organization,
+            ["AGENCYOS_DEV_SUBJECT"] = subject,
+        };
+
+        DateTimeOffset started = DateTimeOffset.UtcNow;
+
+        Console.WriteLine("Launching " + executable);
+
+        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+
+        Console.WriteLine("  pid " + app.ProcessId.ToString(CultureInfo.InvariantCulture));
+
+        AuditPass pass = new(app, runDirectory);
+
+        (int desktopWidth, int desktopHeight) = sizes[^1];
+
+        Console.WriteLine("  accessibility across "
+            + AgencyOsWorkspaces.All.Count.ToString(CultureInfo.InvariantCulture)
+            + " workspaces at " + desktopWidth.ToString(CultureInfo.InvariantCulture)
+            + "x" + desktopHeight.ToString(CultureInfo.InvariantCulture));
+
+        IReadOnlyList<AccessibilitySurvey> surveys =
+            pass.SurveyWorkspaces(desktopWidth, desktopHeight);
+
+        Console.WriteLine("  layout across every workspace at "
+            + sizes.Length.ToString(CultureInfo.InvariantCulture) + " sizes");
+
+        List<LayoutProbe> layout = [];
+
+        foreach ((int width, int height) in sizes)
+        {
+            foreach (AgencyOsWorkspace workspace in AgencyOsWorkspaces.All)
+            {
+                layout.Add(pass.ProbeLayout(workspace.Label, width, height));
+            }
+
+            Console.WriteLine("    " + width.ToString(CultureInfo.InvariantCulture) + "x"
+                + height.ToString(CultureInfo.InvariantCulture) + " done");
+        }
+
+        Console.WriteLine("  destination reachability");
+        IReadOnlyList<DestinationReachability> destinations =
+            pass.ProbeDestinations(desktopWidth, desktopHeight);
+
+        Console.WriteLine("  declared gestures");
+        IReadOnlyList<GestureProbe> gestures = pass.ProbeGestures();
+
+        Console.WriteLine("  overlays");
+        IReadOnlyList<SurfaceEvidence> overlays = pass.ProbeOverlays();
+
+        RebaselineReport report = new(
+            runId,
+            started,
+            DateTimeOffset.UtcNow,
+            executable,
+            commit,
+            environment,
+            [.. sizes.Select(x => x.Width.ToString(CultureInfo.InvariantCulture) + "x"
+                + x.Height.ToString(CultureInfo.InvariantCulture))],
+            Native.DisplayScale(),
+            surveys,
+            layout,
+            destinations,
+            gestures,
+            overlays,
+            app.Keys.RefusedSends);
+
+        Write(Path.Combine(runDirectory, "runtime.json"), report);
+
+        Summarise(report);
+
+        return 0;
+    }
+
+    private static void Summarise(RebaselineReport report)
+    {
+        int scanned = report.Surfaces.Sum(x => x.ControlsScanned);
+        int accessibility = report.Surfaces.Sum(x => x.Accessibility.Count);
+        int speech = report.Surfaces.Sum(x => x.RowSpeech.Count);
+
+        Console.WriteLine();
+        Console.WriteLine("  display scale        "
+            + report.DisplayScale.ToString("0.00", CultureInfo.InvariantCulture));
+        Console.WriteLine("  workspaces reached   "
+            + report.Surfaces.Count(x => x.Visited).ToString(CultureInfo.InvariantCulture)
+            + "/" + report.Surfaces.Count.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  controls scanned     " + scanned.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  accessibility hits   " + accessibility.ToString(CultureInfo.InvariantCulture));
+        Console.WriteLine("  row-speech hits      " + speech.ToString(CultureInfo.InvariantCulture));
+
+        foreach (IGrouping<string, ControlReachability> group in report.Layout
+            .SelectMany(x => x.Controls)
+            .GroupBy(x => x.Verdict, StringComparer.Ordinal)
+            .OrderBy(x => x.Key, StringComparer.Ordinal))
+        {
+            Console.WriteLine("  layout " + group.Key.PadRight(20)
+                + group.Count().ToString(CultureInfo.InvariantCulture));
+        }
+
+        foreach (IGrouping<string, DestinationReachability> group in report.Destinations
+            .GroupBy(x => x.Verdict, StringComparer.Ordinal)
+            .OrderBy(x => x.Key, StringComparer.Ordinal))
+        {
+            Console.WriteLine("  destination " + group.Key.PadRight(15)
+                + group.Count().ToString(CultureInfo.InvariantCulture));
+        }
+
+        foreach (IGrouping<string, GestureProbe> group in report.Gestures
+            .GroupBy(x => x.Verdict, StringComparer.Ordinal)
+            .OrderBy(x => x.Key, StringComparer.Ordinal))
+        {
+            Console.WriteLine("  gesture " + group.Key.PadRight(19)
+                + group.Count().ToString(CultureInfo.InvariantCulture));
+        }
+
+        Console.WriteLine("  keystrokes refused   "
+            + report.RefusedKeystrokes.ToString(CultureInfo.InvariantCulture));
     }
 
     // ---------------------------------------------------------------- layout
@@ -551,6 +729,7 @@ public static class Program
         Console.WriteLine("  fixture    --api <url> --token <bootstrap> [--subject <s>] [--out <file>]");
         Console.WriteLine("  observe    --exe <path> --out <run-dir> --org <guid> [--api <url>] [--subject <s>]");
         Console.WriteLine("  layout     --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...] [--pages Deals,...]");
+        Console.WriteLine("  rebaseline --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...]  re-runs corrected detectors only");
         Console.WriteLine("  report     --out <run-dir> [--static <dir>]");
         Console.WriteLine("  reproduce  --finding <id> --out <run-dir>");
         Console.WriteLine("  repair     refused during an audit");

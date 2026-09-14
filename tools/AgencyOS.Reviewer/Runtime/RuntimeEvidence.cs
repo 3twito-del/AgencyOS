@@ -33,13 +33,15 @@ public sealed record KeyboardPass(
 /// <param name="ObservedSelection">Which navigation item was selected afterwards.</param>
 /// <param name="Sent">Whether the keystroke was delivered at all.</param>
 /// <param name="Matched">Whether observation matched expectation.</param>
+/// <param name="Verdict">What the press amounted to, as the rebaseline classifies it.</param>
 public sealed record GestureProbe(
     string CommandId,
     string Gesture,
     string? ExpectedWorkspace,
     string? ObservedSelection,
     bool Sent,
-    bool Matched);
+    bool Matched,
+    string Verdict);
 
 /// <summary>Everything observed on one surface at run time.</summary>
 /// <param name="SurfaceId">Which surface.</param>
@@ -67,6 +69,109 @@ public sealed record SurfaceEvidence(
     IReadOnlyList<AccessibilityObservation> Accessibility,
     KeyboardPass? Keyboard,
     IReadOnlyList<string> ClippedControls);
+
+/// <summary>What one list row would be read out as.</summary>
+/// <param name="Kind">Short slug naming the fault.</param>
+/// <param name="Control">Which row, as the tree describes it.</param>
+/// <param name="Spoken">The accessible name, verbatim.</param>
+/// <param name="Length">How many characters a reader waits through.</param>
+/// <param name="Identifiers">How many internal identifiers it says aloud.</param>
+public sealed record RowSpeechObservation(
+    string Kind,
+    string Control,
+    string Spoken,
+    int Length,
+    int Identifiers);
+
+/// <summary>Whether one control could be got to at one window size.</summary>
+/// <param name="Control">Which control, as the tree describes it.</param>
+/// <param name="Bounds">Its rectangle when first observed, or null when it had none.</param>
+/// <param name="Verdict">One of the reachability verdicts.</param>
+/// <param name="Scrollable">Whether it offered to scroll itself into view.</param>
+/// <param name="ArrivedAt">Where it ended up after being asked to, when it was.</param>
+public sealed record ControlReachability(
+    string Control,
+    string? Bounds,
+    string Verdict,
+    bool Scrollable,
+    string? ArrivedAt);
+
+/// <summary>
+/// Whether one navigation destination could be opened and seen.
+/// </summary>
+/// <remarks>
+/// The measurement <c>AOS-R001-013</c> turns on. Four destinations need scrolling
+/// at every size the shell expands its pane at, and the finding is about whether
+/// that makes them unreachable or merely undiscoverable — which are different
+/// defects with different repairs.
+/// </remarks>
+/// <param name="Destination">The destination's label.</param>
+/// <param name="Verdict">One of the reachability verdicts.</param>
+/// <param name="BoundsBefore">Where it sat before it was selected.</param>
+/// <param name="BoundsAfter">Where it sat once it was the current destination.</param>
+/// <param name="Selected">Whether selecting it actually changed the page.</param>
+/// <param name="BroughtIntoView">Whether selecting it put it on the window.</param>
+public sealed record DestinationReachability(
+    string Destination,
+    string Verdict,
+    string? BoundsBefore,
+    string? BoundsAfter,
+    bool Selected,
+    bool BroughtIntoView);
+
+/// <summary>Everything the rebaseline observed on one workspace.</summary>
+/// <param name="SurfaceId">Which surface.</param>
+/// <param name="Workspace">The destination that was open.</param>
+/// <param name="Visited">Whether the harness got there.</param>
+/// <param name="Detail">What happened, when it did not.</param>
+/// <param name="Screenshot">The capture, relative to the run directory.</param>
+/// <param name="TreePath">Where the automation snapshot was written.</param>
+/// <param name="ControlsScanned">How many automation elements the detectors saw.</param>
+/// <param name="InteractiveCount">How many of them a user can operate.</param>
+/// <param name="Accessibility">What the corrected accessibility detectors found.</param>
+/// <param name="RowSpeech">What the corrected row-speech detector found.</param>
+public sealed record AccessibilitySurvey(
+    string SurfaceId,
+    string Workspace,
+    bool Visited,
+    string Detail,
+    string? Screenshot,
+    string? TreePath,
+    int ControlsScanned,
+    int InteractiveCount,
+    IReadOnlyList<AccessibilityObservation> Accessibility,
+    IReadOnlyList<RowSpeechObservation> RowSpeech);
+
+/// <summary>A whole rebaseline pass.</summary>
+/// <param name="RunId">Identifier for this run.</param>
+/// <param name="StartedUtc">When it began.</param>
+/// <param name="FinishedUtc">When it ended.</param>
+/// <param name="Executable">Which build was driven.</param>
+/// <param name="ProductCommit">The product tip the build came from.</param>
+/// <param name="Environment">The environment the client was launched with, secrets excluded.</param>
+/// <param name="Sizes">The window sizes the layout pass swept, in physical pixels.</param>
+/// <param name="DisplayScale">What one effective unit was worth in those pixels.</param>
+/// <param name="Surfaces">One accessibility survey per workspace.</param>
+/// <param name="Layout">One layout probe per workspace per size.</param>
+/// <param name="Destinations">Whether every declared destination could be opened.</param>
+/// <param name="Gestures">What every declared global gesture actually did.</param>
+/// <param name="Overlays">What the palette and global search did.</param>
+/// <param name="RefusedKeystrokes">Sends the harness refused because focus had left the application.</param>
+public sealed record RebaselineReport(
+    string RunId,
+    DateTimeOffset StartedUtc,
+    DateTimeOffset FinishedUtc,
+    string Executable,
+    string ProductCommit,
+    IReadOnlyDictionary<string, string> Environment,
+    IReadOnlyList<string> Sizes,
+    double DisplayScale,
+    IReadOnlyList<AccessibilitySurvey> Surfaces,
+    IReadOnlyList<LayoutProbe> Layout,
+    IReadOnlyList<DestinationReachability> Destinations,
+    IReadOnlyList<GestureProbe> Gestures,
+    IReadOnlyList<SurfaceEvidence> Overlays,
+    int RefusedKeystrokes);
 
 /// <summary>Where one navigation destination sat, and whether it could be read.</summary>
 /// <param name="Destination">The destination's label.</param>
@@ -106,6 +211,8 @@ public sealed record DestinationPlacement(
 /// <param name="ContentScrolls">Whether the content host can be scrolled horizontally.</param>
 /// <param name="ActionsOutsideWindow">Named, enabled actions whose rectangle left the window.</param>
 /// <param name="InteractiveCount">How many controls a user could operate.</param>
+/// <param name="Controls">Every named action, and whether it could be got to.</param>
+/// <param name="Verdict">The worst verdict any of them reached.</param>
 public sealed record LayoutProbe(
     string SurfaceId,
     string Workspace,
@@ -121,7 +228,9 @@ public sealed record LayoutProbe(
     IReadOnlyList<DestinationPlacement> Destinations,
     bool ContentScrolls,
     IReadOnlyList<string> ActionsOutsideWindow,
-    int InteractiveCount);
+    int InteractiveCount,
+    IReadOnlyList<ControlReachability> Controls,
+    string Verdict);
 
 /// <summary>A layout pass over several sizes.</summary>
 /// <param name="RunId">Identifier for this run.</param>

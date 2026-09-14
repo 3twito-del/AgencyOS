@@ -108,10 +108,10 @@ internal sealed class AuditPass
             screenshots,
             Relative(treePath),
             nodes.Length,
-            nodes.Count(Interactive),
+            nodes.Count(Detectors.Interactive),
             VisibleText(nodes),
             OpenNotices(nodes),
-            Accessibility(tree),
+            Detectors.Accessibility(tree),
             keyboard,
             Clipped(nodes));
     }
@@ -160,10 +160,94 @@ internal sealed class AuditPass
                 expected,
                 selection,
                 sent,
-                matched));
+                matched,
+                GestureVerdict(sent, matched, expected, selection)));
         }
 
         return probes;
+    }
+
+    /// <summary>
+    /// Runs the corrected detectors over every workspace.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Audit 001R exists because three of Audit 001's five accessibility checks
+    /// could never fire, so their zeroes across seventeen workspaces were not
+    /// evidence of anything. This re-walks all seventeen with the corrected
+    /// detectors and records how much was looked at, not only what was found — a
+    /// count of problems with no denominator is how the original silence went
+    /// unnoticed.
+    /// </para>
+    /// <para>
+    /// It observes and repairs nothing. No control is invoked; the pass navigates,
+    /// photographs, and reads the tree.
+    /// </para>
+    /// </remarks>
+    internal IReadOnlyList<AccessibilitySurvey> SurveyWorkspaces(int width, int height)
+    {
+        List<AccessibilitySurvey> surveys = [];
+
+        _app.Focus();
+        _app.Keys.Press(ReviewKey.Escape);
+        Thread.Sleep(200);
+        _app.Resize(width, height);
+        Thread.Sleep(700);
+        _app.Refresh();
+
+        foreach (AgencyOsWorkspace workspace in AgencyOsWorkspaces.All)
+        {
+            string surfaceId = "workspace." + workspace.Tag;
+            string directory = Path.Combine(_runDirectory, "evidence", surfaceId);
+
+            Directory.CreateDirectory(directory);
+
+            _app.Focus();
+
+            ReviewStep navigated = _app.Navigate(workspace.Label);
+
+            if (!navigated.Succeeded)
+            {
+                surveys.Add(new AccessibilitySurvey(
+                    surfaceId, workspace.Label, false, navigated.Detail, null, null, 0, 0, [], []));
+
+                continue;
+            }
+
+            // Content frames populate asynchronously; a tree read immediately
+            // describes the previous page and would be evidence of nothing.
+            Thread.Sleep(1200);
+            _app.Refresh();
+
+            string? screenshot = null;
+            string shot = Path.Combine(directory, "01-loaded.png");
+
+            if (_app.Capture(shot))
+            {
+                screenshot = Relative(shot);
+            }
+
+            UiaNode tree = _app.Snapshot();
+            string treePath = Path.Combine(directory, "ui-tree.json");
+
+            File.WriteAllText(treePath, JsonSerializer.Serialize(tree, Json));
+
+            UiaNode[] reviewable = [.. Detectors.Reviewable(tree)];
+
+            surveys.Add(new AccessibilitySurvey(
+                surfaceId,
+                workspace.Label,
+                true,
+                "Observed at " + _app.Size() + ".",
+                screenshot,
+                Relative(treePath),
+                reviewable.Length,
+                reviewable.Count(Detectors.Interactive),
+                Detectors.Accessibility(tree),
+                Detectors.RowSpeech(tree)));
+        }
+
+        return surveys;
     }
 
     /// <summary>Opens the two shell overlays and records what they do.</summary>
@@ -221,7 +305,7 @@ internal sealed class AuditPass
         UiaNode[] nodes = [.. tree.Flatten()];
         UiaNode? focused = _app.FocusedNode();
 
-        List<AccessibilityObservation> accessibility = [.. Accessibility(tree)];
+        List<AccessibilityObservation> accessibility = [.. Detectors.Accessibility(tree)];
 
         if (focused?.AutomationId is not { } focusId
             || !string.Equals(focusId, expectedFocusId, StringComparison.Ordinal))
@@ -259,7 +343,7 @@ internal sealed class AuditPass
             screenshots,
             Relative(treePath),
             nodes.Length,
-            nodes.Count(Interactive),
+            nodes.Count(Detectors.Interactive),
             VisibleText(nodes),
             OpenNotices(nodes),
             accessibility,
@@ -309,7 +393,7 @@ internal sealed class AuditPass
             screenshots,
             Relative(treePath),
             nodes.Length,
-            nodes.Count(Interactive),
+            nodes.Count(Detectors.Interactive),
             VisibleText(nodes),
             OpenNotices(nodes),
             [],
@@ -400,6 +484,9 @@ internal sealed class AuditPass
                     : 0));
         }
 
+        IReadOnlyList<ControlReachability> controls = Reachability(nodes, window);
+        bool paneExpanded = destinations.Any(x => x.Bounds is not null);
+
         return new LayoutProbe(
             surfaceId,
             workspaceLabel,
@@ -408,14 +495,162 @@ internal sealed class AuditPass
             tree.Bounds,
             screenshot,
             Relative(treePath),
-            destinations.Any(x => x.Bounds is not null),
+            paneExpanded,
             paneScroller?.Bounds,
             footer?.ToString(),
             footer is null ? 0 : (int)footer.Value.Height,
             destinations,
             ContentScrolls(nodes),
-            Unreachable(nodes, window),
-            nodes.Count(Interactive));
+            [.. controls
+                .Where(x => x.Verdict == ReachabilityVerdict.ClippedUnreachable)
+                .Select(x => x.Control)],
+            nodes.Count(Detectors.Interactive),
+            controls,
+            Worst(controls));
+    }
+
+    /// <summary>
+    /// The worst thing that happened to any action on the surface.
+    /// </summary>
+    /// <remarks>
+    /// A surface is only as reachable as its least reachable action. Averaging or
+    /// counting would let one unreachable button disappear into forty that were
+    /// fine, which is the failure mode the whole pass is here to avoid.
+    /// </remarks>
+    private static string Worst(IReadOnlyList<ControlReachability> controls)
+    {
+        if (controls.Count == 0)
+        {
+            return ReachabilityVerdict.Inconclusive;
+        }
+
+        foreach (string verdict in (string[])
+        [
+            ReachabilityVerdict.ClippedUnreachable,
+            ReachabilityVerdict.Inconclusive,
+            ReachabilityVerdict.ScrollReachable,
+        ])
+        {
+            if (controls.Any(x => x.Verdict == verdict))
+            {
+                return verdict;
+            }
+        }
+
+        return ReachabilityVerdict.Reachable;
+    }
+
+    /// <summary>
+    /// Whether every declared destination can actually be opened.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The measurement <c>AOS-R001-013</c> turns on. Four of seventeen
+    /// destinations sit below the fold of the navigation pane at every size the
+    /// shell expands it at, and the finding is about whether that makes them
+    /// unreachable or merely undiscoverable. Those are different defects with
+    /// different repairs, and a screenshot cannot tell them apart.
+    /// </para>
+    /// <para>
+    /// So each destination is selected, and the pass records whether the page
+    /// changed and whether the pane brought the destination onto the window. A
+    /// destination that opens and scrolls itself into view is discoverable-by-use
+    /// even when it is not visible at rest.
+    /// </para>
+    /// </remarks>
+    internal IReadOnlyList<DestinationReachability> ProbeDestinations(int width, int height)
+    {
+        List<DestinationReachability> verdicts = [];
+
+        _app.Focus();
+        _app.Keys.Press(ReviewKey.Escape);
+        Thread.Sleep(200);
+        _app.Resize(width, height);
+        Thread.Sleep(900);
+        _app.Refresh();
+
+        foreach (AgencyOsWorkspace workspace in AgencyOsWorkspaces.All)
+        {
+            UiaNode opening = _app.Snapshot();
+            Rectangle? window = Rectangle.Parse(opening.Bounds);
+
+            UiaNode? before = Item(opening, workspace.Label);
+
+            ReviewStep navigated = _app.Navigate(workspace.Label);
+
+            // Generously, because the question is whether the pane ever brings the
+            // destination into view, not whether it does so within some deadline.
+            Thread.Sleep(1500);
+            _app.Refresh();
+
+            bool selected = navigated.Succeeded
+                && string.Equals(SelectedNavigationItem(), workspace.Label, StringComparison.Ordinal);
+
+            UiaNode? after = Item(_app.Snapshot(), workspace.Label);
+            bool broughtIntoView = OnWindow(after, window);
+
+            // Selecting a destination is how a user gets there; asking it to scroll
+            // itself is how the pass tells "the pane does not follow the selection"
+            // apart from "the destination cannot be shown at all". The first is a
+            // discoverability complaint, the second is a defect.
+            if (!broughtIntoView && selected)
+            {
+                AskToScrollIntoView(workspace.Label);
+                _app.Refresh();
+
+                after = Item(_app.Snapshot(), workspace.Label);
+                broughtIntoView = OnWindow(after, window);
+            }
+
+            verdicts.Add(new DestinationReachability(
+                workspace.Label,
+                Verdict(before, selected, broughtIntoView, navigated.Succeeded),
+                before?.Bounds,
+                after?.Bounds,
+                selected,
+                broughtIntoView));
+        }
+
+        return verdicts;
+    }
+
+    private static UiaNode? Item(UiaNode tree, string label) =>
+        tree.Flatten().FirstOrDefault(x =>
+            x.ControlType == "ListItem"
+            && string.Equals(x.Name, label, StringComparison.Ordinal));
+
+    private static bool OnWindow(UiaNode? node, Rectangle? window) =>
+        node is { IsOffscreen: false }
+        && window is { } viewport
+        && Rectangle.Parse(node.Bounds) is { } bounds
+        && viewport.Intersects(bounds);
+
+    private static string Verdict(
+        UiaNode? before, bool selected, bool broughtIntoView, bool reached)
+    {
+        if (!reached)
+        {
+            // The pane is compact and its destinations live in a flyout this pass
+            // does not open. That is the shell's own answer to a small window, not
+            // a destination anybody has lost.
+            return before is null
+                ? ReachabilityVerdict.CompactedByDesign
+                : ReachabilityVerdict.Inconclusive;
+        }
+
+        if (!selected)
+        {
+            return ReachabilityVerdict.Inconclusive;
+        }
+
+        if (before is { IsOffscreen: false } && before.Bounds is not null)
+        {
+            return ReachabilityVerdict.Reachable;
+        }
+
+        return broughtIntoView
+            ? ReachabilityVerdict.ScrollReachable
+            : ReachabilityVerdict.ClippedUnreachable;
     }
 
     /// <summary>
@@ -447,73 +682,110 @@ internal sealed class AuditPass
     /// touches the running application, and scrolling is not a mutation.
     /// </para>
     /// </remarks>
-    private IReadOnlyList<string> Unreachable(IReadOnlyList<UiaNode> nodes, Rectangle? window)
+    /// <summary>
+    /// Every named action on the surface, and whether a user could get to it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A candidate that is not on the window is asked to scroll itself into view
+    /// before any verdict is recorded, because "off screen" and "cannot be
+    /// reached" are different claims and only the second is a defect. This is the
+    /// only place the layout pass touches the running application, and scrolling
+    /// is not a mutation.
+    /// </para>
+    /// <para>
+    /// Controls already on the window are recorded too. A pass that only lists
+    /// problems cannot say how much it looked at, and that is exactly the
+    /// ambiguity this whole rebaseline exists to remove.
+    /// </para>
+    /// </remarks>
+    private IReadOnlyList<ControlReachability> Reachability(
+        IReadOnlyList<UiaNode> nodes, Rectangle? window)
     {
-        List<string> unreachable = [];
+        List<ControlReachability> verdicts = [];
 
-        foreach (UiaNode node in nodes
-            .Where(x => x.IsEnabled && !string.IsNullOrWhiteSpace(x.Name)
-                && x.Patterns.Any(p => p is "Invoke" or "Value" or "Toggle"))
-            .Where(x => Outside(x, window))
-            .DistinctBy(x => x.Describe(), StringComparer.Ordinal)
-            .OrderBy(x => x.Describe(), StringComparer.Ordinal)
-            .Take(40))
+        if (window is not { } viewport)
         {
-            if (!ScrollsIntoView(node.Name!, window))
-            {
-                unreachable.Add(node.Describe());
-            }
+            return verdicts;
         }
 
-        return unreachable;
+        foreach (UiaNode node in nodes
+            .Where(Detectors.Operable)
+            .DistinctBy(x => x.Describe(), StringComparer.Ordinal)
+            .OrderBy(x => x.Describe(), StringComparer.Ordinal))
+        {
+            Rectangle? bounds = Rectangle.Parse(node.Bounds);
+
+            if (bounds is { } shown && viewport.Intersects(shown) && !node.IsOffscreen)
+            {
+                verdicts.Add(new ControlReachability(
+                    node.Describe(), node.Bounds, ReachabilityVerdict.Reachable, false, null));
+
+                continue;
+            }
+
+            (bool scrollable, Rectangle? arrived) = AskToScrollIntoView(node.Name!);
+
+            verdicts.Add(new ControlReachability(
+                node.Describe(),
+                node.Bounds,
+                Detectors.Reachability(bounds, node.IsOffscreen, viewport, scrollable, arrived),
+                scrollable,
+                arrived?.ToString()));
+        }
+
+        return verdicts;
     }
 
-    /// <summary>Asks a control to bring itself into view, and says whether it arrived.</summary>
-    private bool ScrollsIntoView(string name, Rectangle? window)
+    /// <summary>Asks a control to bring itself into view, and says where it landed.</summary>
+    private (bool Scrollable, Rectangle? Arrived) AskToScrollIntoView(string name)
     {
         AutomationElement? element = _app.FindByName(name);
 
-        if (element is null || window is null)
+        if (element is null)
         {
-            return false;
+            return (false, null);
         }
+
+        bool scrollable = false;
 
         try
         {
             if (element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out object? pattern)
                 && pattern is ScrollItemPattern scroller)
             {
+                scrollable = true;
                 scroller.ScrollIntoView();
-                Thread.Sleep(400);
+
+                // Long enough for the scroll to finish. A rectangle read mid-scroll
+                // measures a control part-way past the viewport edge - the first
+                // pass recorded a 48-pixel button as two pixels tall - and a
+                // measurement of an animation is not a measurement of a layout.
+                Thread.Sleep(900);
             }
 
             Rect rectangle = element.Current.BoundingRectangle;
 
-            return !rectangle.IsEmpty
-                && !double.IsInfinity(rectangle.Width)
-                && window.Value.Intersects(new Rectangle(
-                    rectangle.Left, rectangle.Top, rectangle.Width, rectangle.Height));
+            if (rectangle.IsEmpty || double.IsInfinity(rectangle.Width))
+            {
+                return (scrollable, null);
+            }
+
+            return (scrollable, new Rectangle(
+                rectangle.Left, rectangle.Top, rectangle.Width, rectangle.Height));
         }
         catch (ElementNotAvailableException)
         {
-            return false;
+            return (scrollable, null);
         }
         catch (InvalidOperationException)
         {
             // A control that refuses to scroll itself has not been shown to be
             // reachable, which is the answer this method exists to give.
-            return false;
+            return (scrollable, null);
         }
     }
 
-    private static bool Outside(UiaNode node, Rectangle? window)
-    {
-        Rectangle? bounds = Rectangle.Parse(node.Bounds);
-
-        return bounds is null
-            ? node.IsOffscreen
-            : window is not null && !window.Value.Intersects(bounds.Value);
-    }
 
     /// <summary>
     /// Puts the window somewhere known and opens the workspace under test.
@@ -542,6 +814,43 @@ internal sealed class AuditPass
         }
 
         Thread.Sleep(700);
+    }
+
+    /// <summary>
+    /// What pressing one declared gesture amounted to.
+    /// </summary>
+    /// <remarks>
+    /// Every pass starts from Command Center, so an unchanged selection is
+    /// evidence that nothing happened rather than that it was already there. The
+    /// distinction between a no-op and a wrong target matters: one is a command
+    /// that did not run, the other is a command that ran and went somewhere else.
+    /// </remarks>
+    private static string GestureVerdict(
+        bool sent, bool matched, string? expected, string? selection)
+    {
+        if (!sent)
+        {
+            return "BLOCKED_BY_STATE";
+        }
+
+        // A command with no declared destination cannot be judged by which
+        // workspace is selected afterwards, and calling it landed because
+        // something was selected would be counting a question this pass never
+        // asked. Ctrl+K and F5 are the two; the overlay probe judges Ctrl+K
+        // properly, by looking for the overlay.
+        if (expected is null)
+        {
+            return "CONTEXT_DEPENDENT";
+        }
+
+        if (matched)
+        {
+            return "LANDED";
+        }
+
+        return string.Equals(selection, "Command Center", StringComparison.Ordinal)
+            ? "NO_OP"
+            : "WRONG_TARGET";
     }
 
     private bool SendGesture(CommandGesture gesture)
@@ -706,126 +1015,10 @@ internal sealed class AuditPass
             stops.Count(x => x.Control.Contains("«unnamed»", StringComparison.Ordinal)));
     }
 
-    /// <summary>
-    /// Accessibility problems visible in a running automation tree.
-    /// </summary>
-    /// <remarks>
-    /// Deliberately narrower than the static XAML suite, and complementary to it.
-    /// The static suite proves the markup declares a name; this proves the running
-    /// control exposes one, which is a different claim - a template, a converter or
-    /// a runtime-populated item can lose it.
-    /// </remarks>
-    internal static IReadOnlyList<AccessibilityObservation> Accessibility(UiaNode tree)
-    {
-        List<AccessibilityObservation> observations = [];
-        UiaNode[] nodes = [.. Reviewable(tree)];
-
-        foreach (UiaNode node in nodes)
-        {
-            bool actionable = node.Patterns.Any(x =>
-                x is "Invoke" or "Toggle" or "ExpandCollapse" or "SelectionItem" or "Value");
-
-            bool named = !string.IsNullOrWhiteSpace(node.Name);
-
-            // A container whose focusable child does the work is how the
-            // framework builds an AutoSuggestBox, not a control anybody is
-            // missing: the Edit inside it is named, focusable, and where a
-            // screen reader lands. Flagging the wrapper measures WinUI's tree
-            // shape rather than the product's markup.
-            bool delegatesToAChild = node.Children
-                .SelectMany(x => x.Flatten())
-                .Any(x => x.IsKeyboardFocusable && !string.IsNullOrWhiteSpace(x.Name));
-
-            if (actionable && !named && !delegatesToAChild && node.IsEnabled && !node.IsOffscreen)
-            {
-                observations.Add(new AccessibilityObservation(
-                    "actionable-control-without-accessible-name",
-                    node.Describe(),
-                    "Supports " + string.Join('/', node.Patterns)
-                        + " and exposes no name, so a screen reader announces only its type."));
-            }
-
-            if (actionable && !node.IsKeyboardFocusable && !delegatesToAChild
-                && node.IsEnabled && !node.IsOffscreen
-                && node.ControlType is not ("ListItem" or "DataItem" or "TreeItem" or "MenuItem"))
-            {
-                observations.Add(new AccessibilityObservation(
-                    "actionable-control-not-focusable",
-                    node.Describe(),
-                    "Can be invoked and cannot be reached by keyboard."));
-            }
-
-            if (node.ControlType == "Text"
-                && node.IsKeyboardFocusable
-                && node.Patterns.Count == 0)
-            {
-                observations.Add(new AccessibilityObservation(
-                    "decorative-element-is-focusable",
-                    node.Describe(),
-                    "A text element with no pattern takes a Tab stop."));
-            }
-
-            if (node.ControlType is "Edit" or "ComboBox" && !named && !node.IsOffscreen)
-            {
-                observations.Add(new AccessibilityObservation(
-                    "input-without-label",
-                    node.Describe(),
-                    "An input with no accessible name cannot be described to its user."));
-            }
-        }
-
-        // Two controls that announce identically on one surface are two controls a
-        // screen-reader user cannot tell apart.
-        foreach (IGrouping<string, UiaNode> group in nodes
-            .Where(x => !string.IsNullOrWhiteSpace(x.Name)
-                && x.Patterns.Contains("Invoke")
-                && !x.IsOffscreen)
-            .GroupBy(x => x.Name!, StringComparer.Ordinal)
-            .Where(x => x.Count() > 1))
-        {
-            observations.Add(new AccessibilityObservation(
-                "duplicate-accessible-name",
-                group.Key,
-                group.Count().ToString(CultureInfo.InvariantCulture)
-                    + " invokable controls on this surface announce the same name."));
-        }
-
-        return observations;
-    }
-
-    /// <summary>
-    /// The part of the tree the product is answerable for.
-    /// </summary>
-    /// <remarks>
-    /// The window's caption buttons - Minimize, Maximize, Close - are drawn by the
-    /// window frame, not by any markup in this repository, and Windows reaches
-    /// them through the system menu rather than through the Tab order. Reporting
-    /// them produced three identical observations on every one of nineteen
-    /// surfaces and said nothing about AgencyOS.
-    /// </remarks>
-    private static IEnumerable<UiaNode> Reviewable(UiaNode tree)
-    {
-        if (tree.ControlType == "TitleBar")
-        {
-            yield break;
-        }
-
-        yield return tree;
-
-        foreach (UiaNode child in tree.Children)
-        {
-            foreach (UiaNode node in Reviewable(child))
-            {
-                yield return node;
-            }
-        }
-    }
-
     private static IReadOnlyList<string> Clipped(IReadOnlyList<UiaNode> nodes) =>
     [
         .. nodes
-            .Where(x => x.IsOffscreen && x.IsEnabled && !string.IsNullOrWhiteSpace(x.Name)
-                && x.Patterns.Any(p => p is "Invoke" or "Value" or "Toggle"))
+            .Where(x => x.IsOffscreen && Detectors.Operable(x))
             .Select(x => x.Describe())
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
@@ -852,10 +1045,6 @@ internal sealed class AuditPass
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal),
     ];
-
-    private static bool Interactive(UiaNode node) =>
-        node.IsKeyboardFocusable
-        || node.Patterns.Any(x => x is "Invoke" or "Toggle" or "Value" or "SelectionItem" or "ExpandCollapse");
 
     private string Relative(string path) =>
         Path.GetRelativePath(_runDirectory, path).Replace('\\', '/');

@@ -25,6 +25,93 @@ internal static class Native
     internal const int CaptureBlt = 0x40000000;
     internal const int DwmwaExtendedFrameBounds = 9;
 
+    /// <summary>The DPI a window is being laid out for.</summary>
+    /// <remarks>
+    /// UI Automation reports physical pixels; WinUI's own breakpoints are written
+    /// in effective units. Without this the two are silently conflated, and a
+    /// 1600x1000 window on a 150% display looks like it should fit things it
+    /// cannot.
+    /// </remarks>
+    /// <param name="window">The window handle.</param>
+    /// <returns>Dots per inch, where 96 is unscaled.</returns>
+    [DllImport("user32.dll")]
+    internal static extern uint GetDpiForWindow(nint window);
+
+    /// <summary>Per-monitor DPI awareness, version 2.</summary>
+    internal static readonly nint PerMonitorAwareV2 = -4;
+
+    /// <summary>Tells Windows this process reads real pixels.</summary>
+    /// <remarks>
+    /// Without it <see cref="GetDpiForWindow"/> answers 96 whatever the display is
+    /// doing, because Windows lies to processes that have not said they can cope
+    /// with the truth. Audit 001R's first pass recorded a scale of 1.00 on a
+    /// display running at 150%, which would have made every effective-unit
+    /// argument in the report wrong. The coordinates UI Automation reports were
+    /// physical either way; only the question "what is one effective unit worth"
+    /// was being answered falsely.
+    /// </remarks>
+    /// <param name="context">The awareness context to adopt.</param>
+    /// <returns>True when the process adopted it.</returns>
+    [DllImport("user32.dll")]
+    internal static extern bool SetProcessDpiAwarenessContext(nint context);
+
+    [DllImport("gdi32.dll")]
+    private static extern int GetDeviceCaps(nint context, int index);
+
+    /// <summary>Pixels per logical inch, horizontally.</summary>
+    private const int LogPixelsX = 88;
+
+    /// <summary>The screen height this process is being shown.</summary>
+    private const int VertRes = 10;
+
+    /// <summary>The screen height the display actually has.</summary>
+    private const int DesktopVertRes = 117;
+
+    /// <summary>
+    /// What one effective unit is worth in the pixels the tree reports.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Asked two ways, because each is only reliable in one state. A process that
+    /// has claimed DPI awareness gets the truth from the device's logical pixel
+    /// count; one that has not is told 96 whatever the display is doing, but is
+    /// given away by the gap between the screen height it is shown and the screen
+    /// height that exists. Taking the larger answer is right in both states.
+    /// </para>
+    /// <para>
+    /// Audit 001R's first pass reported 1.00 on a display running at 150%. Nothing
+    /// downstream measured differently — UI Automation reports physical pixels
+    /// either way — but every sentence about what fits in a window would have been
+    /// wrong by half, which is exactly the class of quiet error this rebaseline
+    /// exists to stop repeating.
+    /// </para>
+    /// </remarks>
+    /// <returns>The scale, where 1.0 is an unscaled display.</returns>
+    internal static double DisplayScale()
+    {
+        nint screen = GetDC(0);
+
+        if (screen == 0)
+        {
+            return 1;
+        }
+
+        try
+        {
+            double declared = GetDeviceCaps(screen, LogPixelsX) / 96.0;
+            int shown = GetDeviceCaps(screen, VertRes);
+            int real = GetDeviceCaps(screen, DesktopVertRes);
+
+            double observed = shown > 0 ? real / (double)shown : 1;
+
+            return Math.Round(Math.Max(Math.Max(declared, observed), 1), 2);
+        }
+        finally
+        {
+            ReleaseDC(0, screen);
+        }
+    }
+
     internal const uint InputKeyboard = 1;
     internal const uint KeyEventKeyUp = 0x0002;
     internal const uint KeyEventExtendedKey = 0x0001;
