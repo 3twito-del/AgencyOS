@@ -390,10 +390,35 @@ internal static class M10Endpoints
         // authorizes them. Published because the alternative is shipping the Entra
         // application registration in the Windows build, and because a connect
         // dialog with no link is a dialog nobody can complete (ADR-0027).
-        tenant.MapGet("/communication-providers", (
+        tenant.MapGet("/communication-providers", async (
+                Guid organizationId,
                 string redirectUri,
-                ICommunicationProviderRegistry registry) =>
+                ICommunicationProviderRegistry registry,
+                CommunicationAuthorization guard,
+                CancellationToken cancellationToken) =>
             {
+                // The organization-scoped check, which this route did not have.
+                //
+                // RequireAuthorization below is deliberately coarse: the policy
+                // handler asks whether the caller holds the permission through any
+                // active membership, with scope null, and its own remarks say the
+                // authoritative check happens in the handler. Every sibling under
+                // this group makes that second call - and this one did not, because
+                // it never bound organizationId at all. So a member of any
+                // organization could read this deployment's provider configuration
+                // through any other organization's route, including one that does
+                // not exist.
+                //
+                // AuthorizeManageAsync is what the connect-mailbox endpoint beside
+                // it already uses, so the refusal is the established one - 403,
+                // naming the permission - rather than a new rule invented here. It
+                // is identical for a real organization the caller is not in and for
+                // an invented one, which is what keeps the route from answering
+                // whether an organization exists.
+                await guard
+                    .AuthorizeManageAsync(new OrganizationId(organizationId), cancellationToken)
+                    .ConfigureAwait(false);
+
                 // A refusal, not a guard. ThrowIfNullOrWhiteSpace states an
                 // internal invariant, and an ArgumentException reaching the edge is
                 // indistinguishable from a defect - so it was answered 500, which
