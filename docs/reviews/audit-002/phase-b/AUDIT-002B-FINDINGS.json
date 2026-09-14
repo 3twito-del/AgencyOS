@@ -1,0 +1,148 @@
+[
+  {
+    "id": "AOS-R002-006",
+    "category": "ApiUiGap",
+    "severity": "S2",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "B",
+    "workspace": [],
+    "dialog": [],
+    "role": "owner",
+    "preconditions": "An organization exists and has been bootstrapped.",
+    "steps": [
+      "Bootstrap an organization.",
+      "Try to add, change or remove anybody's membership."
+    ],
+    "expected": "Membership can be granted, changed and revoked.",
+    "actual": "Membership is write-once at bootstrap and cannot be read, changed or revoked through the API at all. POST /organizations/{id}/memberships is the only membership verb in the published contract — there is no GET, PATCH or DELETE — and its handler refuses outright if the user already holds an active membership: 'The user already holds an active membership in this organization.' Combined with AOS-R002-002 (no user can be created after bootstrap), the effect is that an organization's membership is fixed forever at one owner.",
+    "mutationAttempted": "None executed. The owner's own role was deliberately not changed: with one identity and no revoke path, demoting it would have been irreversible.",
+    "persistedResult": "n/a",
+    "httpResult": "n/a",
+    "evidence": [
+      "The published contract has exactly one membership path and one verb: POST /api/v1/organizations/{id}/memberships.",
+      "GrantMembershipHandler.HandleAsync throws DomainException('The user already holds an active membership in this organization.') when an active membership exists, so the endpoint cannot be used to change a role.",
+      "The integration fixture has ChangeRoleAsync, which removes and re-grants directly against the DbContext. That mechanism is available to tests and to nothing else."
+    ],
+    "logs": null,
+    "likelySource": [
+      "src/AgencyOS.Application/Memberships/GrantMembershipHandler.cs:90",
+      "src/AgencyOS.Api/Endpoints/ApiEndpoints.cs:235"
+    ],
+    "userImpact": "Nobody can be promoted, demoted or removed. It also blocks Audit 002 §8, §9, §10 and §14 completely: no second profile can exist and the one that does cannot be altered, so role behaviour and permission-revocation behaviour cannot be observed at all.",
+    "suggestedCorrection": "None proposed. This is the same product-shape question as AOS-R002-002 and plausibly waits on the same identity-provider decision.",
+    "repairRisk": "High — identity and authorization lifecycle.",
+    "suggestedRepairWave": "003E",
+    "ownerDecisionRequired": true,
+    "relatedTo": "AOS-R002-002"
+  },
+  {
+    "id": "AOS-R002-007",
+    "category": "Copy",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "B",
+    "workspace": ["workspace.contracts", "workspace.projects"],
+    "dialog": [],
+    "role": "owner",
+    "preconditions": "Two callers, or one caller submitting twice, against a versioned aggregate.",
+    "steps": [
+      "Read a contract or a project.",
+      "Let something else change it.",
+      "Submit against the version you read."
+    ],
+    "expected": "A refusal the reader can act on.",
+    "actual": "409 with: \"Contract '01a0a1ff-de3a-7c5d-8d7f-c7ee9deaa6e9' has changed since you last saw it (you had version 9, it is now 10).\" The sentence is plain English and correct. Two things are wrong with it for a reader: it names the record by an identifier the product displays nowhere, when the record has a title; and it never says what to do next.",
+    "mutationAttempted": "POST contracts/{id}/effective-date and POST projects/{id}/stage with a stale expectedVersion",
+    "persistedResult": "Correctly refused. No stale write was accepted in either case.",
+    "httpResult": "409",
+    "evidence": [
+      "Two aggregates, each read at version N, moved to N+1 by a second caller, then submitted at N. Both returned 409 with the message above.",
+      "The same message is what a user meets after a double submission on a versioned aggregate, where the true cause is that they submitted twice rather than that anything changed underneath them.",
+      "Repair Wave 002 removed identifiers from everything a user reads. This message puts one back."
+    ],
+    "logs": "artifacts/reviewer/run-002-phase-b/concurrency.json",
+    "likelySource": ["src/AgencyOS.Application", "the concurrency exception's message"],
+    "userImpact": "Low on its own. It matters because it is the message the product shows at the moment a person has lost work, and it gives them an identifier instead of a name and no next step.",
+    "suggestedCorrection": "Not proposed. Whether the client should translate the refusal, offer a reload, or both, is a dialog-behaviour question the audit did not reach.",
+    "repairRisk": "Low.",
+    "suggestedRepairWave": "003F",
+    "ownerDecisionRequired": false
+  },
+  {
+    "id": "AOS-R002-008",
+    "category": "Validation",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "B",
+    "workspace": [],
+    "dialog": [],
+    "role": "owner",
+    "preconditions": "A request body whose field cannot be bound — a malformed identifier, a date in the wrong shape.",
+    "steps": ["Send a create request with 'not-a-guid' where an identifier is expected."],
+    "expected": "A refusal naming the field.",
+    "actual": "400 with: \"Failed to read parameter \\\"CreateDealRequest request\\\" from the request body as JSON.\" It names an internal DTO class, does not say which field was wrong, and does not say what was expected. Every domain-level refusal in this product does the opposite — 'Kind 'Rumour' is not valid. Expected one of: PersonnelMove, ProjectStatus, …' — so binding failures are the one place the refusal quality drops.",
+    "mutationAttempted": "POST deals with a malformed opportunityId",
+    "persistedResult": "Nothing written, correctly.",
+    "httpResult": "400",
+    "evidence": [
+      "Malformed identifier -> 400 with the DTO-naming message above.",
+      "Well-formed but nonexistent -> 404 'Opportunity '482486f7-…' was not found.' — clear.",
+      "Valid identifier of the wrong entity type -> the same 404, so no existence is disclosed across types.",
+      "An organization the caller is not a member of -> 403 'Permission 'deals.write' is required.' — refused on permission before existence, per ADR-0038.",
+      "Not reachable from any dialog: all 13 identifier dialogs parse with Guid.TryParse and 12 of 13 keep the primary button disabled until every identifier parses. This is an API-boundary defect, which is why it is S3."
+    ],
+    "logs": "artifacts/reviewer/run-002-phase-b/guid-behaviour.json",
+    "likelySource": ["src/AgencyOS.Api/Middleware/AgencyOsExceptionHandler.cs"],
+    "userImpact": "Not felt through the Windows client today. It is felt by anything else that speaks to this API, and it leaks an internal type name.",
+    "suggestedCorrection": "Not proposed. Repair Wave 001.5 already made BadHttpRequestException answer 400 rather than 500; naming the offending field is the next step and was not in that wave's scope.",
+    "repairRisk": "Low.",
+    "suggestedRepairWave": "003D",
+    "ownerDecisionRequired": false
+  },
+  {
+    "id": "AOS-R002-009",
+    "category": "Ux",
+    "severity": "S3",
+    "confidence": "LikelyDefect",
+    "reproducibility": "Always",
+    "phase": "B",
+    "workspace": ["workspace.intelligence", "workspace.contracts", "workspace.finance", "workspace.communications"],
+    "dialog": [
+      "ChangeVerificationDialog", "CreatePredictionDialog", "IntelligenceReasonDialog",
+      "LinkResearchItemDialog", "RecordForecastDialog", "RecordSourceDialog",
+      "ResolvePredictionDialog", "ReviseThesisDialog", "ResolveObligationDialog",
+      "ResolveOptionDialog", "RecordSignatureDialog", "AllocatePaymentDialog"
+    ],
+    "role": "owner",
+    "preconditions": "The workspace's records exist. The audit created a thesis, a source, a signal, a prediction, a watchlist, a research case, a contract with a version, an obligation, an option, a receivable, an invoice and a payment.",
+    "steps": [
+      "Open Intelligence, Contracts or Finance.",
+      "Run one of the listed commands from the command palette."
+    ],
+    "expected": "The dialog opens, since the record it acts on exists.",
+    "actual": "Nothing appears. The command runs — it is in the palette, it is Global scope, it declares no required context and no permission — and the page's handler returns early. These twelve are the dialogs whose handler guards on a loaded detail or a selected row on a specific tab.",
+    "mutationAttempted": "None.",
+    "persistedResult": "n/a",
+    "httpResult": "n/a",
+    "evidence": [
+      "All twelve are reachable only from the palette (AOS-R002-003) and all twelve sit on tabbed pages.",
+      "Their sibling commands on the same pages, whose handlers guard only on the page's own view models, open correctly from the palette: CreateThesisDialog, CreateWatchlistDialog, OpenResearchCaseDialog, AddRadarEntryDialog, RecordContractVersionDialog, RecordNoticeDialog, RecordInvoiceDialog, RecordAdjustmentDialog.",
+      "The command definitions carry no RequiresContext and no RequiredPermission, so nothing declares that a selection is needed.",
+      "The audit could not establish whether the page loses its tab and selection state when a palette command runs, or whether the harness failed to establish that state. Classified LikelyDefect and reproducibility Always on the observation, not on the cause."
+    ],
+    "logs": "artifacts/reviewer/run-002-phase-b/dialog-runtime.json",
+    "likelySource": [
+      "src/AgencyOS.Windows/Pages/IntelligencePage.xaml.cs",
+      "src/AgencyOS.Windows/Pages/ContractsPage.xaml.cs",
+      "src/AgencyOS.Windows/MainWindow.xaml.cs:356"
+    ],
+    "userImpact": "If this is what a person meets, a palette command silently does nothing and there is no way to tell why: no message, no disabled state, nothing that says a record must be selected first. If it is the harness, then twelve dialogs remain unopened and this audit cannot speak for them. Either way it is the largest remaining hole in Audit 002's coverage.",
+    "suggestedCorrection": "None. Establish the cause before anything else: drive the application by hand to the Theses tab, select the thesis, press Ctrl+P and run 'Revise a thesis'. That one observation decides whether this is a product defect or a harness limitation.",
+    "repairRisk": "Unknown until the cause is established.",
+    "suggestedRepairWave": "003A if confirmed as a product defect; otherwise reviewer work before Wave 003",
+    "ownerDecisionRequired": false
+  }
+]

@@ -124,9 +124,15 @@ internal sealed class DialogPass
         (bool invoked, string how, string detail) = Open(dialog, opening, directory);
 
         // A dialog behind a tab: open each tab and try again. Tabs are where the
-        // contract, obligation and offer records live, and the opener sits with
-        // them.
-        if (!invoked && opening.ControlLabel is { Length: > 0 })
+        // contract, obligation, offer and intelligence records live, and both the
+        // button and the command need one selected before the page's handler will
+        // build the dialog.
+        //
+        // This used to run only when the opener was a button, which is why
+        // Phase A reported eleven tab-hosted palette dialogs as blocked by
+        // missing fixture state. They were blocked by the harness never opening
+        // their tab.
+        if (!invoked)
         {
             (invoked, how, detail) = OpenViaTabs(dialog, opening, directory);
         }
@@ -215,15 +221,38 @@ internal sealed class DialogPass
             _app.Refresh();
 
             SelectARowInEveryList();
-            Thread.Sleep(500);
+
+            // Long enough for the detail to arrive. Several handlers guard on a
+            // loaded detail object rather than on the selection - _thesis?.Thesis,
+            // _signal?.Signal - so pressing the opener before the fetch returns
+            // looks exactly like nothing being selected.
+            Thread.Sleep(1400);
             _app.Refresh();
 
             (bool invoked, string how, string detail) = Open(dialog, opening, directory);
 
+            // Invoked is not appeared. A button that is disabled refuses, so for
+            // button openers the two coincide; the palette always runs the
+            // command it was given, so a palette opener reported success on the
+            // first tab and the loop stopped there - which is why Phase B's first
+            // pass left nineteen tab-hosted dialogs blocked and blamed the
+            // fixture. The dialog itself is the only evidence that the tab was
+            // the right one.
             if (invoked)
             {
-                return (true, how, detail + " (after opening the "
-                    + (tab.Current.Name ?? "?") + " tab)");
+                Thread.Sleep(900);
+                _app.Refresh();
+
+                if (Modal(_app.Snapshot(), dialog) is not null)
+                {
+                    return (true, how, detail + " (on the "
+                        + (tab.Current.Name ?? "?") + " tab)");
+                }
+
+                // It ran and nothing appeared: this was the wrong tab. Clear
+                // anything the attempt left open and try the next one.
+                _app.Keys.Press(ReviewKey.Escape);
+                Thread.Sleep(250);
             }
         }
 
@@ -589,8 +618,12 @@ internal sealed class DialogPass
                     continue;
                 }
 
+                // Descendants, not Children. A WinUI ListView virtualizes its rows
+                // under a ScrollViewer and an ItemsPresenter, so the rows are
+                // never direct children and a Children-scoped search finds
+                // nothing on exactly the dense lists this pass needs.
                 AutomationElement? row = list.FindFirst(
-                    TreeScope.Children,
+                    TreeScope.Descendants,
                     new PropertyCondition(
                         AutomationElement.IsSelectionItemPatternAvailableProperty, true));
 
