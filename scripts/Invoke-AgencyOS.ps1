@@ -23,7 +23,7 @@
 #>
 param(
     [Parameter(Position=0)]
-    [ValidateSet("doctor","build","test","test-unit","test-windows","test-integration","verify","verify-fast","version","contract","formal","ci","nightly","release","release-gate")]
+    [ValidateSet("doctor","build","test","test-unit","test-windows","test-reviewer","test-integration","verify","verify-fast","version","contract","formal","ci","nightly","release","release-gate")]
     [string]$Target = "doctor",
 
     [ValidateSet("forge","lab","nightly","alpha","beta","rc","stable")]
@@ -212,6 +212,34 @@ function Invoke-TestWindows {
 
     dotnet test $project --nologo -c $config @(Get-MetadataArgs)
     if ($LASTEXITCODE -ne 0) { throw "Windows tests failed." }
+}
+
+# Runs only the deterministic half of the review harness.
+#
+# The reviewer reads source, builds the surface map, checks reachability and
+# validates the findings ledger. None of that needs a desktop, a database or a
+# network, so it belongs in the same gate as the unit suite.
+#
+# What it deliberately does not run is the interactive pass: launching the WinUI
+# client, driving it through UI Automation and capturing screenshots. That needs
+# a real session, and a headless substitute would produce artefacts that look
+# like visual QA and are not. Those stay LAB evidence.
+#
+# Audit 001 built this harness and Repair Wave 001 committed it, but CI only ever
+# compiled it. A control system nothing executes is a control system nobody can
+# rely on, which is the same defect class the harness was built to find.
+function Invoke-TestReviewer {
+    $project = Join-Path $root "tests/AgencyOS.Tests.Reviewer/AgencyOS.Tests.Reviewer.csproj"
+    $config = Get-Configuration "Debug"
+    Write-Section "Reviewer Tests ($config)"
+
+    if (-not $IsWindows) {
+        Write-Host "[SKIP] Reviewer tests target a Windows TFM and need a Windows agent."
+        return
+    }
+
+    dotnet test $project --nologo -c $config @(Get-MetadataArgs)
+    if ($LASTEXITCODE -ne 0) { throw "Reviewer tests failed." }
 }
 
 # Runs only the integration suite. Builds just this project's dependency graph,
@@ -907,6 +935,7 @@ try {
         "version"     { Invoke-Version }
         "test-unit"        { Invoke-TestUnit }
         "test-windows"     { Invoke-TestWindows }
+        "test-reviewer"    { Invoke-TestReviewer }
         "test-integration" { Invoke-TestIntegration }
         "contract"         { Invoke-Contract }
         "formal"           { Invoke-Formal }

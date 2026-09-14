@@ -77,6 +77,24 @@ jobs:
           CI: 'true'
         run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 test-windows
 
+      # The deterministic half of the review harness: source scanners, the
+      # reachability graph, the XAML style inventory, the ledger's evidence rule
+      # and the project-boundary checks. No desktop, no database, no network.
+      #
+      # The interactive pass - launching the client, driving UI Automation,
+      # capturing screenshots - is deliberately not here. It needs a real session,
+      # and a headless substitute would produce artefacts that look like visual QA
+      # and are not. That stays LAB evidence.
+      #
+      # Added in Repair Wave 001.5. Until then CI compiled the harness and never
+      # ran it, so the tool the project uses to find unexercised code was itself
+      # unexercised.
+      - name: Reviewer tests
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 test-reviewer
+
       - name: API contract
         shell: pwsh
         env:

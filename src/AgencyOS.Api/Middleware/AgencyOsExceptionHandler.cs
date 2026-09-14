@@ -76,6 +76,29 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             BadHttpRequestException { StatusCode: StatusCodes.Status413PayloadTooLarge } =>
                 (StatusCodes.Status413PayloadTooLarge, "Upload too large"),
 
+            // Everything else the framework itself rejected before a handler ran:
+            // a required query parameter the caller omitted, one it sent in a shape
+            // that will not parse, a request body that is not the JSON it claims to
+            // be.
+            //
+            // The status is the exception's own. This is not an arbitrary exception
+            // being relabelled - BadHttpRequestException exists to say "the client
+            // sent something this endpoint cannot accept" and carries the status it
+            // means, which for parameter binding is 400. Honouring it is reporting
+            // what the framework already decided.
+            //
+            // Only 4xx. A BadHttpRequestException carrying a 5xx would be a server
+            // fault wearing a client-error type, and it keeps the untranslated
+            // treatment below: 500, no detail.
+            //
+            // Before this arm only 413 was mapped, so every other value fell
+            // through to the unhandled path and nine required query parameters and
+            // every unparseable body answered 500. Binding runs after
+            // authentication and authorization, so nothing here is reachable by a
+            // caller who would not already have been refused.
+            BadHttpRequestException { StatusCode: >= 400 and < 500 } malformed =>
+                (malformed.StatusCode, "Invalid request"),
+
             // A body the framework itself could not parse - a multipart section
             // with a broken Content-Disposition, a malformed boundary. The caller
             // sent something invalid, so it is a refusal rather than a server

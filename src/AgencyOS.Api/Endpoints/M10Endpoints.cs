@@ -394,7 +394,22 @@ internal static class M10Endpoints
                 string redirectUri,
                 ICommunicationProviderRegistry registry) =>
             {
-                ArgumentException.ThrowIfNullOrWhiteSpace(redirectUri);
+                // A refusal, not a guard. ThrowIfNullOrWhiteSpace states an
+                // internal invariant, and an ArgumentException reaching the edge is
+                // indistinguishable from a defect - so it was answered 500, which
+                // told the caller nothing about the empty value they sent.
+                //
+                // Mapping ArgumentException to 400 globally would have been the
+                // wrong repair: the same exception is how the rest of this codebase
+                // asserts internal preconditions, and relabelling it would hide
+                // real faults behind a client error.
+                if (string.IsNullOrWhiteSpace(redirectUri))
+                {
+                    return Results.Problem(
+                        statusCode: StatusCodes.Status400BadRequest,
+                        title: "Invalid request",
+                        detail: "redirectUri is required and cannot be empty.");
+                }
 
                 List<CommunicationProviderResponse> providers = [];
 
