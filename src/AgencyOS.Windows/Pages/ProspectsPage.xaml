@@ -21,7 +21,7 @@
 
             <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
                 <CheckBox x:Name="OpenOnlyBox" Content="Open only" IsChecked="True" Click="OnFilterChanged" />
-                <ComboBox x:Name="StageBox" PlaceholderText="Any stage" MinWidth="150"
+                <ComboBox x:Name="StageBox" AutomationProperties.Name="Prospect stage" PlaceholderText="Any stage" MinWidth="150"
                           SelectionChanged="OnStageChanged">
                     <ComboBoxItem Content="Any stage" Tag="" />
                     <ComboBoxItem Content="Identified" Tag="Identified" />
@@ -48,7 +48,7 @@
                       SelectionChanged="OnProspectSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,6" ColumnSpacing="10">
+                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -58,7 +58,7 @@
                                 <TextBlock Text="{Binding OwnerDisplayName}" Opacity="0.6"
                                            Style="{StaticResource CaptionTextBlockStyle}" />
                             </StackPanel>
-                            <TextBlock Grid.Column="1" Text="{Binding Stage}" VerticalAlignment="Center"
+                            <TextBlock Grid.Column="1" Text="{Binding Stage, Converter={StaticResource DisplayLabel}}" VerticalAlignment="Center"
                                        Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" />
                         </Grid>
                     </DataTemplate>

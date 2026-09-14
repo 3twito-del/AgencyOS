@@ -1,4 +1,4 @@
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 using Xunit;
 
 namespace AgencyOS.Tests.Windows.Accessibility;
@@ -50,7 +50,12 @@ public sealed class XamlAccessibilityTests
         ["ToggleSwitch"] = ["Header"],
         ["CheckBox"] = ["Content"],
         ["RadioButton"] = ["Content"],
-        ["ComboBox"] = ["Header", "PlaceholderText"],
+        // PlaceholderText is NOT a name source for a ComboBox. WinUI promotes it
+        // for TextBox and AutoSuggestBox - Audit 001 confirmed that at runtime,
+        // which is why those two keep it - and does not for ComboBox. This rule
+        // said otherwise, so fifteen combo boxes announced nothing while 521
+        // Windows tests passed (AOS-R001-004).
+        ["ComboBox"] = ["Header"],
         ["TextBox"] = ["Header", "PlaceholderText"],
         ["AutoSuggestBox"] = ["Header", "PlaceholderText"],
         ["DatePicker"] = ["Header"],

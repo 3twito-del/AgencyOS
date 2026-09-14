@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AgencyOS.Client.Commands;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.Search;
@@ -170,6 +171,37 @@ public sealed partial class MainWindow : Window
         };
 
         return key != VirtualKey.None;
+    }
+
+    /// <summary>
+    /// The narrowest a page is laid out at before the shell starts scrolling.
+    /// </summary>
+    /// <remarks>
+    /// A list-and-detail page needs roughly a 460-unit list column and something
+    /// to put beside it. Below this the page keeps this width and the content host
+    /// scrolls, which is how the detail pane stays reachable at 900x700
+    /// (AOS-R001-007).
+    /// </remarks>
+    private const double MinimumContentWidth = 640;
+
+    /// <summary>The shortest a page is laid out at before the shell starts scrolling.</summary>
+    private const double MinimumContentHeight = 560;
+
+    /// <summary>
+    /// Gives the page the shell's own size, or the floor when the shell is smaller.
+    /// </summary>
+    /// <remarks>
+    /// Layout arithmetic, not business logic. It lives here because WinUI's
+    /// <c>ActualWidth</c> raises no change notification, so a binding reads zero
+    /// once at load and never corrects itself; <see cref="ContentExtent"/> holds
+    /// the rule itself, where a test can reach it.
+    /// </remarks>
+    private void OnContentHostSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ArgumentNullException.ThrowIfNull(e);
+
+        ContentFrame.Width = ContentExtent.For(e.NewSize.Width, MinimumContentWidth);
+        ContentFrame.Height = ContentExtent.For(e.NewSize.Height, MinimumContentHeight);
     }
 
     private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

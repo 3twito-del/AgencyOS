@@ -45,7 +45,7 @@
                       AutomationProperties.Name="Recipients" MaxHeight="120" SelectionMode="Single">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="8" Padding="2">
+                        <StackPanel Orientation="Horizontal" Spacing="8" Padding="2" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                             <TextBlock Text="{Binding Role}" Opacity="0.7" Width="40" />
                             <TextBlock Text="{Binding Address}" />
                         </StackPanel>

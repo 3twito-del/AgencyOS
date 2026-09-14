@@ -96,7 +96,7 @@
                               SelectionChanged="OnReceivableSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="130" />
@@ -127,7 +127,7 @@
                                                Text="{Binding Outstanding.Amount}" />
                                     <StackPanel Grid.Column="4" HorizontalAlignment="Right"
                                                 VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                        <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                         <TextBlock Text="{Binding Beneficiary}" Opacity="0.5"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
@@ -179,7 +179,7 @@
                               AutomationProperties.Name="Invoices" SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="140" />
@@ -200,7 +200,7 @@
                                     <TextBlock Grid.Column="3" HorizontalAlignment="Right"
                                                VerticalAlignment="Center" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}"
-                                               Text="{Binding Status}" />
+                                               Text="{Binding Status, Converter={StaticResource DisplayLabel}}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -246,7 +246,7 @@
                               SelectionChanged="OnPaymentSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="130" />
@@ -270,7 +270,7 @@
                                                Text="{Binding Unapplied.Amount}" />
                                     <StackPanel Grid.Column="4" HorizontalAlignment="Right"
                                                 VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                        <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                         <TextBlock Text="{Binding ReceivedOn}" Opacity="0.5"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
@@ -317,7 +317,7 @@
                               AutomationProperties.Name="Commissions" SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="130" />
@@ -342,7 +342,7 @@
                                     <TextBlock Grid.Column="4" HorizontalAlignment="Right"
                                                VerticalAlignment="Center" Opacity="0.6"
                                                Style="{StaticResource CaptionTextBlockStyle}"
-                                               Text="{Binding Status}" />
+                                               Text="{Binding Status, Converter={StaticResource DisplayLabel}}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -355,7 +355,7 @@
                               AutomationProperties.Name="Commission rules" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,4" ColumnSpacing="12">
+                                <Grid Padding="4,4" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="140" />
@@ -398,7 +398,7 @@
                               AutomationProperties.Name="Balances" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,4" ColumnSpacing="12">
+                                <Grid Padding="4,4" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="80" />
@@ -444,7 +444,7 @@
                               SelectionChanged="OnJournalSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="130" />
@@ -464,7 +464,7 @@
                                                Text="{Binding Credits.Amount}" />
                                     <StackPanel Grid.Column="3" HorizontalAlignment="Right"
                                                 VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                        <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                         <TextBlock Text="{Binding PostingDate}" Opacity="0.5"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
@@ -511,7 +511,7 @@
                               AutomationProperties.Name="Reconciliation" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="140" />
@@ -519,7 +519,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Description}"
                                                VerticalAlignment="Center" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Kind}" Opacity="0.7"
+                                    <TextBlock Grid.Column="1" Text="{Binding Kind, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                VerticalAlignment="Center"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
                                     <TextBlock Grid.Column="2" HorizontalAlignment="Right"
@@ -552,7 +552,7 @@
                               AutomationProperties.Name="History" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="160" />
                                         <ColumnDefinition Width="*" />
@@ -566,7 +566,7 @@
                                         <TextBlock Text="{Binding ActorDisplayName}" Opacity="0.55"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                     </StackPanel>
-                                    <TextBlock Grid.Column="2" Text="{Binding Kind}" Opacity="0.6"
+                                    <TextBlock Grid.Column="2" Text="{Binding Kind, Converter={StaticResource DisplayLabel}}" Opacity="0.6"
                                                HorizontalAlignment="Right" VerticalAlignment="Center"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
                                 </Grid>

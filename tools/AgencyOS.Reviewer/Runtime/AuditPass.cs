@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Automation;
 using AgencyOS.Client.Commands;
 using System.IO;
@@ -110,7 +111,7 @@ internal sealed class AuditPass
             nodes.Count(Interactive),
             VisibleText(nodes),
             OpenNotices(nodes),
-            Accessibility(nodes),
+            Accessibility(tree),
             keyboard,
             Clipped(nodes));
     }
@@ -220,7 +221,7 @@ internal sealed class AuditPass
         UiaNode[] nodes = [.. tree.Flatten()];
         UiaNode? focused = _app.FocusedNode();
 
-        List<AccessibilityObservation> accessibility = [.. Accessibility(nodes)];
+        List<AccessibilityObservation> accessibility = [.. Accessibility(tree)];
 
         if (focused?.AutomationId is not { } focusId
             || !string.Equals(focusId, expectedFocusId, StringComparison.Ordinal))
@@ -267,6 +268,12 @@ internal sealed class AuditPass
     }
 
     /// <summary>Captures one surface at a smaller window, for the layout pass.</summary>
+    /// <remarks>
+    /// The window is returned to desktop size before navigating. Below the
+    /// navigation breakpoint the pane compacts and its destinations leave the
+    /// automation tree, so navigating while already narrow silently lands on
+    /// whichever workspace was open and photographs the wrong page.
+    /// </remarks>
     internal SurfaceEvidence ProbeNarrowWindow(string workspaceLabel, int width, int height)
     {
         string surfaceId = "layout.narrow." + workspaceLabel.Replace(' ', '-').ToLowerInvariant();
@@ -274,9 +281,7 @@ internal sealed class AuditPass
 
         Directory.CreateDirectory(directory);
 
-        _app.Focus();
-        _app.Navigate(workspaceLabel);
-        Thread.Sleep(500);
+        Settle(workspaceLabel);
         _app.Resize(width, height);
         Thread.Sleep(900);
         _app.Refresh();
@@ -310,6 +315,233 @@ internal sealed class AuditPass
             [],
             null,
             Clipped(nodes));
+    }
+
+    /// <summary>
+    /// Measures one workspace at one window size.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Repair Wave 002 has to settle two claims about rectangles: that the detail
+    /// pane leaves the window at 900x700 (<c>AOS-R001-007</c>), and that the
+    /// connection footer takes the space the destination list needs
+    /// (<c>AOS-R001-013</c>). Both are measured here rather than judged from a
+    /// picture, because a screenshot shows what a layout looked like and a
+    /// rectangle says whether somebody could reach the control.
+    /// </para>
+    /// <para>
+    /// The screenshot is still written. It is what a person reads when the numbers
+    /// say something surprising.
+    /// </para>
+    /// </remarks>
+    internal LayoutProbe ProbeLayout(string workspaceLabel, int width, int height)
+    {
+        string size = width.ToString(CultureInfo.InvariantCulture) + "x"
+            + height.ToString(CultureInfo.InvariantCulture);
+        string surfaceId = "layout." + size + "."
+            + workspaceLabel.Replace(' ', '-').ToLowerInvariant();
+        string directory = Path.Combine(_runDirectory, "evidence", surfaceId);
+
+        Directory.CreateDirectory(directory);
+
+        Settle(workspaceLabel);
+        _app.Resize(width, height);
+
+        // Layout below a breakpoint settles in more than one pass: the pane
+        // collapses, the content reflows, and a capture taken too early shows an
+        // intermediate state that never appeared on anybody's screen.
+        Thread.Sleep(1400);
+        _app.Refresh();
+
+        string? screenshot = null;
+        string shot = Path.Combine(directory, "01-layout.png");
+
+        if (_app.Capture(shot))
+        {
+            screenshot = Relative(shot);
+        }
+
+        UiaNode tree = _app.Snapshot();
+        string treePath = Path.Combine(directory, "ui-tree.json");
+
+        File.WriteAllText(treePath, JsonSerializer.Serialize(tree, Json));
+
+        UiaNode[] nodes = [.. tree.Flatten()];
+        Rectangle? window = Rectangle.Parse(tree.Bounds);
+
+        Rectangle? footer = Rectangle.Union(nodes
+            .Where(x => x.AutomationId is "SyncText" or "ConnectionText" or "BuildText")
+            .Select(x => Rectangle.Parse(x.Bounds)));
+
+        UiaNode? paneScroller = nodes
+            .FirstOrDefault(x => x.AutomationId == "MenuItemsScrollViewer" && !x.IsOffscreen);
+
+        Rectangle? paneRegion = Rectangle.Parse(paneScroller?.Bounds);
+
+        List<DestinationPlacement> destinations = [];
+
+        foreach (AgencyOsWorkspace workspace in AgencyOsWorkspaces.All)
+        {
+            UiaNode? item = nodes.FirstOrDefault(x =>
+                x.ControlType == "ListItem"
+                && string.Equals(x.Name, workspace.Label, StringComparison.Ordinal));
+
+            Rectangle? bounds = Rectangle.Parse(item?.Bounds);
+
+            destinations.Add(new DestinationPlacement(
+                workspace.Label,
+                item?.Bounds,
+                item?.IsOffscreen ?? true,
+                bounds is not null && paneRegion is not null
+                    && paneRegion.Value.Contains(bounds.Value),
+                string.Equals(workspace.Label, workspaceLabel, StringComparison.Ordinal),
+                bounds is not null && footer is not null
+                    ? (int)Rectangle.VerticalOverlap(bounds.Value, footer.Value)
+                    : 0));
+        }
+
+        return new LayoutProbe(
+            surfaceId,
+            workspaceLabel,
+            size,
+            _app.Size(),
+            tree.Bounds,
+            screenshot,
+            Relative(treePath),
+            destinations.Any(x => x.Bounds is not null),
+            paneScroller?.Bounds,
+            footer?.ToString(),
+            footer is null ? 0 : (int)footer.Value.Height,
+            destinations,
+            ContentScrolls(nodes),
+            Unreachable(nodes, window),
+            nodes.Count(Interactive));
+    }
+
+    /// <summary>
+    /// Whether the content host can be scrolled sideways rather than clipping.
+    /// </summary>
+    /// <remarks>
+    /// The scroll bar is off screen whenever there is nothing to scroll to, so its
+    /// presence in the tree - not its visibility - is what says the content is
+    /// reachable at all.
+    /// </remarks>
+    private static bool ContentScrolls(IReadOnlyList<UiaNode> nodes) =>
+        nodes.Any(x => x.ControlType == "ScrollBar" && x.AutomationId == "HorizontalScrollBar");
+
+    /// <summary>
+    /// Named actions a user cannot get to at this size.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// "Off screen" and "cannot be reached" are different claims, and
+    /// <c>AOS-R001-007</c> is about the second. A control scrolled out of a
+    /// viewport reports no rectangle and is off screen, and a user reaches it by
+    /// scrolling; a control laid out past the window edge reports a rectangle
+    /// that is not on the window, and no amount of scrolling helps.
+    /// </para>
+    /// <para>
+    /// So a candidate is asked to scroll itself into view before it is reported.
+    /// Anything that comes back onto the window was reachable, which is the
+    /// question the finding actually asks. This is the only place the layout pass
+    /// touches the running application, and scrolling is not a mutation.
+    /// </para>
+    /// </remarks>
+    private IReadOnlyList<string> Unreachable(IReadOnlyList<UiaNode> nodes, Rectangle? window)
+    {
+        List<string> unreachable = [];
+
+        foreach (UiaNode node in nodes
+            .Where(x => x.IsEnabled && !string.IsNullOrWhiteSpace(x.Name)
+                && x.Patterns.Any(p => p is "Invoke" or "Value" or "Toggle"))
+            .Where(x => Outside(x, window))
+            .DistinctBy(x => x.Describe(), StringComparer.Ordinal)
+            .OrderBy(x => x.Describe(), StringComparer.Ordinal)
+            .Take(40))
+        {
+            if (!ScrollsIntoView(node.Name!, window))
+            {
+                unreachable.Add(node.Describe());
+            }
+        }
+
+        return unreachable;
+    }
+
+    /// <summary>Asks a control to bring itself into view, and says whether it arrived.</summary>
+    private bool ScrollsIntoView(string name, Rectangle? window)
+    {
+        AutomationElement? element = _app.FindByName(name);
+
+        if (element is null || window is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            if (element.TryGetCurrentPattern(ScrollItemPattern.Pattern, out object? pattern)
+                && pattern is ScrollItemPattern scroller)
+            {
+                scroller.ScrollIntoView();
+                Thread.Sleep(400);
+            }
+
+            Rect rectangle = element.Current.BoundingRectangle;
+
+            return !rectangle.IsEmpty
+                && !double.IsInfinity(rectangle.Width)
+                && window.Value.Intersects(new Rectangle(
+                    rectangle.Left, rectangle.Top, rectangle.Width, rectangle.Height));
+        }
+        catch (ElementNotAvailableException)
+        {
+            return false;
+        }
+        catch (InvalidOperationException)
+        {
+            // A control that refuses to scroll itself has not been shown to be
+            // reachable, which is the answer this method exists to give.
+            return false;
+        }
+    }
+
+    private static bool Outside(UiaNode node, Rectangle? window)
+    {
+        Rectangle? bounds = Rectangle.Parse(node.Bounds);
+
+        return bounds is null
+            ? node.IsOffscreen
+            : window is not null && !window.Value.Intersects(bounds.Value);
+    }
+
+    /// <summary>
+    /// Puts the window somewhere known and opens the workspace under test.
+    /// </summary>
+    /// <remarks>
+    /// Escape first, because an overlay left open by an earlier probe photographs
+    /// itself instead of the page. Desktop size second, because the navigation
+    /// pane's destinations are not in the automation tree while it is compact, so
+    /// navigating from a narrow window silently does nothing.
+    /// </remarks>
+    private void Settle(string workspaceLabel)
+    {
+        _app.Focus();
+        _app.Keys.Press(ReviewKey.Escape);
+        Thread.Sleep(200);
+        _app.Resize(1600, 1000);
+        Thread.Sleep(600);
+        _app.Refresh();
+
+        ReviewStep navigated = _app.Navigate(workspaceLabel);
+
+        if (!navigated.Succeeded)
+        {
+            throw new InvalidOperationException(
+                "The layout pass could not open '" + workspaceLabel + "': " + navigated.Detail);
+        }
+
+        Thread.Sleep(700);
     }
 
     private bool SendGesture(CommandGesture gesture)
@@ -483,9 +715,10 @@ internal sealed class AuditPass
     /// control exposes one, which is a different claim - a template, a converter or
     /// a runtime-populated item can lose it.
     /// </remarks>
-    private static IReadOnlyList<AccessibilityObservation> Accessibility(IReadOnlyList<UiaNode> nodes)
+    internal static IReadOnlyList<AccessibilityObservation> Accessibility(UiaNode tree)
     {
         List<AccessibilityObservation> observations = [];
+        UiaNode[] nodes = [.. Reviewable(tree)];
 
         foreach (UiaNode node in nodes)
         {
@@ -494,7 +727,16 @@ internal sealed class AuditPass
 
             bool named = !string.IsNullOrWhiteSpace(node.Name);
 
-            if (actionable && !named && node.IsEnabled && !node.IsOffscreen)
+            // A container whose focusable child does the work is how the
+            // framework builds an AutoSuggestBox, not a control anybody is
+            // missing: the Edit inside it is named, focusable, and where a
+            // screen reader lands. Flagging the wrapper measures WinUI's tree
+            // shape rather than the product's markup.
+            bool delegatesToAChild = node.Children
+                .SelectMany(x => x.Flatten())
+                .Any(x => x.IsKeyboardFocusable && !string.IsNullOrWhiteSpace(x.Name));
+
+            if (actionable && !named && !delegatesToAChild && node.IsEnabled && !node.IsOffscreen)
             {
                 observations.Add(new AccessibilityObservation(
                     "actionable-control-without-accessible-name",
@@ -503,7 +745,8 @@ internal sealed class AuditPass
                         + " and exposes no name, so a screen reader announces only its type."));
             }
 
-            if (actionable && !node.IsKeyboardFocusable && node.IsEnabled && !node.IsOffscreen
+            if (actionable && !node.IsKeyboardFocusable && !delegatesToAChild
+                && node.IsEnabled && !node.IsOffscreen
                 && node.ControlType is not ("ListItem" or "DataItem" or "TreeItem" or "MenuItem"))
             {
                 observations.Add(new AccessibilityObservation(
@@ -548,6 +791,34 @@ internal sealed class AuditPass
         }
 
         return observations;
+    }
+
+    /// <summary>
+    /// The part of the tree the product is answerable for.
+    /// </summary>
+    /// <remarks>
+    /// The window's caption buttons - Minimize, Maximize, Close - are drawn by the
+    /// window frame, not by any markup in this repository, and Windows reaches
+    /// them through the system menu rather than through the Tab order. Reporting
+    /// them produced three identical observations on every one of nineteen
+    /// surfaces and said nothing about AgencyOS.
+    /// </remarks>
+    private static IEnumerable<UiaNode> Reviewable(UiaNode tree)
+    {
+        if (tree.ControlType == "TitleBar")
+        {
+            yield break;
+        }
+
+        yield return tree;
+
+        foreach (UiaNode child in tree.Children)
+        {
+            foreach (UiaNode node in Reviewable(child))
+            {
+                yield return node;
+            }
+        }
     }
 
     private static IReadOnlyList<string> Clipped(IReadOnlyList<UiaNode> nodes) =>

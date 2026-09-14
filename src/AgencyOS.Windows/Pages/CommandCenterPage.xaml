@@ -96,12 +96,12 @@
                           AutomationProperties.Name="Recent interactions" SelectionMode="None">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Padding="4,3">
+                            <StackPanel Padding="4,3" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                 <TextBlock Text="{Binding Summary}" TextTrimming="CharacterEllipsis" />
                                 <TextBlock
                                     Style="{StaticResource CaptionTextBlockStyle}"
                                     Opacity="0.6"
-                                    Text="{Binding Type}" />
+                                    Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>

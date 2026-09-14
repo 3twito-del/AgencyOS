@@ -58,7 +58,7 @@
                       AutomationProperties.Name="Terms" MaxHeight="180" SelectionMode="Single">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,4" ColumnSpacing="10">
+                        <Grid Padding="4,4" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />

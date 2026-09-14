@@ -31,7 +31,7 @@
                     <ComboBoxItem Content="Archived" Tag="Archived" />
                 </ComboBox>
 
-                <ComboBox x:Name="StageBox" PlaceholderText="Any stage" MinWidth="150"
+                <ComboBox x:Name="StageBox" AutomationProperties.Name="Project stage" PlaceholderText="Any stage" MinWidth="150"
                           SelectionChanged="OnFilterChanged">
                     <ComboBoxItem Content="Any stage" Tag="" />
                     <ComboBoxItem Content="Concept" Tag="Concept" />
@@ -45,7 +45,7 @@
             </StackPanel>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
-                <ComboBox x:Name="MissingRoleBox" PlaceholderText="Missing any role" MinWidth="170"
+                <ComboBox x:Name="MissingRoleBox" AutomationProperties.Name="Missing role" PlaceholderText="Missing any role" MinWidth="170"
                           SelectionChanged="OnFilterChanged">
                     <ComboBoxItem Content="Any" Tag="" />
                     <ComboBoxItem Content="Missing a writer" Tag="Writer" />
@@ -74,7 +74,7 @@
                       SelectionChanged="OnProjectSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,6" ColumnSpacing="10">
+                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -82,11 +82,11 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="{Binding Title}" />
-                                <TextBlock Text="{Binding Stage}" Opacity="0.7"
+                                <TextBlock Text="{Binding Stage, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                            Style="{StaticResource CaptionTextBlockStyle}" />
                             </StackPanel>
 
-                            <TextBlock Grid.Column="1" Text="{Binding Type}" Opacity="0.7"
+                            <TextBlock Grid.Column="1" Text="{Binding Type, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                        Style="{StaticResource CaptionTextBlockStyle}"
                                        VerticalAlignment="Center" />
                         </Grid>
@@ -131,9 +131,9 @@
                                       AutomationProperties.Name="Roles" SelectionMode="Single">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Padding="4,6">
-                                            <TextBlock Text="{Binding Type}" />
-                                            <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                            <TextBlock Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
+                                            <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                        Style="{StaticResource CaptionTextBlockStyle}" />
                                         </StackPanel>
                                     </DataTemplate>
@@ -149,7 +149,7 @@
                                   AutomationProperties.Name="Attachments" SelectionMode="Single" Padding="4">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Padding="4,6" ColumnSpacing="10">
+                                    <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
@@ -161,7 +161,7 @@
                                                        Style="{StaticResource CaptionTextBlockStyle}" />
                                         </StackPanel>
 
-                                        <TextBlock Grid.Column="1" Text="{Binding Status}" Opacity="0.7"
+                                        <TextBlock Grid.Column="1" Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                    Style="{StaticResource CaptionTextBlockStyle}"
                                                    VerticalAlignment="Center" />
                                     </Grid>
@@ -180,7 +180,7 @@
                                       AutomationProperties.Name="Companies" SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Padding="4,6">
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                             <TextBlock Text="{Binding CompanyName}" />
                                             <TextBlock Text="{Binding Capacity}" Opacity="0.7"
                                                        Style="{StaticResource CaptionTextBlockStyle}" />
@@ -202,7 +202,7 @@
                                       AutomationProperties.Name="Sources" SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Padding="4,6">
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                             <TextBlock Text="{Binding Title}" />
                                             <TextBlock Text="{Binding AttributedCreator}" Opacity="0.7"
                                                        Style="{StaticResource CaptionTextBlockStyle}" />
@@ -220,7 +220,7 @@
                                   AutomationProperties.Name="Materials" SelectionMode="None" Padding="4">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Padding="4,6">
+                                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                         <TextBlock Text="{Binding Title}" />
                                         <TextBlock Text="{Binding PersonName}" Opacity="0.7"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
@@ -237,9 +237,9 @@
                                   AutomationProperties.Name="Packages" SelectionMode="None" Padding="4">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Padding="4,6">
+                                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                         <TextBlock Text="{Binding Name}" />
-                                        <TextBlock Text="{Binding Status}" Opacity="0.7"
+                                        <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                     </StackPanel>
                                 </DataTemplate>
@@ -254,7 +254,7 @@
                                   AutomationProperties.Name="History" SelectionMode="None" Padding="4">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Padding="4,6">
+                                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                         <TextBlock Text="{Binding Summary}" />
                                         <TextBlock Text="{Binding Detail}" Opacity="0.7"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />

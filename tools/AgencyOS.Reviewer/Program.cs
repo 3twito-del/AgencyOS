@@ -56,6 +56,7 @@ public static class Program
                 "inventory" => Inventory(options),
                 "fixture" => Fixture(options).GetAwaiter().GetResult(),
                 "observe" => Observe(options),
+                "layout" => Layout(options),
                 "report" => Render(options),
                 "reproduce" => Reproduce(options),
                 "repair" => Repair(),
@@ -238,6 +239,131 @@ public static class Program
         Console.WriteLine("AGENCYOS_ORGANIZATION_ID=" + organizationId.ToString("D", CultureInfo.InvariantCulture));
 
         return 0;
+    }
+
+    // ---------------------------------------------------------------- layout
+
+    /// <summary>
+    /// Measures the shell at several window sizes.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Separate from <c>observe</c> on purpose. <c>observe</c> produces the audit's
+    /// runtime.json, and its shape is what Run 001 and Run 002 are compared on;
+    /// folding a size sweep into it would change that record to answer a question
+    /// only two findings ask. This writes its own file and leaves that one alone.
+    /// </para>
+    /// <para>
+    /// Sizes are physical pixels, as passed to the window manager. The display
+    /// scale decides what they mean to a layout, so the report records the scale
+    /// alongside them rather than implying every machine sees the same thing.
+    /// </para>
+    /// </remarks>
+    private static int Layout(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string subject = Option(options, "subject", "review-owner");
+        string runId = Option(options, "run", "REVIEW-002-LAYOUT");
+
+        if (executable.Length == 0 || runDirectory.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: layout needs --exe and --out.");
+
+            return 2;
+        }
+
+        (int Width, int Height)[] sizes = ParseSizes(
+            Option(options, "sizes", "900x700,1024x768,1280x720,1600x1000"));
+
+        string[] pages = Option(options, "pages", "Deals,Command Center,Intelligence,Sync and Offline")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (sizes.Length == 0 || pages.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: layout needs at least one size and one page.");
+
+            return 2;
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = apiBase,
+            ["AGENCYOS_ORGANIZATION_ID"] = organization,
+            ["AGENCYOS_DEV_SUBJECT"] = subject,
+        };
+
+        DateTimeOffset started = DateTimeOffset.UtcNow;
+
+        Console.WriteLine("Launching " + executable);
+
+        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+
+        AuditPass pass = new(app, runDirectory);
+        List<LayoutProbe> probes = [];
+
+        foreach ((int width, int height) in sizes)
+        {
+            foreach (string page in pages)
+            {
+                Console.WriteLine("  " + page + " at "
+                    + width.ToString(CultureInfo.InvariantCulture) + "x"
+                    + height.ToString(CultureInfo.InvariantCulture));
+
+                probes.Add(pass.ProbeLayout(page, width, height));
+            }
+        }
+
+        Write(
+            Path.Combine(runDirectory, "layout.json"),
+            new LayoutReport(runId, started, DateTimeOffset.UtcNow, executable, environment, probes));
+
+        foreach (LayoutProbe probe in probes)
+        {
+            int visible = probe.Destinations.Count(x => x.FullyVisible);
+            int covered = probe.Destinations.Count(x => x.OverlapsFooter > 0);
+
+            Console.WriteLine(
+                "  " + probe.SurfaceId
+                + ": pane " + (probe.PaneExpanded ? "expanded" : "compact")
+                + ", destinations fully visible " + visible.ToString(CultureInfo.InvariantCulture)
+                + "/" + probe.Destinations.Count.ToString(CultureInfo.InvariantCulture)
+                + ", covered by footer " + covered.ToString(CultureInfo.InvariantCulture)
+                + ", footer " + probe.FooterHeight.ToString(CultureInfo.InvariantCulture) + "px"
+                + ", content scrolls " + (probe.ContentScrolls ? "yes" : "no")
+                + ", unreachable actions "
+                + probe.ActionsOutsideWindow.Count.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return 0;
+    }
+
+    private static (int Width, int Height)[] ParseSizes(string value)
+    {
+        List<(int, int)> sizes = [];
+
+        foreach (string part in value.Split(
+            ',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            string[] pair = part.Split('x', 'X');
+
+            if (pair.Length == 2
+                && int.TryParse(pair[0], CultureInfo.InvariantCulture, out int width)
+                && int.TryParse(pair[1], CultureInfo.InvariantCulture, out int height))
+            {
+                sizes.Add((width, height));
+            }
+            else
+            {
+                Console.Error.WriteLine("reviewer: ignoring unreadable size '" + part + "'.");
+            }
+        }
+
+        return [.. sizes];
     }
 
     // --------------------------------------------------------------- observe
@@ -424,6 +550,7 @@ public static class Program
         Console.WriteLine("  inventory  --repo <path> [--out <dir>] [--contract <openapi.json>]");
         Console.WriteLine("  fixture    --api <url> --token <bootstrap> [--subject <s>] [--out <file>]");
         Console.WriteLine("  observe    --exe <path> --out <run-dir> --org <guid> [--api <url>] [--subject <s>]");
+        Console.WriteLine("  layout     --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...] [--pages Deals,...]");
         Console.WriteLine("  report     --out <run-dir> [--static <dir>]");
         Console.WriteLine("  reproduce  --finding <id> --out <run-dir>");
         Console.WriteLine("  repair     refused during an audit");

@@ -1,7 +1,8 @@
-<Application
+﻿<Application
     x:Class="AgencyOS.Windows.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:presentation="using:AgencyOS.Windows.Presentation">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -9,12 +10,29 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!--
+                Presentation converters, declared once.
+
+                RowLabel gives a list row the name a screen reader announces.
+                Without it a templated row falls back to ToString() on the bound
+                record, which prints every property it has - 115 rows across
+                twelve surfaces were reciting their own identifiers
+                (AOS-R001-003).
+
+                DisplayLabel writes a domain token as the words a person reads,
+                so a row says "Talent employment" where the record holds
+                TalentEmployment (AOS-R001-012). Neither converts back: both are
+                derived on the way to a screen and nothing parses them.
+            -->
+            <presentation:RowLabelConverter x:Key="RowLabel" />
+            <presentation:DisplayLabelConverter x:Key="DisplayLabel" />
+
+            <!--
                 Dense list rows. A professional workstation shows more rows, not
                 bigger ones: docs/12_WINDOWS_NATIVE.md asks for dense tables over
                 consumer card layouts.
             -->
             <DataTemplate x:Key="TaskTemplate">
-                <Grid Padding="4,3" ColumnSpacing="8">
+                <Grid Padding="4,3" ColumnSpacing="8" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -33,12 +51,12 @@
                         VerticalAlignment="Center"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Opacity="0.7"
-                        Text="{Binding Priority}" />
+                        Text="{Binding Priority, Converter={StaticResource DisplayLabel}}" />
                 </Grid>
             </DataTemplate>
 
             <DataTemplate x:Key="PersonRowTemplate">
-                <Grid Padding="4,3" ColumnSpacing="8">
+                <Grid Padding="4,3" ColumnSpacing="8" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -62,7 +80,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="CompanyRowTemplate">
-                <Grid Padding="4,3" ColumnSpacing="8">
+                <Grid Padding="4,3" ColumnSpacing="8" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -74,12 +92,12 @@
                         VerticalAlignment="Center"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Opacity="0.6"
-                        Text="{Binding Type}" />
+                        Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
                 </Grid>
             </DataTemplate>
 
             <DataTemplate x:Key="TimelineEntryTemplate">
-                <Grid Padding="4,4" ColumnSpacing="10">
+                <Grid Padding="4,4" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -104,8 +122,8 @@
             </DataTemplate>
 
             <DataTemplate x:Key="RelationshipRowTemplate">
-                <StackPanel Padding="4,3">
-                    <TextBlock Text="{Binding Type}" />
+                <StackPanel Padding="4,3" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                    <TextBlock Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
                     <TextBlock
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Opacity="0.6"

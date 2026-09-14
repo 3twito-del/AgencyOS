@@ -34,4 +34,14 @@
     <ProjectReference Include="../../src/AgencyOS.Contracts/AgencyOS.Contracts.csproj" />
   </ItemGroup>
 
+  <!--
+    The geometry and the automation-tree reader are internal: they are how the
+    harness measures, not an API anybody builds on. The test project sees them so
+    that the measuring itself can be tested, which is the one thing Repair Wave
+    002 found the harness had never done.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="AgencyOS.Tests.Reviewer" />
+  </ItemGroup>
+
 </Project>

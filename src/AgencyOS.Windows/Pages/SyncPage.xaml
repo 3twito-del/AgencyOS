@@ -70,7 +70,7 @@
                 SelectionMode="Single">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,8" ColumnSpacing="12">
+                        <Grid Padding="4,8" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -87,7 +87,7 @@
 
                             <TextBlock
                                 Grid.Column="1"
-                                Text="{Binding State}"
+                                Text="{Binding State, Converter={StaticResource DisplayLabel}}"
                                 VerticalAlignment="Center"
                                 Opacity="0.6"
                                 Style="{StaticResource CaptionTextBlockStyle}" />

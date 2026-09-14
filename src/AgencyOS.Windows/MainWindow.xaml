@@ -6,11 +6,20 @@
     Title="AgencyOS">
 
     <Grid>
+        <!--
+            PaneDisplayMode is Auto, not Left. Left pins the 220-pixel pane at
+            every size, which is why a 900x700 window spent a third of its width
+            on navigation and pushed the detail pane - every action on the surface
+            - off screen with nothing to indicate it was missing (AOS-R001-007).
+            Auto keeps the expanded pane on a desktop-sized window and compacts it
+            below WinUI's own breakpoint, which is the behaviour the control was
+            built with.
+        -->
         <muxc:NavigationView
             x:Name="Navigation"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
-            PaneDisplayMode="Left"
+            PaneDisplayMode="Auto"
             OpenPaneLength="220"
             SelectionChanged="OnNavigationSelectionChanged">
 
@@ -35,30 +44,79 @@
             </muxc:NavigationView.MenuItems>
 
             <muxc:NavigationView.PaneFooter>
-                <StackPanel Padding="12,8" Spacing="4">
-                    <!--
-                        Connection state belongs where the user can always see it.
-                        An application that is quietly offline is one that loses
-                        somebody's afternoon.
-                    -->
+                <!--
+                    Connection state belongs where the user can always see it. An
+                    application that is quietly offline is one that loses
+                    somebody's afternoon.
+
+                    It is opaque and it does not wrap. Three wrapping captions
+                    holding a URL and a tenant identifier grew to five lines, the
+                    destination list scrolled underneath them, and the selected
+                    item could end up completely hidden behind the text - Sync and
+                    Offline was unreadable while it was the current page
+                    (AOS-R001-013).
+
+                    Trimming keeps the footer one predictable height, so the pane
+                    can give the rest to destinations; the background stops
+                    anything showing through; and the full text is still available
+                    on hover for the two lines that get shortened.
+                -->
+                <StackPanel
+                    Padding="12,8"
+                    Spacing="2"
+                    Background="{ThemeResource NavigationViewDefaultPaneBackground}">
                     <TextBlock
                         x:Name="SyncText"
                         Style="{StaticResource CaptionTextBlockStyle}"
-                        TextWrapping="Wrap" />
+                        TextWrapping="NoWrap"
+                        TextTrimming="CharacterEllipsis" />
                     <TextBlock
                         x:Name="ConnectionText"
                         Style="{StaticResource CaptionTextBlockStyle}"
-                        TextWrapping="Wrap"
+                        TextWrapping="NoWrap"
+                        TextTrimming="CharacterEllipsis"
                         Opacity="0.7" />
                     <TextBlock
                         x:Name="BuildText"
                         Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="NoWrap"
+                        TextTrimming="CharacterEllipsis"
                         Opacity="0.5" />
                 </StackPanel>
             </muxc:NavigationView.PaneFooter>
 
             <Grid>
-                <Frame x:Name="ContentFrame" />
+                <!--
+                    Scrolls rather than clips. A list-and-detail page is laid out
+                    for a desktop window, and at 900x700 the detail column - every
+                    action on the surface - was simply unreachable. Scrolling is
+                    not the nicest answer at that size, but "the actions exist and
+                    you can get to them" beats "the actions are gone"
+                    (AOS-R001-007).
+
+                    The page is given the host's own size, in code-behind rather
+                    than by binding: a ScrollViewer offers its content unlimited
+                    space, a page with star-sized columns takes all of it, and
+                    WinUI's ActualWidth raises no change notification for a binding
+                    to follow. The first attempt at this repair did bind, the page
+                    stayed unconstrained, and Command Center's Refresh and Complete
+                    buttons then sat outside a 1600x1000 window that had room for
+                    them.
+
+                    Below the floor the page stops shrinking and the host scrolls.
+                    At or above it nothing scrolls and the layout is what it always
+                    was. Both axes: at 1280x720 the Sync page's "Discard selected
+                    change" was below the fold with nothing to scroll.
+                -->
+                <ScrollViewer
+                    x:Name="ContentHost"
+                    HorizontalScrollBarVisibility="Auto"
+                    HorizontalScrollMode="Auto"
+                    VerticalScrollBarVisibility="Auto"
+                    VerticalScrollMode="Auto"
+                    SizeChanged="OnContentHostSizeChanged">
+                    <Frame x:Name="ContentFrame" />
+                </ScrollViewer>
 
                 <!--
                     Global search. Ctrl+K, keyboard-first, and explicit about
@@ -131,7 +189,7 @@
                                 ItemClick="OnSearchItemClick">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnSpacing="12" Padding="4,6">
+                                        <Grid ColumnSpacing="12" Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
@@ -148,7 +206,7 @@
 
                                             <TextBlock
                                                 Grid.Column="1"
-                                                Text="{Binding Type}"
+                                                Text="{Binding Type, Converter={StaticResource DisplayLabel}}"
                                                 VerticalAlignment="Center"
                                                 Opacity="0.6"
                                                 Style="{StaticResource CaptionTextBlockStyle}" />
@@ -211,7 +269,7 @@
                                 ItemClick="OnPaletteItemClick">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnSpacing="12" Padding="4,2">
+                                        <Grid ColumnSpacing="12" Padding="4,2" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />

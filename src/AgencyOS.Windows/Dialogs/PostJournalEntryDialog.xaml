@@ -41,7 +41,7 @@
                       AutomationProperties.Name="Journal lines" MaxHeight="200" SelectionMode="None">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="2,4" ColumnSpacing="8">
+                        <Grid Padding="2,4" ColumnSpacing="8" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="80" />
@@ -67,7 +67,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <ComboBox x:Name="AccountBox" Grid.Column="0" HorizontalAlignment="Stretch"
+                <ComboBox x:Name="AccountBox" AutomationProperties.Name="Account" Grid.Column="0" HorizontalAlignment="Stretch"
                           PlaceholderText="Account">
                     <ComboBoxItem Content="Cash" Tag="Cash" />
                     <ComboBoxItem Content="Accounts receivable" Tag="AccountsReceivable" />
@@ -84,7 +84,7 @@
                     credit are what the entry means; a minus sign is folklore that
                     reads differently on an asset than on a liability (ADR-0023).
                 -->
-                <ComboBox x:Name="SideBox" Grid.Column="1" HorizontalAlignment="Stretch"
+                <ComboBox x:Name="SideBox" AutomationProperties.Name="Debit or credit" Grid.Column="1" HorizontalAlignment="Stretch"
                           PlaceholderText="Side">
                     <ComboBoxItem Content="Debit" Tag="Debit" IsSelected="True" />
                     <ComboBoxItem Content="Credit" Tag="Credit" />

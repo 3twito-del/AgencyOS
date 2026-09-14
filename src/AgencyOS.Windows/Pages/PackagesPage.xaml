@@ -46,7 +46,7 @@
                       SelectionChanged="OnPackageSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Padding="4,6">
+                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                             <TextBlock Text="{Binding Name}" />
                             <TextBlock Text="{Binding ProjectTitle}" Opacity="0.7"
                                        Style="{StaticResource CaptionTextBlockStyle}" />
@@ -104,7 +104,7 @@
                               AutomationProperties.Name="Attached talent" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <TextBlock Text="{Binding DisplayName}" />
                                     <TextBlock Text="{Binding Detail}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
@@ -123,7 +123,7 @@
                               AutomationProperties.Name="Proposed roles" SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <TextBlock Text="{Binding DisplayName}" />
                                     <TextBlock Text="{Binding Detail}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
@@ -142,8 +142,8 @@
                               AutomationProperties.Name="Gaps" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6">
-                                    <TextBlock Text="{Binding Type}" />
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                    <TextBlock Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
                                     <TextBlock Text="{Binding Label}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
                                 </StackPanel>

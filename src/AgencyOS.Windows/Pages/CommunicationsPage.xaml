@@ -59,7 +59,7 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
-                            <ComboBox x:Name="MessageAccountBox" MinWidth="220"
+                            <ComboBox x:Name="MessageAccountBox" AutomationProperties.Name="Mailbox" MinWidth="220"
                                       PlaceholderText="All mailboxes I may read"
                                       SelectionChanged="OnMessageFilterChanged" />
 
@@ -100,7 +100,7 @@
                                   SelectionChanged="OnMessageSelected">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Padding="4,6">
+                                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                         <TextBlock Text="{Binding Subject}" TextTrimming="CharacterEllipsis" />
                                         <TextBlock Text="{Binding FromAddress}" Opacity="0.7"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
@@ -167,7 +167,7 @@
                                           SelectionChanged="OnParticipantSelected">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="50" />
                                                     <ColumnDefinition Width="*" />
@@ -202,7 +202,7 @@
                                           SelectionChanged="OnAttachmentSelected">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Padding="4,6" ColumnSpacing="10">
+                                            <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
@@ -231,7 +231,7 @@
                                           Padding="0,10,0,0" SelectionChanged="OnMessageLinkSelected">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
-                                            <StackPanel Padding="4,6">
+                                            <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                                 <TextBlock Text="{Binding TargetLabel}" />
                                                 <TextBlock Text="{Binding Target}" Opacity="0.6"
                                                            Style="{StaticResource CaptionTextBlockStyle}" />
@@ -290,7 +290,7 @@
                               SelectionChanged="OnOutboundSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="230" />
@@ -303,7 +303,7 @@
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                     </StackPanel>
 
-                                    <TextBlock Grid.Column="1" Text="{Binding State}"
+                                    <TextBlock Grid.Column="1" Text="{Binding State, Converter={StaticResource DisplayLabel}}"
                                                VerticalAlignment="Center" Opacity="0.8"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
 
@@ -354,7 +354,7 @@
                               SelectionChanged="OnMailboxSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="170" />
@@ -368,7 +368,7 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1">
-                                        <TextBlock Text="{Binding State}" Opacity="0.8"
+                                        <TextBlock Text="{Binding State, Converter={StaticResource DisplayLabel}}" Opacity="0.8"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                         <TextBlock Text="{Binding LastSyncedAt}" Opacity="0.5"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
@@ -412,7 +412,7 @@
                               AutomationProperties.Name="Desk">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="240" />
@@ -424,7 +424,7 @@
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                     </StackPanel>
 
-                                    <TextBlock Grid.Column="1" Text="{Binding State}"
+                                    <TextBlock Grid.Column="1" Text="{Binding State, Converter={StaticResource DisplayLabel}}"
                                                VerticalAlignment="Center" Opacity="0.8"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
                                 </Grid>

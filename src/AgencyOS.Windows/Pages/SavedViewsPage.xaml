@@ -43,7 +43,7 @@
                 SelectionChanged="OnViewSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Padding="4,6">
+                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                             <TextBlock Text="{Binding Name}" />
                             <TextBlock Text="{Binding Target}" Opacity="0.6"
                                        Style="{StaticResource CaptionTextBlockStyle}" />
@@ -124,7 +124,7 @@
                           AutomationProperties.Name="Results" SelectionMode="Single">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid Padding="4,6" ColumnSpacing="12">
+                            <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
@@ -138,7 +138,7 @@
                                 </StackPanel>
                                 <TextBlock
                                     Grid.Column="1"
-                                    Text="{Binding Kind}"
+                                    Text="{Binding Kind, Converter={StaticResource DisplayLabel}}"
                                     VerticalAlignment="Center"
                                     Opacity="0.55"
                                     Style="{StaticResource CaptionTextBlockStyle}" />

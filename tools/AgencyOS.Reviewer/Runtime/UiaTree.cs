@@ -209,6 +209,17 @@ internal static class UiaTree
         }
     }
 
+    /// <summary>
+    /// The short names of the patterns a control supports.
+    /// </summary>
+    /// <remarks>
+    /// UI Automation names a pattern <c>InvokePatternIdentifiers.Pattern</c>, and
+    /// the whole harness asks questions like "does this support Invoke". Run 001
+    /// trimmed the wrong suffix, so every such question answered no: three of the
+    /// five accessibility checks and both clipping checks could not fire, and
+    /// their zeroes were evidence of nothing. <see cref="ShortName"/> is the
+    /// single place that trimming happens, and ScannerTests pins it.
+    /// </remarks>
     private static IReadOnlyList<string> Patterns(AutomationElement element)
     {
         try
@@ -217,8 +228,7 @@ internal static class UiaTree
             [
                 .. element
                     .GetSupportedPatterns()
-                    .Select(x => x.ProgrammaticName.Replace(
-                        "Pattern.Pattern", string.Empty, StringComparison.Ordinal))
+                    .Select(x => ShortName(x.ProgrammaticName))
                     .OrderBy(x => x, StringComparer.Ordinal),
             ];
         }
@@ -226,6 +236,20 @@ internal static class UiaTree
         {
             return [];
         }
+    }
+
+    /// <summary>Turns a pattern's programmatic name into the name a reader uses.</summary>
+    /// <param name="programmaticName">The name UI Automation reports.</param>
+    /// <returns>The pattern's short name, such as <c>Invoke</c>.</returns>
+    internal static string ShortName(string programmaticName)
+    {
+        ArgumentNullException.ThrowIfNull(programmaticName);
+
+        const string Suffix = "PatternIdentifiers.Pattern";
+
+        return programmaticName.EndsWith(Suffix, StringComparison.Ordinal)
+            ? programmaticName[..^Suffix.Length]
+            : programmaticName;
     }
 
     private static string? ValueOf(AutomationElement element)
