@@ -297,7 +297,7 @@ internal sealed class OpenerProbe
 
         if (appeared.Length > 0)
         {
-            return appeared.Any(x => x.StartsWith("Error:", StringComparison.Ordinal))
+            return appeared.Any(x => x.StartsWith(FailureTitle, StringComparison.Ordinal))
                 ? "FAILED_WITH_VISIBLE_ERROR"
                 : "REFUSED_WITH_FEEDBACK";
         }
@@ -305,20 +305,64 @@ internal sealed class OpenerProbe
         return "INVOKED_NO_OBSERVABLE_OUTCOME";
     }
 
-    /// <summary>Every notice the page is showing, with its severity and text.</summary>
+    /// <summary>
+    /// The title every AgencyOS page gives a failure, as distinct from a notice.
+    /// </summary>
     /// <remarks>
+    /// The one string this probe reads, and it is read deliberately. UI Automation
+    /// does not expose an <c>InfoBar</c>'s severity: the bar arrives as a
+    /// <c>StatusBar</c> whose only severity signal is a standard icon whose
+    /// accessible name is in the operating system's display language — which on
+    /// this machine is Hebrew, and which the harness has already been caught
+    /// trusting once. A product string in this repository is a firmer thing to
+    /// stand on than a localized one from the shell, and if the copy changes this
+    /// degrades to <c>REFUSED_WITH_FEEDBACK</c>, which is still "the product
+    /// answered" rather than the silence being hunted.
+    /// </remarks>
+    private const string FailureTitle = "That did not happen";
+
+    /// <summary>Every notice the page is showing, with its title and message.</summary>
+    /// <remarks>
+    /// <para>
     /// An <c>InfoBar</c> that is closed is not in the automation tree at all, so
     /// presence is the signal. The text goes in because "a notice appeared" and
-    /// "the notice that was already there is still there" are different answers.
+    /// "the notice that was already there is still there" are different answers,
+    /// and only the first is the product answering this invocation.
+    /// </para>
+    /// <para>
+    /// Read as the tree actually presents it, which took a correction. An open
+    /// <c>InfoBar</c> arrives as a <c>StatusBar</c> whose class name is the
+    /// <em>fully qualified</em> <c>Microsoft.UI.Xaml.Controls.InfoBar</c>, with no
+    /// accessible name of its own; its title and message are child text elements
+    /// carrying those automation ids. Matching the short class name and reading
+    /// <c>Name</c> found nothing at all, so every notice on every page was
+    /// invisible to this probe — which would have reported a legitimate refusal as
+    /// the silence this wave exists to catch.
+    /// </para>
     /// </remarks>
     internal static IReadOnlyList<string> Notices(UiaNode tree) =>
     [
         .. tree.Flatten()
-            .Where(x => x.ClassName == "InfoBar" && !x.IsOffscreen)
-            .Select(x => (x.Name ?? "«unnamed»") + " — " + (x.HelpText ?? x.Value ?? string.Empty))
+            .Where(x => x.ClassName is { Length: > 0 } name
+                && (name.EndsWith(".InfoBar", StringComparison.Ordinal)
+                    || string.Equals(name, "InfoBar", StringComparison.Ordinal))
+                && !x.IsOffscreen)
+            .Select(Describe)
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal),
     ];
+
+    /// <summary>One notice, as an operator would read it.</summary>
+    private static string Describe(UiaNode bar)
+    {
+        string? Part(string automationId) => bar.Flatten()
+            .FirstOrDefault(x => x.AutomationId == automationId)?.Name;
+
+        string title = Part("Title") ?? bar.Name ?? "«untitled»";
+        string message = Part("Message") ?? bar.HelpText ?? bar.Value ?? string.Empty;
+
+        return message.Length > 0 ? title + " — " + message : title;
+    }
 
     private static string Join(IReadOnlyList<string> values) =>
         values.Count == 0 ? "none" : string.Join(" | ", values);

@@ -8,6 +8,16 @@ the tab, select the row where the opener needs one, invoke — and writes a scre
 capture and an automation tree from before and after the invocation, then names
 what an operator would have seen.
 
+**The instrument needed one correction of its own, and both runs below were taken
+after it.** Its first version matched an `InfoBar` by the short class name and read
+the bar's `Name`; a running tree reports an open `InfoBar` as a `StatusBar` whose
+class name is the fully qualified `Microsoft.UI.Xaml.Controls.InfoBar`, with no
+name of its own and its title and message as child elements. So it found no
+notices anywhere, on any page, and would have called a legitimate refusal the
+silence it was built to detect. It reads them properly now, and
+`OpenerOutcomeTests` builds its samples in the shape the tree actually produces so
+this cannot quietly return.
+
 **Environment for both runs**
 
 | | |
@@ -37,7 +47,7 @@ the summaries are mirrored into [`evidence/`](evidence/).
 
 | | |
 | --- | --- |
-| **BEFORE** | Communications → Mailboxes, one row, "Test Mailbox, Review Owner, Error" selected. Clicked the product's own "Connect a mailbox" button. Invoked. **No dialog. No notice. Focus stayed on `ConnectButton`.** |
+| **BEFORE** | Communications → Mailboxes, one row, "Test Mailbox, Review Owner, Error" selected. Clicked the product's own "Connect a mailbox" button. Invoked. **No dialog. Nothing said.** The page's standing notice — "Credentials never reach this application" — was open before the click and unchanged after it, which is the case the verdict exists to separate: a notice that was already there is not an answer to this invocation. |
 | **REPRODUCED_BEFORE** | `REPRODUCED` — `INVOKED_NO_OBSERVABLE_OUTCOME` |
 | **ROOT_CAUSE** | `VisibilityBox` declares its default selection in markup; the parser raises `SelectionChanged` during `InitializeComponent()`; `Update()` dereferences `_providers`, which the constructor assigns afterwards. `XamlParseException` out of the constructor, discarded by `_ = ConnectMailboxAsync()`. |
 | **FIX_APPLIED** | `Update()` returns when `_providers` is null. The constructor calls it again once the dialog is whole. |

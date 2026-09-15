@@ -1,7 +1,7 @@
 {
   "RunId": "REPAIR-003A-AFTER",
-  "StartedUtc": "2026-09-15T17:50:04.2684301+00:00",
-  "FinishedUtc": "2026-09-15T17:51:04.4888957+00:00",
+  "StartedUtc": "2026-09-15T19:03:16.5061082+00:00",
+  "FinishedUtc": "2026-09-15T19:04:18.7341203+00:00",
   "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
   "Environment": {
     "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
@@ -21,8 +21,14 @@
       "How": "BUTTON",
       "Outcome": "OPENED",
       "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
-      "NoticesBefore": [],
-      "NoticesAfter": [],
+      "NoticesBefore": [
+        "Credentials never reach this application \u2014 Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them."
+      ],
+      "NoticesAfter": [
+        "A mailbox is somebody\u0027s correspondence \u2014 Connecting a mailbox does not open it to the agency. Visibility decides who may read it, and it defaults to nobody but you.",
+        "Credentials never reach this application \u2014 Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them.",
+        "Credentials stay on the server \u2014 The code is exchanged by the AgencyOS server. Access and refresh tokens are encrypted at rest there and are never returned to this application."
+      ],
       "FocusBefore": "ListItem \u0022Test Mailbox, Review Owner, Error\u0022",
       "FocusAfter": "ComboBox ProviderBox",
       "Steps": [
@@ -30,11 +36,11 @@
         "select the Mailboxes tab: selected",
         "rows on the tab: 1 (first: Test Mailbox, Review Owner, Error)",
         "select a row: \u0027Test Mailbox, Review Owner, Error\u0027 is selected",
-        "notices before: none",
+        "notices before: Credentials never reach this application \u2014 Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them.",
         "focus before: ListItem \u0022Test Mailbox, Review Owner, Error\u0022",
         "click \u0022Connect a mailbox\u0022: Invoked \u0027Connect a mailbox\u0027.",
         "a dialog appeared: yes \u2014 \u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
-        "notices after: none",
+        "notices after: A mailbox is somebody\u0027s correspondence \u2014 Connecting a mailbox does not open it to the agency. Visibility decides who may read it, and it defaults to nobody but you. | Credentials never reach this application \u2014 Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them. | Credentials stay on the server \u2014 The code is exchanged by the AgencyOS server. Access and refresh tokens are encrypted at rest there and are never returned to this application.",
         "focus after: ComboBox ProviderBox",
         "outcome: OPENED"
       ],
@@ -60,7 +66,9 @@
       "Outcome": "OPENED",
       "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
       "NoticesBefore": [],
-      "NoticesAfter": [],
+      "NoticesAfter": [
+        "This forecast is yours \u2014 AgencyOS records the probability with your name and the date, keeps every revision, and scores it against what actually happened."
+      ],
       "FocusBefore": "TabItem \u0022Predictions\u0022",
       "FocusAfter": "Edit StatementBox",
       "Steps": [
@@ -71,7 +79,7 @@
         "focus before: TabItem \u0022Predictions\u0022",
         "run intelligence.prediction.create: ran from the palette, matched by label on 1 result(s)",
         "a dialog appeared: yes \u2014 \u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
-        "notices after: none",
+        "notices after: This forecast is yours \u2014 AgencyOS records the probability with your name and the date, keeps every revision, and scores it against what actually happened.",
         "focus after: Edit StatementBox",
         "outcome: OPENED"
       ],
@@ -97,7 +105,9 @@
       "Outcome": "OPENED",
       "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
       "NoticesBefore": [],
-      "NoticesAfter": [],
+      "NoticesAfter": [
+        "What AgencyOS will hold \u2014 What you observed, in your words, with your name on it. There is no artifact behind this one."
+      ],
       "FocusBefore": "TabItem \u0022Sources\u0022",
       "FocusAfter": "ComboBox KindBox",
       "Steps": [
@@ -108,7 +118,7 @@
         "focus before: TabItem \u0022Sources\u0022",
         "run intelligence.source.record: ran from the palette, matched by label on 1 result(s)",
         "a dialog appeared: yes \u2014 \u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
-        "notices after: none",
+        "notices after: What AgencyOS will hold \u2014 What you observed, in your words, with your name on it. There is no artifact behind this one.",
         "focus after: ComboBox KindBox",
         "outcome: OPENED"
       ],
@@ -134,7 +144,9 @@
       "Outcome": "OPENED",
       "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
       "NoticesBefore": [],
-      "NoticesAfter": [],
+      "NoticesAfter": [
+        "How this will be scored \u2014 A Brier score will be computed from the last probability stated before this moment. Zero is a perfect forecast and one is confidently wrong."
+      ],
       "FocusBefore": "ListItem \u0022Synthetic probe., Review Owner, Open\u0022",
       "FocusAfter": "ComboBox OutcomeBox",
       "Steps": [
@@ -146,7 +158,7 @@
         "focus before: ListItem \u0022Synthetic probe., Review Owner, Open\u0022",
         "run intelligence.prediction.resolve: ran from the palette, matched by label on 1 result(s)",
         "a dialog appeared: yes \u2014 \u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
-        "notices after: none",
+        "notices after: How this will be scored \u2014 A Brier score will be computed from the last probability stated before this moment. Zero is a perfect forecast and one is confidently wrong.",
         "focus after: ComboBox OutcomeBox",
         "outcome: OPENED"
       ],

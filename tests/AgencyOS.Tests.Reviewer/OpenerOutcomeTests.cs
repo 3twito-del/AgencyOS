@@ -54,6 +54,12 @@ public sealed class OpenerOutcomeTests
                 noticesAfter: ["No provider is configured — register the application first"]));
 
     /// <summary>An error the operator can read is a failure, and a visible one.</summary>
+    /// <remarks>
+    /// Keyed on the title every AgencyOS page gives a failure, because UI
+    /// Automation does not expose an <c>InfoBar</c>'s severity and the only
+    /// severity signal in the tree is an icon named in the shell's display
+    /// language.
+    /// </remarks>
     [Fact]
     public void AnErrorThatAppearedIsAVisibleFailure() =>
         Assert.Equal(
@@ -64,7 +70,7 @@ public sealed class OpenerOutcomeTests
                 before: Page(),
                 dialog: null,
                 noticesBefore: [],
-                noticesAfter: ["Error: that did not happen — the server refused it"]));
+                noticesAfter: ["That did not happen — the server refused it"]));
 
     /// <summary>
     /// A notice that was already open is not an answer to this invocation.
@@ -137,21 +143,55 @@ public sealed class OpenerOutcomeTests
                 noticesBefore: [],
                 noticesAfter: []));
 
-    /// <summary>Open notices are read from the tree, with what they say.</summary>
+    /// <summary>
+    /// A notice is read the way the running tree actually presents one.
+    /// </summary>
+    /// <remarks>
+    /// The shape is measured, not assumed: an open <c>InfoBar</c> arrives as a
+    /// <c>StatusBar</c> whose class name is fully qualified and which has no
+    /// accessible name of its own, with the title and message as child text
+    /// elements. Reading <c>Name</c> off a control whose class name was matched
+    /// short found nothing at all, on any page, which would have reported every
+    /// legitimate refusal as the silence this probe exists to catch.
+    /// </remarks>
     [Fact]
-    public void OpenNoticesAreReadFromTheTree()
+    public void ANoticeIsReadAsTheTreePresentsIt()
     {
-        string notice = Assert.Single(OpenerProbe.Notices(
-            Page(Node("Group", "No provider is configured", className: "InfoBar"))));
+        string notice = Assert.Single(OpenerProbe.Notices(Page(InfoBar(
+            "No provider is configured",
+            "An administrator has to register the application with the mail provider."))));
 
-        Assert.StartsWith("No provider is configured", notice, StringComparison.Ordinal);
+        Assert.Equal(
+            "No provider is configured — An administrator has to register "
+                + "the application with the mail provider.",
+            notice);
     }
+
+    /// <summary>The short class name is accepted too, for a tree that reports one.</summary>
+    [Fact]
+    public void AShortClassNameIsAlsoANotice() =>
+        Assert.Single(OpenerProbe.Notices(
+            Page(Node("StatusBar", className: "InfoBar", children:
+                [Node("Text", "No provider is configured", automationId: "Title")]))));
+
+    /// <summary>A notice with no message is still a notice.</summary>
+    [Fact]
+    public void ANoticeWithNoMessageIsStillRead() =>
+        Assert.Equal(
+            "No provider is configured",
+            Assert.Single(OpenerProbe.Notices(Page(InfoBar("No provider is configured", null)))));
 
     /// <summary>A closed notice is not in the tree, and is not counted.</summary>
     [Fact]
     public void AnOffscreenNoticeIsNotCounted() =>
         Assert.Empty(OpenerProbe.Notices(
-            Page(Node("Group", "No provider is configured", className: "InfoBar", offscreen: true))));
+            Page(InfoBar("No provider is configured", "…", offscreen: true))));
+
+    /// <summary>Nothing that is not a notice is counted as one.</summary>
+    [Fact]
+    public void AnOrdinaryStatusBarIsNotANotice() =>
+        Assert.Empty(OpenerProbe.Notices(
+            Page(Node("StatusBar", "Ready", className: "Microsoft.UI.Xaml.Controls.StatusBar"))));
 
     // ------------------------------------------------------------ hand-built
 
@@ -164,15 +204,29 @@ public sealed class OpenerOutcomeTests
     private static UiaNode Button(string name, bool enabled) =>
         Node("Button", name, enabled: enabled);
 
+    /// <summary>An open InfoBar, in the shape the running tree reports one.</summary>
+    private static UiaNode InfoBar(string title, string? message, bool offscreen = false) =>
+        Node(
+            "StatusBar",
+            className: "Microsoft.UI.Xaml.Controls.InfoBar",
+            offscreen: offscreen,
+            children:
+            [
+                Node("Image", "סמל", automationId: "StandardIcon"),
+                Node("Text", title, automationId: "Title"),
+                .. message is null ? [] : new[] { Node("Text", message, automationId: "Message") },
+            ]);
+
     private static UiaNode Node(
         string controlType,
         string? name = null,
         string? className = null,
         bool enabled = true,
         bool offscreen = false,
+        string? automationId = null,
         IReadOnlyList<UiaNode>? children = null) =>
         new(
-            AutomationId: null,
+            AutomationId: automationId,
             Name: name,
             ControlType: controlType,
             ClassName: className ?? controlType,

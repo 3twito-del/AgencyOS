@@ -1,7 +1,7 @@
 {
   "RunId": "REPAIR-003A-BEFORE",
-  "StartedUtc": "2026-09-15T17:48:16.0608823+00:00",
-  "FinishedUtc": "2026-09-15T17:49:13.9863291+00:00",
+  "StartedUtc": "2026-09-15T19:00:18.3770913+00:00",
+  "FinishedUtc": "2026-09-15T19:01:14.8854879+00:00",
   "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
   "Environment": {
     "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
@@ -21,8 +21,12 @@
       "How": "BUTTON",
       "Outcome": "INVOKED_NO_OBSERVABLE_OUTCOME",
       "DialogTitle": null,
-      "NoticesBefore": [],
-      "NoticesAfter": [],
+      "NoticesBefore": [
+        "Credentials never reach this application \u2014 Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them."
+      ],
+      "NoticesAfter": [
+        "Credentials never reach this application \u2014 Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them."
+      ],
       "FocusBefore": "ListItem \u0022Test Mailbox, Review Owner, Error\u0022",
       "FocusAfter": "Button ConnectButton",
       "Steps": [
@@ -30,11 +34,11 @@
         "select the Mailboxes tab: selected",
         "rows on the tab: 1 (first: Test Mailbox, Review Owner, Error)",
         "select a row: \u0027Test Mailbox, Review Owner, Error\u0027 is selected",
-        "notices before: none",
+        "notices before: Credentials never reach this application \u2014 Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them.",
         "focus before: ListItem \u0022Test Mailbox, Review Owner, Error\u0022",
         "click \u0022Connect a mailbox\u0022: Invoked \u0027Connect a mailbox\u0027.",
         "a dialog appeared: no",
-        "notices after: none",
+        "notices after: Credentials never reach this application \u2014 Mailbox tokens are held encrypted on the AgencyOS server. Nothing here has ever seen one, and disconnecting destroys them.",
         "focus after: Button ConnectButton",
         "outcome: INVOKED_NO_OBSERVABLE_OUTCOME"
       ],
@@ -99,7 +103,7 @@
       "NoticesBefore": [],
       "NoticesAfter": [],
       "FocusBefore": "TabItem \u0022Sources\u0022",
-      "FocusAfter": "Button TogglePaneButton",
+      "FocusAfter": "Group \u0022Session chapters Chat messages\u0022",
       "Steps": [
         "navigate to Intelligence: ok",
         "select the Sources tab: selected",
@@ -109,7 +113,7 @@
         "run intelligence.source.record: ran from the palette, matched by label on 1 result(s)",
         "a dialog appeared: no",
         "notices after: none",
-        "focus after: Button TogglePaneButton",
+        "focus after: Group \u0022Session chapters Chat messages\u0022",
         "outcome: INVOKED_NO_OBSERVABLE_OUTCOME"
       ],
       "Screenshots": [

@@ -76,9 +76,10 @@ in [`REPAIR-003A-RUNTIME.md`](REPAIR-003A-RUNTIME.md).
 | `RecordSourceDialog` | Intelligence → Sources, palette `intelligence.source.record` | **`REPRODUCED`** |
 | `ResolvePredictionDialog` | Intelligence → Predictions, prediction selected, palette `intelligence.prediction.resolve` | **`REPRODUCED`** |
 
-In every case the opener was invoked, no dialog appeared, no notice appeared, no
-existing notice changed, and focus did not enter anything. **No divergence: all
-four reproduce, so they were not split.**
+In every case the opener was invoked, no dialog appeared, no notice changed —
+Communications' standing notice was open before the click and unchanged after it —
+and focus did not enter anything. **No divergence: all four reproduce, so they
+were not split.**
 
 Preconditions were verified against the running API rather than assumed:
 `communication-providers` → 1, `communication-accounts` → 1,
@@ -243,7 +244,38 @@ OPENED · REFUSED_WITH_FEEDBACK · DISABLED · MISSING_OPENER · FAILED_WITH_VIS
 
 `OpenerOutcomeTests` holds a positive and a negative control for each, including
 the one that matters most: a notice that was *already open* before the invocation
-is not an answer to it.
+is not an answer to it. That case is not hypothetical — the Communications page
+shows a standing notice, and the baseline run exercises it exactly.
+
+**The probe's notice reader had to be corrected before any of this was true.** Its
+first version matched an `InfoBar` by the short class name and read the bar's
+`Name`. A running tree reports an open `InfoBar` as a `StatusBar` whose class name
+is the fully qualified `Microsoft.UI.Xaml.Controls.InfoBar`, with no accessible
+name of its own and its title and message as child elements — so the reader found
+no notices anywhere, on any page, and would have reported a correct refusal as the
+silence it exists to detect. Caught by reading a captured tree rather than trusting
+the code, corrected, and pinned by tests built in the shape the tree actually
+produces. The runtime evidence in this report was re-taken afterwards.
+
+One limitation is stated rather than papered over: **UI Automation does not expose
+an `InfoBar`'s severity.** The only severity signal in the tree is a standard icon
+whose accessible name is in the operating system's display language, which this
+harness has already been caught trusting once. So `FAILED_WITH_VISIBLE_ERROR` is
+keyed on the title every AgencyOS page gives a failure — a string in this
+repository, not one from the shell — and if that copy ever changes the verdict
+degrades to `REFUSED_WITH_FEEDBACK`, which is still "the product answered".
+
+**The rule was mutation-tested, not just baseline-tested.** Failing on `6e9b66f`
+only proves it recognises four dialogs it was written against. Two mutations were
+applied to the repaired tree and reverted:
+
+| Mutation | Result |
+| --- | --- |
+| Remove the guard from `CreatePredictionDialog.ApplyProbability()` | **fails**, naming `ProbabilityText` |
+| Add a *new* dialog with the defect and nothing else — a combo box with a default selection, a handler, and a `TextBlock` below it | **fails**, naming `PickBox.SelectionChanged` and `EchoText` |
+
+The second is the one that matters: the rule catches a dialog it has never seen,
+so it is a rule and not a list of four.
 
 ## 14. `AOS-R002-017` admission decision
 
@@ -309,23 +341,25 @@ file with code-behind), `OpenerRefusalTests` 8.
 
 ## 21. Reviewer count
 
-**143**, from 124. `OpenerOutcomeTests` 10, `PaletteMatchTests` 9.
+**146**, from 124. `OpenerOutcomeTests` 13, `PaletteMatchTests` 9.
 
 ## 22. Integration count
 
-**821**, from 816. Four new assertions for `AOS-R002-017` — three content types on
-the document route and one on the version route — plus one negative control, all
-in the existing `DocumentTests`.
+**821 / 821 passed in CI**, from 816. Four new assertions for `AOS-R002-017` —
+three content types on the document route and one on the version route — plus one
+negative control, all in the existing `DocumentTests`.
 
-Locally: 818 passed, 3 failed — `BackupRestoreDrillTests`, all three reporting
-`pg_dump is not on PATH. AgencyOS backup requires the PostgreSQL 18 client tools.`
-**This machine has no PostgreSQL 18 client tools.** The same three fail identically
-on the unmodified tree, which was checked rather than assumed, so they are an
-environment gap here and not a regression. The authoritative run is CI.
+A local run showed 818 passed and 3 failed: `BackupRestoreDrillTests`, all three
+reporting `pg_dump is not on PATH. AgencyOS backup requires the PostgreSQL 18
+client tools.` **This machine has no PostgreSQL 18 client tools.** The same three
+fail identically on the unmodified tree — checked rather than assumed — and all
+three pass in CI, which settles it: an environment gap here, not a regression.
 
 ## 23. `postgres:18.6` evidence
 
-CI, against `postgres:18.6`, on the exact tip. See the closing block.
+**CI run `35008321026`, job "Integration tests (PostgreSQL 18.6)" — success,
+821 of 821**, on the exact tip `bb7f424`. That is the authoritative integration
+evidence for this wave.
 
 Local integration runs used PostgreSQL **19beta3** and are LAB evidence only, per
 §21. Nothing in this report rests on them.
@@ -333,7 +367,20 @@ Local integration runs used PostgreSQL **19beta3** and are LAB evidence only, pe
 ## 24. TLA+ result
 
 **4 / 4.** `OfflineWriteQueue`, `OutboundSend`, `AiApproval`,
-`LocalInferenceLease`. No error found in any.
+`LocalInferenceLease`. No error found in any, locally and in CI.
+
+### Gate summary — authoritative, from CI run `35008321026` on `bb7f424`
+
+| Gate | Before | After |
+| --- | --- | --- |
+| build | 0 warnings / 0 errors | **0 / 0** |
+| unit | 3,755 | **3,755** |
+| Windows | 733 | **824** |
+| reviewer | 124 | **146** |
+| integration | green vs `postgres:18.6` | **821 / 821 vs `postgres:18.6`** |
+| OpenAPI | 263 paths / 187 schemas | **263 / 187** |
+| API contract | 14 | **14** |
+| TLA+ | 4 / 4 | **4 / 4** |
 
 ## 25. Runtime before/after evidence
 

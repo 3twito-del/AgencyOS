@@ -1,7 +1,7 @@
 {
   "RunId": "REPAIR-003A-REFUSAL",
-  "StartedUtc": "2026-09-15T17:00:13.0515254+00:00",
-  "FinishedUtc": "2026-09-15T17:00:32.7138658+00:00",
+  "StartedUtc": "2026-09-15T19:04:28.3481792+00:00",
+  "FinishedUtc": "2026-09-15T19:04:46.3225328+00:00",
   "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
   "Environment": {
     "AGENCYOS_API_BASE": "http://127.0.0.1:5199",

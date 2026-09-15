@@ -1,7 +1,7 @@
 {
   "RunId": "REPAIR-003A-AFTER",
-  "StartedUtc": "2026-09-15T17:06:41.8659664+00:00",
-  "FinishedUtc": "2026-09-15T17:08:39.0123301+00:00",
+  "StartedUtc": "2026-09-15T19:04:54.2738068+00:00",
+  "FinishedUtc": "2026-09-15T19:06:11.4870237+00:00",
   "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
   "Environment": {
     "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
@@ -219,53 +219,49 @@
       "DialogId": "ResolvePredictionDialog",
       "Outcome": "OPENED",
       "How": "PALETTE",
-      "Detail": "ran intelligence.prediction.resolve from the palette (on Watchlists)",
+      "Detail": "ran intelligence.prediction.resolve from the palette",
       "Screenshots": [
         "evidence/dialog.ResolvePredictionDialog/01-open.png",
         "evidence/dialog.ResolvePredictionDialog/02-after-escape.png"
       ],
       "TreePath": "evidence/dialog.ResolvePredictionDialog/ui-tree.json",
-      "Title": "Resolve this prediction",
-      "InitialFocus": "ComboBox OutcomeBox",
+      "Title": "Choose a prediction first",
+      "InitialFocus": "Button CloseButton",
       "Buttons": [
-        "Cancel",
-        "Resolve"
+        "Close"
       ],
-      "Fields": [
-        "ComboBox OutcomeBox",
-        "Edit NoteBox"
-      ],
+      "Fields": [],
       "TabOrder": [
-        "Edit NoteBox",
-        "Button PrimaryButton",
         "Button CloseButton",
-        "ComboBox OutcomeBox",
-        "Edit NoteBox",
-        "Button PrimaryButton",
         "Button CloseButton",
-        "ComboBox OutcomeBox",
-        "Edit NoteBox",
-        "Button PrimaryButton",
         "Button CloseButton",
-        "ComboBox OutcomeBox",
-        "Edit NoteBox",
-        "Button PrimaryButton"
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton"
       ],
       "ReverseTabOrder": [
-        "Edit NoteBox",
-        "ComboBox OutcomeBox",
         "Button CloseButton",
-        "Button PrimaryButton",
-        "Edit NoteBox",
-        "ComboBox OutcomeBox",
         "Button CloseButton",
-        "Button PrimaryButton",
-        "Edit NoteBox",
-        "ComboBox OutcomeBox",
         "Button CloseButton",
-        "Button PrimaryButton",
-        "Edit NoteBox",
-        "ComboBox OutcomeBox"
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton",
+        "Button CloseButton"
       ],
       "ReverseTabEscaped": false,
       "DefaultAction": "Close",
@@ -280,6 +276,6 @@
       "FocusLandedOn": "Button TogglePaneButton"
     }
   ],
-  "RefusedKeystrokes": 1,
+  "RefusedKeystrokes": 0,
   "ApplicationClosedAt": []
 }
