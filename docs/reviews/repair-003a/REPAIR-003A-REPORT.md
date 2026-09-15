@@ -357,9 +357,10 @@ three pass in CI, which settles it: an environment gap here, not a regression.
 
 ## 23. `postgres:18.6` evidence
 
-**CI run `35008321026`, job "Integration tests (PostgreSQL 18.6)" — success,
-821 of 821**, on the exact tip `bb7f424`. That is the authoritative integration
-evidence for this wave.
+**CI run `35012620677`, job "Integration tests (PostgreSQL 18.6)" — success,
+821 of 821**, on the final executable tip `6cc0920`. That is the authoritative
+integration evidence for this wave. The earlier run `35008321026` was green on
+`bb7f424` with the same counts, before the harness correction in §13.
 
 Local integration runs used PostgreSQL **19beta3** and are LAB evidence only, per
 §21. Nothing in this report rests on them.
@@ -369,7 +370,17 @@ Local integration runs used PostgreSQL **19beta3** and are LAB evidence only, pe
 **4 / 4.** `OfflineWriteQueue`, `OutboundSend`, `AiApproval`,
 `LocalInferenceLease`. No error found in any, locally and in CI.
 
-### Gate summary — authoritative, from CI run `35008321026` on `bb7f424`
+### Nightly
+
+Not strictly affected — Nightly runs on a schedule from the default branch, and
+this work is on `repair-wave-001` — but it was dispatched on this ref rather than
+reasoned about, because the wave touches an API endpoint and the NIGHTLY ring
+gates its artifact on the database suite.
+
+**Run `35009570540`: success, both jobs.** Integration tests against
+`postgres:18.6`, and "Nightly artifact (Windows)" — the packaged build.
+
+### Gate summary — authoritative, from CI run `35012620677` on `6cc0920`
 
 | Gate | Before | After |
 | --- | --- | --- |
