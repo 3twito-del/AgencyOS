@@ -38,6 +38,7 @@ obsolete is how an audit record rots.
 | `AOS-R002-009` — the command runs and nothing appears | Phase B, S3 | **CLOSED_AS_HARNESS_ERROR** — reviewer defects 9, 16, 17, 21 |
 | `AOS-R001-020` — F9 does nothing | Audit 001 | **NO_DEFECT** — navigation is intentional, acknowledgement observed |
 | `AOS-R002-002`, `AOS-R002-006` — no second user, membership write-once | Phase A/B, S2 | **CLOSED** by Repair Wave 003E-A |
+| "Twelve of fourteen §30 requirements met, two unmet" | Phase C | **Eleven of fourteen, three unmet.** Phase C's own table marked requirements 2, 3 **and 4** as NOT MET while its verdict counted two. An arithmetic slip in Phase C, corrected here rather than in that document |
 | "2 harness limitations, 3 inconclusive" (5 of 8) | Phase C summary | **8 of 8**, partitioned: 4 product defect, 3 precondition, 1 harness |
 | `ConnectMailboxDialog` — `PRECONDITION_NOT_MET` | Phase C | **wrong** — the server reports one provider; Phase C inferred it from the handler instead of asking |
 | `IngestAttachmentDialog`, `ResolveParticipantDialog` — `HARNESS_LIMITATION` | Phase C | **`PRECONDITION_UNACHIEVABLE`** — no message exists and no route creates one |

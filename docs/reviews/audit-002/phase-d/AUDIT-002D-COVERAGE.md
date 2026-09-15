@@ -70,6 +70,11 @@ eight that were not — which is the whole of the shortfall.
 
 **Eleven of fourteen met**, and the three unmet are one gap counted three times.
 
+Phase C reported *"twelve of fourteen met, two unmet"* while its own table marked
+requirements 2, 3 **and** 4 as NOT MET. That was an arithmetic slip; the correct
+figure then was eleven of fourteen, and it is unchanged now. Phase C's documents
+are left as issued and the correction is recorded in the aggregate report.
+
 Requirements 3 and 4 are satisfied for every dialog that was opened; they fail
 only because 2 does.
 
