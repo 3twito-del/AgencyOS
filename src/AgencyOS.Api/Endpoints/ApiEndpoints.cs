@@ -262,7 +262,106 @@ internal static class ApiEndpoints
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.MembershipsGrant))
             .WithName("GrantMembership");
+
+        // Who is in this organization. memberships.read is held by every role
+        // including Observer, and until now nothing in the product read it.
+        api.MapGet("/organizations/{id:guid}/members", async (
+                Guid id,
+                ListMembersHandler handler,
+                CancellationToken cancellationToken) =>
+            {
+                IReadOnlyList<OrganizationMember> members = await handler
+                    .HandleAsync(new ListMembersQuery(new OrganizationId(id)), cancellationToken)
+                    .ConfigureAwait(false);
+
+                return Results.Ok(members.Select(Map).ToArray());
+            })
+            .RequireAuthorization(PermissionPolicy.Name(Permission.MembershipsRead))
+            .WithName("ListOrganizationMembers");
+
+        // Registering a person and giving them a role is one authorized act. The
+        // two-step alternative - register, then grant - would leave a registered
+        // user in no organization if the second call failed.
+        api.MapPost("/organizations/{id:guid}/members", async (
+                Guid id,
+                AddMemberRequest request,
+                AddMemberHandler handler,
+                CancellationToken cancellationToken) =>
+            {
+                AgencyRole role = ParseEnum<AgencyRole>(request.Role, nameof(request.Role));
+
+                AddMemberResult result = await handler
+                    .HandleAsync(
+                        new AddMemberCommand(
+                            new OrganizationId(id),
+                            request.ExternalSubject,
+                            request.DisplayName,
+                            request.Email,
+                            role),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                return Results.Created(
+                    $"/api/v1/organizations/{id}/members",
+                    new AddMemberResponse(
+                        result.MembershipId.Value, result.UserId.Value, result.UserWasRegistered));
+            })
+            .RequireAuthorization(PermissionPolicy.Name(Permission.MembershipsGrant))
+            .WithName("AddOrganizationMember");
+
+        // Ending a membership, not deleting it. The row is retained so that what
+        // somebody could do last March stays answerable.
+        api.MapPost("/organizations/{id:guid}/members/{membershipId:guid}/revoke", async (
+                Guid id,
+                Guid membershipId,
+                RevokeMembershipHandler handler,
+                CancellationToken cancellationToken) =>
+            {
+                await handler
+                    .HandleAsync(
+                        new RevokeMembershipCommand(
+                            new OrganizationId(id), new MembershipId(membershipId)),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                return Results.NoContent();
+            })
+            .RequireAuthorization(PermissionPolicy.Name(Permission.MembershipsRevoke))
+            .WithName("RevokeOrganizationMembership");
+
+        // One transaction. A membership is never edited, so this ends one and
+        // grants another; doing it as two client calls would let a failure between
+        // them take somebody's access away and give nothing back.
+        api.MapPost("/organizations/{id:guid}/members/{membershipId:guid}/role", async (
+                Guid id,
+                Guid membershipId,
+                ChangeMemberRoleRequest request,
+                ChangeMemberRoleHandler handler,
+                CancellationToken cancellationToken) =>
+            {
+                AgencyRole role = ParseEnum<AgencyRole>(request.Role, nameof(request.Role));
+
+                ChangeMemberRoleResult result = await handler
+                    .HandleAsync(
+                        new ChangeMemberRoleCommand(
+                            new OrganizationId(id), new MembershipId(membershipId), role),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                return Results.Ok(new ChangeMemberRoleResponse(result.MembershipId.Value));
+            })
+            .RequireAuthorization(PermissionPolicy.Name(Permission.MembershipsGrant))
+            .WithName("ChangeOrganizationMemberRole");
     }
+
+    private static OrganizationMemberResponse Map(OrganizationMember member) => new(
+        member.MembershipId.Value,
+        member.UserId.Value,
+        member.DisplayName,
+        member.Email,
+        member.Role.ToString(),
+        member.GrantedAt,
+        member.IsSelf);
 
     private static void MapAudit(RouteGroupBuilder api)
     {

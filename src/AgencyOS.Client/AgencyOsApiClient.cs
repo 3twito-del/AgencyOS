@@ -8,6 +8,7 @@ using AgencyOS.Contracts.Documents;
 using AgencyOS.Contracts.Finance;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Opportunities;
+using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Releases;
 using AgencyOS.Contracts.Projects;
@@ -102,6 +103,57 @@ public partial interface IAgencyOsApi
 
     Task<IReadOnlyList<PersonSummaryResponse>> ListPeopleAsync(
         string? search = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Lists the people in the current organization, and what each may do.</summary>
+    /// <param name="cancellationToken">Cancellation.</param>
+    /// <returns>One entry per active membership.</returns>
+    Task<IReadOnlyList<OrganizationMemberResponse>> ListOrganizationMembersAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Brings somebody into the organization, registering them if AgencyOS has not
+    /// met them.
+    /// </summary>
+    /// <param name="request">Who, and as what.</param>
+    /// <param name="idempotencyKey">
+    /// Stable across every retry of this command. Null for an interactive request
+    /// the user can simply repeat.
+    /// </param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    /// <returns>The membership, and whether a user was registered.</returns>
+    Task<AddMemberResponse> AddOrganizationMemberAsync(
+        AddMemberRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Ends somebody's membership.
+    /// </summary>
+    /// <remarks>
+    /// The record is retained, so what they could do last March stays answerable.
+    /// The server refuses to end the organization's only owner.
+    /// </remarks>
+    /// <param name="membershipId">The membership to end.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    Task RevokeOrganizationMembershipAsync(
+        Guid membershipId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Moves somebody to a different role.
+    /// </summary>
+    /// <remarks>
+    /// One call, because the server does it in one transaction: a membership is
+    /// never edited, so the change is a revocation and a grant together.
+    /// </remarks>
+    /// <param name="membershipId">The membership to change.</param>
+    /// <param name="request">The role they should hold instead.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    /// <returns>The membership that now carries the role.</returns>
+    Task<ChangeMemberRoleResponse> ChangeOrganizationMemberRoleAsync(
+        Guid membershipId,
+        ChangeMemberRoleRequest request,
         CancellationToken cancellationToken = default);
 
     Task<PersonDetailResponse> GetPersonAsync(Guid personId, CancellationToken cancellationToken = default);
@@ -1797,6 +1849,42 @@ public sealed partial class AgencyOsApiClient : IAgencyOsApi
             $"{TenantRoot}/prospects/{prospectId}/convert",
             request,
             idempotencyKey,
+            cancellationToken);
+
+    public Task<IReadOnlyList<OrganizationMemberResponse>> ListOrganizationMembersAsync(
+        CancellationToken cancellationToken = default) =>
+        GetListAsync<OrganizationMemberResponse>($"{TenantRoot}/members", cancellationToken);
+
+    public Task<AddMemberResponse> AddOrganizationMemberAsync(
+        AddMemberRequest request,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<AddMemberRequest, AddMemberResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/members",
+            request,
+            idempotencyKey,
+            cancellationToken);
+
+    public Task RevokeOrganizationMembershipAsync(
+        Guid membershipId,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/members/{membershipId}/revoke",
+            body: (object?)null,
+            idempotencyKey: null,
+            cancellationToken);
+
+    public Task<ChangeMemberRoleResponse> ChangeOrganizationMemberRoleAsync(
+        Guid membershipId,
+        ChangeMemberRoleRequest request,
+        CancellationToken cancellationToken = default) =>
+        SendAsync<ChangeMemberRoleRequest, ChangeMemberRoleResponse>(
+            HttpMethod.Post,
+            $"{TenantRoot}/members/{membershipId}/role",
+            request,
+            idempotencyKey: null,
             cancellationToken);
 
     public Task<RepresentationResponse> GetRepresentationAsync(

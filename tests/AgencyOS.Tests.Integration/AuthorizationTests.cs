@@ -185,7 +185,7 @@ public sealed class AuthorizationTests
 
         foreach (var membership in memberships)
         {
-            membership.Revoke(userId, DateTimeOffset.UtcNow);
+            membership.Revoke(userId, DateTimeOffset.UtcNow, otherActiveOwners: 1);
         }
 
         await context.SaveChangesAsync();

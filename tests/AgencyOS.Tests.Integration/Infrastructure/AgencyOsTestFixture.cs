@@ -190,7 +190,7 @@ public sealed class AgencyOsTestFixture : IAsyncLifetime
 
         foreach (Membership membership in held)
         {
-            membership.Revoke(changedBy, DateTimeOffset.UtcNow);
+            membership.Revoke(changedBy, DateTimeOffset.UtcNow, otherActiveOwners: 1);
         }
 
         context.Memberships.Add(

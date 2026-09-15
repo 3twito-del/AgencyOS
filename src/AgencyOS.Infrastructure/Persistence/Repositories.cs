@@ -1,4 +1,4 @@
-using AgencyOS.Application.Abstractions;
+﻿using AgencyOS.Application.Abstractions;
 using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
@@ -65,6 +65,18 @@ internal sealed class MembershipRepository : IMembershipRepository
                 && x.UserId == userId
                 && x.Status == MembershipStatus.Active,
             cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Membership>> ListActiveForOrganizationAsync(
+        OrganizationId organizationId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Memberships
+            .Where(x => x.OrganizationId == organizationId
+                && x.Status == MembershipStatus.Active)
+            .OrderBy(x => x.GrantedAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public void Add(Membership membership) => _context.Memberships.Add(membership);

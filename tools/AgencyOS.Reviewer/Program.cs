@@ -61,6 +61,7 @@ public static class Program
             {
                 "inventory" => Inventory(options),
                 "fixture" => Fixture(options).GetAwaiter().GetResult(),
+                "personas" => Personas(options).GetAwaiter().GetResult(),
                 "observe" => Observe(options),
                 "layout" => Layout(options),
                 "rebaseline" => Rebaseline(options),
@@ -715,6 +716,116 @@ public static class Program
         return [.. sizes];
     }
 
+    // -------------------------------------------------------------- personas
+
+    /// <summary>
+    /// Creates the audit's role profiles through the product's own commands.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Audit 002 could only ever review AgencyOS as its first owner. Membership
+    /// was write-once and nothing could register a second user, so Member,
+    /// Observer and Administrator were unreachable — not hard to arrange, but
+    /// impossible (<c>AOS-R002-002</c>, <c>AOS-R002-006</c>).
+    /// </para>
+    /// <para>
+    /// These are made the way an operator makes them: one authorized call each,
+    /// against the running server. Nothing is written into PostgreSQL. If the
+    /// product ever loses the capability again, this mode fails rather than
+    /// quietly falling back to a hand-built identity.
+    /// </para>
+    /// </remarks>
+    private static async Task<int> Personas(IReadOnlyDictionary<string, string> options)
+    {
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string owner = Option(options, "subject", "review-owner");
+        string output = Option(options, "out", string.Empty);
+
+        if (organization.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: personas needs --org.");
+
+            return 2;
+        }
+
+        using HttpClient http = new() { BaseAddress = new Uri(apiBase) };
+
+        http.DefaultRequestHeaders.Add("X-AgencyOS-Dev-Subject", owner);
+        http.DefaultRequestHeaders.Add("X-AgencyOS-Platform", "windows-x64");
+        http.DefaultRequestHeaders.Add("X-AgencyOS-Channel", "forge");
+        http.DefaultRequestHeaders.Add("X-AgencyOS-Client-Version", "0.1.0");
+        http.DefaultRequestHeaders.Add(
+            "X-AgencyOS-Api-Contract",
+            AgencyOS.Contracts.ApiContract.Current.ToString(CultureInfo.InvariantCulture));
+
+        string root = "/api/v1/organizations/" + organization;
+
+        // Administrator is the RESTRICTED profile as well: broad read including
+        // sensitive material, almost no operational write. AgencyOS has no way to
+        // express an arbitrary custom permission set, and inventing one for an
+        // audit would describe a product that does not exist.
+        (string Persona, string Role)[] wanted =
+        [
+            ("member", "Member"),
+            ("observer", "Observer"),
+            ("restricted", "Administrator"),
+        ];
+
+        Dictionary<string, object> made = new(StringComparer.Ordinal)
+        {
+            ["owner"] = new { Subject = owner, Role = "Owner", Note = "the bootstrap owner" },
+            ["non-member"] = new
+            {
+                Subject = "review-non-member",
+                Role = "(none)",
+                Note = "never registered; every route answers 401",
+            },
+        };
+
+        foreach ((string persona, string role) in wanted)
+        {
+            string subject = "review-" + persona;
+
+            using HttpResponseMessage response = await http
+                .PostAsJsonAsync(
+                    root + "/members",
+                    new
+                    {
+                        externalSubject = subject,
+                        displayName = "Review " + persona,
+                        email = subject + "@review.invalid",
+                        role,
+                    })
+                .ConfigureAwait(false);
+
+            string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            Console.WriteLine("  " + persona.PadRight(12) + role.PadRight(16)
+                + (int)response.StatusCode + "  " + Summary(body));
+
+            made[persona] = new { Subject = subject, Role = role, Status = (int)response.StatusCode };
+        }
+
+        using HttpResponseMessage members = await http.GetAsync(root + "/members")
+            .ConfigureAwait(false);
+
+        Console.WriteLine();
+        Console.WriteLine("  members now: " + await members.Content.ReadAsStringAsync()
+            .ConfigureAwait(false));
+
+        if (output.Length > 0)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(output)!);
+            Write(output, made);
+        }
+
+        return members.IsSuccessStatusCode ? 0 : 1;
+    }
+
+    private static string Summary(string body) =>
+        body.Length <= 120 ? body : body[..120];
+
     // --------------------------------------------------------------- observe
 
     /// <summary>Drives the running client and records what it saw.</summary>
@@ -898,6 +1009,7 @@ public static class Program
         Console.WriteLine();
         Console.WriteLine("  inventory  --repo <path> [--out <dir>] [--contract <openapi.json>]");
         Console.WriteLine("  fixture    --api <url> --token <bootstrap> [--subject <s>] [--out <file>]");
+        Console.WriteLine("  personas   --api <url> --org <guid> --subject <owner> [--out <file>]  audit role profiles");
         Console.WriteLine("  observe    --exe <path> --out <run-dir> --org <guid> [--api <url>] [--subject <s>]");
         Console.WriteLine("  layout     --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...] [--pages Deals,...]");
         Console.WriteLine("  rebaseline --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...]  re-runs corrected detectors only");

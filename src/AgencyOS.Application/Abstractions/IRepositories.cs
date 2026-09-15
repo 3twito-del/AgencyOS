@@ -1,4 +1,4 @@
-using AgencyOS.Domain.Audit;
+﻿using AgencyOS.Domain.Audit;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
 using AgencyOS.Domain.Organizations;
@@ -40,6 +40,21 @@ public interface IMembershipRepository
     Task<Membership?> FindActiveAsync(
         OrganizationId organizationId,
         UserId userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the active memberships held in an organization.
+    /// </summary>
+    /// <remarks>
+    /// Active only. A revoked membership is retained so historical authority stays
+    /// explainable, and it confers nothing, so it is not who the organization is
+    /// now.
+    /// </remarks>
+    /// <param name="organizationId">The organization.</param>
+    /// <param name="cancellationToken">Cancellation.</param>
+    /// <returns>Every active membership, in the order they were granted.</returns>
+    Task<IReadOnlyList<Membership>> ListActiveForOrganizationAsync(
+        OrganizationId organizationId,
         CancellationToken cancellationToken = default);
 
     void Add(Membership membership);

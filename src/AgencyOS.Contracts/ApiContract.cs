@@ -91,13 +91,24 @@ public static class ApiContract
     /// three of them (ADR-0035).
     /// </para>
     /// <para>
+    /// <para>
+    /// Version 14 adds membership administration: reading who is in an
+    /// organization, bringing somebody in, moving them between roles and ending
+    /// their access. Until it, an organization's population was fixed at one
+    /// person at first run — registering a user was reachable only from bootstrap,
+    /// and membership was write-once with no read, no change and no revoke
+    /// (<c>AOS-R002-002</c>, <c>AOS-R002-006</c>). Nothing about the authorization
+    /// model changed: the same four roles confer the same permission sets, and the
+    /// server decides as it always did.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 13;
+    public const int Current = 14;
 
     /// <summary>
     /// The lowest contract version this build still serves.

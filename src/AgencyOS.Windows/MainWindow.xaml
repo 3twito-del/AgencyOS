@@ -15,10 +15,17 @@
             below WinUI's own breakpoint, which is the behaviour the control was
             built with.
         -->
+        <!--
+            The settings item hosts the Organization screen, where membership and
+            roles live. It sits in the pane's own settings slot rather than in the
+            destination list, so the seventeen destinations stay seventeen -
+            AOS-R001-013 already shows only thirteen of them at 1600x1000, and an
+            eighteenth would make that measurably worse.
+        -->
         <muxc:NavigationView
             x:Name="Navigation"
             IsBackButtonVisible="Collapsed"
-            IsSettingsVisible="False"
+            IsSettingsVisible="True"
             PaneDisplayMode="Auto"
             OpenPaneLength="220"
             SelectionChanged="OnNavigationSelectionChanged">

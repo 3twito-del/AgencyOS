@@ -1,4 +1,4 @@
-using AgencyOS.Domain.Authorization;
+﻿using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Organizations;
@@ -68,11 +68,47 @@ public sealed class Membership
         };
     }
 
-    public void Revoke(UserId revokedBy, DateTimeOffset now)
+    /// <summary>Ends this membership, retaining the row.</summary>
+    /// <param name="revokedBy">Who ended it.</param>
+    /// <param name="now">When.</param>
+    /// <param name="otherActiveOwners">
+    /// How many <em>other</em> active owners the organization still has. The
+    /// caller counts them; this aggregate cannot see its siblings.
+    /// </param>
+    /// <exception cref="DomainException">
+    /// When the membership is already revoked, or when revoking it would leave
+    /// the organization with no owner.
+    /// </exception>
+    /// <remarks>
+    /// <para>
+    /// <strong>An organization always has an owner.</strong> Revoking the last one
+    /// would leave nobody able to grant the owner role back — not the person who
+    /// did it, not an administrator, not the people still in the organization. The
+    /// only way out would be a hand-written database edit, which is the thing this
+    /// product exists to make unnecessary.
+    /// </para>
+    /// <para>
+    /// The rule covers demotion too, because a role change is a revocation
+    /// followed by a grant: demoting the last owner revokes the last owner.
+    /// </para>
+    /// </remarks>
+    public void Revoke(UserId revokedBy, DateTimeOffset now, int otherActiveOwners)
     {
         if (Status == MembershipStatus.Revoked)
         {
             throw new DomainException("Membership is already revoked.");
+        }
+
+        if (otherActiveOwners < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(otherActiveOwners));
+        }
+
+        if (Role == AgencyRole.Owner && otherActiveOwners == 0)
+        {
+            throw new DomainException(
+                "This is the organization's only owner. Give somebody else the owner "
+                    + "role first, then end this membership.");
         }
 
         Status = MembershipStatus.Revoked;

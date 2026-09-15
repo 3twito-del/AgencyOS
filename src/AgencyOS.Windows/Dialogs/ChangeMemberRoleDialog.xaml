@@ -1,0 +1,27 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ChangeMemberRoleDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Change what they may do"
+    PrimaryButtonText="Change role"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="10" MinWidth="440">
+        <TextBlock x:Name="WhoText" TextWrapping="Wrap" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+        <TextBlock x:Name="CurrentText" Opacity="0.75" TextWrapping="Wrap"
+                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+        <ComboBox x:Name="RoleBox" Header="New role" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnRoleChanged">
+            <ComboBoxItem Content="Observer" Tag="Observer" />
+            <ComboBoxItem Content="Member" Tag="Member" />
+            <ComboBoxItem Content="Administrator" Tag="Administrator" />
+            <ComboBoxItem Content="Owner" Tag="Owner" />
+        </ComboBox>
+
+        <TextBlock x:Name="RoleText" Style="{StaticResource CaptionTextBlockStyle}"
+                   Opacity="0.75" TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>

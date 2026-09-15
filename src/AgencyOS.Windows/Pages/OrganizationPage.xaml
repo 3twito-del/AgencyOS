@@ -1,0 +1,77 @@
+﻿<Page
+    x:Class="AgencyOS.Windows.Pages.OrganizationPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer>
+        <Grid Padding="16" RowSpacing="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Organization" Style="{StaticResource TitleTextBlockStyle}" />
+
+            <TextBlock Grid.Row="1" TextWrapping="Wrap" Opacity="0.75"
+                       Style="{StaticResource BodyTextBlockStyle}"
+                       Text="Who is in this agency and what each of them may do. Roles are decided here and enforced by the server; this screen only asks." />
+
+            <!--
+                Refusals land here rather than in a transient notice. A person who
+                has just been told they cannot remove the last owner should still
+                be able to read why after they have looked away.
+            -->
+            <InfoBar Grid.Row="2" x:Name="RefusalBar" Severity="Error" IsOpen="False" IsClosable="True" />
+
+            <InfoBar Grid.Row="2" x:Name="DoneBar" Severity="Success" IsOpen="False" IsClosable="True" />
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
+                <Button x:Name="AddButton" Content="Add someone" Click="OnAddClick"
+                        Style="{StaticResource AccentButtonStyle}" />
+                <Button x:Name="ChangeRoleButton" Content="Change role" Click="OnChangeRoleClick"
+                        IsEnabled="False" />
+                <Button x:Name="RemoveButton" Content="End access" Click="OnRemoveClick"
+                        IsEnabled="False" />
+                <Button x:Name="RefreshButton" Content="Refresh" Click="OnRefreshClick" />
+            </StackPanel>
+
+            <ListView Grid.Row="4" x:Name="MemberList"
+                      AutomationProperties.Name="Members"
+                      SelectionMode="Single"
+                      SelectionChanged="OnSelectionChanged"
+                      MinHeight="240">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="4,8" ColumnSpacing="16" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding Email}" Opacity="0.6"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                       Text="{Binding Role, Converter={StaticResource DisplayLabel}}" />
+
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Opacity="0.6"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="{Binding Note}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <TextBlock Grid.Row="5" x:Name="SummaryText" Opacity="0.6" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+        </Grid>
+    </ScrollViewer>
+</Page>

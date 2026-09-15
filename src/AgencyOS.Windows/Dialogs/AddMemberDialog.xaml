@@ -1,0 +1,43 @@
+﻿<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddMemberDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add someone to this agency"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="440">
+        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                   Text="They will be able to sign in as themselves. Nothing is emailed from here: tell them yourself that they have access." />
+
+        <TextBox x:Name="NameBox" Header="Name"
+                 PlaceholderText="How their name should appear"
+                 TextChanged="OnRequiredChanged" />
+
+        <TextBox x:Name="EmailBox" Header="Email"
+                 PlaceholderText="name@agency.example"
+                 TextChanged="OnRequiredChanged" />
+
+        <!--
+            The sign-in name their identity provider issues, not an AgencyOS
+            identifier. It is the one value only the directory knows, so it is
+            asked for rather than guessed - and it is a name, not a GUID.
+        -->
+        <TextBox x:Name="SubjectBox" Header="Sign-in name"
+                 PlaceholderText="Their sign-in name at your identity provider"
+                 TextChanged="OnRequiredChanged" />
+
+        <ComboBox x:Name="RoleBox" Header="Role" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnRoleChanged">
+            <ComboBoxItem Content="Observer" Tag="Observer" />
+            <ComboBoxItem Content="Member" Tag="Member" IsSelected="True" />
+            <ComboBoxItem Content="Administrator" Tag="Administrator" />
+            <ComboBoxItem Content="Owner" Tag="Owner" />
+        </ComboBox>
+
+        <TextBlock x:Name="RoleText" Style="{StaticResource CaptionTextBlockStyle}"
+                   Opacity="0.75" TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>

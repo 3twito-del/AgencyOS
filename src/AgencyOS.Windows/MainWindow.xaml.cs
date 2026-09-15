@@ -206,6 +206,18 @@ public sealed partial class MainWindow : Window
 
     private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
+        ArgumentNullException.ThrowIfNull(args);
+
+        // The settings slot holds the Organization screen: who is in this agency
+        // and what each of them may do. It is not a workspace, so it carries no
+        // tag and does not appear in the destination list.
+        if (args.IsSettingsSelected)
+        {
+            ContentFrame.Navigate(typeof(Pages.OrganizationPage));
+
+            return;
+        }
+
         if (args.SelectedItem is NavigationViewItem { Tag: string tag })
         {
             Navigate(tag);

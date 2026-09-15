@@ -1,4 +1,4 @@
-using AgencyOS.Domain.Authorization;
+﻿using AgencyOS.Domain.Authorization;
 using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Memberships;
@@ -138,7 +138,7 @@ public sealed class AuthorizationModelTests
     public void RevokedMembership_ConfersNothing()
     {
         Membership membership = Grant(AgencyRole.Owner);
-        membership.Revoke(UserId.New(), Now);
+        membership.Revoke(UserId.New(), Now, otherActiveOwners: 1);
 
         Assert.Empty(membership.EffectivePermissions);
         Assert.Equal(MembershipStatus.Revoked, membership.Status);
@@ -152,7 +152,7 @@ public sealed class AuthorizationModelTests
         UserId revoker = UserId.New();
         Membership membership = Grant(AgencyRole.Member);
 
-        membership.Revoke(revoker, Now);
+        membership.Revoke(revoker, Now, otherActiveOwners: 1);
 
         Assert.Equal(revoker, membership.RevokedBy);
         Assert.Equal(AgencyRole.Member, membership.Role);
@@ -162,9 +162,71 @@ public sealed class AuthorizationModelTests
     public void Membership_CannotBeRevokedTwice()
     {
         Membership membership = Grant(AgencyRole.Member);
-        membership.Revoke(UserId.New(), Now);
+        membership.Revoke(UserId.New(), Now, otherActiveOwners: 1);
 
-        Assert.Throws<DomainException>(() => membership.Revoke(UserId.New(), Now));
+        Assert.Throws<DomainException>(() => membership.Revoke(UserId.New(), Now, otherActiveOwners: 1));
+    }
+
+    /// <summary>
+    /// The last owner cannot be revoked.
+    /// </summary>
+    /// <remarks>
+    /// An organization with no owner is one nobody can administer again: granting
+    /// the owner role requires being one, so the only way back would be a
+    /// hand-written database edit. Nothing guarded this before Repair Wave 003E-A,
+    /// because nothing called <c>Revoke</c>; exposing revocation made it reachable.
+    /// </remarks>
+    [Fact]
+    public void TheLastOwner_CannotBeRevoked()
+    {
+        Membership membership = Grant(AgencyRole.Owner);
+
+        DomainException refusal = Assert.Throws<DomainException>(
+            () => membership.Revoke(UserId.New(), Now, otherActiveOwners: 0));
+
+        Assert.Contains("only owner", refusal.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(MembershipStatus.Active, membership.Status);
+    }
+
+    /// <summary>An owner who is not the last one can be revoked.</summary>
+    [Fact]
+    public void AnOwnerBesideAnother_CanBeRevoked()
+    {
+        Membership membership = Grant(AgencyRole.Owner);
+
+        membership.Revoke(UserId.New(), Now, otherActiveOwners: 1);
+
+        Assert.Equal(MembershipStatus.Revoked, membership.Status);
+    }
+
+    /// <summary>
+    /// The rule is about owners, not about being the last member.
+    /// </summary>
+    /// <remarks>
+    /// An organization may end up with one owner and nobody else. That is a small
+    /// agency, not a broken state.
+    /// </remarks>
+    [Theory]
+    [InlineData(AgencyRole.Observer)]
+    [InlineData(AgencyRole.Member)]
+    [InlineData(AgencyRole.Administrator)]
+    public void TheLastOfAnyOtherRole_CanBeRevoked(AgencyRole role)
+    {
+        Membership membership = Grant(role);
+
+        membership.Revoke(UserId.New(), Now, otherActiveOwners: 0);
+
+        Assert.Equal(MembershipStatus.Revoked, membership.Status);
+    }
+
+    /// <summary>A nonsensical owner count is rejected rather than trusted.</summary>
+    [Fact]
+    public void ANegativeOwnerCount_IsRejected()
+    {
+        Membership membership = Grant(AgencyRole.Owner);
+
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => membership.Revoke(UserId.New(), Now, otherActiveOwners: -1));
     }
 
     [Fact]
