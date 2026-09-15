@@ -248,3 +248,34 @@ Three rules came out of it, and they are the audit's main methodological result:
 
 Each correction is a commit on this branch with a test that fails without it.
 The control suite is `tests/AgencyOS.Tests.Reviewer/`.
+
+---
+
+## Amendment — two more, from the final closure slice
+
+**Appended, not rewritten.** Phase C's ledger above stands exactly as issued.
+Both of these violated a prior claimed measurement, which is the bar §19 sets for
+adding to this ledger rather than noting a limitation.
+
+| # | The bad assumption | Affected measurement | False claim? | Regression test |
+| ---: | --- | --- | :-: | --- |
+| 27 | Offscreen means the harness did not scroll | `RecordSignatureDialog`'s disposition. Phase D recorded `HARNESS_LIMITATION` on the reasoning that "the pass does not scroll a detail pane into view". `SignatureButton` has no scrollable ancestor at all: `ScrollItemPattern.ScrollIntoView` was called and no container claims to scroll. No pass would ever have revealed it | ✓ | `TargetReachTests` — five states, and a failed reveal downgrades rather than staying hopeful |
+| 28 | A dialog's disposition can be settled from one opener | `RecordSignatureDialog` again. It was classified on a button attempt while its palette opener, `contract.signature.record`, was never tried for it. With the precondition present the palette opens it at 1600x1000 with no harness change | ✓ | covered by the opener list the dialog pass already walks; the miss was in the classification, not the code |
+
+**Defect 27 is the one that mattered.** It did not merely under-report — it
+attributed a product problem to the instrument. Two contract commands are
+unclickable at 1600x1000 (`AOS-R002-021`), and that finding sat behind the word
+"harness" from Phase D until something measured whether scrolling was even
+possible.
+
+That is the same shape as defect 26, and the same lesson one level further on: a
+negative result must name what it looked for, **and** a limitation claimed by the
+harness must be proved to be the harness's.
+
+### A third thing, which is not a reviewer defect
+
+Phase D concluded that `ResolveParticipantDialog` was unreachable because no route
+creates an inbound message. The route analysis was correct; the dialog does not
+need an inbound message. That was an error in the audit's reasoning about the
+product, not a fault in the harness, and it is recorded as an
+`AUDIT_FIXTURE_GAP` in the closure slice rather than here.

@@ -1,0 +1,82 @@
+{
+ "runId": "AUDIT-002-FINAL-CLOSURE",
+ "productBaseline": "ba077a3",
+ "note": "Filed, not repaired. No product code changed in the final closure slice.",
+ "findings": [
+  {
+   "id": "AOS-R002-020",
+   "category": "Bug",
+   "severity": "S3",
+   "confidence": "ConfirmedDefect",
+   "reproducibility": "Always",
+   "phase": "FinalClosure",
+   "workspace": [
+    "workspace.communications"
+   ],
+   "dialog": [
+    "ConnectMailboxDialog"
+   ],
+   "role": "owner",
+   "preconditions": "A communication provider is listed. The fake provider is registered in every environment.",
+   "steps": [
+    "Open Communications > Mailboxes and click 'Connect a mailbox'.",
+    "Choose 'Everyone in the organization' for who may read the mailbox.",
+    "Complete the form and press Connect.",
+    "Equivalently: POST /communication-accounts with visibility 'Organization'."
+   ],
+   "expected": "Either the option connects the mailbox, or it is not offered.",
+   "actual": "400 \"Visibility 'Organization' is not valid. Expected one of: Private, Shared.\" The dialog offers a third ComboBoxItem with Tag=\"Organization\"; MailboxVisibility declares only Private = 1 and Shared = 2.",
+   "httpResult": "400",
+   "persistedResult": "Nothing persisted. No mailbox is connected.",
+   "mutationAttempted": true,
+   "userImpact": "An operator connecting a mailbox and choosing the broadest visibility is refused after filling the whole form, with a message naming two options the dialog presented as three.",
+   "likelySource": "ConnectMailboxDialog.xaml offers an option the domain enum does not have.",
+   "ownerDecisionRequired": true,
+   "ownerDecision": "Remove the option, or add Organization to MailboxVisibility and to the access rules that read it. The second is a permission-model change, not a one-line edit.",
+   "repairRisk": "Low for removal; the alternative touches who may read a mailbox and is not small.",
+   "suggestedRepairWave": "003B, or an owner decision first",
+   "evidence": [
+    "artifacts/reviewer/run-002-final-closure/AUDIT-002-FINAL-CLOSURE-SUMMARY.md"
+   ],
+   "whyNotFoundEarlier": "The dialog could not be opened until Repair Wave 003A, and no earlier phase ran the mutation behind it."
+  },
+  {
+   "id": "AOS-R002-021",
+   "category": "Bug",
+   "severity": "S3",
+   "confidence": "ConfirmedDefect",
+   "reproducibility": "Always",
+   "phase": "FinalClosure",
+   "workspace": [
+    "workspace.contracts"
+   ],
+   "dialog": [
+    "RecordSignatureDialog",
+    "RecordNoticeDialog"
+   ],
+   "role": "owner",
+   "preconditions": "A contract is selected. Window at 1600x1000.",
+   "steps": [
+    "Open Contracts at 1600x1000 and select a contract.",
+    "Look at the detail command bar."
+   ],
+   "expected": "Every command in the bar can be clicked, or an overflow affordance reaches the ones that do not fit.",
+   "actual": "SignatureButton and NoticeButton are enabled, report IsOffscreen=true and have no bounding rectangle at all. ScrollItemPattern.ScrollIntoView was called and no ancestor reports itself scrollable, so nothing can bring them into view. NewButton 1122,483,161,48; VersionButton 1295,483,174,48; ReconcileButton 1481,483,125,48; window right edge 1642. At 1920x1080 all five are on screen.",
+   "httpResult": null,
+   "persistedResult": null,
+   "mutationAttempted": false,
+   "userImpact": "At a common window size two contract commands cannot be clicked. Both remain reachable from the command palette, so no workflow is lost, but the buttons are unusable and nothing indicates they exist.",
+   "likelySource": "ContractsPage.xaml Grid.Row=1 holds a horizontal StackPanel of five buttons with no overflow handling; the page's ScrollViewers are inside the tab items below it.",
+   "ownerDecisionRequired": false,
+   "repairRisk": "Layout only. A CommandBar with overflow, or a wrapping panel.",
+   "suggestedRepairWave": "003F",
+   "distinctFrom": "AOS-R001-013 / AOS-R001R-001, which concern the navigation pane. That pane scrolls and every destination in it is reachable; this does not scroll and these are not.",
+   "evidence": [
+    "docs/reviews/audit-002/final-closure/evidence/SignatureButton-1600.json",
+    "docs/reviews/audit-002/final-closure/evidence/SignatureButton-1920.json",
+    "docs/reviews/audit-002/final-closure/RECORDSIGNATURE-SCROLL-EVIDENCE.md"
+   ],
+   "whyNotFoundEarlier": "Phase D recorded the button as offscreen and attributed it to the harness not scrolling. Nothing had measured whether scrolling was possible."
+  }
+ ]
+}
