@@ -9,7 +9,8 @@
     IsPrimaryButtonEnabled="False">
 
     <StackPanel Spacing="10" MinWidth="480">
-        <ComboBox x:Name="KindBox" Header="What kind of thing" MinWidth="260">
+        <ComboBox x:Name="KindBox" Header="What kind of thing" MinWidth="260"
+                  SelectionChanged="OnKindChanged">
             <ComboBoxItem Content="A source" Tag="Source" IsSelected="True" />
             <ComboBoxItem Content="A signal" Tag="Signal" />
             <ComboBoxItem Content="A thesis" Tag="Thesis" />
@@ -17,8 +18,14 @@
             <ComboBoxItem Content="A task" Tag="Task" />
         </ComboBox>
 
-        <TextBox x:Name="IdBox" Header="Identifier" TextChanged="OnRequiredChanged"
-                 PlaceholderText="00000000-0000-0000-0000-000000000000" />
+        <ComboBox x:Name="ItemBox" Header="Which one" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" SelectionChanged="OnRequiredChanged" />
+
+        <ProgressBar x:Name="ItemBusy" IsIndeterminate="True" Visibility="Collapsed"
+                     AutomationProperties.Name="Loading what can be attached" />
+
+        <TextBlock x:Name="ItemHint" Style="{StaticResource CaptionTextBlockStyle}"
+                   Opacity="0.75" TextWrapping="Wrap" />
 
         <TextBox x:Name="NoteBox" Header="Note (optional)"
                  PlaceholderText="Why it is attached" />

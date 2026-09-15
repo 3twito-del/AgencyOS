@@ -13,11 +13,19 @@
             <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
                        Text="A negotiation comes out of a market conversation. The target must already be interested or advanced: opening one is an explicit act, never a consequence of a pipeline stage changing." />
 
-            <TextBox x:Name="OpportunityIdBox" Header="Opportunity" PlaceholderText="Opportunity identifier"
-                     TextChanged="OnRequiredChanged" />
+            <ComboBox x:Name="OpportunityBox" Header="Opportunity" HorizontalAlignment="Stretch"
+                      DisplayMemberPath="Label" SelectionChanged="OnOpportunityChanged" />
 
-            <TextBox x:Name="TargetIdBox" Header="Target" PlaceholderText="Opportunity target identifier"
-                     TextChanged="OnRequiredChanged" />
+            <!--
+                The targets of whichever pursuit is chosen above. A target belongs to
+                its opportunity and the server refuses one from a different pursuit,
+                so the list is narrowed rather than offered whole.
+            -->
+            <ComboBox x:Name="TargetBox" Header="Target" HorizontalAlignment="Stretch"
+                      DisplayMemberPath="Label" SelectionChanged="OnRequiredChanged" />
+
+            <ProgressBar x:Name="TargetBusy" IsIndeterminate="True" Visibility="Collapsed"
+                         AutomationProperties.Name="Loading this opportunity's targets" />
 
             <TextBox x:Name="NameBox" Header="Name" PlaceholderText="The Undertow - Northgate Pictures"
                      TextChanged="OnRequiredChanged" />

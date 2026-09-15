@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Windows.Dialogs;
 using Microsoft.UI.Xaml;
@@ -182,7 +184,31 @@ public sealed partial class ProjectsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        AttachToRoleDialog dialog = new(role.Type, role.Label) { XamlRoot = XamlRoot };
+        IReadOnlyList<PersonSummaryResponse> people = [];
+        IReadOnlyList<CompanySummaryResponse> companies = [];
+
+        await Guarded(async () =>
+        {
+            people = await api.ListPeopleAsync().ConfigureAwait(true);
+            companies = await api.ListCompaniesAsync().ConfigureAwait(true);
+        }).ConfigureAwait(true);
+
+        // Nothing to choose from is a state worth explaining. The alternative is a
+        // dialog with an empty picker and no account of why (§15).
+        if (people.Count == 0 && companies.Count == 0)
+        {
+            DetailNotice(
+                "Nobody to attach yet",
+                "An attachment names a person or a company this organization already holds a "
+                    + "record for, and there are none. Create the person or company first.");
+
+            return;
+        }
+
+        AttachToRoleDialog dialog = new(role.Type, role.Label, people, companies)
+        {
+            XamlRoot = XamlRoot,
+        };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -206,7 +232,23 @@ public sealed partial class ProjectsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        AddProjectCompanyDialog dialog = new() { XamlRoot = XamlRoot };
+        IReadOnlyList<CompanySummaryResponse> companies = [];
+
+        await Guarded(async () =>
+                companies = await api.ListCompaniesAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        if (companies.Count == 0)
+        {
+            DetailNotice(
+                "No companies yet",
+                "This records which company is involved, chosen from the companies this "
+                    + "organization holds. There are none yet — create the company first.");
+
+            return;
+        }
+
+        AddProjectCompanyDialog dialog = new(companies) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -264,6 +306,22 @@ public sealed partial class ProjectsPage : Page, IPaletteCommandTarget
         {
             DetailError(failure.Message);
         }
+    }
+
+    /// <summary>
+    /// Says why a workflow cannot start, without calling it a failure.
+    /// </summary>
+    /// <remarks>
+    /// An empty picker is not an error: the operator has done nothing wrong and
+    /// there is something they can go and do about it. Repair Wave 003B added this
+    /// because "choose a company" with no companies had no honest wording (§15).
+    /// </remarks>
+    private void DetailNotice(string title, string message)
+    {
+        DetailBar.Title = title;
+        DetailBar.Message = message;
+        DetailBar.Severity = InfoBarSeverity.Informational;
+        DetailBar.IsOpen = true;
     }
 
     private void DetailError(string message)

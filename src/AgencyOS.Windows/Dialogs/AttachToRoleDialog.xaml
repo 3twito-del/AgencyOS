@@ -21,9 +21,8 @@
             <ComboBoxItem Content="Company" Tag="Company" />
         </ComboBox>
 
-        <TextBox x:Name="PartyIdBox" Header="Identifier"
-                 PlaceholderText="Person or company identifier"
-                 TextChanged="OnRequiredChanged" />
+        <ComboBox x:Name="PartyBox" Header="Who" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" SelectionChanged="OnRequiredChanged" />
 
         <ComboBox x:Name="StatusBox" Header="Status" HorizontalAlignment="Stretch">
             <ComboBoxItem Content="In discussion" Tag="InDiscussion" />

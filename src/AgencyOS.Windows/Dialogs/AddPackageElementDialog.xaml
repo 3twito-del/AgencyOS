@@ -23,7 +23,11 @@
             <ComboBoxItem Content="Source property" Tag="SourceProperty" />
         </ComboBox>
 
-        <TextBox x:Name="TargetIdBox" Header="Identifier" TextChanged="OnRequiredChanged" />
+        <ComboBox x:Name="TargetBox" Header="Which one" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" SelectionChanged="OnRequiredChanged" />
+
+        <TextBlock x:Name="TargetHint" Style="{StaticResource CaptionTextBlockStyle}"
+                   Opacity="0.75" TextWrapping="Wrap" />
 
         <TextBox x:Name="NoteBox" Header="Note" AcceptsReturn="True" Height="70" TextWrapping="Wrap"
                  PlaceholderText="Why this is in the package" />

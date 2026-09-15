@@ -15,11 +15,11 @@
             <ComboBoxItem Content="Person" Tag="Person" />
         </ComboBox>
 
-        <TextBox x:Name="TargetIdBox" Header="Identifier" TextChanged="OnRequiredChanged" />
+        <ComboBox x:Name="TargetBox" Header="Which company" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" SelectionChanged="OnRequiredChanged" />
 
-        <TextBox x:Name="ContactIdBox" Header="Contact"
-                 PlaceholderText="The individual you deal with at this company"
-                 TextChanged="OnRequiredChanged" />
+        <ComboBox x:Name="ContactBox" Header="Contact" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" SelectionChanged="OnRequiredChanged" />
 
         <TextBlock x:Name="ContactHint" Style="{StaticResource CaptionTextBlockStyle}"
                    Opacity="0.75" TextWrapping="Wrap"

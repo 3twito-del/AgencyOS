@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
+using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Contracts.Projects;
+using AgencyOS.Contracts.Representation;
 using AgencyOS.Windows.Dialogs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -146,7 +150,31 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
             return;
         }
 
-        CreateOpportunityDialog dialog = new() { XamlRoot = XamlRoot };
+        IReadOnlyList<ProjectSummaryResponse> projects = [];
+        IReadOnlyList<PackageSummaryResponse> packages = [];
+        IReadOnlyList<TalentSummaryResponse> talent = [];
+
+        await Guarded(async () =>
+        {
+            projects = await api.ListProjectsAsync().ConfigureAwait(true);
+            packages = await api.ListPackagesAsync().ConfigureAwait(true);
+            talent = await api.ListTalentAsync().ConfigureAwait(true);
+        }).ConfigureAwait(true);
+
+        if (projects.Count == 0 && packages.Count == 0 && talent.Count == 0)
+        {
+            DetailNotice(
+                "Nothing to pursue yet",
+                "A pursuit is about a project, a package or a talent profile, and this "
+                    + "organization holds none of them yet. Create one first.");
+
+            return;
+        }
+
+        CreateOpportunityDialog dialog = new(api, projects, packages, talent)
+        {
+            XamlRoot = XamlRoot,
+        };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -166,7 +194,26 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
             return;
         }
 
-        AddOpportunityTargetDialog dialog = new() { XamlRoot = XamlRoot };
+        IReadOnlyList<PersonSummaryResponse> people = [];
+        IReadOnlyList<CompanySummaryResponse> companies = [];
+
+        await Guarded(async () =>
+        {
+            people = await api.ListPeopleAsync().ConfigureAwait(true);
+            companies = await api.ListCompaniesAsync().ConfigureAwait(true);
+        }).ConfigureAwait(true);
+
+        if (people.Count == 0 && companies.Count == 0)
+        {
+            DetailNotice(
+                "Nobody to pursue yet",
+                "A target is a company or a person this organization already holds a record "
+                    + "for, and there are none. Create the company or person first.");
+
+            return;
+        }
+
+        AddOpportunityTargetDialog dialog = new(people, companies) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -192,7 +239,13 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
             return;
         }
 
-        RecordSubmissionDialog dialog = new(target.DisplayName) { XamlRoot = XamlRoot };
+        IReadOnlyList<EntityChoice> materials =
+            await SubjectMaterialsAsync(api, opportunity).ConfigureAwait(true);
+
+        RecordSubmissionDialog dialog = new(target.DisplayName, materials)
+        {
+            XamlRoot = XamlRoot,
+        };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -216,7 +269,10 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
             return;
         }
 
-        RecordPitchDialog dialog = new(target) { XamlRoot = XamlRoot };
+        IReadOnlyList<EntityChoice> materials =
+            await SubjectMaterialsAsync(api, opportunity).ConfigureAwait(true);
+
+        RecordPitchDialog dialog = new(target, materials) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -271,6 +327,58 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
     /// pursuit was closed last week, the useful sentence is the one the domain
     /// wrote.
     /// </remarks>
+    /// <summary>
+    /// The materials belonging to the people this pursuit is about.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Materials hang off a person, and a pursuit names its subjects — so the
+    /// smallest correct source is the materials of those subjects, not every
+    /// material in the organization (§9). A pursuit has a handful of subjects, so
+    /// this is a handful of requests rather than a scan.
+    /// </para>
+    /// <para>
+    /// A subject that is not a person has no materials and is skipped rather than
+    /// requested: a package is not somebody whose script one sends.
+    /// </para>
+    /// </remarks>
+    private static async Task<IReadOnlyList<EntityChoice>> SubjectMaterialsAsync(
+        IAgencyOsApi api,
+        OpportunityDetailResponse opportunity)
+    {
+        List<MaterialResponse> materials = [];
+
+        foreach (OpportunitySubjectResponse subject in opportunity.Subjects)
+        {
+            if (subject.Kind is not ("Person" or "TalentProfile"))
+            {
+                continue;
+            }
+
+            try
+            {
+                materials.AddRange(
+                    await api.ListMaterialsAsync(subject.TargetId).ConfigureAwait(true));
+            }
+            catch (AgencyOsApiException)
+            {
+                // One subject the caller may not read does not empty the picker for
+                // the others. The server decides what comes back; this only asks.
+            }
+        }
+
+        return EntityChoice.ForMaterials(materials);
+    }
+
+    /// <summary>Says why a workflow cannot start, without calling it a failure.</summary>
+    private void DetailNotice(string title, string message)
+    {
+        DetailBar.Title = title;
+        DetailBar.Message = message;
+        DetailBar.Severity = InfoBarSeverity.Informational;
+        DetailBar.IsOpen = true;
+    }
+
     private async Task Guarded(Func<Task> action)
     {
         try

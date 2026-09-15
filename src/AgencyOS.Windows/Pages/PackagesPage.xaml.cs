@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Windows.Dialogs;
 using Microsoft.UI.Xaml;
@@ -115,7 +117,23 @@ public sealed partial class PackagesPage : Page, IPaletteCommandTarget
             return;
         }
 
-        CreatePackageDialog dialog = new() { XamlRoot = XamlRoot };
+        IReadOnlyList<ProjectSummaryResponse> projects = [];
+
+        await Guarded(async () =>
+                projects = await api.ListProjectsAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        if (projects.Count == 0)
+        {
+            DetailNotice(
+                "No projects yet",
+                "A package is built from a project, chosen from the projects this "
+                    + "organization holds. There are none yet - create the project first.");
+
+            return;
+        }
+
+        CreatePackageDialog dialog = new(projects) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -159,7 +177,31 @@ public sealed partial class PackagesPage : Page, IPaletteCommandTarget
             return;
         }
 
-        AddPackageElementDialog dialog = new() { XamlRoot = XamlRoot };
+        // Everything an element can point at comes from the package's own project,
+        // plus this organization's people and companies. One read of the project
+        // rather than six tenant-wide lists (SS9).
+        PackageElementSources? sources = null;
+
+        await Guarded(async () =>
+        {
+            ProjectDetailResponse project = await api
+                .GetProjectAsync(package.Package.ProjectId).ConfigureAwait(true);
+
+            IReadOnlyList<PersonSummaryResponse> people =
+                await api.ListPeopleAsync().ConfigureAwait(true);
+
+            IReadOnlyList<CompanySummaryResponse> companies =
+                await api.ListCompaniesAsync().ConfigureAwait(true);
+
+            sources = PackageElementSources.From(project, people, companies);
+        }).ConfigureAwait(true);
+
+        if (sources is null)
+        {
+            return;
+        }
+
+        AddPackageElementDialog dialog = new(sources) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -173,6 +215,15 @@ public sealed partial class PackagesPage : Page, IPaletteCommandTarget
             .ConfigureAwait(true);
 
         await _detail.LoadAsync(package.Package.Id).ConfigureAwait(true);
+    }
+
+    /// <summary>Says why a workflow cannot start, without calling it a failure.</summary>
+    private void DetailNotice(string title, string message)
+    {
+        DetailBar.Title = title;
+        DetailBar.Message = message;
+        DetailBar.Severity = InfoBarSeverity.Informational;
+        DetailBar.IsOpen = true;
     }
 
     /// <summary>Runs a call and shows the server's own explanation if it refuses.</summary>

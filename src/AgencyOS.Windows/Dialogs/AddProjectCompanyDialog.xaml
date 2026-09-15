@@ -13,8 +13,8 @@
                  Title="Known involvement"
                  Message="This records how a company is involved in making or selling the project. It is not a sales process: buyers, pitches and submissions arrive in a later milestone." />
 
-        <TextBox x:Name="CompanyIdBox" Header="Company identifier"
-                 TextChanged="OnRequiredChanged" />
+        <ComboBox x:Name="CompanyBox" Header="Company" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" SelectionChanged="OnRequiredChanged" />
 
         <ComboBox x:Name="CapacityBox" Header="Capacity" HorizontalAlignment="Stretch">
             <ComboBoxItem Content="Studio" Tag="Studio" />

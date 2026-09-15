@@ -967,7 +967,7 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
             return;
         }
 
-        LinkResearchItemDialog dialog = new() { XamlRoot = XamlRoot };
+        LinkResearchItemDialog dialog = new(_api) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {

@@ -44,7 +44,8 @@
         <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
                    Text="Interested and Passed move the target. Anything commercial belongs to a later milestone." />
 
-        <TextBox x:Name="MaterialIdBox" Header="Material shown" PlaceholderText="Material identifier" />
+        <ComboBox x:Name="MaterialBox" Header="Material shown" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" />
 
         <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
 

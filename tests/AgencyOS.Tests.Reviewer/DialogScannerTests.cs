@@ -121,20 +121,48 @@ public sealed class DialogScannerTests
     }
 
     /// <summary>
-    /// The typed-identifier fields are counted.
+    /// The typed-identifier fields that remain, and which dialogs hold them.
     /// </summary>
     /// <remarks>
-    /// <c>AOS-R001-006</c>: 20 fields across 13 dialogs. Pinned so the finding
-    /// cannot shrink without somebody noticing.
+    /// <para>
+    /// <c>AOS-R001-006</c> was 20 fields across 13 dialogs, pinned here so the
+    /// finding could not shrink without somebody noticing. Repair Wave 003B shrank
+    /// it deliberately: fourteen fields became pickers or derived context, and this
+    /// pin moved with them.
+    /// </para>
+    /// <para>
+    /// The six that remain are named rather than counted. A number would let one
+    /// deferred field be swapped for a newly introduced one without the total
+    /// changing, which is the failure this pin exists to prevent.
+    /// </para>
     /// </remarks>
     [Fact]
-    public void TheTypedIdentifierFieldsAreCounted()
+    public void TheTypedIdentifierFieldsThatRemainAreTheDeferredOnes()
     {
-        int dialogs = Dialogs.Value.Count(x => x.Fields.Any(f => f.TakesRawIdentifier));
-        int fields = Dialogs.Value.Sum(x => x.Fields.Count(f => f.TakesRawIdentifier));
+        string[] remaining =
+        [
+            .. Dialogs.Value
+                .SelectMany(x => x.Fields
+                    .Where(f => f.TakesRawIdentifier)
+                    .Select(f => $"{x.DialogId}.{f.Name}"))
+                .Order(StringComparer.Ordinal),
+        ];
 
-        Assert.Equal(13, dialogs);
-        Assert.Equal(20, fields);
+        Assert.Equal(
+            [
+                // Nothing constructs this dialog; an operator cannot reach it.
+                "AddIntelligenceSubjectDialog.IdBox",
+
+                // The four owner/lead fields: OWNER_DESIGN_DECISION_REQUIRED.
+                "CreateContractDialog.OwnerIdBox",
+                "CreateDealDialog.OwnerIdBox",
+                "CreateOpportunityDialog.OwnerIdBox",
+                "CreatePackageDialog.LeadIdBox",
+
+                // Fourteen target kinds, one without a flat list. Design decision open.
+                "LinkRecordDialog.TargetIdBox",
+            ],
+            remaining);
     }
 
     private static string Find()

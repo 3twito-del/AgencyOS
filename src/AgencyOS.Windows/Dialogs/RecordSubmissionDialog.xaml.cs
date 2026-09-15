@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
 using Microsoft.UI.Xaml.Controls;
 
@@ -13,9 +16,24 @@ namespace AgencyOS.Windows.Dialogs;
 /// </remarks>
 public sealed partial class RecordSubmissionDialog : ContentDialog
 {
-    public RecordSubmissionDialog(string targetName)
+    /// <summary>Offered so that attaching no material is an explicit choice.</summary>
+    private static readonly EntityChoice Nothing = new(Guid.Empty, "Nothing attached");
+
+    /// <param name="targetName">Who it went to.</param>
+    /// <param name="materials">
+    /// The materials belonging to the people this pursuit is about, chosen by
+    /// title, type and version (<c>AOS-R001-006</c>). Optional, as it was before:
+    /// "nothing attached" remains a real answer.
+    /// </param>
+    public RecordSubmissionDialog(string targetName, IReadOnlyList<EntityChoice> materials)
     {
+        ArgumentNullException.ThrowIfNull(materials);
+
         InitializeComponent();
+
+        // "Nothing" is a first-class answer here, not an empty selection.
+        MaterialBox.ItemsSource = new[] { Nothing }.Concat(materials).ToList();
+        MaterialBox.SelectedItem = Nothing;
 
         TargetText.Text = $"To {targetName}";
 
@@ -27,8 +45,8 @@ public sealed partial class RecordSubmissionDialog : ContentDialog
     public RecordSubmissionRequest ToRequest(int expectedVersion)
     {
         SubmissionMaterialRequest[] materials =
-            Guid.TryParse(MaterialIdBox.Text.Trim(), out Guid material)
-                ? [new SubmissionMaterialRequest(material)]
+            MaterialBox.SelectedItem is EntityChoice material && material.Id != Guid.Empty
+                ? [new SubmissionMaterialRequest(material.Id)]
                 : [];
 
         OpportunityFollowUpRequest? followUp =
@@ -49,7 +67,7 @@ public sealed partial class RecordSubmissionDialog : ContentDialog
             followUp);
     }
 
-    private void OnMaterialChanged(object sender, TextChangedEventArgs e)
+    private void OnMaterialChanged(object sender, SelectionChangedEventArgs e)
     {
         // Nothing to validate: a submission with no material is a legitimate
         // record of a phone call in which something was described.

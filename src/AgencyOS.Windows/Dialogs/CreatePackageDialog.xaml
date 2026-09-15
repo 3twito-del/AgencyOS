@@ -9,8 +9,8 @@
     IsPrimaryButtonEnabled="False">
 
     <StackPanel Spacing="10" MinWidth="440">
-        <TextBox x:Name="ProjectIdBox" Header="Project identifier"
-                 TextChanged="OnRequiredChanged" />
+        <ComboBox x:Name="ProjectBox" Header="Project" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" SelectionChanged="OnRequiredSelectionChanged" />
 
         <TextBox x:Name="NameBox" Header="Name" PlaceholderText="What we are calling this package"
                  TextChanged="OnRequiredChanged" />

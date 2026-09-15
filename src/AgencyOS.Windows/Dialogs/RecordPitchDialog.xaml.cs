@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
 using Microsoft.UI.Xaml.Controls;
 
@@ -14,13 +17,31 @@ namespace AgencyOS.Windows.Dialogs;
 /// </remarks>
 public sealed partial class RecordPitchDialog : ContentDialog
 {
+    /// <summary>Offered so that recording no material is an explicit choice.</summary>
+    private static readonly EntityChoice Nothing = new(Guid.Empty, "Nothing was shown");
+
     private readonly OpportunityTargetResponse _target;
 
-    public RecordPitchDialog(OpportunityTargetResponse target)
+    /// <param name="target">Who the pitch went to.</param>
+    /// <param name="materials">
+    /// The materials belonging to the people this pursuit is about. Chosen by
+    /// title, type and version rather than typed as an identifier
+    /// (<c>AOS-R001-006</c>); "nothing shown" stays a real answer, because a pitch
+    /// is often a conversation rather than a document.
+    /// </param>
+    public RecordPitchDialog(
+        OpportunityTargetResponse target,
+        IReadOnlyList<EntityChoice> materials)
     {
         ArgumentNullException.ThrowIfNull(target);
 
+        ArgumentNullException.ThrowIfNull(materials);
+
         InitializeComponent();
+
+        // "Nothing" is a first-class answer here, not an empty selection.
+        MaterialBox.ItemsSource = new[] { Nothing }.Concat(materials).ToList();
+        MaterialBox.SelectedItem = Nothing;
 
         _target = target;
 
@@ -45,8 +66,8 @@ public sealed partial class RecordPitchDialog : ContentDialog
                 : new PitchParticipantRequest("Person", _target.PersonId!.Value, "Buyer");
 
         SubmissionMaterialRequest[] materials =
-            Guid.TryParse(MaterialIdBox.Text.Trim(), out Guid material)
-                ? [new SubmissionMaterialRequest(material)]
+            MaterialBox.SelectedItem is EntityChoice material && material.Id != Guid.Empty
+                ? [new SubmissionMaterialRequest(material.Id)]
                 : [];
 
         OpportunityFollowUpRequest? followUp =

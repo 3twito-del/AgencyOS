@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Windows.Dialogs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -166,7 +168,23 @@ public sealed partial class DealsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        CreateDealDialog dialog = new() { XamlRoot = XamlRoot };
+        IReadOnlyList<OpportunitySummaryResponse> opportunities = [];
+
+        await Guarded(async () =>
+                opportunities = await api.ListOpportunitiesAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        if (opportunities.Count == 0)
+        {
+            DetailNotice(
+                "No pursuits to open a deal against",
+                "A negotiation comes out of a market conversation, and there are none yet. "
+                    + "Open the opportunity in Pipeline first, then bring a target to terms.");
+
+            return;
+        }
+
+        CreateDealDialog dialog = new(api, opportunities) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -303,6 +321,15 @@ public sealed partial class DealsPage : Page, IPaletteCommandTarget
         {
             DetailError(failure.Detail ?? failure.Message);
         }
+    }
+
+    /// <summary>Says why a workflow cannot start, without calling it a failure.</summary>
+    private void DetailNotice(string title, string message)
+    {
+        DetailBar.Title = title;
+        DetailBar.Message = message;
+        DetailBar.Severity = InfoBarSeverity.Informational;
+        DetailBar.IsOpen = true;
     }
 
     private void DetailError(string message)

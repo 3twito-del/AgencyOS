@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Projects;
 using Microsoft.UI.Xaml.Controls;
 
@@ -12,18 +14,37 @@ namespace AgencyOS.Windows.Dialogs;
 /// </remarks>
 public sealed partial class CreatePackageDialog : ContentDialog
 {
-    public CreatePackageDialog() => InitializeComponent();
+    /// <param name="projects">
+    /// The projects this organization holds. A package is built from one of them,
+    /// chosen by title rather than typed as an identifier (<c>AOS-R001-006</c>).
+    /// </param>
+    public CreatePackageDialog(IReadOnlyList<ProjectSummaryResponse> projects)
+    {
+        ArgumentNullException.ThrowIfNull(projects);
+
+        InitializeComponent();
+
+        ProjectBox.ItemsSource = EntityChoice.ForProjects(projects);
+    }
+
+    /// <summary>The project the operator chose, or null while none is chosen.</summary>
+    public EntityChoice? Chosen() => ProjectBox.SelectedItem as EntityChoice;
 
     public CreatePackageRequest ToRequest() => new(
-        Guid.TryParse(ProjectIdBox.Text.Trim(), out Guid project) ? project : Guid.Empty,
+        Chosen()?.Id ?? Guid.Empty,
         NameBox.Text.Trim(),
         Guid.TryParse(LeadIdBox.Text.Trim(), out Guid lead) ? lead : Guid.Empty,
         Empty(ThesisBox.Text),
         Empty(StrategyBox.Text));
 
-    private void OnRequiredChanged(object sender, TextChangedEventArgs e) =>
+    private void OnRequiredSelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        Validate();
+
+    private void OnRequiredChanged(object sender, TextChangedEventArgs e) => Validate();
+
+    private void Validate() =>
         IsPrimaryButtonEnabled =
-            Guid.TryParse(ProjectIdBox.Text.Trim(), out _)
+            Chosen() is not null
             && Guid.TryParse(LeadIdBox.Text.Trim(), out _)
             && !string.IsNullOrWhiteSpace(NameBox.Text);
 

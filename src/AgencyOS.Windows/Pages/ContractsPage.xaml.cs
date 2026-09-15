@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Legal;
+using AgencyOS.Contracts.Deals;
 using AgencyOS.Windows.Dialogs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -185,7 +187,23 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        CreateContractDialog dialog = new() { XamlRoot = XamlRoot };
+        IReadOnlyList<DealSummaryResponse> deals = [];
+
+        await Guarded(async () =>
+                deals = await api.ListDealsAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        if (deals.Count == 0)
+        {
+            DetailNotice(
+                "No negotiations to paper",
+                "A contract papers a deal whose commercial terms are already agreed, and "
+                    + "there are no deals yet. Open the negotiation first.");
+
+            return;
+        }
+
+        CreateContractDialog dialog = new(api, deals) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -398,6 +416,15 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         {
             DetailError(failure.Detail ?? failure.Message);
         }
+    }
+
+    /// <summary>Says why a workflow cannot start, without calling it a failure.</summary>
+    private void DetailNotice(string title, string message)
+    {
+        DetailBar.Title = title;
+        DetailBar.Message = message;
+        DetailBar.Severity = InfoBarSeverity.Informational;
+        DetailBar.IsOpen = true;
     }
 
     private void DetailError(string message)

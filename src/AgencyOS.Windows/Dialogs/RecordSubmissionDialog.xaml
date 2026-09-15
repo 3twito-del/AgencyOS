@@ -28,8 +28,8 @@
         <TextBox x:Name="SubjectBox" Header="Subject" PlaceholderText="What it was called" />
 
         <StackPanel Spacing="4">
-            <TextBox x:Name="MaterialIdBox" Header="Material" PlaceholderText="Material identifier"
-                     TextChanged="OnMaterialChanged" />
+            <ComboBox x:Name="MaterialBox" Header="Material" HorizontalAlignment="Stretch"
+                      DisplayMemberPath="Label" SelectionChanged="OnMaterialChanged" />
             <TextBlock x:Name="SnapshotHint" Style="{StaticResource CaptionTextBlockStyle}"
                        Opacity="0.75" TextWrapping="Wrap"
                        Text="The material's title and version label are copied into this record as they read now, so editing it later does not rewrite what you sent." />

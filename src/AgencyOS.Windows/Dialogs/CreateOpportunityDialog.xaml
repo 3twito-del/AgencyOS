@@ -26,7 +26,21 @@
                  TextChanged="OnRequiredChanged" />
 
         <StackPanel Spacing="4">
-            <TextBox x:Name="SubjectIdBox" Header="Subject" TextChanged="OnRequiredChanged" />
+            <!--
+                Shown only for staffing, where the subject is a role and a role
+                belongs to a project. Choosing the project is how the roles below
+                become a short list rather than every role in the agency.
+            -->
+            <ComboBox x:Name="SubjectProjectBox" Header="Project" HorizontalAlignment="Stretch"
+                      Visibility="Collapsed" DisplayMemberPath="Label"
+                      SelectionChanged="OnSubjectProjectChanged" />
+
+            <ComboBox x:Name="SubjectBox" Header="Subject" HorizontalAlignment="Stretch"
+                      DisplayMemberPath="Label" SelectionChanged="OnRequiredChanged" />
+
+            <ProgressBar x:Name="SubjectBusy" IsIndeterminate="True" Visibility="Collapsed"
+                         AutomationProperties.Name="Loading the roles for this project" />
+
             <TextBlock x:Name="SubjectHint" Style="{StaticResource CaptionTextBlockStyle}"
                        Opacity="0.75" TextWrapping="Wrap" />
         </StackPanel>

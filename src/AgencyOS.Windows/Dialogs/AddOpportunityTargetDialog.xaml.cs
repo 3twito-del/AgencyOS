@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
+using AgencyOS.Contracts.PeopleSlice;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -13,22 +17,47 @@ namespace AgencyOS.Windows.Dialogs;
 /// </remarks>
 public sealed partial class AddOpportunityTargetDialog : ContentDialog
 {
-    public AddOpportunityTargetDialog()
+    /// <summary>Offered when no contact is named, so "nobody yet" is a real answer.</summary>
+    private static readonly EntityChoice NoContact = new(Guid.Empty, "Nobody in particular yet");
+
+    private readonly IReadOnlyList<EntityChoice> _people;
+    private readonly IReadOnlyList<EntityChoice> _companies;
+
+    /// <param name="people">Everyone this organization holds a record for.</param>
+    /// <param name="companies">Every company it holds a record for.</param>
+    public AddOpportunityTargetDialog(
+        IReadOnlyList<PersonSummaryResponse> people,
+        IReadOnlyList<CompanySummaryResponse> companies)
     {
+        ArgumentNullException.ThrowIfNull(people);
+        ArgumentNullException.ThrowIfNull(companies);
+
         InitializeComponent();
+
+        _people = EntityChoice.ForPeople(people);
+        _companies = EntityChoice.ForCompanies(companies);
+
+        ContactBox.ItemsSource = new[] { NoContact }.Concat(_people).ToList();
+        ContactBox.SelectedItem = NoContact;
 
         KindBox.SelectedIndex = 0;
         NextActionPicker.Date = DateTimeOffset.UtcNow.AddDays(7);
+
+        ApplyKind();
     }
+
+    /// <summary>The target the operator chose, or null while none is chosen.</summary>
+    public EntityChoice? Chosen() => TargetBox.SelectedItem as EntityChoice;
 
     public AddOpportunityTargetRequest ToRequest(int expectedVersion)
     {
         bool isCompany = SelectedTag(KindBox) != "Person";
 
-        Guid? target = Guid.TryParse(TargetIdBox.Text.Trim(), out Guid parsed) ? parsed : null;
+        Guid? target = Chosen()?.Id;
 
-        Guid? contact = isCompany && Guid.TryParse(ContactIdBox.Text.Trim(), out Guid person)
-            ? person
+        Guid? contact = isCompany && ContactBox.SelectedItem is EntityChoice person
+            && person.Id != Guid.Empty
+            ? person.Id
             : null;
 
         return new AddOpportunityTargetRequest(
@@ -41,22 +70,41 @@ public sealed partial class AddOpportunityTargetDialog : ContentDialog
             Empty(NotesBox.Text));
     }
 
-    private void OnKindChanged(object sender, SelectionChangedEventArgs e)
+    private void OnKindChanged(object sender, SelectionChangedEventArgs e) => ApplyKind();
+
+    private void OnRequiredChanged(object sender, SelectionChangedEventArgs e) => Validate();
+
+    /// <summary>
+    /// Points the target picker at companies or at people, and drops whatever was
+    /// chosen under the other kind (§12).
+    /// </summary>
+    private void ApplyKind()
     {
+        if (TargetBox is null)
+        {
+            return;
+        }
+
         bool isCompany = SelectedTag(KindBox) != "Person";
 
-        if (ContactIdBox is not null)
+        TargetBox.ItemsSource = isCompany ? _companies : _people;
+        TargetBox.SelectedItem = null;
+        TargetBox.Header = isCompany ? "Which company" : "Which person";
+
+        // A contact belongs to a company target. For a person target the person is
+        // the one being dealt with, so the field is not offered at all.
+        ContactBox.IsEnabled = isCompany;
+        ContactHint.Visibility = isCompany ? Visibility.Collapsed : Visibility.Visible;
+
+        if (!isCompany)
         {
-            ContactIdBox.IsEnabled = isCompany;
-            ContactHint.Visibility = isCompany ? Visibility.Collapsed : Visibility.Visible;
+            ContactBox.SelectedItem = NoContact;
         }
 
         Validate();
     }
 
-    private void OnRequiredChanged(object sender, TextChangedEventArgs e) => Validate();
-
-    private void Validate() => IsPrimaryButtonEnabled = Guid.TryParse(TargetIdBox.Text.Trim(), out _);
+    private void Validate() => IsPrimaryButtonEnabled = Chosen() is not null;
 
     private static string? Empty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

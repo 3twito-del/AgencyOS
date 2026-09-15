@@ -13,12 +13,21 @@
             <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
                        Text="A contract papers a negotiation whose commercial terms are already agreed. The accepted offer it names is what every draft is later reconciled against, and it cannot be changed afterwards." />
 
-            <TextBox x:Name="DealIdBox" Header="Deal" PlaceholderText="Negotiation identifier"
-                     TextChanged="OnRequiredChanged" />
+            <ComboBox x:Name="DealBox" Header="Deal" HorizontalAlignment="Stretch"
+                      DisplayMemberPath="Label" SelectionChanged="OnDealChanged" />
 
-            <TextBox x:Name="OfferIdBox" Header="Accepted offer"
-                     PlaceholderText="The agreed offer this papers"
-                     TextChanged="OnRequiredChanged" />
+            <!--
+                Shown rather than typed, and shown rather than silently used. A deal
+                has exactly one accepted offer, so there is nothing to choose - but
+                the offer is the baseline every later draft is reconciled against, so
+                the operator sees which one they are papering before they commit
+                (ADR-0022).
+            -->
+            <InfoBar x:Name="OfferBar" Severity="Informational" IsOpen="False" IsClosable="False"
+                     Title="Accepted offer" />
+
+            <ProgressBar x:Name="OfferBusy" IsIndeterminate="True" Visibility="Collapsed"
+                         AutomationProperties.Name="Reading this deal's accepted offer" />
 
             <TextBox x:Name="TitleBox" Header="Title"
                      PlaceholderText="Northgate Pictures - Writer Agreement"

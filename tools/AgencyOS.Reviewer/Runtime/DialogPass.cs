@@ -480,6 +480,15 @@ internal sealed class DialogPass
         {
             return false;
         }
+        catch (System.Runtime.InteropServices.COMException)
+        {
+            // A tab that is being rebuilt underneath the walk answers
+            // E_UNEXPECTED rather than going away politely. Repair Wave 003B met
+            // this while re-opening eleven dialogs in one pass: it ended the run
+            // and cost the eight dialogs that had not been reached yet. Not
+            // finding the tab is an answer; losing the run is not.
+            return false;
+        }
     }
 
     /// <summary>Works the dialog once it is on screen.</summary>
