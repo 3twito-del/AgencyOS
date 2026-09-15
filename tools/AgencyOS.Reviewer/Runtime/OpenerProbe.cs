@@ -257,6 +257,150 @@ internal sealed class OpenerProbe
     }
 
     /// <summary>
+    /// Navigates to a control and says whether an operator could click it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The closure slice's instrument for the two dialogs Audit 002 left unopened
+    /// for reasons that were the harness's rather than the product's. It follows a
+    /// path of tabs — nested ones included, which is where <c>ParticipantList</c>
+    /// lives — selecting the first row at each stop so the next level has something
+    /// to render, and then asks <see cref="TargetReach"/> about one named control.
+    /// </para>
+    /// <para>
+    /// It does not invoke the control. Whether the dialog then opens is the
+    /// ordinary dialog pass's question, and keeping those separate is what lets a
+    /// verdict of "the operator could not have clicked this either" mean something.
+    /// </para>
+    /// </remarks>
+    /// <param name="workspace">The workspace to navigate to.</param>
+    /// <param name="tabs">Tabs to select in order, outermost first.</param>
+    /// <param name="target">The control's automation identifier.</param>
+    /// <param name="width">Window width to measure at.</param>
+    /// <param name="height">Window height to measure at.</param>
+    /// <returns>The steps taken and the reach verdict.</returns>
+    internal OpenerProbeResult Reach(
+        string workspace,
+        IReadOnlyList<string> tabs,
+        string target,
+        int width,
+        int height)
+    {
+        string directory = Path.Combine(_runDirectory, "evidence", "reach." + target);
+
+        Directory.CreateDirectory(directory);
+
+        List<string> steps = [];
+        List<string> shots = [];
+        List<string> trees = [];
+
+        _app.Focus();
+        _app.Keys.Press(ReviewKey.Escape);
+        Thread.Sleep(250);
+        _app.Resize(width, height);
+        Thread.Sleep(500);
+        _app.Refresh();
+
+        steps.Add("window: " + _app.Size());
+
+        ReviewStep navigated = _app.Navigate(workspace);
+
+        steps.Add("navigate to " + workspace + ": "
+            + (navigated.Succeeded ? "ok" : navigated.Detail));
+
+        Thread.Sleep(1500);
+        _app.Refresh();
+
+        foreach (string tab in tabs)
+        {
+            (bool selected, string detail) = SelectTab(tab);
+
+            steps.Add("select the " + tab + " tab: " + detail);
+
+            Thread.Sleep(1300);
+            _app.Refresh();
+
+            // A row so the next level has something to show. The detail pane of a
+            // list-and-detail page renders nothing until a record is chosen, and a
+            // nested tab inside it therefore holds nothing either.
+            UiaNode[] rows = Rows(_app.Snapshot());
+
+            if (rows.Length > 0)
+            {
+                (_, string rowDetail) = SelectRow(rows[0].Name);
+
+                steps.Add("  select a row: " + rowDetail);
+
+                Thread.Sleep(1300);
+                _app.Refresh();
+            }
+            else
+            {
+                steps.Add("  no rows on that tab");
+            }
+        }
+
+        string beforeShot = Path.Combine(directory, "01-before.png");
+
+        _app.Capture(beforeShot);
+        shots.Add(Relative(beforeShot));
+
+        UiaNode before = _app.Snapshot();
+
+        string beforeTree = Path.Combine(directory, "01-before.json");
+
+        File.WriteAllText(beforeTree, JsonSerializer.Serialize(before, Json));
+        trees.Add(Relative(beforeTree));
+
+        TargetReach reach = new(_app);
+        ReachResult inspected = reach.Inspect(target);
+
+        steps.Add("before: " + inspected.Verdict + " — " + inspected.Detail
+            + " (bounds " + (inspected.Bounds ?? "none") + ")");
+
+        ReachResult revealed = reach.Reveal(target);
+
+        steps.Add("after reveal: " + revealed.Verdict + " — " + revealed.Detail
+            + " (bounds " + (revealed.Bounds ?? "none") + ")"
+            + (revealed.ScrollPattern is { } used ? " via " + used : string.Empty));
+
+        Thread.Sleep(400);
+        _app.Refresh();
+
+        string afterShot = Path.Combine(directory, "02-after.png");
+
+        _app.Capture(afterShot);
+        shots.Add(Relative(afterShot));
+
+        UiaNode after = _app.Snapshot();
+
+        string afterTree = Path.Combine(directory, "02-after.json");
+
+        File.WriteAllText(afterTree, JsonSerializer.Serialize(after, Json));
+        trees.Add(Relative(afterTree));
+
+        return new OpenerProbeResult(
+            target,
+            workspace,
+            string.Join(">", tabs),
+            string.Empty,
+            target,
+            Rows(before).Length,
+            false,
+            false,
+            "REACH",
+            revealed.Verdict,
+            null,
+            Notices(before),
+            Notices(after),
+            inspected.Bounds,
+            revealed.Bounds,
+            steps,
+            shots,
+            trees);
+    }
+
+    /// <summary>
     /// What the invocation amounted to.
     /// </summary>
     /// <remarks>

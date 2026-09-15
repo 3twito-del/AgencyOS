@@ -69,6 +69,7 @@ public static class Program
                 "dialog-runtime" => DialogRuntime(options),
                 "tab-probe" => TabProbeMode(options),
                 "opener-probe" => OpenerProbeMode(options),
+                "reach-probe" => ReachProbeMode(options),
                 "validation" => Validation(options),
                 "sync" => Sync(options),
                 "report" => Render(options),
@@ -1307,6 +1308,108 @@ public static class Program
             Console.WriteLine("  " + group.Key.PadRight(32)
                 + group.Count().ToString(CultureInfo.InvariantCulture));
         }
+
+        return 0;
+    }
+
+    // ---------------------------------------------------------- reach-probe
+
+    /// <summary>
+    /// Says whether a named control can be operated, and reveals it when something
+    /// can.
+    /// </summary>
+    /// <remarks>
+    /// Added by the Audit 002 final closure slice for the two dialogs that were
+    /// left unopened by the harness rather than by the product. It navigates to a
+    /// workspace, selects a path of tabs, optionally selects a row at each stop,
+    /// and then classifies one named control. It discovers nothing and opens
+    /// nothing; what it produces is the answer to "could an operator click this".
+    /// </remarks>
+    private static int ReachProbeMode(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string subject = Option(options, "subject", "review-owner");
+        string requested = Option(options, "cases", string.Empty);
+        string size = Option(options, "size", "1600x1000");
+
+        if (executable.Length == 0 || runDirectory.Length == 0 || requested.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: reach-probe needs --exe, --out and --cases.");
+
+            return 2;
+        }
+
+        int width = 1600;
+        int height = 1000;
+
+        if (size.Split('x') is [string w, string h]
+            && int.TryParse(w, CultureInfo.InvariantCulture, out int parsedWidth)
+            && int.TryParse(h, CultureInfo.InvariantCulture, out int parsedHeight))
+        {
+            width = parsedWidth;
+            height = parsedHeight;
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = apiBase,
+            ["AGENCYOS_ORGANIZATION_ID"] = organization,
+            ["AGENCYOS_DEV_SUBJECT"] = subject,
+        };
+
+        Console.WriteLine("Launching " + executable);
+
+        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+
+        OpenerProbe probe = new(app, runDirectory);
+        List<OpenerProbeResult> results = [];
+
+        // Workspace/TabPath/Target[/rows]. TabPath is separated by '>' so a nested
+        // tab is expressible, which is what ParticipantList sits behind.
+        foreach (string entry in requested.Split(
+            ',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            string[] parts = entry.Split('/', StringSplitOptions.TrimEntries);
+
+            if (parts.Length < 3)
+            {
+                Console.Error.WriteLine("reviewer: '" + entry + "' is not workspace/tabs/target.");
+
+                continue;
+            }
+
+            string[] path =
+            [
+                .. parts[1].Split(
+                    '>', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            ];
+
+            OpenerProbeResult result = probe.Reach(parts[0], path, parts[2], width, height);
+
+            results.Add(result);
+
+            Console.WriteLine();
+            Console.WriteLine("== " + parts[2] + "  ->  " + result.Outcome);
+
+            foreach (string step in result.Steps)
+            {
+                Console.WriteLine("   " + step);
+            }
+        }
+
+        Write(Path.Combine(runDirectory, "reach-probe.json"), new
+        {
+            RunId = Option(options, "run", "AUDIT-002-FINAL"),
+            Executable = executable,
+            Environment = environment,
+            WindowSize = width + "x" + height,
+            Results = results,
+        });
 
         return 0;
     }
