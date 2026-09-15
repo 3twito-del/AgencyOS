@@ -1,0 +1,46 @@
+{
+ "WindowBounds": "41,41,1920,1080",
+ "WindowSize": "1920",
+ "ContractsDetailCommandBar": [
+  {
+   "AutomationId": "NewButton",
+   "Name": "New contract",
+   "ControlType": "Button",
+   "IsEnabled": true,
+   "IsOffscreen": false,
+   "Bounds": "1122,390,161,48"
+  },
+  {
+   "AutomationId": "VersionButton",
+   "Name": "Record version",
+   "ControlType": "Button",
+   "IsEnabled": false,
+   "IsOffscreen": false,
+   "Bounds": "1295,390,174,48"
+  },
+  {
+   "AutomationId": "ReconcileButton",
+   "Name": "Reconcile",
+   "ControlType": "Button",
+   "IsEnabled": false,
+   "IsOffscreen": false,
+   "Bounds": "1481,390,125,48"
+  },
+  {
+   "AutomationId": "SignatureButton",
+   "Name": "Record signature",
+   "ControlType": "Button",
+   "IsEnabled": true,
+   "IsOffscreen": false,
+   "Bounds": "1617,390,194,48"
+  },
+  {
+   "AutomationId": "NoticeButton",
+   "Name": "Record notice",
+   "ControlType": "Button",
+   "IsEnabled": true,
+   "IsOffscreen": false,
+   "Bounds": "1823,390,102,48"
+  }
+ ]
+}

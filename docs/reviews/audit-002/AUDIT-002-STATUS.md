@@ -95,6 +95,27 @@ The four still unopened are `ApproveAiActionDialog`, `IngestAttachmentDialog` an
 AUDIT 002 REMAINS OPEN
 ```
 
+## Amendment — final closure slice
+
+**Added after Repair Wave 003A. Nothing above is rewritten.** The closure slice
+settled the final four and nothing else
+([`final-closure/`](final-closure/AUDIT-002-FINAL-CLOSURE-SUMMARY.md)).
+
+| Dialog | Was | Final |
+| --- | --- | --- |
+| `RecordSignatureDialog` | `HARNESS_LIMITATION` | **`OPENED`** — the palette opener was never tried for it |
+| `ResolveParticipantDialog` | `PRECONDITION_UNACHIEVABLE` | **`OPENED`** — the precondition was creatable through canonical routes |
+| `ApproveAiActionDialog` | `PRECONDITION_UNACHIEVABLE` | `INTENTIONALLY_EXTERNAL_PRECONDITION` |
+| `IngestAttachmentDialog` | `PRECONDITION_UNACHIEVABLE` | `INTENTIONALLY_EXTERNAL_PRECONDITION` |
+
+Gates 2, 3 and 4 read **57 of 57** currently reachable dialogs, on a denominator
+of 59 − 2. No product code changed. Two new findings were filed:
+`AOS-R002-020` and `AOS-R002-021`.
+
+```
+AUDIT 002 COMPLETE — NO ADDITIONAL PRODUCT REPAIRS APPLIED IN FINAL CLOSURE
+```
+
 The other eleven requirements are met. The current position for the whole audit,
 including which historical numbers are now obsolete, is
 [`AUDIT-002-AGGREGATE.md`](AUDIT-002-AGGREGATE.md).

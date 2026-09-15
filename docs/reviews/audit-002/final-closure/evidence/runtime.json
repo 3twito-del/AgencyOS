@@ -1,0 +1,89 @@
+{
+ "RunId": "AUDIT-002-FINAL-CLOSURE",
+ "FinishedUtc": "2026-09-15T20:24:55.849052+00:00",
+ "ProductBaseline": "ba077a3",
+ "ReviewerTipBefore": "739b020",
+ "Environment": {
+  "api": "http://127.0.0.1:5199",
+  "organization": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+  "subject": "w2-owner",
+  "database": "local PostgreSQL 19beta3 (LAB evidence only)",
+  "modelProvider": "FakeModelProvider (only registered IModelProvider)",
+  "communicationProvider": "FakeCommunicationProvider (GraphCommunicationProvider not configured)"
+ },
+ "DialogsOpenedThisSlice": [
+  {
+   "DialogId": "RecordSignatureDialog",
+   "Outcome": "OPENED",
+   "How": "PALETTE",
+   "Title": "Record a signature",
+   "InitialFocus": "ComboBox PartyBox",
+   "FocusEnteredDialog": true,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "TabStops": 14,
+   "ReverseTabStops": 14,
+   "Accessibility": [],
+   "Buttons": [
+    "Cancel",
+    "Record (disabled)",
+    "Signed on"
+   ]
+  },
+  {
+   "DialogId": "ResolveParticipantDialog",
+   "Outcome": "OPENED",
+   "How": "PALETTE",
+   "Title": "Identify this address",
+   "InitialFocus": "Button CloseButton",
+   "FocusEnteredDialog": true,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "TabStops": 14,
+   "ReverseTabStops": 14,
+   "Accessibility": [],
+   "Buttons": [
+    "Cancel",
+    "Leave unidentified",
+    "Record (disabled)"
+   ]
+  }
+ ],
+ "DialogsNotOpened": [
+  {
+   "DialogId": "ApproveAiActionDialog",
+   "Disposition": "EXTERNAL_PRECONDITION_ONLY",
+   "Why": "A pending approval exists only when a model provider's response requests a non-read-only tool. No route creates one, by design. The only registered IModelProvider is FakeModelProvider, scriptable in-process only."
+  },
+  {
+   "DialogId": "IngestAttachmentDialog",
+   "Disposition": "EXTERNAL_PRECONDITION_ONLY",
+   "Why": "Needs a CommunicationAttachment row. CommunicationMessage.AddAttachment is called only by MailboxSynchronizer. Measured: an outbound send with a real attachment produced hasAttachments=true and attachmentCount=0.",
+   "OpenerHealthy": true,
+   "RefusalObserved": "That did not happen \u2014 Select an attachment first."
+  }
+ ],
+ "SignatureButtonReach": {
+  "at1600x1000": [
+   {
+    "Target": "SignatureButton",
+    "Verdict": "TARGET_OFFSCREEN_NOT_SCROLLABLE",
+    "BoundsBefore": null,
+    "BoundsAfter": null
+   },
+   {
+    "Target": "ParticipantList",
+    "Verdict": "TARGET_ONSCREEN",
+    "BoundsBefore": "1092,603,513,86",
+    "BoundsAfter": "1092,603,513,86"
+   }
+  ],
+  "at1920x1080": [
+   {
+    "Target": "SignatureButton",
+    "Verdict": "TARGET_ONSCREEN",
+    "BoundsBefore": "1617,390,194,48"
+   }
+  ]
+ }
+}

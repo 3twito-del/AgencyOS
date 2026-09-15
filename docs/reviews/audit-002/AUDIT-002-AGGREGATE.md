@@ -155,6 +155,40 @@ AUDIT 002 REMAINS OPEN
 
 Detail: [`../repair-003a/AUDIT-002-NARROW-RECHECK.md`](../repair-003a/AUDIT-002-NARROW-RECHECK.md).
 
+### 5.2 Amendment — final closure slice
+
+**Added, not substituted.** The closure slice settled the final four dialogs and
+touched nothing else. No product code changed.
+
+| | At Phase D | After 003A | After closure |
+| --- | ---: | ---: | ---: |
+| Every reachable dialog opened | 51 of 59 | 55 of 59 | **57 of 57** |
+| Cancel/close observed | 51 of 59 | 55 of 59 | **57 of 57** |
+| Accessibility/focus inspected | 51 of 59 | 55 of 59 | **57 of 57** |
+
+The denominator moved from 59 to 57 because two dialogs were reclassified
+`INTENTIONALLY_EXTERNAL_PRECONDITION` — state only an external actor can create,
+established by tracing every layer and by measurement, per §7.
+
+| Dialog | Final | Why |
+| --- | --- | --- |
+| `RecordSignatureDialog` | **OPENED** | its palette opener was never tried; `SignatureButton` is a separate finding |
+| `ResolveParticipantDialog` | **OPENED** | needs a participant, not an inbound message; the outbound send path creates one |
+| `ApproveAiActionDialog` | external-only | an approval comes from a model's tool call; no route creates one, and no real provider exists |
+| `IngestAttachmentDialog` | external-only | attachment rows come only from `MailboxSynchronizer`; Graph is not configured |
+
+**Two new findings**, both filed and unrepaired: `AOS-R002-020` (the connect
+dialog offers a mailbox visibility the server refuses) and `AOS-R002-021` (two
+contract commands are unclickable at 1600x1000).
+
+**Fourteen of fourteen §30 requirements met.**
+
+```
+AUDIT 002 COMPLETE — NO ADDITIONAL PRODUCT REPAIRS APPLIED IN FINAL CLOSURE
+```
+
+Detail: [`final-closure/AUDIT-002-FINAL-CLOSURE-SUMMARY.md`](final-closure/AUDIT-002-FINAL-CLOSURE-SUMMARY.md).
+
 ## 6. Where the documents are
 
 | Phase | Location |
