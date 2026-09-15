@@ -561,6 +561,22 @@ public static class Program
             // A closed application is an observation about that dialog and a
             // reason to start again, not a reason to abandon the rest. Ending
             // the run here would cost fifty dialogs for one event.
+            // Stop while the evidence is still intact. Phase C's traversal ran
+            // the volume to zero and died mid-dialog, which costs the run rather
+            // than a dialog.
+            long free = Native.FreeSpaceBytes(Path.GetFullPath(runDirectory));
+
+            if (free >= 0 && free < 5L * 1024 * 1024 * 1024)
+            {
+                Console.Error.WriteLine(
+                    "reviewer: only "
+                        + (free / (1024 * 1024)).ToString(CultureInfo.InvariantCulture)
+                        + " MB free where this run is writing. Stopping at "
+                        + dialog.DialogId + " so the evidence already gathered survives.");
+
+                break;
+            }
+
             if (observation.Outcome is "APPLICATION_CLOSED" or "WINDOW_UNREACHABLE")
             {
                 closures.Add(dialog.DialogId + " (" + observation.Outcome + ")");

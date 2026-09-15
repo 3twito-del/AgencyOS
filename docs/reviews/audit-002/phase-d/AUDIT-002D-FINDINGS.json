@@ -1,0 +1,84 @@
+[
+  {
+    "id": "AOS-R002-018",
+    "category": "Accessibility",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "D",
+    "workspace": [
+      "(all)"
+    ],
+    "dialog": [],
+    "role": "any",
+    "preconditions": "None.",
+    "steps": [
+      "Open the command palette with Ctrl+P.",
+      "Read the accessible name of any result row."
+    ],
+    "expected": "The row announces the command, as the page lists do after Repair Wave 002.",
+    "actual": "The row announces the bound record's ToString(): \"PaletteCommand { Id = go.people, Title = Go to People, Category = Navigate, Shortcut = Ctrl+2 }\". The item template does set AutomationProperties.Name via the RowLabel converter, but it sets it on the inner Grid; the ListViewItem container that a screen reader announces still takes its name from the data item. Page lists are correct - Repair Wave 002 fixed 115 of them - so the palette is the exception rather than the rule.",
+    "httpResult": null,
+    "persistedResult": null,
+    "mutationAttempted": false,
+    "userImpact": "A screen-reader user hears record syntax instead of a command name, in the one surface the product intends as the keyboard-first way to do anything.",
+    "likelySource": "The converter is on the DataTemplate's root Grid rather than on the item container.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": false,
+    "repairRisk": "Low - an ItemContainerStyle setter.",
+    "suggestedRepairWave": "003D",
+    "evidence": [
+      "artifacts/reviewer/run-002-phase-c/final/evidence/",
+      "src/AgencyOS.Windows/MainWindow.xaml"
+    ],
+    "logs": [
+      "PaletteCommand { Id = go.command-center, Title = Go to Command Center, Category = Navigate, Shortcut = Ctrl+1 }"
+    ]
+  },
+  {
+    "id": "AOS-R002-019",
+    "category": "Bug",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "D",
+    "workspace": [
+      "workspace.communications",
+      "workspace.intelligence"
+    ],
+    "dialog": [
+      "ConnectMailboxDialog",
+      "CreatePredictionDialog",
+      "RecordSourceDialog",
+      "ResolvePredictionDialog"
+    ],
+    "role": "owner",
+    "preconditions": "Each handler's own guard satisfied, verified at the API: providers=1 and mailboxes=1 for ConnectMailboxDialog; the list view models for the three Intelligence dialogs are constructed on page load and cannot be null once the page has rendered.",
+    "steps": [
+      "Open Communications and select the Mailboxes tab.",
+      "Select the mailbox row.",
+      "Click 'Connect a mailbox', or run 'Connect mailbox' from the palette.",
+      "Observe that nothing happens."
+    ],
+    "expected": "The dialog opens, or the product says why it will not.",
+    "actual": "Nothing appears and nothing is said. Four dialogs across two pages share the signature: the opener is invoked, the handler's guards are satisfied, no dialog appears, and no InfoBar, notice or error is shown. For ConnectMailboxDialog the real button was located and invoked on the Mailboxes tab - 'clicked \"Connect a mailbox\" - and nothing appeared' - and a separate probe confirmed the ErrorBar is absent from the tree afterwards, so the handler's own 'No provider is configured' notice was NOT the path taken. Ten of thirteen sibling dialogs on IntelligencePage and two on CommunicationsPage open through the same palette mechanism, so dispatch to those pages works. THE ROOT CAUSE IS NOT ESTABLISHED. These are grouped by a shared symptom, not a proven shared cause.",
+    "httpResult": null,
+    "persistedResult": "Nothing is created; nothing is lost.",
+    "mutationAttempted": false,
+    "userImpact": "Four workflows cannot be started at all: connecting a mailbox, stating a prediction, recording a source and resolving a prediction. The operator gets no feedback of any kind.",
+    "likelySource": "Not established. The handlers are dispatched as fire-and-forget (`_ = MethodAsync()`), so an exception thrown before or during ShowAsync would be discarded silently, which matches the symptom - but no exception was observed and the product writes no client-side log to check.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": false,
+    "repairRisk": "Unknown until the cause is found.",
+    "suggestedRepairWave": "003A",
+    "evidence": [
+      "artifacts/reviewer/run-002-phase-d/detail/dialog-runtime.json",
+      "artifacts/reviewer/run-002-phase-d/mailbox-probe/"
+    ],
+    "logs": [
+      "clicked \"Connect a mailbox\" — and nothing appeared",
+      "palette: typing \"Connect mailbox\" left \"Connect mailbox\" (2 shown) at the top — and nothing appeared"
+    ],
+    "method": "UI Automation Invoke on the product's own button and the product's own palette command. Not a human mouse click; a human operator has not confirmed it."
+  }
+]

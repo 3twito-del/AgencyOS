@@ -133,6 +133,47 @@ public sealed class ValidationDetectorTests
         Assert.Null(Detectors.DialogRoot([Node("Window", "Add a reason")], "Add a reason"));
     }
 
+    // ------------------------------------------------------- palette identity
+
+    /// <summary>
+    /// The palette row a command produces, as WinUI announces it.
+    /// </summary>
+    /// <remarks>
+    /// Taken verbatim from a captured automation tree. The row's accessible name
+    /// is the bound record's <c>ToString()</c>, which is why the identifier is
+    /// available to match on — and is separately recorded as
+    /// <c>AOS-R002-018</c>, because it is also what a screen reader reads out.
+    /// </remarks>
+    private static string Row(string id, string title) =>
+        "PaletteCommand { Id = " + id + ", Title = " + title
+            + ", Category = Communications, Shortcut =  }";
+
+    [Fact]
+    public void APaletteRowCarriesItsCommandIdentifier()
+    {
+        Assert.Contains("Id = mailbox.connect,", Row("mailbox.connect", "Connect mailbox"),
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MatchingOnTheLabelCannotTellTheseApart()
+    {
+        // Why the check moved to the identifier. "Disconnect mailbox" contains
+        // "Connect mailbox", so a Contains match on the label confirmed the wrong
+        // command and pressed Enter on it.
+        Assert.Contains("connect mailbox", "Disconnect mailbox",
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void MatchingOnTheIdentifierCan()
+    {
+        string disconnect = Row("mailbox.disconnect", "Disconnect mailbox");
+
+        Assert.DoesNotContain("Id = mailbox.connect,", disconnect, StringComparison.Ordinal);
+        Assert.Contains("Id = mailbox.disconnect,", disconnect, StringComparison.Ordinal);
+    }
+
     // ---------------------------------------------------------------- Refusal
 
     [Fact]

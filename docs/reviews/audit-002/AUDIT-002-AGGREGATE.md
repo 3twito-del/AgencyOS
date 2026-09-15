@@ -17,6 +17,7 @@ any phase.**
 | **A** | Inventory, first runtime pass, four reclassifications | 30 of 57 | complete; closed the audit prematurely, corrected in `AUDIT-002-STATUS.md` |
 | **B** | Unblock the 27, mutations, roles, validation, idempotency, concurrency | 38 of 57 | complete; §30 still unmet, said so |
 | **C** | Use the new role capability to close §30 | **51 of 59** | complete; §30 still unmet on two requirements |
+| **D** | Closure only: settle the eight unopened, contain the capture | 51 of 59 | complete; §30 still unmet — the eight now all have a cause |
 
 ---
 
@@ -37,13 +38,18 @@ obsolete is how an audit record rots.
 | `AOS-R002-009` — the command runs and nothing appears | Phase B, S3 | **CLOSED_AS_HARNESS_ERROR** — reviewer defects 9, 16, 17, 21 |
 | `AOS-R001-020` — F9 does nothing | Audit 001 | **NO_DEFECT** — navigation is intentional, acknowledgement observed |
 | `AOS-R002-002`, `AOS-R002-006` — no second user, membership write-once | Phase A/B, S2 | **CLOSED** by Repair Wave 003E-A |
+| "2 harness limitations, 3 inconclusive" (5 of 8) | Phase C summary | **8 of 8**, partitioned: 4 product defect, 3 precondition, 1 harness |
+| `ConnectMailboxDialog` — `PRECONDITION_NOT_MET` | Phase C | **wrong** — the server reports one provider; Phase C inferred it from the handler instead of asking |
+| `IngestAttachmentDialog`, `ResolveParticipantDialog` — `HARNESS_LIMITATION` | Phase C | **`PRECONDITION_UNACHIEVABLE`** — no message exists and no route creates one |
+| "approximately 23 reviewer defects" | Phase C | **26** |
+| "the API emitted 235 GB of stdout" | Phase C closing note | **not established, and measurement contradicts it** — ~96 KB per request and ~1.4 KB/s idle; roughly 99% of that file was not product output |
 | "Phase B's non-member was refused" | Phase B | **superseded** — that fixture subject was *unauthenticated*. An authenticated non-member is refused `403` on every route, which is the question §30 asked |
 
 ---
 
 ## 3. Findings — the current set
 
-Thirteen open, four closed, across three phases — seventeen raised in all.
+Fifteen open, four closed, across four phases — nineteen raised in all.
 
 | Id | Sev | Phase | Status | What |
 | --- | :-: | :-: | --- | --- |
@@ -64,6 +70,8 @@ Thirteen open, four closed, across three phases — seventeen raised in all.
 | `AOS-R002-015` | S4 | C | NEW | Organization/Members is outside the palette — `COMMAND_SURFACE_INCONSISTENCY` |
 | `AOS-R002-016` | S3 | C | NEW | Enter commits in 26 dialogs and cancels in 36, by no rule |
 | `AOS-R002-017` | S3 | C | NEW | `POST /documents` answers `500` to any non-multipart content type |
+| `AOS-R002-018` | S3 | D | NEW | The command palette announces `PaletteCommand { Id = …, Title = … }` instead of the command |
+| `AOS-R002-019` | S3 | D | NEW | Four dialogs: the opener is invoked, the guards are satisfied, and nothing appears and nothing is said |
 
 Carried from Audit 001: `AOS-R001-006` **CONFIRMED** (20 fields, 13 dialogs),
 `AOS-R001-010` **CONFIRMED_API_UI_GAP** (scopes/team), `AOS-R001-013`
@@ -73,13 +81,13 @@ Carried from Audit 001: `AOS-R001-006` **CONFIRMED** (20 fields, 13 dialogs),
 
 | S0 | S1 | S2 | S3 | S4 |
 | :-: | :-: | :-: | :-: | :-: |
-| 0 | 1 | 1 | 7 | 4 |
+| 0 | 1 | 1 | 9 | 4 |
 
 ---
 
 ## 4. Provenance
 
-Twenty-three reviewer defects across the audit. **Eighteen would have produced a
+Twenty-six reviewer defects across the audit. **Twenty would have produced a
 false claim against the product.** Three filed findings were closed as harness
 errors on that evidence — two from Audit 002 and one from Audit 001.
 
@@ -96,22 +104,26 @@ all against a product that was behaving correctly.
 
 ## 5. The §30 verdict
 
-Twelve of fourteen requirements met. Two unmet, and they are one gap counted
-twice: **eight reachable dialogs have never been opened** — three because a
-precondition genuinely does not exist in this tenant, two because of a known
-harness limitation, three inconclusive.
+Eleven of fourteen requirements met. Three unmet, and they are one gap counted
+three times: **eight reachable dialogs have never been opened** — four because
+the product does not open them (`AOS-R002-019`), three because their precondition
+cannot be built without writing to the database directly, one because the
+reviewer does not scroll a pane into view.
 
-Full detail: [`phase-c/AUDIT-002C-COVERAGE.md`](phase-c/AUDIT-002C-COVERAGE.md).
+Full detail: [`phase-d/AUDIT-002D-COVERAGE.md`](phase-d/AUDIT-002D-COVERAGE.md).
 
 ```
-AUDIT 002 PHASE C COMPLETE — AUDIT 002 REMAINS OPEN — NO PRODUCT REPAIRS APPLIED
+AUDIT 002 PHASE D COMPLETE — AUDIT 002 REMAINS OPEN — NO PRODUCT REPAIRS APPLIED
 ```
 
 Unmet gates:
 
 1. **Every reachable dialog opened at least once** — 51 of 59.
 2. **Cancel/close behaviour observed for every reachable dialog** — 51 of 59.
-   Met for every dialog that was opened; fails only because (1) does.
+3. **Accessibility/focus inspection for every reachable dialog** — 51 of 59.
+
+Gates 2 and 3 are satisfied for every dialog that was opened; they fail only
+because (1) does.
 
 ## 6. Where the documents are
 
@@ -121,4 +133,5 @@ Unmet gates:
 | status correction | `docs/reviews/audit-002/AUDIT-002-STATUS.md` |
 | B | `docs/reviews/audit-002/phase-b/` |
 | C | `docs/reviews/audit-002/phase-c/` |
+| D | `docs/reviews/audit-002/phase-d/` |
 | evidence | `artifacts/reviewer/run-002-audit/`, `run-002-phase-b/`, `run-002-phase-c/` |

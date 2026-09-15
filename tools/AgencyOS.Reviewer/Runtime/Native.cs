@@ -263,4 +263,35 @@ internal static class Native
         public uint SecondMask;
         public uint ThirdMask;
     }
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetDiskFreeSpaceExW(
+        string directory, out ulong freeForCaller, out ulong total, out ulong free);
+
+    /// <summary>How much room is left where the run is writing.</summary>
+    /// <param name="directory">Any path on the volume.</param>
+    /// <returns>Free bytes, or -1 when the question could not be asked.</returns>
+    /// <remarks>
+    /// Audit 002 Phase C filled the disk and the run died mid-traversal. A pass
+    /// that notices beforehand can stop cleanly and keep the evidence it already
+    /// has, which is the difference between a short run and a lost one.
+    /// </remarks>
+    internal static long FreeSpaceBytes(string directory)
+    {
+        try
+        {
+            return GetDiskFreeSpaceExW(directory, out ulong free, out _, out _)
+                ? (long)free
+                : -1;
+        }
+        catch (DllNotFoundException)
+        {
+            return -1;
+        }
+        catch (EntryPointNotFoundException)
+        {
+            return -1;
+        }
+    }
 }

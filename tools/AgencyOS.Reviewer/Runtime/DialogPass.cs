@@ -375,9 +375,22 @@ internal sealed class DialogPass
         Thread.Sleep(400);
         _app.Refresh();
 
-        // A guard that names lists and found none of them here means this is not
-        // the tab. Pressing the opener anyway would only re-prove that.
-        if (guards.Count > 0
+        // A guard that names lists and found none of them here usually means this
+        // is not the tab, and skipping the opener keeps a two-level walk
+        // affordable. It is only sound for a palette-only opener.
+        //
+        // A dialog with a button is different: the guard names are read out of
+        // the handler by a regex over a window of source, which picks up the
+        // neighbouring methods' guards too. RecordSignatureDialog acquired
+        // OptionList that way - it guards on outstanding signatories - and the
+        // skip then refused to press SignatureButton on the Parties tab, where
+        // the button is. Clicking a button that is disabled costs nothing and
+        // reports itself, so for those the opener is always tried.
+        bool hasButton = opening.Control is { Length: > 0 }
+            || opening.ControlLabel is { Length: > 0 };
+
+        if (!hasButton
+            && guards.Count > 0
             && !guards.Any(x => x.Contains("selected '", StringComparison.Ordinal)))
         {
             return (false, "NONE", where + ": " + string.Join("; ", guards));
@@ -405,7 +418,11 @@ internal sealed class DialogPass
             Thread.Sleep(250);
         }
 
-        return (false, "NONE", where + ": ran but nothing appeared");
+        // What the opener reported, not a generic sentence. "Ran but nothing
+        // appeared" is the same message whether a button was disabled, a button
+        // was missing and the palette was used instead, or the command genuinely
+        // produced no dialog - and those are three different findings.
+        return (false, "NONE", where + ": " + detail + " — and nothing appeared");
     }
 
     /// <summary>Every tab currently in the strip, by name.</summary>
@@ -756,7 +773,7 @@ internal sealed class DialogPass
 
         // Confirm the palette narrowed to this command before committing, so a
         // miss is recorded as a miss rather than as having run something else.
-        (bool shows, string first) = PaletteShows(command.Label);
+        (bool shows, string first) = PaletteShows(commandId);
 
         if (!shows)
         {
@@ -777,7 +794,7 @@ internal sealed class DialogPass
     }
 
     /// <summary>Whether the palette's first result is the command that was typed.</summary>
-    private (bool Shows, string First) PaletteShows(string label)
+    private (bool Shows, string First) PaletteShows(string commandId)
     {
         _app.Refresh();
 
@@ -801,8 +818,15 @@ internal sealed class DialogPass
 
         string first = items[0].Name ?? "«unnamed»";
 
+        // By identifier, not by label. A palette row announces itself as the
+        // record it binds - "PaletteCommand { Id = go.people, Title = Go to
+        // People, ... }" - so the identifier is right there and is exact.
+        // Matching the label with Contains could not tell "Connect mailbox" from
+        // "Disconnect mailbox", and would have confirmed the wrong command and
+        // pressed Enter on it.
         return (
-            first.Contains(label, StringComparison.OrdinalIgnoreCase),
+            first.Contains("Id = " + commandId + ",", StringComparison.Ordinal)
+                || first.Contains("Id = " + commandId + " ", StringComparison.Ordinal),
             "\"" + first + "\" (" + items.Length.ToString(
                 System.Globalization.CultureInfo.InvariantCulture) + " shown)");
     }

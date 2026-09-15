@@ -14,10 +14,10 @@ Per §24's scheme. **Nothing here has been applied, and no wave is executed.**
 
 | Wave | Theme | Contents |
 | --- | --- | --- |
-| **003A** | correctness / broken workflows | `AOS-R002-017` (documents `500` on a non-multipart content type). `AOS-R002-001` stays under review — its repairs landed in an earlier wave and its symptom shape is re-verified. |
+| **003A** | correctness / broken workflows | **`AOS-R002-019`** — four dialogs that do not open, found in Phase D and the most consequential item in any group. Plus `AOS-R002-017` (documents `500` on a non-multipart content type). `AOS-R002-001` stays under review. |
 | **003B** | entity selection / raw identifiers | **`AOS-R001-006`** — 20 typed-identifier fields across 13 dialogs. The largest open finding and the one least suited to a mechanical wave. |
 | **003C** | authorization / refusal UX | `AOS-R002-007`, `AOS-R002-008`, `AOS-R002-014` — three shapes of the same problem: a refusal written for the log rather than for the operator. |
-| **003D** | accessibility / focus / validation | **`AOS-R002-011`** as one product-wide root, plus `AOS-R002-010` and `AOS-R002-012`. |
+| **003D** | accessibility / focus / validation | **`AOS-R002-011`** as one product-wide root, plus `AOS-R002-010`, `AOS-R002-012` and **`AOS-R002-018`** (the command palette announces record syntax). |
 | **003E** | product completeness / owner decisions | **`AOS-R001-010`** (representation scopes and team), the three unwired finance dialogs, `AOS-R002-013`. |
 | **003F** | navigation / discoverability / copy / polish | `AOS-R002-015`, `AOS-R002-016`. |
 
@@ -82,17 +82,29 @@ that is visible rather than buried.
 
 ## Sequencing
 
-**003F first.** It is the smallest and entirely independent, and making the
+**003A first, and ahead of everything else.** Phase D changed the ordering.
+`AOS-R002-019` means four workflows cannot be started at all — connecting a
+mailbox, stating a prediction, recording a source, resolving a prediction — and
+the operator gets no feedback of any kind. Nothing else in this proposal costs a
+user a whole workflow.
+
+Its root cause is not established, so the wave begins with diagnosis rather than
+with a fix. The handlers are dispatched fire-and-forget (`_ = MethodAsync()`), so
+an exception thrown before or during `ShowAsync` would be discarded silently,
+which matches the symptom exactly — but no exception was observed and the client
+writes no log to check. Somewhere to start, not a conclusion.
+
+**003F next.** It is the smallest and entirely independent, and making the
 membership surface reachable the ordinary way also makes it testable by the
 ordinary means.
 
-**003D next**, because it is the one with a real user cost — work is being lost —
-and because its owner decision blocks the most.
+**003D after that**, because it is the one with a real user cost among the rest —
+work is being lost — and because its owner decision blocks the most.
 
-**003A alongside**, since `AOS-R002-017` is a content-type check with no
-interaction with anything else. Repair Wave 001.5's rule applies to whoever takes
-it: *do not catch the exception and relabel it.* The content type should be
-refused before the form binder is asked to bind.
+`AOS-R002-017` travels with 003A: it is a content-type check with no interaction
+with anything else. Repair Wave 001.5's rule applies to whoever takes it: *do not
+catch the exception and relabel it.* The content type should be refused before
+the form binder is asked to bind.
 
 **003C and 003B after**, both being copy and design decisions that should be made
 once and deliberately rather than as a side effect.

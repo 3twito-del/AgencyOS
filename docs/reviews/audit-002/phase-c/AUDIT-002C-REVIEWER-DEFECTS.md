@@ -1,7 +1,7 @@
 # Audit 002 — the reviewer defect ledger
 
-§15. Twenty-three defects in the reviewer, found across three phases. This is audit
-provenance, not an apology: eighteen of the twenty-three would have produced a false
+§15. Twenty-six defects in the reviewer, found across four phases. This is audit
+provenance, not an apology: twenty of the twenty-six would have produced a false
 claim against AgencyOS, and the only reason none of them did is that each was
 caught by the reviewer contradicting the server, the source, or itself.
 
@@ -83,6 +83,28 @@ every shape since sampled.
   **not reported**.
 - The first Phase C validation pass's six silent-failure readings — defects 12,
   13 and 14, **not reported**.
+
+---
+
+## Phase D
+
+| # | Bad assumption | Affected measurement | FP | FN | Test |
+| ---: | --- | --- | :-: | :-: | :-: |
+| 24 | A palette row can be confirmed by its label | Which command Enter ran. `Contains` cannot tell `Connect mailbox` from **Dis**`connect mailbox`, so the pass could confirm one and run the other | ✓ | ✓ | `MatchingOnTheIdentifierCan` |
+| 25 | A guard that names no satisfied list means the opener is not here | Button openers. The guard names are read by a regex over a window of source and pick up neighbouring methods' guards, so `RecordSignatureDialog` acquired `OptionList` and the skip then refused to press `SignatureButton` on the tab it lives on | ✓ | | re-run of the five button-opened dialogs |
+| 26 | "Ran but nothing appeared" is an adequate account of a failure | Every unopened dialog's blocker. The same sentence covered a disabled button, a missing button, and a command that genuinely produced nothing | | ✓ | the evidence in `AOS-R002-019` is the restored reason |
+
+**Invalidated historical evidence:** Phase C's classification of
+`ConnectMailboxDialog`, `IngestAttachmentDialog`, `ResolveParticipantDialog` and
+`RecordSignatureDialog` — four of the eight — all **RETESTED** in Phase D and
+three reclassified. Phase C's `PRECONDITION_NOT_MET` for `ConnectMailboxDialog`
+was an inference from reading the handler rather than a measurement, and it was
+wrong: the server reports one provider.
+
+Defect 26 is the one that mattered. It was not making a false claim — it was
+making *no* claim, and three dialogs sat in `INCONCLUSIVE` for a phase because of
+it. Restoring the opener's own words turned them into a product finding in a
+single run.
 
 ---
 
@@ -192,9 +214,9 @@ entering correctly.
 
 ## What this adds up to
 
-Twenty-three reviewer defects across Audit 002: five in Phase A, five in Phase B,
-thirteen in Phase C. **Eighteen of the twenty-three would have produced a false
-claim against the product**, several of them confident and severe — a
+Twenty-six reviewer defects across Audit 002: five in Phase A, five in Phase B,
+thirteen in Phase C, three in Phase D. **Twenty of the twenty-six would have
+produced a false claim against the product**, several of them confident and severe — a
 silent-failure finding, two workflow findings, one that would have said the
 client can be closed by keyboard operation of a dialog, and one S2 accessibility
 finding that survived two phases before the evidence under it was read properly.

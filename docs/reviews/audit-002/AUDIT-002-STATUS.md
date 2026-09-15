@@ -53,19 +53,25 @@ Plus §12 idempotency, §13 conflict and §7 validation association, all
 | **A** | Dialog inventory, first runtime pass, four reclassifications | **COMPLETE** — `583e6ae`, CI 34880798240 |
 | **B** | Unblock the 27, complete mutation/role/validation/idempotency/concurrency evidence | **COMPLETE** — §30 still unmet, and said so |
 | **C** | Use the new role/membership capability to close §30 | **COMPLETE** — §30 still unmet on two requirements |
+| **D** | Closure only: settle the eight unopened dialogs, contain the capture | **COMPLETE** — §30 still unmet; all eight now carry a cause |
 
 Audit 002 closes only when §30 is genuinely satisfied. It is not.
 
 ```
-AUDIT 002 PHASE C COMPLETE — AUDIT 002 REMAINS OPEN — NO PRODUCT REPAIRS APPLIED
+AUDIT 002 PHASE D COMPLETE — AUDIT 002 REMAINS OPEN — NO PRODUCT REPAIRS APPLIED
 ```
 
-**Unmet gates, after Phase C:**
+**Unmet gates, after Phase D:**
 
 1. Every reachable dialog opened at least once — **51 of 59**.
-2. Cancel/close behaviour observed for every reachable dialog — **51 of 59**;
-   met for every dialog that was opened, and failing only because (1) does.
+2. Cancel/close behaviour observed for every reachable dialog — **51 of 59**.
+3. Accessibility/focus inspection for every reachable dialog — **51 of 59**.
 
-The other twelve requirements are met. The current position for the whole audit,
+All three are the same eight dialogs, and gates 2 and 3 are satisfied for every
+dialog that was opened. Four of the eight are a filed product defect
+(`AOS-R002-019`), three have a precondition that cannot be built through any
+route, and one is a reviewer limitation.
+
+The other eleven requirements are met. The current position for the whole audit,
 including which historical numbers are now obsolete, is
 [`AUDIT-002-AGGREGATE.md`](AUDIT-002-AGGREGATE.md).
