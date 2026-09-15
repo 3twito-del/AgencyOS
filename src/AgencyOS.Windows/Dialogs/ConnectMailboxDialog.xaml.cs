@@ -108,6 +108,18 @@ public sealed partial class ConnectMailboxDialog : ContentDialog
 
     private void Update()
     {
+        // VisibilityBox declares its default selection in the markup, so the
+        // parser raises SelectionChanged while InitializeComponent is still
+        // running - before the constructor has assigned _providers. Reaching it
+        // then threw, the throw left the constructor, and the fire-and-forget
+        // opener discarded it: the operator clicked and nothing happened at all
+        // (AOS-R002-019). The constructor calls this again once the dialog is
+        // whole, which is where the real initial state comes from.
+        if (_providers is null)
+        {
+            return;
+        }
+
         CommunicationProviderResponse? provider = _providers
             .FirstOrDefault(x => string.Equals(x.Provider, Provider, StringComparison.Ordinal));
 

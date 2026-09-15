@@ -62,6 +62,18 @@ public sealed partial class RecordSourceDialog : ContentDialog
 
     private void ApplyKind()
     {
+        // KindBox declares its default selection in the markup, so the parser
+        // raises SelectionChanged while InitializeComponent is still running -
+        // and everything below it in the document, UrlBox and CustodyBar and
+        // PublishedPicker among them, does not exist yet. Reaching one then
+        // threw, and the fire-and-forget opener discarded the throw, so the
+        // operator ran the command and saw nothing at all (AOS-R002-019). The
+        // constructor calls this again once the dialog is whole.
+        if (UrlBox is null || CustodyBar is null || PublishedPicker is null)
+        {
+            return;
+        }
+
         bool isUrl = Kind == "ExternalUrl";
 
         UrlBox.Visibility = isUrl
@@ -88,6 +100,14 @@ public sealed partial class RecordSourceDialog : ContentDialog
 
     private void UpdatePrimary()
     {
+        // Reached from OnKindChanged, and so from the same load-time selection
+        // the guard above exists for. TitleBox and UrlBox are both declared
+        // after KindBox (AOS-R002-019).
+        if (TitleBox is null || UrlBox is null)
+        {
+            return;
+        }
+
         bool hasTitle = !string.IsNullOrWhiteSpace(TitleBox.Text);
 
         bool hasUrl = Kind != "ExternalUrl"

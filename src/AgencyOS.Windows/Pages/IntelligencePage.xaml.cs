@@ -768,10 +768,25 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
 
     private async Task ResolvePredictionAsync()
     {
-        if (_api is null
-            || _predictions is null
-            || PredictionList.SelectedItem is not PredictionResponse prediction)
+        if (_api is null || _predictions is null)
         {
+            return;
+        }
+
+        // Said rather than ignored. The command palette offers this from every
+        // tab and takes no argument, so running it with nothing selected is an
+        // ordinary thing for an operator to do - and until AOS-R002-019 it
+        // returned in silence, which is indistinguishable from the command
+        // being broken.
+        if (PredictionList.SelectedItem is not PredictionResponse prediction)
+        {
+            await NoteAsync(
+                "Choose a prediction first",
+                "Resolving records what actually happened against one stated forecast, "
+                    + "so there is nothing to resolve until one is selected. Open the "
+                    + "Predictions tab and pick the question you are settling.")
+                .ConfigureAwait(true);
+
             return;
         }
 

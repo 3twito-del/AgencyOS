@@ -68,6 +68,7 @@ public static class Program
                 "dialogs" => Dialogs(options),
                 "dialog-runtime" => DialogRuntime(options),
                 "tab-probe" => TabProbeMode(options),
+                "opener-probe" => OpenerProbeMode(options),
                 "validation" => Validation(options),
                 "sync" => Sync(options),
                 "report" => Render(options),
@@ -1192,6 +1193,124 @@ public static class Program
         return 0;
     }
 
+    // --------------------------------------------------------- opener-probe
+
+    /// <summary>
+    /// Drives named openers and says what an operator would have seen.
+    /// </summary>
+    /// <remarks>
+    /// Reproduction support for <c>AOS-R002-019</c>, added by Repair Wave 003A and
+    /// scoped to it. It discovers nothing and traverses nothing: it takes the
+    /// surfaces it is given, invokes each the way the product intends, and writes
+    /// before/after evidence with a verdict that distinguishes a dialog opening,
+    /// a refusal the operator can read, and the case this wave exists for — the
+    /// opener that ran and said nothing at all.
+    /// </remarks>
+    private static int OpenerProbeMode(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string subject = Option(options, "subject", "review-owner");
+        string requested = Option(options, "cases", string.Empty);
+
+        if (executable.Length == 0 || runDirectory.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: opener-probe needs --exe and --out.");
+
+            return 2;
+        }
+
+        // The four surfaces AOS-R002-019 names, as the product reaches them. A
+        // default rather than a discovery pass, because the finding names them.
+        (string Dialog, string Workspace, string Tab, string Command, string? Control, bool Row)[] cases =
+        [
+            ("ConnectMailboxDialog", "Communications", "Mailboxes", "mailbox.connect",
+                "Connect a mailbox", true),
+            ("CreatePredictionDialog", "Intelligence", "Predictions",
+                "intelligence.prediction.create", null, false),
+            ("RecordSourceDialog", "Intelligence", "Sources",
+                "intelligence.source.record", null, false),
+            ("ResolvePredictionDialog", "Intelligence", "Predictions",
+                "intelligence.prediction.resolve", null, true),
+        ];
+
+        if (requested.Length > 0)
+        {
+            cases =
+            [
+                .. requested
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(x => x.Split('/', StringSplitOptions.TrimEntries))
+                    .Where(x => x.Length >= 4)
+                    .Select(x => (
+                        x[0],
+                        x[1],
+                        x[2],
+                        x[3],
+                        x.Length > 4 && x[4].Length > 0 ? x[4] : null,
+                        x.Length > 5 && string.Equals(x[5], "row", StringComparison.OrdinalIgnoreCase))),
+            ];
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = apiBase,
+            ["AGENCYOS_ORGANIZATION_ID"] = organization,
+            ["AGENCYOS_DEV_SUBJECT"] = subject,
+        };
+
+        DateTimeOffset started = DateTimeOffset.UtcNow;
+
+        Console.WriteLine("Launching " + executable);
+
+        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+
+        OpenerProbe probe = new(app, runDirectory);
+        List<OpenerProbeResult> results = [];
+
+        foreach ((string dialog, string workspace, string tab, string command, string? control, bool row)
+            in cases)
+        {
+            OpenerProbeResult result = probe.Probe(dialog, workspace, tab, command, control, row);
+
+            results.Add(result);
+
+            Console.WriteLine();
+            Console.WriteLine("== " + dialog + "  ->  " + result.Outcome);
+
+            foreach (string step in result.Steps)
+            {
+                Console.WriteLine("   " + step);
+            }
+        }
+
+        Write(Path.Combine(runDirectory, "opener-probe.json"), new
+        {
+            RunId = Option(options, "run", "REPAIR-003A"),
+            StartedUtc = started,
+            FinishedUtc = DateTimeOffset.UtcNow,
+            Executable = executable,
+            Environment = environment,
+            Results = results,
+        });
+
+        Console.WriteLine();
+
+        foreach (IGrouping<string, OpenerProbeResult> group in results
+            .GroupBy(x => x.Outcome, StringComparer.Ordinal)
+            .OrderByDescending(x => x.Count()))
+        {
+            Console.WriteLine("  " + group.Key.PadRight(32)
+                + group.Count().ToString(CultureInfo.InvariantCulture));
+        }
+
+        return 0;
+    }
+
     // ---------------------------------------------------------------- report
 
     /// <summary>Renders the audit outputs from gathered evidence.</summary>
@@ -1296,6 +1415,7 @@ public static class Program
         Console.WriteLine("  dialogs    --repo <path> [--out <file>]                      the static dialog inventory");
         Console.WriteLine("  dialog-runtime --exe <path> --out <run-dir> --org <guid> [--only <DialogId,...>]  opens and operates them");
         Console.WriteLine("  validation --exe <path> --out <run-dir> --org <guid> [--only <DialogId,...>]      submits them unready");
+        Console.WriteLine("  opener-probe --exe <path> --out <run-dir> --org <guid> [--cases <Dialog/Workspace/Tab/command[/control][/row],...>]  one opener at a time, with a verdict");
         Console.WriteLine("  report     --out <run-dir> [--static <dir>]");
         Console.WriteLine("  reproduce  --finding <id> --out <run-dir>");
         Console.WriteLine("  repair     refused during an audit");

@@ -824,11 +824,46 @@ internal sealed class DialogPass
         // Matching the label with Contains could not tell "Connect mailbox" from
         // "Disconnect mailbox", and would have confirmed the wrong command and
         // pressed Enter on it.
-        return (
+        bool byIdentifier =
             first.Contains("Id = " + commandId + ",", StringComparison.Ordinal)
-                || first.Contains("Id = " + commandId + " ", StringComparison.Ordinal),
+            || first.Contains("Id = " + commandId + " ", StringComparison.Ordinal);
+
+        return (
+            byIdentifier || MatchesUniqueLabel(commandId, first),
             "\"" + first + "\" (" + items.Length.ToString(
                 System.Globalization.CultureInfo.InvariantCulture) + " shown)");
+    }
+
+    /// <summary>
+    /// Whether the row announced exactly this command's label, and no other
+    /// command shares it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Added by Repair Wave 003A, and narrow on purpose. A palette row does not
+    /// always announce the bound record: in some runs it announces the plain
+    /// label instead, which is <c>AOS-R002-018</c>'s territory and not this
+    /// wave's. When it does, the identifier match above refuses a command that is
+    /// sitting correctly and alone at the top of the list, and the pass records
+    /// "nothing appeared" for a command it never ran — which is the one thing an
+    /// opener audit must not confuse.
+    /// </para>
+    /// <para>
+    /// Exact equality, and only when the label is unique across the registry, so
+    /// this cannot do what matching with <c>Contains</c> would have done. One
+    /// label is shared by two commands today, and this rule declines both.
+    /// </para>
+    /// </remarks>
+    internal static bool MatchesUniqueLabel(string commandId, string announced)
+    {
+        if (CommandRegistry.Default.Find(commandId) is not { } command
+            || !string.Equals(announced, command.Label, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return CommandRegistry.Default.Commands
+            .Count(x => string.Equals(x.Label, command.Label, StringComparison.Ordinal)) == 1;
     }
 
     /// <summary>

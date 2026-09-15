@@ -1,0 +1,498 @@
+using System.Globalization;
+using System.Text.Json;
+using System.Windows.Automation;
+using AgencyOS.Client.Commands;
+using System.IO;
+
+namespace AgencyOS.Reviewer.Runtime;
+
+/// <summary>What one opener invocation amounted to, for an operator watching it.</summary>
+/// <remarks>
+/// <para>
+/// The outcome vocabulary is the point. Audit 002 found four openers that were
+/// invoked and produced <em>nothing</em> — no dialog, no refusal, no notice, no
+/// focus change — and the ordinary dialog pass could only say the dialog did not
+/// appear, which is also what a correct refusal looks like from the outside.
+/// </para>
+/// <para>
+/// So this separates them. <c>INVOKED_NO_OBSERVABLE_OUTCOME</c> is a distinct
+/// verdict from <c>REFUSED_WITH_FEEDBACK</c>, and only the first is a defect.
+/// </para>
+/// </remarks>
+/// <param name="DialogId">The dialog the opener is supposed to bring up.</param>
+/// <param name="Workspace">Which workspace the opener lives in.</param>
+/// <param name="Tab">Which tab on it.</param>
+/// <param name="CommandId">The registry command that runs the opener.</param>
+/// <param name="Control">The control clicked, when a button was used instead.</param>
+/// <param name="RowsOnTab">How many rows the tab held.</param>
+/// <param name="RowSelected">Whether a row was selected before invoking.</param>
+/// <param name="Invoked">Whether the opener was actually invoked.</param>
+/// <param name="How">BUTTON, PALETTE or NONE.</param>
+/// <param name="Outcome">The verdict, from the vocabulary above.</param>
+/// <param name="DialogTitle">The dialog that appeared, when one did.</param>
+/// <param name="NoticesBefore">Open notices before the invocation.</param>
+/// <param name="NoticesAfter">Open notices after it.</param>
+/// <param name="FocusBefore">Where focus was before.</param>
+/// <param name="FocusAfter">Where focus was after.</param>
+/// <param name="Steps">Every step, in order, with what the tree showed.</param>
+/// <param name="Screenshots">Captured evidence, relative to the run directory.</param>
+/// <param name="Trees">Automation snapshots, relative to the run directory.</param>
+public sealed record OpenerProbeResult(
+    string DialogId,
+    string Workspace,
+    string Tab,
+    string CommandId,
+    string? Control,
+    int RowsOnTab,
+    bool RowSelected,
+    bool Invoked,
+    string How,
+    string Outcome,
+    string? DialogTitle,
+    IReadOnlyList<string> NoticesBefore,
+    IReadOnlyList<string> NoticesAfter,
+    string? FocusBefore,
+    string? FocusAfter,
+    IReadOnlyList<string> Steps,
+    IReadOnlyList<string> Screenshots,
+    IReadOnlyList<string> Trees);
+
+/// <summary>
+/// Invokes one named opener and says what an operator would have seen.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Narrow on purpose. This is reproduction support for <c>AOS-R002-019</c> and
+/// nothing else: it takes the four surfaces it is pointed at, drives each the way
+/// the product intends, and writes before/after evidence for each. It discovers
+/// nothing, traverses nothing and replaces no manual gate.
+/// </para>
+/// <para>
+/// The palette match is deliberately looser than <c>DialogPass</c>'s. That pass
+/// requires the result row to announce itself as the bound record, which is how
+/// it refuses to press Enter on the wrong command; but the row's accessible name
+/// is itself an open finding (<c>AOS-R002-018</c>), and when it announces the
+/// plain label instead, the strict match refuses a command that is sitting
+/// correctly at the top of a one-result list. Here the label is accepted as well
+/// as the identifier, and which of the two matched is recorded, so a run that
+/// leaned on the looser rule says so.
+/// </para>
+/// </remarks>
+internal sealed class OpenerProbe
+{
+    private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
+
+    private readonly ReviewApp _app;
+    private readonly string _runDirectory;
+
+    internal OpenerProbe(ReviewApp app, string runDirectory)
+    {
+        _app = app;
+        _runDirectory = runDirectory;
+    }
+
+    /// <summary>Drives one opener and records what happened.</summary>
+    /// <param name="dialogId">The dialog expected to appear.</param>
+    /// <param name="workspace">The workspace holding the opener.</param>
+    /// <param name="tab">The tab on it.</param>
+    /// <param name="commandId">The command the palette would run.</param>
+    /// <param name="control">A button to click instead, when the page has one.</param>
+    /// <param name="selectRow">Whether to select the tab's first row first.</param>
+    /// <returns>What an operator would have seen.</returns>
+    internal OpenerProbeResult Probe(
+        string dialogId,
+        string workspace,
+        string tab,
+        string commandId,
+        string? control,
+        bool selectRow)
+    {
+        string directory = Path.Combine(_runDirectory, "evidence", "opener." + dialogId);
+
+        Directory.CreateDirectory(directory);
+
+        List<string> steps = [];
+        List<string> shots = [];
+        List<string> trees = [];
+
+        _app.Focus();
+        _app.Keys.Press(ReviewKey.Escape);
+        Thread.Sleep(250);
+        _app.Resize(1600, 1000);
+        Thread.Sleep(400);
+        _app.Refresh();
+
+        ReviewStep navigated = _app.Navigate(workspace);
+
+        steps.Add("navigate to " + workspace + ": "
+            + (navigated.Succeeded ? "ok" : navigated.Detail));
+
+        Thread.Sleep(1500);
+        _app.Refresh();
+
+        (bool tabSelected, string tabDetail) = SelectTab(tab);
+
+        steps.Add("select the " + tab + " tab: " + tabDetail);
+
+        Thread.Sleep(1500);
+        _app.Refresh();
+
+        UiaNode before = _app.Snapshot();
+
+        UiaNode[] rows = Rows(before);
+
+        steps.Add("rows on the tab: " + rows.Length.ToString(CultureInfo.InvariantCulture)
+            + (rows.Length > 0 ? " (first: " + rows[0].Name + ")" : string.Empty));
+
+        bool rowSelected = false;
+
+        if (selectRow)
+        {
+            (rowSelected, string rowDetail) = SelectRow(rows.FirstOrDefault()?.Name);
+
+            steps.Add("select a row: " + rowDetail);
+
+            Thread.Sleep(1200);
+            _app.Refresh();
+
+            before = _app.Snapshot();
+        }
+
+        IReadOnlyList<string> noticesBefore = Notices(before);
+        string? focusBefore = _app.FocusedNode()?.Describe();
+
+        steps.Add("notices before: " + Join(noticesBefore));
+        steps.Add("focus before: " + (focusBefore ?? "nothing"));
+
+        string beforeShot = Path.Combine(directory, "01-before.png");
+
+        _app.Capture(beforeShot);
+        shots.Add(Relative(beforeShot));
+
+        string beforeTree = Path.Combine(directory, "01-before.json");
+
+        File.WriteAllText(beforeTree, JsonSerializer.Serialize(before, Json));
+        trees.Add(Relative(beforeTree));
+
+        // The opener itself. A button where the page has one, because that is
+        // what an operator reaches for; the palette otherwise, because for these
+        // pages it is the only path there is.
+        bool invoked;
+        string how;
+
+        if (control is { Length: > 0 })
+        {
+            ReviewStep clicked = _app.Invoke(control);
+
+            invoked = clicked.Succeeded;
+            how = invoked ? "BUTTON" : "NONE";
+
+            steps.Add("click \"" + control + "\": " + clicked.Detail);
+        }
+        else
+        {
+            (invoked, string why) = RunFromPalette(commandId, directory);
+
+            how = invoked ? "PALETTE" : "NONE";
+
+            steps.Add("run " + commandId + ": " + why);
+        }
+
+        Thread.Sleep(1500);
+        _app.Refresh();
+
+        UiaNode after = _app.Snapshot();
+
+        string afterShot = Path.Combine(directory, "02-after.png");
+
+        _app.Capture(afterShot);
+        shots.Add(Relative(afterShot));
+
+        string afterTree = Path.Combine(directory, "02-after.json");
+
+        File.WriteAllText(afterTree, JsonSerializer.Serialize(after, Json));
+        trees.Add(Relative(afterTree));
+
+        UiaNode? dialog = after.Flatten().FirstOrDefault(x =>
+            x.ControlType == "Window" && x.ClassName == "Popup" && !x.IsOffscreen);
+
+        IReadOnlyList<string> noticesAfter = Notices(after);
+        string? focusAfter = _app.FocusedNode()?.Describe();
+
+        steps.Add("a dialog appeared: " + (dialog is not null ? "yes — " + (dialog.Name ?? "?") : "no"));
+        steps.Add("notices after: " + Join(noticesAfter));
+        steps.Add("focus after: " + (focusAfter ?? "nothing"));
+
+        string outcome = Classify(invoked, control, before, dialog, noticesBefore, noticesAfter);
+
+        steps.Add("outcome: " + outcome);
+
+        // Leave the application as it was found, so the next case starts from a
+        // page rather than from this one's dialog.
+        if (dialog is not null)
+        {
+            _app.Keys.Press(ReviewKey.Escape);
+            Thread.Sleep(700);
+        }
+
+        return new OpenerProbeResult(
+            dialogId,
+            workspace,
+            tab,
+            commandId,
+            control,
+            rows.Length,
+            rowSelected,
+            invoked,
+            how,
+            outcome,
+            dialog?.Name,
+            noticesBefore,
+            noticesAfter,
+            focusBefore,
+            focusAfter,
+            steps,
+            shots,
+            trees);
+    }
+
+    /// <summary>
+    /// What the invocation amounted to.
+    /// </summary>
+    /// <remarks>
+    /// The order matters. A dialog that appeared is the intended outcome whatever
+    /// else changed; a new open notice is a refusal the operator can read; a
+    /// disabled or absent control never got as far as being invoked. Only when
+    /// the opener ran and none of those is true has the operator been told
+    /// nothing, and that verdict is the one this whole probe exists to name.
+    /// </remarks>
+    internal static string Classify(
+        bool invoked,
+        string? control,
+        UiaNode before,
+        UiaNode? dialog,
+        IReadOnlyList<string> noticesBefore,
+        IReadOnlyList<string> noticesAfter)
+    {
+        if (dialog is not null)
+        {
+            return "OPENED";
+        }
+
+        if (!invoked)
+        {
+            if (control is { Length: > 0 })
+            {
+                UiaNode? node = before.Flatten().FirstOrDefault(x =>
+                    string.Equals(x.Name, control, StringComparison.Ordinal));
+
+                return node is null ? "MISSING_OPENER"
+                    : node.IsEnabled ? "MISSING_OPENER" : "DISABLED";
+            }
+
+            return "MISSING_OPENER";
+        }
+
+        string[] appeared = [.. noticesAfter.Except(noticesBefore, StringComparer.Ordinal)];
+
+        if (appeared.Length > 0)
+        {
+            return appeared.Any(x => x.StartsWith("Error:", StringComparison.Ordinal))
+                ? "FAILED_WITH_VISIBLE_ERROR"
+                : "REFUSED_WITH_FEEDBACK";
+        }
+
+        return "INVOKED_NO_OBSERVABLE_OUTCOME";
+    }
+
+    /// <summary>Every notice the page is showing, with its severity and text.</summary>
+    /// <remarks>
+    /// An <c>InfoBar</c> that is closed is not in the automation tree at all, so
+    /// presence is the signal. The text goes in because "a notice appeared" and
+    /// "the notice that was already there is still there" are different answers.
+    /// </remarks>
+    internal static IReadOnlyList<string> Notices(UiaNode tree) =>
+    [
+        .. tree.Flatten()
+            .Where(x => x.ClassName == "InfoBar" && !x.IsOffscreen)
+            .Select(x => (x.Name ?? "«unnamed»") + " — " + (x.HelpText ?? x.Value ?? string.Empty))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal),
+    ];
+
+    private static string Join(IReadOnlyList<string> values) =>
+        values.Count == 0 ? "none" : string.Join(" | ", values);
+
+    private static UiaNode[] Rows(UiaNode tree)
+    {
+        UiaNode? content = tree.Flatten().FirstOrDefault(x => x.AutomationId == "ContentHost");
+
+        return
+        [
+            .. (content ?? tree).Flatten().Where(x =>
+                x.ControlType == "ListItem"
+                && !string.IsNullOrWhiteSpace(x.Name)
+                && !AgencyOsWorkspaces.All.Any(w =>
+                    string.Equals(w.Label, x.Name, StringComparison.Ordinal))),
+        ];
+    }
+
+    private (bool Ran, string Why) RunFromPalette(string commandId, string directory)
+    {
+        if (CommandRegistry.Default.Find(commandId) is not { } command)
+        {
+            return (false, "the registry has no command with that identifier");
+        }
+
+        // Focus first. A refused keystroke is a safety property of the harness —
+        // it will not type into a window that is not the one under review — and
+        // the cheapest way to stop provoking it is to claim the foreground before
+        // asking for the gesture rather than after.
+        _app.Focus();
+        Thread.Sleep(300);
+
+        if (!_app.Keys.PressGesture('P', ReviewModifiers.Control))
+        {
+            return (false, "the palette keystroke was refused");
+        }
+
+        Thread.Sleep(900);
+        _app.Refresh();
+
+        if (_app.Snapshot().Flatten().All(x => x.AutomationId != "PaletteQuery"))
+        {
+            return (false, "the palette did not open");
+        }
+
+        if (!_app.Keys.Type(command.Label))
+        {
+            return (false, "the label could not be typed");
+        }
+
+        Thread.Sleep(1000);
+        _app.Refresh();
+
+        UiaNode? results = _app.Snapshot().Flatten()
+            .FirstOrDefault(x => x.AutomationId == "PaletteResults");
+
+        UiaNode[] items =
+        [
+            .. (results?.Flatten() ?? []).Where(x => x.ControlType == "ListItem" && !x.IsOffscreen),
+        ];
+
+        if (items.Length == 0)
+        {
+            _app.Keys.Press(ReviewKey.Escape);
+
+            return (false, "the palette showed no results for \"" + command.Label + "\"");
+        }
+
+        string first = items[0].Name ?? "«unnamed»";
+
+        bool byIdentifier = first.Contains("Id = " + commandId + ",", StringComparison.Ordinal)
+            || first.Contains("Id = " + commandId + " ", StringComparison.Ordinal);
+
+        bool byLabel = string.Equals(first, command.Label, StringComparison.Ordinal);
+
+        if (!byIdentifier && !byLabel)
+        {
+            string shot = Path.Combine(directory, "00-palette.png");
+
+            _app.Capture(shot);
+            _app.Keys.Press(ReviewKey.Escape);
+
+            return (false, "the top result was \"" + first + "\", not " + commandId);
+        }
+
+        _app.Keys.Press(ReviewKey.Enter);
+        Thread.Sleep(600);
+
+        return (true, "ran from the palette, matched by "
+            + (byIdentifier ? "identifier" : "label") + " on "
+            + items.Length.ToString(CultureInfo.InvariantCulture) + " result(s)");
+    }
+
+    private (bool Selected, string Detail) SelectTab(string tabName)
+    {
+        try
+        {
+            AutomationElementCollection tabs = _app.Window.FindAll(
+                TreeScope.Descendants,
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem));
+
+            foreach (AutomationElement? tab in tabs)
+            {
+                if (tab is null
+                    || !string.Equals(tab.Current.Name, tabName, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (!tab.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object? pattern)
+                    || pattern is not SelectionItemPattern selection)
+                {
+                    return (false, "the tab exposes no selection pattern");
+                }
+
+                selection.Select();
+                Thread.Sleep(900);
+
+                bool selected = selection.Current.IsSelected;
+
+                return (selected, selected ? "selected" : "Select() returned but IsSelected is false");
+            }
+
+            return (false, "no tab named '" + tabName + "' is in the tree");
+        }
+        catch (ElementNotAvailableException)
+        {
+            return (false, "the tab left the tree");
+        }
+        catch (InvalidOperationException failure)
+        {
+            return (false, "refused: " + failure.Message);
+        }
+    }
+
+    private (bool Selected, string Detail) SelectRow(string? name)
+    {
+        if (name is null)
+        {
+            return (false, "there was no row to select");
+        }
+
+        try
+        {
+            AutomationElement? row = _app.FindByName(name);
+
+            if (row is null)
+            {
+                return (false, "'" + name + "' was gone by the time it was selected");
+            }
+
+            if (!row.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object? pattern)
+                || pattern is not SelectionItemPattern selection)
+            {
+                return (false, "'" + name + "' exposes no selection pattern");
+            }
+
+            selection.Select();
+            Thread.Sleep(700);
+
+            return (selection.Current.IsSelected, selection.Current.IsSelected
+                ? "'" + name + "' is selected"
+                : "Select() returned but '" + name + "' is not selected");
+        }
+        catch (ElementNotAvailableException)
+        {
+            return (false, "'" + name + "' left the tree while being selected");
+        }
+        catch (InvalidOperationException failure)
+        {
+            return (false, "refused: " + failure.Message);
+        }
+    }
+
+    private string Relative(string path) =>
+        Path.GetRelativePath(_runDirectory, path).Replace('\\', '/');
+}

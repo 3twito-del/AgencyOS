@@ -62,6 +62,18 @@ public sealed partial class CreatePredictionDialog : ContentDialog
 
     private void ApplyProbability()
     {
+        // The slider's starting value is declared in the markup, so the parser
+        // raises ValueChanged while InitializeComponent is still running - and
+        // ProbabilityText, which is declared after the slider, does not exist
+        // yet. Reaching it then threw, and the fire-and-forget opener discarded
+        // the throw, so the operator ran the command and saw nothing at all
+        // (AOS-R002-019). The constructor calls this again once the dialog is
+        // whole, which is where the reading actually comes from.
+        if (ProbabilityText is null)
+        {
+            return;
+        }
+
         int percent = (int)ProbabilitySlider.Value;
 
         // Said in words as well as in a number, because 50% is the one value that

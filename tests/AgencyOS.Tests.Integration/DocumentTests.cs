@@ -363,6 +363,124 @@ public sealed class DocumentTests
     }
 
     /// <summary>
+    /// A body that is not a form is refused as the caller's mistake, not the
+    /// server's.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>AOS-R002-017</c>. Every content type that was not multipart answered
+    /// <c>500 "An error occurred while processing your request."</c>, because the
+    /// form binder was asked to bind a body it cannot and threw an exception that
+    /// carries no status. A 500 tells a caller to retry, and this request will
+    /// never succeed however many times it is sent; it also logs the caller's
+    /// mistake as an integrity failure of ours.
+    /// </para>
+    /// <para>
+    /// The endpoint is not reachable this way from the Windows client, which sends
+    /// multipart. It is reachable by anything else that talks to the API, which is
+    /// the population this status is for.
+    /// </para>
+    /// <para>
+    /// Fails against the product baseline <c>6e9b66f</c> with <c>500</c> for every
+    /// case below.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData("application/json", "{}")]
+    [InlineData("text/plain", "not a form")]
+    [InlineData("application/octet-stream", " ")]
+    public async Task AnUploadThatIsNotAForm_IsRefusedAsUnsupportedMedia(
+        string contentType,
+        string body)
+    {
+        Actor a = await ActorAsync("m10-media-" + Guid.NewGuid().ToString("N")[..8]);
+
+        long before = CountStoredFiles();
+
+        using StringContent content = new(body, Encoding.UTF8);
+
+        content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+
+        using HttpResponseMessage response =
+            await a.Client.PostAsync($"{a.Root}/documents", content);
+
+        Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+
+        // And it says what would have worked, rather than describing a fault.
+        ProblemDetail? problem = await response.Content.ReadFromJsonAsync<ProblemDetail>();
+
+        Assert.Contains("multipart/form-data", problem?.Detail ?? string.Empty, StringComparison.Ordinal);
+
+        Assert.Empty(await GetAsync<DocumentSummaryResponse[]>(a, "documents"));
+        Assert.Equal(before, CountStoredFiles());
+    }
+
+    /// <summary>
+    /// The same, on the route that adds a version to a document that exists.
+    /// </summary>
+    /// <remarks>
+    /// Both upload routes read the body the same way, so both had the defect and
+    /// both are asserted. The version route is checked against a real document so
+    /// the refusal is about the body and not about the document not being found.
+    /// </remarks>
+    [Fact]
+    public async Task AVersionUploadThatIsNotAForm_IsRefusedAsUnsupportedMedia()
+    {
+        Actor a = await ActorAsync("m10-media-version");
+
+        RecordDocumentResponse recorded = await UploadAsync(
+            a, Bytes("first"), "first.txt", "text/plain", "Media check", "Other", "Internal");
+
+        long before = CountStoredFiles();
+
+        using StringContent content = new("{}", Encoding.UTF8);
+
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        using HttpResponseMessage response = await a.Client.PostAsync(
+            $"{a.Root}/documents/{recorded.DocumentId}/versions", content);
+
+        Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+        Assert.Equal(before, CountStoredFiles());
+    }
+
+    /// <summary>
+    /// A multipart body is still read, and the refusals inside it are still the
+    /// refusals they were.
+    /// </summary>
+    /// <remarks>
+    /// The negative control for the check above. A content-type guard that also
+    /// turned a missing field into a media-type error would have replaced one
+    /// wrong answer with another.
+    /// </remarks>
+    [Fact]
+    public async Task AMultipartUploadMissingAField_IsStillABadRequest()
+    {
+        Actor a = await ActorAsync("m10-media-negative");
+
+        using MultipartFormDataContent form = [];
+        using ByteArrayContent file = new(Bytes("content"));
+
+        file.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+
+        form.Add(file, "file", "content.txt");
+        form.Add(new StringContent("A title"), "title");
+        form.Add(new StringContent("Other"), "kind");
+
+        using HttpResponseMessage response =
+            await a.Client.PostAsync($"{a.Root}/documents", form);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        ProblemDetail? problem = await response.Content.ReadFromJsonAsync<ProblemDetail>();
+
+        Assert.Contains("sensitivity", problem?.Detail ?? string.Empty, StringComparison.Ordinal);
+    }
+
+    /// <summary>The fields of a problem response this suite reads.</summary>
+    private sealed record ProblemDetail(int Status, string? Title, string? Detail);
+
+    /// <summary>
     /// A filename the parser accepts but that carries a control character is
     /// stored with the character neutralized.
     /// </summary>

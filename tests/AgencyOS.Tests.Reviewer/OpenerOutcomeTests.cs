@@ -1,0 +1,190 @@
+using AgencyOS.Reviewer.Runtime;
+using Xunit;
+
+namespace AgencyOS.Tests.Reviewer;
+
+/// <summary>
+/// That the harness can tell "nothing happened" from every legitimate outcome
+/// that also fails to open a dialog.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Audit 002 could say only that a dialog did not appear, and a dialog does not
+/// appear for several unrelated reasons: the opener is disabled, the opener is not
+/// there, the product refused with a notice, the product failed with an error — or
+/// the product ran the command and said nothing at all. Only the last is
+/// <c>AOS-R002-019</c>, and collapsing them into one verdict is what let four
+/// broken openers sit behind the same word as a correct refusal.
+/// </para>
+/// <para>
+/// So the verdict is a vocabulary, and this is its positive and negative control.
+/// Hand-built trees rather than captures, for the reason
+/// <c>DetectorControlTests</c> gives: a captured tree proves what one window
+/// happened to contain, and a control has to prove what the rule does.
+/// </para>
+/// </remarks>
+public sealed class OpenerOutcomeTests
+{
+    /// <summary>A dialog arrived. Nothing else about the page matters.</summary>
+    [Fact]
+    public void ADialogThatAppearedIsOpened() =>
+        Assert.Equal(
+            "OPENED",
+            OpenerProbe.Classify(
+                invoked: true,
+                control: "Connect a mailbox",
+                before: Page(),
+                dialog: Popup(),
+                noticesBefore: [],
+                noticesAfter: []));
+
+    /// <summary>
+    /// A notice that was not there before is the product answering.
+    /// </summary>
+    [Fact]
+    public void ANoticeThatAppearedIsARefusalWithFeedback() =>
+        Assert.Equal(
+            "REFUSED_WITH_FEEDBACK",
+            OpenerProbe.Classify(
+                invoked: true,
+                control: null,
+                before: Page(),
+                dialog: null,
+                noticesBefore: [],
+                noticesAfter: ["No provider is configured — register the application first"]));
+
+    /// <summary>An error the operator can read is a failure, and a visible one.</summary>
+    [Fact]
+    public void AnErrorThatAppearedIsAVisibleFailure() =>
+        Assert.Equal(
+            "FAILED_WITH_VISIBLE_ERROR",
+            OpenerProbe.Classify(
+                invoked: true,
+                control: null,
+                before: Page(),
+                dialog: null,
+                noticesBefore: [],
+                noticesAfter: ["Error: that did not happen — the server refused it"]));
+
+    /// <summary>
+    /// A notice that was already open is not an answer to this invocation.
+    /// </summary>
+    /// <remarks>
+    /// The distinction the whole finding turns on. A page that always shows an
+    /// informational bar would otherwise make every opener look like it refused.
+    /// </remarks>
+    [Fact]
+    public void ANoticeThatWasAlreadyThereIsNotAnAnswer() =>
+        Assert.Equal(
+            "INVOKED_NO_OBSERVABLE_OUTCOME",
+            OpenerProbe.Classify(
+                invoked: true,
+                control: "Connect a mailbox",
+                before: Page(),
+                dialog: null,
+                noticesBefore: ["A mailbox is somebody's correspondence — visibility decides"],
+                noticesAfter: ["A mailbox is somebody's correspondence — visibility decides"]));
+
+    /// <summary>The state AOS-R002-019 was: it ran, and said nothing.</summary>
+    [Fact]
+    public void AnOpenerThatRanAndSaidNothingIsTheDefect() =>
+        Assert.Equal(
+            "INVOKED_NO_OBSERVABLE_OUTCOME",
+            OpenerProbe.Classify(
+                invoked: true,
+                control: "Connect a mailbox",
+                before: Page(),
+                dialog: null,
+                noticesBefore: [],
+                noticesAfter: []));
+
+    /// <summary>A control that is present and off is not a product defect.</summary>
+    [Fact]
+    public void AControlThatIsPresentAndDisabledIsDisabled() =>
+        Assert.Equal(
+            "DISABLED",
+            OpenerProbe.Classify(
+                invoked: false,
+                control: "Connect a mailbox",
+                before: Page(Button("Connect a mailbox", enabled: false)),
+                dialog: null,
+                noticesBefore: [],
+                noticesAfter: []));
+
+    /// <summary>A control that is not in the tree is a different answer again.</summary>
+    [Fact]
+    public void AControlThatIsNotThereIsAMissingOpener() =>
+        Assert.Equal(
+            "MISSING_OPENER",
+            OpenerProbe.Classify(
+                invoked: false,
+                control: "Connect a mailbox",
+                before: Page(),
+                dialog: null,
+                noticesBefore: [],
+                noticesAfter: []));
+
+    /// <summary>A palette command that never ran is not evidence about the product.</summary>
+    [Fact]
+    public void APaletteCommandThatNeverRanIsAMissingOpener() =>
+        Assert.Equal(
+            "MISSING_OPENER",
+            OpenerProbe.Classify(
+                invoked: false,
+                control: null,
+                before: Page(),
+                dialog: null,
+                noticesBefore: [],
+                noticesAfter: []));
+
+    /// <summary>Open notices are read from the tree, with what they say.</summary>
+    [Fact]
+    public void OpenNoticesAreReadFromTheTree()
+    {
+        string notice = Assert.Single(OpenerProbe.Notices(
+            Page(Node("Group", "No provider is configured", className: "InfoBar"))));
+
+        Assert.StartsWith("No provider is configured", notice, StringComparison.Ordinal);
+    }
+
+    /// <summary>A closed notice is not in the tree, and is not counted.</summary>
+    [Fact]
+    public void AnOffscreenNoticeIsNotCounted() =>
+        Assert.Empty(OpenerProbe.Notices(
+            Page(Node("Group", "No provider is configured", className: "InfoBar", offscreen: true))));
+
+    // ------------------------------------------------------------ hand-built
+
+    private static UiaNode Page(params UiaNode[] children) =>
+        Node("Window", "AgencyOS", children: children);
+
+    private static UiaNode Popup() =>
+        Node("Window", "Connect a mailbox", className: "Popup");
+
+    private static UiaNode Button(string name, bool enabled) =>
+        Node("Button", name, enabled: enabled);
+
+    private static UiaNode Node(
+        string controlType,
+        string? name = null,
+        string? className = null,
+        bool enabled = true,
+        bool offscreen = false,
+        IReadOnlyList<UiaNode>? children = null) =>
+        new(
+            AutomationId: null,
+            Name: name,
+            ControlType: controlType,
+            ClassName: className ?? controlType,
+            IsEnabled: enabled,
+            IsOffscreen: offscreen,
+            IsKeyboardFocusable: false,
+            HasKeyboardFocus: false,
+            AcceleratorKey: null,
+            AccessKey: null,
+            HelpText: null,
+            Bounds: "0,0,100,40",
+            Patterns: [],
+            Value: null,
+            Children: children ?? []);
+}

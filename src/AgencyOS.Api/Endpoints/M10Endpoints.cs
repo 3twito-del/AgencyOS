@@ -958,6 +958,8 @@ internal static class M10Endpoints
         HttpRequest request,
         CancellationToken cancellationToken)
     {
+        RequireFormBody(request);
+
         IFormCollection form = await request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
 
         IFormFile file = form.Files.Count == 1
@@ -996,6 +998,8 @@ internal static class M10Endpoints
     private static async Task<(AddDocumentVersionRequest Metadata, IFormFile File)>
         ReadVersionUploadAsync(HttpRequest request, CancellationToken cancellationToken)
     {
+        RequireFormBody(request);
+
         IFormCollection form = await request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
 
         IFormFile file = form.Files.Count == 1
@@ -1013,6 +1017,47 @@ internal static class M10Endpoints
         }
 
         return (new AddDocumentVersionRequest(expectedVersion, Optional(form, "notes")), file);
+    }
+
+    /// <summary>
+    /// Refuses a body that is not a form, before the form binder is asked to bind
+    /// one.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>ReadFormAsync</c> throws an <c>InvalidOperationException</c> when the
+    /// content type is not a form type. That exception carries no status, so it
+    /// fell through to the unhandled path and every non-multipart upload answered
+    /// <c>500</c> — which tells a caller to retry a request that will never
+    /// succeed, and logs their mistake as an integrity failure of ours
+    /// (<c>AOS-R002-017</c>).
+    /// </para>
+    /// <para>
+    /// Checked rather than caught, per Repair Wave 001.5: the condition is known
+    /// before the binder runs, and catching an arbitrary exception to relabel it
+    /// would also relabel whatever else that exception ever means. Not reachable
+    /// from the Windows client, which sends multipart; reachable by anything else
+    /// that talks to this API.
+    /// </para>
+    /// </remarks>
+    private static void RequireFormBody(HttpRequest request)
+    {
+        if (request.HasFormContentType)
+        {
+            return;
+        }
+
+        // BadHttpRequestException carries the status it means, and the handler
+        // honours a 4xx it was given. 415 rather than 400: nothing about the
+        // request is malformed, and the caller's fix is to send the body as
+        // multipart rather than to correct a field.
+        throw new BadHttpRequestException(
+            "A document is uploaded as multipart/form-data. This request declared "
+                + (string.IsNullOrWhiteSpace(request.ContentType)
+                    ? "no content type"
+                    : $"'{request.ContentType}'")
+                + ".",
+            StatusCodes.Status415UnsupportedMediaType);
     }
 
     private static string Required(IFormCollection form, string field) =>
