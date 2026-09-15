@@ -141,6 +141,29 @@ mode.
 
 ---
 
+## Validation
+
+Exact-tip CI **`35020654036`** on the final tip `0bb0547` — **success, both jobs.**
+
+| Gate | Before | After |
+| --- | --- | --- |
+| build | 0 / 0 | **0 warnings / 0 errors** |
+| unit | 3,755 | **3,755** |
+| Windows | 824 | **824** |
+| reviewer | 146 | **152** |
+| integration | 821 / 821 vs `postgres:18.6` | **821 / 821 vs `postgres:18.6`** |
+| OpenAPI | 263 paths / 187 schemas | **263 / 187** |
+| API contract | 14 | **14** |
+| TLA+ | 4 / 4 | **4 / 4** |
+
+Reviewer +6: `TargetReachTests`. Every other count is unchanged, which is what a
+slice that touched no product code should produce.
+
+Interactive dialog evidence is LAB evidence: local PostgreSQL 19beta3, synthetic
+tenant, fake providers only. The CI gate is `postgres:18.6` and is separate.
+
+---
+
 ## Evidence
 
 | File | What |
