@@ -1,0 +1,306 @@
+[
+  {
+    "id": "AOS-R002-010",
+    "category": "Ux",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "C",
+    "workspace": [
+      "workspace.people",
+      "workspace.companies",
+      "workspace.projects"
+    ],
+    "dialog": [
+      "NewPersonDialog",
+      "NewCompanyDialog",
+      "AddProjectRoleDialog"
+    ],
+    "role": "owner",
+    "preconditions": "Any dialog whose commit button is available before the server would accept the form.",
+    "steps": [
+      "Open New person from People.",
+      "Type a first name longer than 128 characters.",
+      "Press Create."
+    ],
+    "expected": "The entry is refused where it was made, with the entry still there to correct.",
+    "actual": "The dialog closes. The refusal appears afterwards in a page-level InfoBar in the server's own words - 'firstName must be at most 128 characters.' - and everything typed into the dialog is gone. Focus is on the button that opened it, which is not where the explanation is. Reproduced on three dialogs; NewCompanyDialog answers 'name must be at most 256 characters.' and AddProjectRoleDialog answers 'That did not happen'.",
+    "httpResult": "400",
+    "persistedResult": "Nothing persisted, correctly.",
+    "mutationAttempted": true,
+    "userImpact": "Work is lost. A long entry - which is exactly the kind that trips a length limit - has to be retyped from nothing, and the operator has to find the explanation somewhere other than where they were looking.",
+    "likelySource": "The dialog reports its result by closing; the page catches AgencyOsApiException afterwards. By then the dialog and its contents are gone.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": true,
+    "repairRisk": "Medium - changes how every dialog reports a server refusal.",
+    "suggestedRepairWave": "003E-B",
+    "evidence": [
+      "artifacts/reviewer/run-002-phase-c/validation-final/validation.json",
+      "artifacts/reviewer/run-002-phase-c/evidence/validation.NewPersonDialog/"
+    ],
+    "logs": [
+      "firstName must be at most 128 characters.",
+      "name must be at most 256 characters."
+    ]
+  },
+  {
+    "id": "AOS-R002-011",
+    "category": "Accessibility",
+    "severity": "S3",
+    "confidence": "ConfirmedStructuralDefect",
+    "reproducibility": "Always",
+    "phase": "C",
+    "workspace": [],
+    "dialog": [
+      "(structural: all 63)",
+      "NewPersonDialog",
+      "NewCompanyDialog",
+      "AddProjectRoleDialog"
+    ],
+    "role": "any",
+    "preconditions": "A screen reader, and any dialog that can report a problem with a field.",
+    "steps": [
+      "Read any dialog's markup.",
+      "Look for AutomationProperties.DescribedBy on any input."
+    ],
+    "expected": "A message about a field is findable from that field by an assistive technology, through a declared association.",
+    "actual": "STRUCTURAL: no dialog declares AutomationProperties.DescribedBy anywhere - 0 of 63 markup files - so the product has no shared pattern for associating a message with the control it is about. Labelling itself is thorough: 60 of 61 dialogs with inputs give every field a Header. What is missing is the second link. RUNTIME: three dialogs were driven to a real server refusal and none of them associated it - NewPersonDialog, NewCompanyDialog, AddProjectRoleDialog. 25 further dialogs could not be driven to a refusal at all because their commit button stays disabled until the form is complete; those are a manual gate, not a defect, and are not counted as manifestations. The remaining dialogs were not driven to a refusal in this audit.",
+    "httpResult": null,
+    "persistedResult": null,
+    "mutationAttempted": false,
+    "userImpact": "A screen-reader user can hear that something was refused and has no programmatic route from the message to the field it concerns. Proven for three dialogs; product-wide in mechanism, unmeasured in effect for the rest.",
+    "likelySource": "Never declared. WinUI does not add it by default.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": false,
+    "repairRisk": "Low as markup, but it is one product-wide pattern rather than sixty edits, and it should be fixed as the shared root.",
+    "suggestedRepairWave": "003E-B",
+    "evidence": [
+      "artifacts/reviewer/run-002-phase-c/validation-markup.json",
+      "artifacts/reviewer/run-002-phase-c/validation-final/validation.json"
+    ],
+    "logs": [],
+    "manualGate": "Whether a screen reader conveys enough without the association is not answerable from the automation tree. It needs a real screen-reader session and remains MANUAL_GATE."
+  },
+  {
+    "id": "AOS-R002-012",
+    "category": "Copy",
+    "severity": "S4",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "C",
+    "workspace": [
+      "workspace.people",
+      "workspace.companies"
+    ],
+    "dialog": [
+      "NewPersonDialog",
+      "NewCompanyDialog"
+    ],
+    "role": "owner",
+    "preconditions": "A create the server refuses.",
+    "steps": [
+      "Open New person.",
+      "Submit a name the server will refuse.",
+      "Read the title of the bar that appears."
+    ],
+    "expected": "The message names the thing that failed.",
+    "actual": "The refusal is shown in the list's error bar, whose title is 'Could not load people' - and on Companies, 'Could not load companies'. Nothing failed to load. The message beneath the title is correct and is the server's own words; only the title names a different failure.",
+    "httpResult": "400",
+    "persistedResult": "Nothing persisted.",
+    "mutationAttempted": true,
+    "userImpact": "Mild. The operator is told the wrong thing went wrong.",
+    "likelySource": "PeoplePage.CreatePersonAsync catches AgencyOsApiException and writes into ListError, which is the bar the list load uses.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": false,
+    "repairRisk": "Low.",
+    "suggestedRepairWave": "003E-B",
+    "evidence": [
+      "src/AgencyOS.Windows/Pages/PeoplePage.xaml.cs",
+      "artifacts/reviewer/run-002-phase-c/evidence/validation.NewPersonDialog/"
+    ],
+    "logs": [
+      "Could not load people",
+      "Could not load companies"
+    ]
+  },
+  {
+    "id": "AOS-R002-013",
+    "category": "Validation",
+    "severity": "S4",
+    "confidence": "Observation",
+    "reproducibility": "Always",
+    "phase": "C",
+    "workspace": [
+      "workspace.people"
+    ],
+    "dialog": [
+      "NewPersonDialog"
+    ],
+    "role": "owner",
+    "preconditions": "None.",
+    "steps": [
+      "POST /organizations/{id}/people with email 'not-an-email'."
+    ],
+    "expected": "Not established - see below.",
+    "actual": "201. The address is stored as given.",
+    "httpResult": "201",
+    "persistedResult": "A person whose email address is not an address.",
+    "mutationAttempted": true,
+    "userImpact": "Unknown until the address is used. AgencyOS does not send email, so nothing fails today; a later mail integration would inherit the data.",
+    "likelySource": "No format check on the email field.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": true,
+    "repairRisk": "Medium - a check added later refuses data that is already stored, and agency contact records legitimately hold partial and unusual values.",
+    "suggestedRepairWave": null,
+    "evidence": [
+      "artifacts/reviewer/run-002-phase-c/validation.json"
+    ],
+    "logs": []
+  },
+  {
+    "id": "AOS-R002-014",
+    "category": "Copy",
+    "severity": "S4",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "C",
+    "workspace": [
+      "(all)"
+    ],
+    "dialog": [],
+    "role": "observer",
+    "preconditions": "A member whose role does not carry the permission.",
+    "steps": [
+      "Sign in as an Observer.",
+      "Read Finance."
+    ],
+    "expected": "A refusal a person can act on.",
+    "actual": "403 Permission 'finance.payments.read' is required. Precise, and written for whoever reads the log: it names an internal permission string, does not say what was being attempted, and does not say who could grant it.",
+    "httpResult": "403",
+    "persistedResult": null,
+    "mutationAttempted": false,
+    "userImpact": "The operator knows they were refused and not what to do about it.",
+    "likelySource": "The authorization filter's message.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": true,
+    "repairRisk": "Low, but the wording is a design decision and several are reasonable.",
+    "suggestedRepairWave": null,
+    "evidence": [
+      "artifacts/reviewer/run-002-phase-c/role-matrix.json"
+    ],
+    "logs": [
+      "Permission 'finance.payments.read' is required."
+    ]
+  },
+  {
+    "id": "AOS-R002-015",
+    "category": "Navigation",
+    "severity": "S4",
+    "confidence": "ConfirmedInconsistency",
+    "reproducibility": "Always",
+    "phase": "C",
+    "workspace": [
+      "workspace.organization"
+    ],
+    "dialog": [
+      "AddMemberDialog",
+      "ChangeMemberRoleDialog"
+    ],
+    "role": "owner",
+    "preconditions": "Repair Wave 003E-A applied.",
+    "steps": [
+      "Open the command palette.",
+      "Search for anything to do with members.",
+      "Press every workspace accelerator."
+    ],
+    "expected": "Not established as a contract. CommandRegistryTests.EveryWorkspaceHasANavigationCommand requires every *workspace* to be reachable by name; it says nothing about the settings destination.",
+    "actual": "The organization and membership surface is the NavigationView settings destination rather than a workspace. It therefore has no entry in AgencyOsWorkspaces, no accelerator, and no command in the palette - and the registry's own completeness test is not violated, because the test is scoped to workspaces. Keyboard access exists through the navigation pane in the ordinary way the framework provides. The reviewer could not find it by name because the settings item is named by the operating system's display language; it is findable by its automation id, which is how the pass now reaches it. CLASSIFICATION: COMMAND_SURFACE_INCONSISTENCY and OWNER_DESIGN_DECISION_REQUIRED. Not CONFIRMED_NAVIGATION_DEFECT: no operator capability is blocked.",
+    "httpResult": null,
+    "persistedResult": null,
+    "mutationAttempted": false,
+    "userImpact": "Discoverability, not capability. Somebody who reaches for the palette to manage members will not find it there, and will find it in the pane.",
+    "likelySource": "Repair Wave 003E-A mounted OrganizationPage on NavigationView.IsSettingsVisible rather than adding a workspace.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": true,
+    "repairRisk": "Low.",
+    "suggestedRepairWave": "003F",
+    "evidence": [
+      "src/AgencyOS.Windows/MainWindow.xaml",
+      "src/AgencyOS.Client/Commands/AgencyOsWorkspaces.cs",
+      "artifacts/reviewer/run-002-phase-c/final/dialog-runtime.json"
+    ],
+    "logs": [
+      "No navigation item named 'organization' is in the automation tree."
+    ]
+  },
+  {
+    "id": "AOS-R002-016",
+    "category": "Ux",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "C",
+    "workspace": [
+      "(all)"
+    ],
+    "dialog": [
+      "(26 commit, 36 cancel)"
+    ],
+    "role": "any",
+    "preconditions": "None.",
+    "steps": [
+      "Open Record interaction, fill it in, press Enter - it records.",
+      "Open Record a signal, fill it in, press Enter - it discards."
+    ],
+    "expected": "Enter does one thing, or differs by a rule an operator can learn.",
+    "actual": "All 63 dialogs declare a DefaultButton. 26 declare Primary, so Enter commits; 36 declare Close, so Enter cancels; one declares Secondary. The split follows nothing: CreateProjectDialog commits and CreateThesisDialog cancels, RecordInteractionDialog commits and RecordSignalDialog cancels. The one clearly deliberate case is ApproveAiActionDialog, whose primary is 'Approve and run' and whose default is not it.",
+    "httpResult": null,
+    "persistedResult": null,
+    "mutationAttempted": false,
+    "userImpact": "A keyboard operator cannot build a habit. The same gesture saves work in one dialog and discards it in the next.",
+    "likelySource": "Declared per dialog with no convention.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": true,
+    "repairRisk": "Medium - changing a default changes what an existing habit does, in the direction of committing something that used to be discarded.",
+    "suggestedRepairWave": "003E-B",
+    "evidence": [
+      "artifacts/reviewer/run-002-phase-c/default-buttons.json"
+    ],
+    "logs": []
+  },
+  {
+    "id": "AOS-R002-017",
+    "category": "Bug",
+    "severity": "S3",
+    "confidence": "ConfirmedDefect",
+    "reproducibility": "Always",
+    "phase": "C",
+    "workspace": [
+      "workspace.documents"
+    ],
+    "dialog": [],
+    "role": "owner",
+    "preconditions": "None.",
+    "steps": [
+      "POST /organizations/{id}/documents with Content-Type: application/json.",
+      "Repeat with Content-Type: text/plain."
+    ],
+    "expected": "415, or 400. The request is wrong; the server is not.",
+    "actual": "500 'An error occurred while processing your request.' for any content type that is not multipart. Isolated: an empty multipart body answers 400 'An upload carries exactly one file.', a well-formed multipart missing a field answers 400 \"'sensitivity' is required.\", and a complete one answers 201. Only the content type produces a 500.",
+    "httpResult": "500",
+    "persistedResult": "Nothing persisted.",
+    "mutationAttempted": true,
+    "userImpact": "Not reachable from the Windows client, which sends multipart. It is reachable by anything else that talks to the API, and a 500 tells a caller to retry a request that will never succeed.",
+    "likelySource": "The endpoint binds IFormFile before anything checks the content type, and the binder throws rather than refusing.",
+    "suggestedCorrection": null,
+    "ownerDecisionRequired": false,
+    "repairRisk": "Low, but Repair Wave 001.5's rule applies: do not catch an arbitrary exception and relabel it. The content type should be checked before binding, not after it throws.",
+    "suggestedRepairWave": "003E-B",
+    "evidence": [
+      "artifacts/reviewer/run-002-phase-c/mutations.json"
+    ],
+    "logs": [
+      "An error occurred while processing your request."
+    ]
+  }
+]

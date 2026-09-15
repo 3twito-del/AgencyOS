@@ -444,7 +444,10 @@ public static class DialogScanner
     {
         Match body = Regex.Match(
             code,
-            @"\b" + Regex.Escape(method) + @"\s*\([^)]*\)\s*\{(?<body>(?:[^{}]|\{[^{}]*\})*)\}",
+            // One level of nesting was not enough for a handler that awaits
+            // inside a using or a try. The guards are all at the top, so a
+            // window from the signature is both sufficient and robust.
+            @"\b" + Regex.Escape(method) + @"\s*\([^)]*\)\s*\{(?<body>(?:.|\n){0,2500})",
             RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
 
         if (!body.Success)
@@ -456,7 +459,10 @@ public static class DialogScanner
         [
             .. Regex.Matches(
                     body.Groups["body"].Value,
-                    @"if\s*\((?<cond>[^)]*(?:\([^)]*\)[^)]*)*)\)\s*\{\s*return",
+                    // A guard may explain itself before it gives up, and most of
+                    // these do: Error("Select a mailbox first."); return;.
+                    // Requiring the return to come first recorded none of them.
+                    @"if\s*\((?<cond>[^)]*(?:\([^)]*\)[^)]*)*)\)\s*\{[^{}]*?\breturn\b",
                     RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5))
                 .Select(x => Regex.Replace(
                     x.Groups["cond"].Value, @"\s+", " ", RegexOptions.CultureInvariant,

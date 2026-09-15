@@ -67,6 +67,9 @@ public static class Program
                 "rebaseline" => Rebaseline(options),
                 "dialogs" => Dialogs(options),
                 "dialog-runtime" => DialogRuntime(options),
+                "tab-probe" => TabProbeMode(options),
+                "validation" => Validation(options),
+                "sync" => Sync(options),
                 "report" => Render(options),
                 "reproduce" => Reproduce(options),
                 "repair" => Repair(),
@@ -251,6 +254,247 @@ public static class Program
         return 0;
     }
 
+    // -------------------------------------------------------------- tab-probe
+
+    /// <summary>
+    /// Establishes, step by step, why a tab-hosted dialog does not open.
+    /// </summary>
+    /// <remarks>
+    /// Audit 002 could not separate "the page loses its state when a palette
+    /// command runs" from "the harness never established that state". This walks
+    /// the sequence and reports which step failed, so the answer is evidence
+    /// rather than an absence.
+    /// </remarks>
+    private static int TabProbeMode(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string subject = Option(options, "subject", "review-owner");
+
+        if (executable.Length == 0 || runDirectory.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: tab-probe needs --exe and --out.");
+
+            return 2;
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = apiBase,
+            ["AGENCYOS_ORGANIZATION_ID"] = organization,
+            ["AGENCYOS_DEV_SUBJECT"] = subject,
+        };
+
+        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+
+        TabProbe probe = new(app, runDirectory);
+
+        // The cases this probe was written for, and any the caller names instead.
+        // A parameter rather than more navigation logic: the probe's sequence is
+        // fixed and proven, and what varies is only where to point it.
+        (string Workspace, string Tab, string Command)[] cases =
+        [
+            ("Intelligence", "Theses", "intelligence.thesis.revise"),
+            ("Intelligence", "Sources", "intelligence.source.record"),
+            ("Intelligence", "Predictions", "intelligence.prediction.resolve"),
+            ("Contracts", "Obligations", "obligation.resolve"),
+        ];
+
+        if (Option(options, "cases", string.Empty) is { Length: > 0 } requested)
+        {
+            cases =
+            [
+                .. requested
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(x => x.Split('/', StringSplitOptions.TrimEntries))
+                    .Where(x => x.Length == 3)
+                    .Select(x => (x[0], x[1], x[2])),
+            ];
+        }
+
+        List<TabProbeResult> results = [];
+
+        foreach ((string workspace, string tab, string command) in cases)
+        {
+            TabProbeResult result = probe.Probe(workspace, tab, command);
+
+            results.Add(result);
+
+            Console.WriteLine();
+            Console.WriteLine("== " + workspace + " / " + tab + " / " + command);
+
+            foreach (string step in result.Steps)
+            {
+                Console.WriteLine("   " + step);
+            }
+        }
+
+        Write(Path.Combine(runDirectory, "tab-probe.json"), results);
+
+        return 0;
+    }
+
+    // ------------------------------------------------------------------- sync
+
+    /// <summary>Presses F9 and reports whether the status line answers.</summary>
+    /// <remarks>
+    /// Audit 002 §14. The residual on <c>AOS-R001-020</c> is not about navigation
+    /// - that was settled from source - but about acknowledgement, and the
+    /// footer's own caption is the acknowledgement the shell offers.
+    /// </remarks>
+    private static int Sync(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+
+        if (executable.Length == 0 || runDirectory.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: sync needs --exe and --out.");
+
+            return 2;
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = Option(options, "api", "http://127.0.0.1:5199"),
+            ["AGENCYOS_ORGANIZATION_ID"] = Option(options, "org", string.Empty),
+            ["AGENCYOS_DEV_SUBJECT"] = Option(options, "subject", "review-owner"),
+        };
+
+        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+
+        app.Focus();
+        Thread.Sleep(2500);
+        app.Refresh();
+
+        static string? Line(ReviewApp app) =>
+            app.Snapshot().Flatten().FirstOrDefault(x => x.AutomationId == "SyncText")?.Name;
+
+        string? before = Line(app);
+
+        app.Capture(Path.Combine(runDirectory, "sync-before.png"));
+
+        bool pressed = app.Keys.PressFunction(9);
+
+        Thread.Sleep(3000);
+        app.Refresh();
+
+        string? after = Line(app);
+
+        app.Capture(Path.Combine(runDirectory, "sync-after.png"));
+
+        Write(Path.Combine(runDirectory, "sync.json"), new
+        {
+            TakenUtc = DateTimeOffset.UtcNow,
+            F9Accepted = pressed,
+            StatusLineBefore = before,
+            StatusLineAfter = after,
+            Changed = !string.Equals(before, after, StringComparison.Ordinal),
+        });
+
+        Console.WriteLine("  F9 accepted by the input layer: " + (pressed ? "yes" : "no"));
+        Console.WriteLine("  status line before: " + (before ?? "«not found»"));
+        Console.WriteLine("  status line after:  " + (after ?? "«not found»"));
+        Console.WriteLine("  changed:            "
+            + (string.Equals(before, after, StringComparison.Ordinal) ? "NO" : "yes"));
+
+        return 0;
+    }
+
+    // ------------------------------------------------------------- validation
+
+    /// <summary>
+    /// Submits dialogs that are not ready and records what they say about it.
+    /// </summary>
+    /// <remarks>
+    /// Audit 002 §8 forbids inferring an accessible association from screen
+    /// proximity, so this asks the dialog instead of asking the layout: it
+    /// submits an empty form, then looks for prose that was not there before and
+    /// for a declared association leading to it.
+    /// </remarks>
+    private static int Validation(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+        string repository = Option(options, "repo", Directory.GetCurrentDirectory());
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string subject = Option(options, "subject", "review-owner");
+        string only = Option(options, "only", string.Empty);
+
+        if (executable.Length == 0 || runDirectory.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: validation needs --exe and --out.");
+
+            return 2;
+        }
+
+        IReadOnlyList<DialogRecord> inventory = DialogScanner.Scan(SourceIndex.Load(repository));
+
+        if (only.Length > 0)
+        {
+            HashSet<string> wanted = new(
+                only.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                StringComparer.OrdinalIgnoreCase);
+
+            inventory = [.. inventory.Where(x => wanted.Contains(x.DialogId))];
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = apiBase,
+            ["AGENCYOS_ORGANIZATION_ID"] = organization,
+            ["AGENCYOS_DEV_SUBJECT"] = subject,
+        };
+
+        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+
+        DialogPass pass = new(app, runDirectory);
+        ValidationProbe probe = new(app, pass, runDirectory);
+        List<ValidationObservation> observations = [];
+
+        foreach (DialogRecord dialog in inventory)
+        {
+            ValidationObservation observation = probe.Probe(dialog);
+
+            observations.Add(observation);
+
+            Console.WriteLine("  " + observation.Verdict.PadRight(20)
+                + dialog.DialogId.PadRight(34)
+                + "primary=" + (observation.PrimaryEnabledWhenEmpty ? "enabled " : "disabled")
+                + "  new-text=" + observation.MessagesThatAppeared.Count
+                    .ToString(CultureInfo.InvariantCulture)
+                + "  " + (observation.TypedTextSurvived ?? string.Empty));
+        }
+
+        Write(Path.Combine(runDirectory, "validation.json"), new
+        {
+            RunId = Option(options, "run", "AUDIT-002C"),
+            TakenUtc = DateTimeOffset.UtcNow,
+            Observations = observations,
+        });
+
+        Console.WriteLine();
+
+        foreach (IGrouping<string, ValidationObservation> group in observations
+            .GroupBy(x => x.Verdict, StringComparer.Ordinal)
+            .OrderByDescending(x => x.Count()))
+        {
+            Console.WriteLine("  " + group.Key.PadRight(22)
+                + group.Count().ToString(CultureInfo.InvariantCulture));
+        }
+
+        return 0;
+    }
+
     // -------------------------------------------------------- dialog-runtime
 
     /// <summary>
@@ -303,16 +547,33 @@ public static class Program
 
         Console.WriteLine("Launching " + executable);
 
-        using ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
-
+        ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
         DialogPass pass = new(app, runDirectory);
         List<DialogObservation> observations = [];
+        List<string> closures = [];
 
         foreach (DialogRecord dialog in inventory)
         {
             DialogObservation observation = pass.Operate(dialog);
 
             observations.Add(observation);
+
+            // A closed application is an observation about that dialog and a
+            // reason to start again, not a reason to abandon the rest. Ending
+            // the run here would cost fifty dialogs for one event.
+            if (observation.Outcome is "APPLICATION_CLOSED" or "WINDOW_UNREACHABLE")
+            {
+                closures.Add(dialog.DialogId + " (" + observation.Outcome + ")");
+
+                Console.Error.WriteLine(
+                    "reviewer: the application closed at " + dialog.DialogId
+                        + "; starting it again and carrying on.");
+
+                app.Dispose();
+
+                app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+                pass = new DialogPass(app, runDirectory);
+            }
 
             Console.WriteLine("  " + observation.Outcome.PadRight(22) + dialog.DialogId.PadRight(34)
                 + observation.How.PadRight(9)
@@ -333,7 +594,10 @@ public static class Program
             Environment = environment,
             Observations = observations,
             RefusedKeystrokes = app.Keys.RefusedSends,
+            ApplicationClosedAt = closures,
         });
+
+        app.Dispose();
 
         Console.WriteLine();
 
@@ -1015,6 +1279,7 @@ public static class Program
         Console.WriteLine("  rebaseline --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...]  re-runs corrected detectors only");
         Console.WriteLine("  dialogs    --repo <path> [--out <file>]                      the static dialog inventory");
         Console.WriteLine("  dialog-runtime --exe <path> --out <run-dir> --org <guid> [--only <DialogId,...>]  opens and operates them");
+        Console.WriteLine("  validation --exe <path> --out <run-dir> --org <guid> [--only <DialogId,...>]      submits them unready");
         Console.WriteLine("  report     --out <run-dir> [--static <dir>]");
         Console.WriteLine("  reproduce  --finding <id> --out <run-dir>");
         Console.WriteLine("  repair     refused during an audit");

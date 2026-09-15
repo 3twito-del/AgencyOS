@@ -270,6 +270,167 @@ internal static class Detectors
     /// produced three identical observations on every surface and said nothing
     /// about AgencyOS.
     /// </remarks>
+    /// <summary>Whether a node is the news that something was refused.</summary>
+    /// <param name="node">A node from the tree.</param>
+    /// <returns><see langword="true"/> when it is carrying a refusal.</returns>
+    /// <remarks>
+    /// An <c>InfoBar</c> reaches the tree as a group whose message is a text node
+    /// beneath it, so both are read. Requiring the group alone missed the message
+    /// and reported a page that was quoting the server as a page that had said
+    /// nothing at all.
+    /// </remarks>
+    internal static bool Refusal(UiaNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (node.ControlType is not "Group" and not "Text"
+            || node.IsOffscreen
+            || node.Name is not { } name)
+        {
+            return false;
+        }
+
+        // The words the product and the domain actually use when refusing.
+        return name.Contains("did not happen", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("could not", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("cannot", StringComparison.OrdinalIgnoreCase)
+            || name.Contains(" must ", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("must not", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("at most", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("at least", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("is required", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("already", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("not allowed", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Picks the node that is actually the dialog.</summary>
+    /// <param name="candidates">Every node that could be the dialog's root.</param>
+    /// <param name="title">The title the dialog declares, when it declares one.</param>
+    /// <returns>The candidate holding the dialog's controls, or none.</returns>
+    /// <remarks>
+    /// <para>
+    /// WinUI hosts a <c>ContentDialog</c> behind popup windows, and more than one
+    /// of them can carry the dialog's name while only one carries its content.
+    /// Matching on the name alone picked the empty one for four dialogs, and an
+    /// empty subtree makes every containment check fail — which is how the pass
+    /// came to report that focus had not entered a dialog whose own text box had
+    /// the focus.
+    /// </para>
+    /// <para>
+    /// So content decides, and the title only breaks ties between candidates that
+    /// have some. A candidate with nothing in it is never the dialog.
+    /// </para>
+    /// </remarks>
+    internal static UiaNode? DialogRoot(IReadOnlyList<UiaNode> candidates, string? title)
+    {
+        ArgumentNullException.ThrowIfNull(candidates);
+
+        // Descendants, not interactivity. A dialog whose controls are all
+        // disabled - which is most of them at the moment they open, because the
+        // commit button waits for the form - still has content, and a host popup
+        // has none at all.
+        static int Content(UiaNode node) => node.Flatten().Skip(1).Count();
+
+        UiaNode[] withContent = [.. candidates.Where(x => Content(x) > 0)];
+
+        if (withContent.Length == 0)
+        {
+            return null;
+        }
+
+        if (title is { Length: > 0 })
+        {
+            UiaNode? titled = withContent.FirstOrDefault(x =>
+                string.Equals(x.Name, title, StringComparison.Ordinal));
+
+            if (titled is not null)
+            {
+                return titled;
+            }
+        }
+
+        // The richest one, because a host popup that happens to hold a single
+        // element is still not the dialog.
+        return withContent.MaxBy(Content);
+    }
+
+    /// <summary>Every piece of prose a dialog is showing.</summary>
+    /// <param name="nodes">The dialog's subtree.</param>
+    /// <returns>The visible text, sorted so two readings can be compared.</returns>
+    /// <remarks>
+    /// An <c>InfoBar</c> reaches the automation tree as a group carrying its
+    /// title and message, so a complaint and a piece of standing guidance look
+    /// alike here. Telling them apart is done by reading twice and subtracting,
+    /// not by guessing from the wording.
+    /// </remarks>
+    internal static IReadOnlyList<string> Prose(IReadOnlyList<UiaNode> nodes)
+    {
+        ArgumentNullException.ThrowIfNull(nodes);
+
+        return
+        [
+            .. nodes
+                .Where(x => x.ControlType is "Text" or "Group"
+                    && !string.IsNullOrWhiteSpace(x.Name)
+                    && !x.IsOffscreen)
+                .Select(x => x.Name!)
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal),
+        ];
+    }
+
+    /// <summary>
+    /// Where a dialog puts the news that an entry could not be accepted.
+    /// </summary>
+    /// <param name="primaryEnabledWhenEmpty">
+    /// Whether the commit button was available on a form that was not ready.
+    /// </param>
+    /// <param name="refusalObserved">
+    /// Whether a refusal was actually seen. Nothing is classified without one:
+    /// a dialog that closed may simply have succeeded.
+    /// </param>
+    /// <param name="accessibleAssociation">
+    /// Whether anything in the dialog declares an association leading to it.
+    /// </param>
+    /// <param name="stillOpen">Whether the dialog survived the submission.</param>
+    /// <returns>One of <see cref="ValidationVerdict"/>.</returns>
+    /// <remarks>
+    /// Proximity is deliberately not an input. Audit 002 §8 forbids reading an
+    /// association off the layout, and the only thing that makes one findable by
+    /// an assistive technology is a declaration.
+    /// </remarks>
+    internal static string Validation(
+        bool primaryEnabledWhenEmpty,
+        bool refusalObserved,
+        bool accessibleAssociation,
+        bool stillOpen)
+    {
+        if (!primaryEnabledWhenEmpty)
+        {
+            // The form cannot be submitted wrong, so there is no error to place.
+            return ValidationVerdict.ManualGate;
+        }
+
+        if (!refusalObserved)
+        {
+            // Either the submission was accepted, or it was refused somewhere
+            // nothing could see. Both are readings that did not settle, and
+            // neither is a finding about where an error was put.
+            return ValidationVerdict.Inconclusive;
+        }
+
+        if (!stillOpen)
+        {
+            // It was refused, and the dialog it was refused in is gone, so the
+            // message cannot be beside the entry it is about.
+            return ValidationVerdict.Unassociated;
+        }
+
+        return accessibleAssociation
+            ? ValidationVerdict.Associated
+            : ValidationVerdict.VisuallyNearOnly;
+    }
+
     internal static IEnumerable<UiaNode> Reviewable(UiaNode tree)
     {
         ArgumentNullException.ThrowIfNull(tree);

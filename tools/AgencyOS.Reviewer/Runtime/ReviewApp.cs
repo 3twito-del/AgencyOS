@@ -203,6 +203,18 @@ internal sealed class ReviewApp : IDisposable
 
         AutomationElement? item = FindByName(workspaceLabel);
 
+        // The organization surface is not a workspace. Repair Wave 003E-A put it
+        // behind the navigation pane's settings item, whose accessible name is
+        // whatever the operating system's display language calls "Settings" -
+        // this machine announces it as a Hebrew word - so it is found by its
+        // automation id instead. Recorded as AOS-R002-015: a surface the command
+        // palette cannot reach and a keyboard accelerator cannot address.
+        if (item is null
+            && string.Equals(workspaceLabel, "Organization", StringComparison.OrdinalIgnoreCase))
+        {
+            item = Find("SettingsItem");
+        }
+
         if (item is null)
         {
             return ReviewStep.Failed(
@@ -325,7 +337,45 @@ internal sealed class ReviewApp : IDisposable
     }
 
     /// <summary>Re-reads the window element after a navigation replaced the frame content.</summary>
-    internal void Refresh() => Window = AutomationElement.FromHandle(Handle);
+    internal void Refresh()
+    {
+        // A busy client is an unreachable provider, and that is not the same as
+        // a closed one. Three attempts over three seconds, because the longest
+        // unreachable stretch observed was a detail fetch.
+        for (int attempt = 0; ; attempt++)
+        {
+            try
+            {
+                Window = AutomationElement.FromHandle(Handle);
+
+                return;
+            }
+            catch (ElementNotAvailableException) when (attempt < 3 && IsRunning)
+            {
+                Thread.Sleep(1000);
+            }
+        }
+    }
+
+    /// <summary>Whether the application is still there at all.</summary>
+    /// <remarks>
+    /// Asked of the operating system rather than of the automation tree, so that
+    /// "the window did not answer" and "the window is gone" stay distinct.
+    /// </remarks>
+    internal bool IsRunning
+    {
+        get
+        {
+            try
+            {
+                return !_process.HasExited;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        }
+    }
 
     public void Dispose()
     {

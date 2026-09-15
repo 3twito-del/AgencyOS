@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Windows.Automation;
 using AgencyOS.Client.Commands;
 using AgencyOS.Reviewer.Surface;
@@ -28,6 +29,11 @@ namespace AgencyOS.Reviewer.Runtime;
 internal sealed class DialogPass
 {
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
+
+    /// <summary>The list a guard reads, as the handler names it.</summary>
+    private static readonly Regex GuardedList = new(
+        @"(?<list>[A-Za-z_][A-Za-z0-9_]*)\.SelectedItem",
+        RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
 
     private readonly ReviewApp _app;
     private readonly string _runDirectory;
@@ -63,7 +69,28 @@ internal sealed class DialogPass
         // pages and only one of them may be the page that has the record selected.
         foreach (DialogOpening opening in dialog.Openings)
         {
-            DialogObservation attempt = Attempt(dialog, opening, directory);
+            DialogObservation attempt;
+
+            try
+            {
+                attempt = Attempt(dialog, opening, directory);
+            }
+            catch (ElementNotAvailableException)
+            {
+                // Two different things, and they were being reported as one.
+                // The process register is the authority on which.
+                bool running = _app.IsRunning;
+
+                return DialogObservation.NotAttempted(
+                    dialog.DialogId,
+                    running ? "WINDOW_UNREACHABLE" : "APPLICATION_CLOSED",
+                    running
+                        ? "the window stopped answering the automation interface "
+                            + "while this dialog was being attempted from "
+                            + (opening.Page ?? "?") + "; the process is still running"
+                        : "the application exited while this dialog was being "
+                            + "attempted from " + (opening.Page ?? "?"));
+            }
 
             if (attempt.Outcome == "OPENED")
             {
@@ -77,6 +104,80 @@ internal sealed class DialogPass
             dialog.DialogId,
             "DID_NOT_APPEAR",
             string.Join(" | ", tried));
+    }
+
+    /// <summary>Opens a dialog and leaves it open.</summary>
+    /// <param name="dialog">The dialog to reach.</param>
+    /// <returns>How it was opened, and the modal itself if one appeared.</returns>
+    /// <remarks>
+    /// For probes that need to operate a dialog rather than describe it. The
+    /// caller owns closing it.
+    /// </remarks>
+    internal (bool Opened, string How, string Detail, UiaNode? Modal) OpenFor(
+        DialogRecord dialog)
+    {
+        ArgumentNullException.ThrowIfNull(dialog);
+
+        foreach (DialogOpening opening in dialog.Openings)
+        {
+            if (opening.Workspace is null)
+            {
+                continue;
+            }
+
+            _app.Focus();
+            _app.Keys.Press(ReviewKey.Escape);
+            Thread.Sleep(250);
+            _app.Resize(1600, 1000);
+            Thread.Sleep(400);
+            _app.Refresh();
+
+            if (!_app.Navigate(WorkspaceLabel(opening.Workspace)).Succeeded)
+            {
+                continue;
+            }
+
+            Thread.Sleep(1400);
+            _app.Refresh();
+
+            SelectARowInEveryList();
+
+            Thread.Sleep(1200);
+            _app.Refresh();
+
+            SatisfyGuards(opening);
+
+            Thread.Sleep(500);
+            _app.Refresh();
+
+            string directory = Path.Combine(
+                _runDirectory, "evidence", "validation." + dialog.DialogId);
+
+            Directory.CreateDirectory(directory);
+
+            (bool invoked, string how, string detail) = Open(dialog, opening, directory);
+
+            if (!invoked)
+            {
+                (invoked, how, detail) = OpenViaTabs(dialog, opening, directory);
+            }
+
+            Thread.Sleep(900);
+            _app.Refresh();
+
+            if (Modal(_app.Snapshot(), dialog) is { } modal)
+            {
+                return (true, how, detail, modal);
+            }
+
+            if (invoked)
+            {
+                _app.Keys.Press(ReviewKey.Escape);
+                Thread.Sleep(300);
+            }
+        }
+
+        return (false, "DID_NOT_APPEAR", "no declared opening produced a modal", null);
     }
 
     /// <summary>One attempt, down one declared path.</summary>
@@ -116,7 +217,13 @@ internal sealed class DialogPass
         // selected. This is what the markup means by IsEnabled="False".
         int selected = SelectARowInEveryList();
 
-        Thread.Sleep(700);
+        Thread.Sleep(1200);
+        _app.Refresh();
+
+        // Now the detail exists, so the list the guard names can be found.
+        IReadOnlyList<string> guards = SatisfyGuards(opening);
+
+        Thread.Sleep(500);
         _app.Refresh();
 
         UiaNode? focusBefore = _app.FocusedNode();
@@ -132,13 +239,20 @@ internal sealed class DialogPass
         // Phase A reported eleven tab-hosted palette dialogs as blocked by
         // missing fixture state. They were blocked by the harness never opening
         // their tab.
-        if (!invoked)
-        {
-            (invoked, how, detail) = OpenViaTabs(dialog, opening, directory);
-        }
-
         Thread.Sleep(900);
         _app.Refresh();
+
+        // Not "could it be invoked" but "did a dialog arrive". The palette runs
+        // whatever it is handed and reports success either way, so for every
+        // palette-opened dialog this used to skip the tab walk entirely and try
+        // only whichever tab happened to be showing.
+        if (Modal(_app.Snapshot(), dialog) is null)
+        {
+            (invoked, how, detail) = OpenViaTabs(dialog, opening, directory);
+
+            Thread.Sleep(900);
+            _app.Refresh();
+        }
 
         UiaNode afterOpen = _app.Snapshot();
         UiaNode? modal = Modal(afterOpen, dialog);
@@ -158,7 +272,10 @@ internal sealed class DialogPass
         if (modal is null)
         {
             string rows = selected.ToString(System.Globalization.CultureInfo.InvariantCulture)
-                + " row(s) selected first";
+                + " row(s) selected first"
+                + (guards.Count > 0
+                    ? "; before any tab was chosen: " + string.Join("; ", guards)
+                    : string.Empty);
 
             return new DialogObservation(
                 dialog.DialogId,
@@ -167,8 +284,8 @@ internal sealed class DialogPass
                 detail + "; " + rows,
                 screenshots,
                 Relative(treePath),
-                null, null, [], [], [], [], false, false, false, false, 0, [],
-                "NOT_ATTEMPTED", null);
+                null, null, [], [], [], [], false, "not attempted", [], false, false,
+                false, false, 0, [], "NOT_ATTEMPTED", null);
         }
 
         return Inspect(dialog, modal, afterOpen, focusBefore, how, detail, directory, screenshots, treePath);
@@ -178,85 +295,174 @@ internal sealed class DialogPass
     private (bool Invoked, string How, string Detail) OpenViaTabs(
         DialogRecord dialog, DialogOpening opening, string directory)
     {
-        AutomationElementCollection tabs;
+        string[] outer = TabNames();
 
-        try
+        if (outer.Length == 0)
         {
-            tabs = _app.Window.FindAll(
-                TreeScope.Descendants,
-                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem));
-        }
-        catch (ElementNotAvailableException)
-        {
-            return (false, "NONE", "the tab strip could not be read");
+            return (false, "NONE", "the page has no tabs");
         }
 
-        foreach (AutomationElement? tab in tabs)
+        List<string> tried = [];
+
+        foreach (string tab in outer)
         {
-            if (tab is null)
+            if (!SelectTabByName(tab))
             {
                 continue;
             }
 
-            try
+            (bool opened, string how, string detail) = TryHere(dialog, opening, directory, tab);
+
+            if (opened)
             {
-                if (!tab.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object? pattern)
-                    || pattern is not SelectionItemPattern selection)
+                return (true, how, detail);
+            }
+
+            // What the guard found *on this tab*. Recording only the tab's name
+            // lost it, and the caller then reported the guard reading taken
+            // before the walk began - so "PredictionList: not on the page" was
+            // said about the Desk tab while the Predictions tab went unmentioned.
+            tried.Add(detail);
+
+            // Inner tabs belong to the detail this outer tab just revealed, so
+            // they only exist now and are replaced by the next outer selection.
+            foreach (string inner in TabNames().Except(outer, StringComparer.Ordinal))
+            {
+                if (!SelectTabByName(inner))
                 {
                     continue;
                 }
 
-                selection.Select();
-            }
-            catch (ElementNotAvailableException)
-            {
-                continue;
-            }
-            catch (InvalidOperationException)
-            {
-                continue;
-            }
+                (opened, how, detail) = TryHere(
+                    dialog, opening, directory, tab + " > " + inner);
 
-            Thread.Sleep(700);
-            _app.Refresh();
-
-            SelectARowInEveryList();
-
-            // Long enough for the detail to arrive. Several handlers guard on a
-            // loaded detail object rather than on the selection - _thesis?.Thesis,
-            // _signal?.Signal - so pressing the opener before the fetch returns
-            // looks exactly like nothing being selected.
-            Thread.Sleep(1400);
-            _app.Refresh();
-
-            (bool invoked, string how, string detail) = Open(dialog, opening, directory);
-
-            // Invoked is not appeared. A button that is disabled refuses, so for
-            // button openers the two coincide; the palette always runs the
-            // command it was given, so a palette opener reported success on the
-            // first tab and the loop stopped there - which is why Phase B's first
-            // pass left nineteen tab-hosted dialogs blocked and blamed the
-            // fixture. The dialog itself is the only evidence that the tab was
-            // the right one.
-            if (invoked)
-            {
-                Thread.Sleep(900);
-                _app.Refresh();
-
-                if (Modal(_app.Snapshot(), dialog) is not null)
+                if (opened)
                 {
-                    return (true, how, detail + " (on the "
-                        + (tab.Current.Name ?? "?") + " tab)");
+                    return (true, how, detail);
                 }
 
-                // It ran and nothing appeared: this was the wrong tab. Clear
-                // anything the attempt left open and try the next one.
-                _app.Keys.Press(ReviewKey.Escape);
-                Thread.Sleep(250);
+                tried.Add(detail);
             }
         }
 
-        return (false, "NONE", "no tab made the opener available");
+        return (false, "NONE",
+            "no tab made the opener available. " + string.Join(" | ", tried));
+    }
+
+    /// <summary>Satisfies the guard on the current tab, then tries the opener.</summary>
+    /// <remarks>
+    /// The opener is only pressed once the guard has something selected, because
+    /// pressing it beforehand is indistinguishable from the dialog not existing
+    /// and costs a second and a half either way.
+    /// </remarks>
+    private (bool Opened, string How, string Detail) TryHere(
+        DialogRecord dialog, DialogOpening opening, string directory, string where)
+    {
+        Thread.Sleep(700);
+        _app.Refresh();
+
+        SelectARowInEveryList();
+
+        // Long enough for the detail to arrive. Several handlers guard on a
+        // loaded detail object rather than on the selection - _thesis?.Thesis,
+        // _signal?.Signal - so pressing the opener before the fetch returns
+        // looks exactly like nothing being selected.
+        Thread.Sleep(1400);
+        _app.Refresh();
+
+        IReadOnlyList<string> guards = SatisfyGuards(opening);
+
+        Thread.Sleep(400);
+        _app.Refresh();
+
+        // A guard that names lists and found none of them here means this is not
+        // the tab. Pressing the opener anyway would only re-prove that.
+        if (guards.Count > 0
+            && !guards.Any(x => x.Contains("selected '", StringComparison.Ordinal)))
+        {
+            return (false, "NONE", where + ": " + string.Join("; ", guards));
+        }
+
+        (bool invoked, string how, string detail) = Open(dialog, opening, directory);
+
+        // Invoked is not appeared. A disabled button refuses, so for button
+        // openers the two coincide; the palette always runs the command it was
+        // given, so a palette opener reported success on the first tab and the
+        // loop stopped there - which is why Phase B left nineteen tab-hosted
+        // dialogs blocked and blamed the fixture. The dialog itself is the only
+        // evidence that this was the right tab.
+        if (invoked)
+        {
+            Thread.Sleep(900);
+            _app.Refresh();
+
+            if (Modal(_app.Snapshot(), dialog) is not null)
+            {
+                return (true, how, detail + " (on " + where + ")");
+            }
+
+            _app.Keys.Press(ReviewKey.Escape);
+            Thread.Sleep(250);
+        }
+
+        return (false, "NONE", where + ": ran but nothing appeared");
+    }
+
+    /// <summary>Every tab currently in the strip, by name.</summary>
+    private string[] TabNames()
+    {
+        try
+        {
+            AutomationElementCollection tabs = _app.Window.FindAll(
+                TreeScope.Descendants,
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem));
+
+            return
+            [
+                .. tabs.Cast<AutomationElement>()
+                    .Select(x => x.Current.Name)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct(StringComparer.Ordinal),
+            ];
+        }
+        catch (ElementNotAvailableException)
+        {
+            return [];
+        }
+    }
+
+    /// <summary>Selects one tab and confirms the tree agrees it is selected.</summary>
+    private bool SelectTabByName(string name)
+    {
+        try
+        {
+            AutomationElement? tab = _app.Window.FindFirst(
+                TreeScope.Descendants,
+                new AndCondition(
+                    new PropertyCondition(
+                        AutomationElement.ControlTypeProperty, ControlType.TabItem),
+                    new PropertyCondition(AutomationElement.NameProperty, name)));
+
+            if (tab is null
+                || !tab.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object? pattern)
+                || pattern is not SelectionItemPattern selection)
+            {
+                return false;
+            }
+
+            selection.Select();
+            Thread.Sleep(600);
+
+            return selection.Current.IsSelected;
+        }
+        catch (ElementNotAvailableException)
+        {
+            return false;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
     }
 
     /// <summary>Works the dialog once it is on screen.</summary>
@@ -297,6 +503,10 @@ internal sealed class DialogPass
 
         // Tab order inside the modal, and whether it stays inside.
         (IReadOnlyList<string> order, bool escapes) = TabOrder(inside);
+
+        // And back again. A trap that only holds in one direction is still a
+        // trap, and it is the direction an operator uses to fix a typo.
+        (IReadOnlyList<string> reverse, bool reverseEscapes) = TabOrder(inside, back: true);
 
         IReadOnlyList<AccessibilityObservation> accessibility = Detectors.Accessibility(modal);
         IReadOnlyList<RowSpeechObservation> speech = Detectors.RowSpeech(modal);
@@ -348,6 +558,9 @@ internal sealed class DialogPass
             buttons,
             fields,
             order,
+            reverse,
+            reverseEscapes,
+            dialog.DefaultButton ?? "none declared",
             accessibility,
             focusInside,
             escapes,
@@ -365,14 +578,16 @@ internal sealed class DialogPass
     /// whose Tab order leaves it puts the keyboard somewhere the user cannot see
     /// they are.
     /// </remarks>
-    private (IReadOnlyList<string> Order, bool Escapes) TabOrder(IReadOnlyList<UiaNode> inside)
+    private (IReadOnlyList<string> Order, bool Escapes) TabOrder(
+        IReadOnlyList<UiaNode> inside, bool back = false)
     {
         List<string> order = [];
         bool escaped = false;
 
         for (int i = 0; i < 14; i++)
         {
-            if (!_app.Keys.Press(ReviewKey.Tab))
+            if (!_app.Keys.Press(
+                ReviewKey.Tab, back ? ReviewModifiers.Shift : ReviewModifiers.None))
             {
                 break;
             }
@@ -605,7 +820,12 @@ internal sealed class DialogPass
     {
         try
         {
-            AutomationElementCollection lists = _app.Window.FindAll(
+            // Inside the page, not the window. The navigation pane's destinations
+            // are list items and so is the settings item, and selecting one of
+            // those leaves the workspace before anything else happens.
+            AutomationElement root = ContentHost() ?? _app.Window;
+
+            AutomationElementCollection lists = root.FindAll(
                 TreeScope.Descendants,
                 new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.List));
 
@@ -614,6 +834,16 @@ internal sealed class DialogPass
             foreach (AutomationElement? list in lists)
             {
                 if (list is null || list.Current.IsOffscreen)
+                {
+                    continue;
+                }
+
+                // A TabView's strip is a list, and its rows are the tabs. Choosing
+                // one here undoes the tab the walk just selected: Finance was left
+                // on Receivables after visiting all seven of its tabs, and the
+                // Payments tab was then reported as not having a PaymentList.
+                if (string.Equals(
+                    list.Current.AutomationId, "TabListView", StringComparison.Ordinal))
                 {
                     continue;
                 }
@@ -642,6 +872,12 @@ internal sealed class DialogPass
                     continue;
                 }
 
+                // And a tab that reached this far by some other route.
+                if (Equals(row.Current.ControlType, ControlType.TabItem))
+                {
+                    continue;
+                }
+
                 try
                 {
                     if (row.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object? pattern)
@@ -649,7 +885,15 @@ internal sealed class DialogPass
                     {
                         selection.Select();
                         selected++;
-                        Thread.Sleep(250);
+
+                        // One list, not every list. Selecting in a second list on
+                        // the same tab replaces the detail the first selection
+                        // loaded, and the handler guards on that detail - which is
+                        // why a tab probe that selected one row opened a dialog
+                        // this pass could not.
+                        Thread.Sleep(900);
+
+                        return selected;
                     }
                 }
                 catch (ElementNotAvailableException)
@@ -674,6 +918,123 @@ internal sealed class DialogPass
         }
     }
 
+    /// <summary>
+    /// The shell's content host, which is everything except the navigation pane.
+    /// </summary>
+    /// <remarks>
+    /// Named in the markup by Repair Wave 002. Falling back to the whole window
+    /// when it cannot be found is deliberate: a pass that silently searched
+    /// nothing would report every dialog as unopenable.
+    /// </remarks>
+    /// <summary>
+    /// Selects a row in each list the handler's guard names.
+    /// </summary>
+    /// <param name="opening">The declared path, whose preconditions are read.</param>
+    /// <returns>What happened to each named list, in the handler's own terms.</returns>
+    /// <remarks>
+    /// <para>
+    /// Selecting a row in every list is enough for a page whose command reads
+    /// the page's own list. It is not enough for a command that reads a list
+    /// inside a detail, because that list does not exist until the detail has
+    /// loaded, and by then the sweep has been and gone.
+    /// </para>
+    /// <para>
+    /// So this runs second, after the detail has had time to arrive, and it
+    /// looks only where the guard says to look. A list that is absent and a list
+    /// that is empty are different answers and are reported as such.
+    /// </para>
+    /// </remarks>
+    private IReadOnlyList<string> SatisfyGuards(DialogOpening opening)
+    {
+        string[] required =
+        [
+            .. opening.Preconditions
+                .SelectMany(x => GuardedList.Matches(x).Cast<Match>())
+                .Select(x => x.Groups["list"].Value)
+                .Distinct(StringComparer.Ordinal),
+        ];
+
+        if (required.Length == 0)
+        {
+            return [];
+        }
+
+        List<string> report = [];
+
+        foreach (string listName in required)
+        {
+            report.Add(listName + ": " + SelectFirstRow(listName));
+            Thread.Sleep(600);
+            _app.Refresh();
+        }
+
+        return report;
+    }
+
+    /// <summary>Selects the first row of one named list.</summary>
+    private string SelectFirstRow(string automationId)
+    {
+        try
+        {
+            AutomationElement root = ContentHost() ?? _app.Window;
+
+            AutomationElement? list = root.FindFirst(
+                TreeScope.Descendants,
+                new PropertyCondition(AutomationElement.AutomationIdProperty, automationId));
+
+            if (list is null)
+            {
+                return "not on the page";
+            }
+
+            AutomationElementCollection rows = list.FindAll(
+                TreeScope.Descendants,
+                new PropertyCondition(
+                    AutomationElement.ControlTypeProperty, ControlType.ListItem));
+
+            if (rows.Count == 0)
+            {
+                return "on the page but empty";
+            }
+
+            if (rows[0] is not { } first
+                || !first.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object? pattern)
+                || pattern is not SelectionItemPattern selection)
+            {
+                return "has rows that cannot be selected";
+            }
+
+            selection.Select();
+            Thread.Sleep(700);
+
+            return selection.Current.IsSelected
+                ? "selected '" + (first.Current.Name ?? "?") + "'"
+                : "Select() returned but IsSelected is false";
+        }
+        catch (ElementNotAvailableException)
+        {
+            return "left the tree while being selected";
+        }
+        catch (InvalidOperationException failure)
+        {
+            return "refused: " + failure.Message;
+        }
+    }
+
+    private AutomationElement? ContentHost()
+    {
+        try
+        {
+            return _app.Window.FindFirst(
+                TreeScope.Descendants,
+                new PropertyCondition(AutomationElement.AutomationIdProperty, "ContentHost"));
+        }
+        catch (ElementNotAvailableException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Finds the dialog in the tree, by title or by being a dialog at all.</summary>
     private static UiaNode? Modal(UiaNode tree, DialogRecord dialog)
     {
@@ -689,18 +1050,7 @@ internal sealed class DialogPass
             ];
         }
 
-        if (dialog.Title is { Length: > 0 } title)
-        {
-            UiaNode? titled = roots.FirstOrDefault(x =>
-                string.Equals(x.Name, title, StringComparison.Ordinal));
-
-            if (titled is not null)
-            {
-                return titled;
-            }
-        }
-
-        return roots.FirstOrDefault();
+        return Detectors.DialogRoot(roots, dialog.Title);
     }
 
     /// <summary>
@@ -764,6 +1114,9 @@ internal sealed class DialogPass
 /// <param name="Buttons">Every button it offers, and whether each is enabled.</param>
 /// <param name="Fields">Every input it offers.</param>
 /// <param name="TabOrder">Where Tab went, in order.</param>
+/// <param name="ReverseTabOrder">Where Shift+Tab went, in order.</param>
+/// <param name="ReverseTabEscaped">Whether going backwards left the dialog.</param>
+/// <param name="DefaultAction">The button Enter commits, as the markup declares it.</param>
 /// <param name="Accessibility">What the corrected detectors found inside it.</param>
 /// <param name="FocusEnteredDialog">Whether opening it put focus inside.</param>
 /// <param name="FocusEscapedDialog">Whether tabbing left the modal.</param>
@@ -785,6 +1138,9 @@ public sealed record DialogObservation(
     IReadOnlyList<string> Buttons,
     IReadOnlyList<string> Fields,
     IReadOnlyList<string> TabOrder,
+    IReadOnlyList<string> ReverseTabOrder,
+    bool ReverseTabEscaped,
+    string DefaultAction,
     IReadOnlyList<AccessibilityObservation> Accessibility,
     bool FocusEnteredDialog,
     bool FocusEscapedDialog,
@@ -801,6 +1157,6 @@ public sealed record DialogObservation(
     /// <param name="detail">In words.</param>
     /// <returns>An observation that claims nothing.</returns>
     public static DialogObservation NotAttempted(string id, string outcome, string detail) =>
-        new(id, outcome, "NONE", detail, [], null, null, null, [], [], [], [],
-            false, false, false, false, 0, [], "NOT_ATTEMPTED", null);
+        new(id, outcome, "NONE", detail, [], null, null, null, [], [], [], [], false,
+            "not attempted", [], false, false, false, false, 0, [], "NOT_ATTEMPTED", null);
 }

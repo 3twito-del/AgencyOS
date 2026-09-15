@@ -1,0 +1,124 @@
+# Audit 002 — aggregate report
+
+**This is the current truth for Audit 002.** It does not replace Phase A's or
+Phase B's documents, which stand exactly as issued. Where a phase's number or
+claim has since been superseded, it is named here rather than left for a reader
+to infer.
+
+**Product baseline:** `6e9b66f`. **Product code changed by Audit 002: none, in
+any phase.**
+
+---
+
+## 1. What each phase did
+
+| Phase | Scope | Dialogs opened | Outcome |
+| :-: | --- | ---: | --- |
+| **A** | Inventory, first runtime pass, four reclassifications | 30 of 57 | complete; closed the audit prematurely, corrected in `AUDIT-002-STATUS.md` |
+| **B** | Unblock the 27, mutations, roles, validation, idempotency, concurrency | 38 of 57 | complete; §30 still unmet, said so |
+| **C** | Use the new role capability to close §30 | **51 of 59** | complete; §30 still unmet on two requirements |
+
+---
+
+## 2. Historical claims that are no longer true
+
+Listed explicitly, because forcing a reader to work out which old numbers are
+obsolete is how an audit record rots.
+
+| Claim | Where | Now |
+| --- | --- | --- |
+| "61 dialogs" | Audit 001, Phase A, Phase B | **63** — Repair Wave 003E-A added `AddMemberDialog` and `ChangeMemberRoleDialog` |
+| "Focus restored on 0 of 30" | Phase A | **all 30** — reviewer defect 7 |
+| "Six dialogs let focus escape" | Phase A | **none** — reviewer defects 7 and 23 |
+| "30 dialogs show an unexpected second modal" | Phase A | **not measurable** — reviewer defect 8 |
+| "19 tab-hosted dialogs blocked by fixture data" | Phase B | **harness** — reviewer defects 9, 16, 17, 21; most now open |
+| "17 dialogs blocked" | Phase B | **8**, each with a named cause |
+| `AOS-R002-004` — focus does not enter the dialog | Phase A, S2 | **CLOSED_AS_HARNESS_ERROR** — reviewer defect 23 |
+| `AOS-R002-009` — the command runs and nothing appears | Phase B, S3 | **CLOSED_AS_HARNESS_ERROR** — reviewer defects 9, 16, 17, 21 |
+| `AOS-R001-020` — F9 does nothing | Audit 001 | **NO_DEFECT** — navigation is intentional, acknowledgement observed |
+| `AOS-R002-002`, `AOS-R002-006` — no second user, membership write-once | Phase A/B, S2 | **CLOSED** by Repair Wave 003E-A |
+| "Phase B's non-member was refused" | Phase B | **superseded** — that fixture subject was *unauthenticated*. An authenticated non-member is refused `403` on every route, which is the question §30 asked |
+
+---
+
+## 3. Findings — the current set
+
+Twelve open, five closed, across three phases.
+
+| Id | Sev | Phase | Status | What |
+| --- | :-: | :-: | --- | --- |
+| `AOS-R002-001` | S1 | A | CONFIRMED | Query-translation defects surfacing as `500` with a trace id |
+| `AOS-R002-002` | S2 | A | **CLOSED** | No way to create a second user — 003E-A |
+| `AOS-R002-003` | S3 | A | CONFIRMED | 17 dialogs with no opening control; 4 with no path at all |
+| `AOS-R002-004` | S2 | A | **CLOSED_AS_HARNESS_ERROR** | Focus entry — reviewer defect 23 |
+| `AOS-R002-005` | S2 | A | CONFIRMED | 3 of 63 dialogs named by any test |
+| `AOS-R002-006` | S2 | B | **CLOSED** | Membership write-once — 003E-A |
+| `AOS-R002-007` | S3 | B | CONFIRMED | `409` names an identifier the operator has never seen |
+| `AOS-R002-008` | S3 | B | CONFIRMED | `400` names an internal DTO |
+| `AOS-R002-009` | S3 | B | **CLOSED_AS_HARNESS_ERROR** | Palette command "does nothing" |
+| `AOS-R002-010` | S3 | C | NEW | A refused entry is reported after the dialog has closed, and the entry is lost |
+| `AOS-R002-011` | S3 | C | NEW | No dialog declares a programmatic association between a message and its field (0 of 63) |
+| `AOS-R002-012` | S4 | C | NEW | A refused **create** is titled *"Could not load people"* |
+| `AOS-R002-013` | S4 | C | NEW / observation | `POST /people` accepts `not-an-email` |
+| `AOS-R002-014` | S4 | C | NEW | Refusals name internal permission strings |
+| `AOS-R002-015` | S4 | C | NEW | Organization/Members is outside the palette — `COMMAND_SURFACE_INCONSISTENCY` |
+| `AOS-R002-016` | S3 | C | NEW | Enter commits in 26 dialogs and cancels in 36, by no rule |
+| `AOS-R002-017` | S3 | C | NEW | `POST /documents` answers `500` to any non-multipart content type |
+
+Carried from Audit 001: `AOS-R001-006` **CONFIRMED** (20 fields, 13 dialogs),
+`AOS-R001-010` **CONFIRMED_API_UI_GAP** (scopes/team), `AOS-R001-013`
+**S2 / PARTIAL**, `AOS-R001-020` **NO_DEFECT, closed**.
+
+### Severity totals, open findings only
+
+| S0 | S1 | S2 | S3 | S4 |
+| :-: | :-: | :-: | :-: | :-: |
+| 0 | 1 | 1 | 7 | 4 |
+
+---
+
+## 4. Provenance
+
+Twenty-three reviewer defects across the audit. **Eighteen would have produced a
+false claim against the product.** Three filed findings were closed as harness
+errors on that evidence — two from Audit 002 and one from Audit 001.
+
+The full ledger, with each defect's bad assumption, affected measurement,
+false-positive potential, invalidated evidence and regression test, is
+[`phase-c/AUDIT-002C-REVIEWER-DEFECTS.md`](phase-c/AUDIT-002C-REVIEWER-DEFECTS.md).
+
+This is not incidental. An audit that had not been checking itself this hard
+would have shipped an S2 accessibility defect, an S3 workflow defect, a
+silent-failure finding and a claim that the client can be closed by keyboard —
+all against a product that was behaving correctly.
+
+---
+
+## 5. The §30 verdict
+
+Twelve of fourteen requirements met. Two unmet, and they are one gap counted
+twice: **eight reachable dialogs have never been opened** — three because a
+precondition genuinely does not exist in this tenant, two because of a known
+harness limitation, three inconclusive.
+
+Full detail: [`phase-c/AUDIT-002C-COVERAGE.md`](phase-c/AUDIT-002C-COVERAGE.md).
+
+```
+AUDIT 002 PHASE C COMPLETE — AUDIT 002 REMAINS OPEN — NO PRODUCT REPAIRS APPLIED
+```
+
+Unmet gates:
+
+1. **Every reachable dialog opened at least once** — 51 of 59.
+2. **Cancel/close behaviour observed for every reachable dialog** — 51 of 59.
+   Met for every dialog that was opened; fails only because (1) does.
+
+## 6. Where the documents are
+
+| Phase | Location |
+| :-: | --- |
+| A | `docs/reviews/audit-002/AUDIT-002-*.md` |
+| status correction | `docs/reviews/audit-002/AUDIT-002-STATUS.md` |
+| B | `docs/reviews/audit-002/phase-b/` |
+| C | `docs/reviews/audit-002/phase-c/` |
+| evidence | `artifacts/reviewer/run-002-audit/`, `run-002-phase-b/`, `run-002-phase-c/` |
