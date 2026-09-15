@@ -126,6 +126,35 @@ Unmet gates:
 Gates 2 and 3 are satisfied for every dialog that was opened; they fail only
 because (1) does.
 
+### 5.1 Amendment — after Repair Wave 003A
+
+**Added, not substituted. Everything above is the position Audit 002 itself
+reached, and it stands.** Repair Wave 003A repaired `AOS-R002-019` and rechecked
+only the four dialog rows that finding named. It also repaired `AOS-R002-017`.
+
+| | At Phase D | After 003A |
+| --- | ---: | ---: |
+| Every reachable dialog opened | 51 of 59 | **55 of 59** |
+| Cancel/close observed | 51 of 59 | **55 of 59** |
+| Accessibility/focus inspected | 51 of 59 | **55 of 59** |
+
+| Finding | At Phase D | After 003A |
+| --- | --- | --- |
+| `AOS-R002-019` | NEW, S3 | **REPAIRED** — all four dialogs open; regression tests fail on `6e9b66f` |
+| `AOS-R002-017` | NEW, S3 | **REPAIRED** — the upload routes answer `415` before the form binder runs |
+
+The four dialogs still unopened are `ApproveAiActionDialog`,
+`IngestAttachmentDialog` and `ResolveParticipantDialog`
+(`PRECONDITION_UNACHIEVABLE`) and `RecordSignatureDialog`
+(`HARNESS_LIMITATION`). The §30 verdict is unchanged in kind: three requirements
+unmet, one gap counted three times.
+
+```
+AUDIT 002 REMAINS OPEN
+```
+
+Detail: [`../repair-003a/AUDIT-002-NARROW-RECHECK.md`](../repair-003a/AUDIT-002-NARROW-RECHECK.md).
+
 ## 6. Where the documents are
 
 | Phase | Location |

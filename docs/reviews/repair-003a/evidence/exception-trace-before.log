@@ -1,0 +1,50 @@
+2026-09-15T16:48:56.9312572+00:00  ConnectMailboxAsync: ENTERED
+2026-09-15T16:48:56.9472576+00:00  ConnectMailboxDialog.Update: ProviderBox null=False ConsentButton null=False CodeBox null=False RedirectBox null=False VisibilityBox null=False
+2026-09-15T16:48:56.9640420+00:00  ConnectMailboxAsync: THREW Microsoft.UI.Xaml.Markup.XamlParseException: XAML parsing failed.
+   at WinRT.ExceptionHelpers.<ThrowExceptionForHR>g__Throw|38_0(Int32 hr)
+   at ABI.Microsoft.UI.Xaml.IApplicationStaticsMethods.LoadComponent(IObjectReference _obj, Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at Microsoft.UI.Xaml.Application.LoadComponent(Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at AgencyOS.Windows.Dialogs.ConnectMailboxDialog.InitializeComponent() in C:\Projects\AgencyOS\src\AgencyOS.Windows\obj\Debug\net10.0-windows10.0.26100.0\Dialogs\ConnectMailboxDialog.g.i.cs:line 47
+   at AgencyOS.Windows.Dialogs.ConnectMailboxDialog..ctor(IReadOnlyList`1 providers, String redirectUri) in C:\Projects\AgencyOS\src\AgencyOS.Windows\Dialogs\ConnectMailboxDialog.xaml.cs:line 45
+   at AgencyOS.Windows.Pages.CommunicationsPage.ConnectMailboxAsync() in C:\Projects\AgencyOS\src\AgencyOS.Windows\Pages\CommunicationsPage.xaml.cs:line 394
+  --- inner ---
+
+2026-09-15T16:49:09.8287642+00:00  CreatePredictionAsync: ENTERED
+2026-09-15T16:49:09.8360532+00:00  CreatePredictionDialog.ApplyProbability: ProbabilitySlider null=False ProbabilityText null=True
+2026-09-15T16:49:09.8375941+00:00  CreatePredictionAsync: THREW Microsoft.UI.Xaml.Markup.XamlParseException: The text associated with this error code could not be found.
+
+Failed to assign to property 'Microsoft.UI.Xaml.Controls.Primitives.RangeBase.Value'. [Line: 37 Position: 97]
+   at WinRT.ExceptionHelpers.<ThrowExceptionForHR>g__Throw|38_0(Int32 hr)
+   at ABI.Microsoft.UI.Xaml.IApplicationStaticsMethods.LoadComponent(IObjectReference _obj, Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at Microsoft.UI.Xaml.Application.LoadComponent(Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at AgencyOS.Windows.Dialogs.CreatePredictionDialog.InitializeComponent() in C:\Projects\AgencyOS\src\AgencyOS.Windows\obj\Debug\net10.0-windows10.0.26100.0\Dialogs\CreatePredictionDialog.g.i.cs:line 51
+   at AgencyOS.Windows.Dialogs.CreatePredictionDialog..ctor() in C:\Projects\AgencyOS\src\AgencyOS.Windows\Dialogs\CreatePredictionDialog.xaml.cs:line 30
+   at AgencyOS.Windows.Pages.IntelligencePage.CreatePredictionAsync() in C:\Projects\AgencyOS\src\AgencyOS.Windows\Pages\IntelligencePage.xaml.cs:line 751
+  --- inner ---
+
+2026-09-15T16:49:22.9584517+00:00  RecordSourceAsync: ENTERED
+2026-09-15T16:49:22.9612979+00:00  RecordSourceDialog.ApplyKind: KindBox null=False UrlBox null=True CustodyBar null=True PublishedPicker null=True TitleBox null=True
+2026-09-15T16:49:22.9622209+00:00  RecordSourceAsync: THREW Microsoft.UI.Xaml.Markup.XamlParseException: The text associated with this error code could not be found.
+
+Failed to assign to property 'Microsoft.UI.Xaml.Controls.Primitives.RangeBase.Value'. [Line: 24 Position: 70]
+   at WinRT.ExceptionHelpers.<ThrowExceptionForHR>g__Throw|38_0(Int32 hr)
+   at ABI.Microsoft.UI.Xaml.IApplicationStaticsMethods.LoadComponent(IObjectReference _obj, Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at Microsoft.UI.Xaml.Application.LoadComponent(Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at AgencyOS.Windows.Dialogs.RecordSourceDialog.InitializeComponent() in C:\Projects\AgencyOS\src\AgencyOS.Windows\obj\Debug\net10.0-windows10.0.26100.0\Dialogs\RecordSourceDialog.g.i.cs:line 59
+   at AgencyOS.Windows.Dialogs.RecordSourceDialog..ctor() in C:\Projects\AgencyOS\src\AgencyOS.Windows\Dialogs\RecordSourceDialog.xaml.cs:line 28
+   at AgencyOS.Windows.Pages.IntelligencePage.RecordSourceAsync() in C:\Projects\AgencyOS\src\AgencyOS.Windows\Pages\IntelligencePage.xaml.cs:line 582
+  --- inner ---
+
+2026-09-15T16:49:38.6676322+00:00  ResolvePredictionAsync: ENTERED
+2026-09-15T16:49:38.6889039+00:00  ResolvePredictionDialog.ApplyScoring: OutcomeBox null=False ScoringBar null=True NoteBox null=True
+2026-09-15T16:49:38.6896719+00:00  ResolvePredictionAsync: THREW Microsoft.UI.Xaml.Markup.XamlParseException: The text associated with this error code could not be found.
+
+Failed to assign to property 'Microsoft.UI.Xaml.Controls.Primitives.RangeBase.Value'. [Line: 24 Position: 83]
+   at WinRT.ExceptionHelpers.<ThrowExceptionForHR>g__Throw|38_0(Int32 hr)
+   at ABI.Microsoft.UI.Xaml.IApplicationStaticsMethods.LoadComponent(IObjectReference _obj, Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at Microsoft.UI.Xaml.Application.LoadComponent(Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at AgencyOS.Windows.Dialogs.ResolvePredictionDialog.InitializeComponent() in C:\Projects\AgencyOS\src\AgencyOS.Windows\obj\Debug\net10.0-windows10.0.26100.0\Dialogs\ResolvePredictionDialog.g.i.cs:line 49
+   at AgencyOS.Windows.Dialogs.ResolvePredictionDialog..ctor(PredictionResponse prediction, String resolutionCriteria) in C:\Projects\AgencyOS\src\AgencyOS.Windows\Dialogs\ResolvePredictionDialog.xaml.cs:line 30
+   at AgencyOS.Windows.Pages.IntelligencePage.ResolvePredictionAsync() in C:\Projects\AgencyOS\src\AgencyOS.Windows\Pages\IntelligencePage.xaml.cs:line 809
+  --- inner ---
+

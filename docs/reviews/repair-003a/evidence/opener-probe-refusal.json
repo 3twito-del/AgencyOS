@@ -1,0 +1,50 @@
+{
+  "RunId": "REPAIR-003A-REFUSAL",
+  "StartedUtc": "2026-09-15T17:00:13.0515254+00:00",
+  "FinishedUtc": "2026-09-15T17:00:32.7138658+00:00",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "Results": [
+    {
+      "DialogId": "ResolvePredictionDialog",
+      "Workspace": "Intelligence",
+      "Tab": "Sources",
+      "CommandId": "intelligence.prediction.resolve",
+      "Control": null,
+      "RowsOnTab": 23,
+      "RowSelected": false,
+      "Invoked": true,
+      "How": "PALETTE",
+      "Outcome": "OPENED",
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "NoticesBefore": [],
+      "NoticesAfter": [],
+      "FocusBefore": "TabItem \u0022Sources\u0022",
+      "FocusAfter": "Button CloseButton",
+      "Steps": [
+        "navigate to Intelligence: ok",
+        "select the Sources tab: selected",
+        "rows on the tab: 23 (first: Phase C synthetic source, External url)",
+        "notices before: none",
+        "focus before: TabItem \u0022Sources\u0022",
+        "run intelligence.prediction.resolve: ran from the palette, matched by label on 1 result(s)",
+        "a dialog appeared: yes \u2014 \u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+        "notices after: none",
+        "focus after: Button CloseButton",
+        "outcome: OPENED"
+      ],
+      "Screenshots": [
+        "evidence/opener.ResolvePredictionDialog/01-before.png",
+        "evidence/opener.ResolvePredictionDialog/02-after.png"
+      ],
+      "Trees": [
+        "evidence/opener.ResolvePredictionDialog/01-before.json",
+        "evidence/opener.ResolvePredictionDialog/02-after.json"
+      ]
+    }
+  ]
+}

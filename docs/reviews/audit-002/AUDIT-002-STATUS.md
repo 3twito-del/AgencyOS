@@ -72,6 +72,29 @@ dialog that was opened. Four of the eight are a filed product defect
 (`AOS-R002-019`), three have a precondition that cannot be built through any
 route, and one is a reviewer limitation.
 
+## Amendment — Repair Wave 003A
+
+**Added after Phase D. Nothing above is rewritten.** Repair Wave 003A repaired
+`AOS-R002-019` and rechecked only the four dialog rows it changed
+([`../repair-003a/AUDIT-002-NARROW-RECHECK.md`](../repair-003a/AUDIT-002-NARROW-RECHECK.md)).
+It was a repair wave, not an audit phase.
+
+| Dialog | Phase D | Now |
+| --- | --- | --- |
+| `ConnectMailboxDialog` | `NEVER_OPENED_PRODUCT_DEFECT` | **`OPENED`** |
+| `CreatePredictionDialog` | `NEVER_OPENED_PRODUCT_DEFECT` | **`OPENED`** |
+| `RecordSourceDialog` | `NEVER_OPENED_PRODUCT_DEFECT` | **`OPENED`** |
+| `ResolvePredictionDialog` | `NEVER_OPENED_PRODUCT_DEFECT` | **`OPENED`** |
+
+The three gates above therefore read **55 of 59**, on the same denominator of 59.
+The four still unopened are `ApproveAiActionDialog`, `IngestAttachmentDialog` and
+`ResolveParticipantDialog` (`PRECONDITION_UNACHIEVABLE`) and
+`RecordSignatureDialog` (`HARNESS_LIMITATION`).
+
+```
+AUDIT 002 REMAINS OPEN
+```
+
 The other eleven requirements are met. The current position for the whole audit,
 including which historical numbers are now obsolete, is
 [`AUDIT-002-AGGREGATE.md`](AUDIT-002-AGGREGATE.md).

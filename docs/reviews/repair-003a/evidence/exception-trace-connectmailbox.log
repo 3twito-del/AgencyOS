@@ -1,0 +1,11 @@
+2026-09-15T16:51:08.1310574+00:00  ConnectMailboxAsync: ENTERED
+2026-09-15T16:51:08.1499685+00:00  ConnectMailboxDialog.Update: ProviderBox null=False ConsentButton null=False CodeBox null=False RedirectBox null=False VisibilityBox null=False _providers null=True
+2026-09-15T16:51:08.1646014+00:00  ConnectMailboxAsync: THREW Microsoft.UI.Xaml.Markup.XamlParseException: XAML parsing failed.
+   at WinRT.ExceptionHelpers.<ThrowExceptionForHR>g__Throw|38_0(Int32 hr)
+   at ABI.Microsoft.UI.Xaml.IApplicationStaticsMethods.LoadComponent(IObjectReference _obj, Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at Microsoft.UI.Xaml.Application.LoadComponent(Object component, Uri resourceLocator, ComponentResourceLocation componentResourceLocation)
+   at AgencyOS.Windows.Dialogs.ConnectMailboxDialog.InitializeComponent() in C:\Projects\AgencyOS\src\AgencyOS.Windows\obj\Debug\net10.0-windows10.0.26100.0\Dialogs\ConnectMailboxDialog.g.i.cs:line 47
+   at AgencyOS.Windows.Dialogs.ConnectMailboxDialog..ctor(IReadOnlyList`1 providers, String redirectUri) in C:\Projects\AgencyOS\src\AgencyOS.Windows\Dialogs\ConnectMailboxDialog.xaml.cs:line 45
+   at AgencyOS.Windows.Pages.CommunicationsPage.ConnectMailboxAsync() in C:\Projects\AgencyOS\src\AgencyOS.Windows\Pages\CommunicationsPage.xaml.cs:line 394
+  --- inner ---
+
