@@ -43,7 +43,7 @@ obsolete is how an audit record rots.
 
 ## 3. Findings — the current set
 
-Twelve open, five closed, across three phases.
+Thirteen open, four closed, across three phases — seventeen raised in all.
 
 | Id | Sev | Phase | Status | What |
 | --- | :-: | :-: | --- | --- |
