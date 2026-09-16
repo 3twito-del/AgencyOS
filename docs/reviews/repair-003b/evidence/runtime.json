@@ -1,0 +1,268 @@
+{
+ "RunId": "REPAIR-003B",
+ "FinishedUtc": "2026-09-15T22:11:24.704276+00:00",
+ "ProductBaseline": "ba077a3",
+ "Environment": {
+  "api": "http://127.0.0.1:5199",
+  "organization": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+  "database": "local PostgreSQL 19beta3 (LAB evidence only)"
+ },
+ "FixtureSize": {
+  "people": 50,
+  "companies": 16,
+  "projects": 20,
+  "opportunities": 3,
+  "deals": 2,
+  "packages": 1,
+  "talent": 7
+ },
+ "Dialogs": {
+  "AddOpportunityTargetDialog": {
+   "Outcome": "OPENED",
+   "How": "BUTTON",
+   "Title": "Add target",
+   "InitialFocus": "ComboBox KindBox",
+   "FocusEnteredDialog": true,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "Accessibility": [],
+   "Buttons": [
+    "Add (disabled)",
+    "Cancel",
+    "\u200f\u200f\u05d1\u05d5\u05e8\u05e8 \u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd Next action \u200f23\u200f \u200f\u05e1\u05e4\u05d8\u05de\u05d1\u05e8\u200f \u200f2026"
+   ],
+   "TabStops": 14,
+   "ReverseTabStops": 14
+  },
+  "AddPackageElementDialog": {
+   "Outcome": "OPENED",
+   "How": "BUTTON",
+   "Title": "Add package element",
+   "InitialFocus": "ComboBox KindBox",
+   "FocusEnteredDialog": true,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "Accessibility": [],
+   "Buttons": [
+    "Add (disabled)",
+    "Cancel"
+   ],
+   "TabStops": 14,
+   "ReverseTabStops": 14
+  },
+  "AddProjectCompanyDialog": {
+   "Outcome": "OPENED",
+   "How": "PALETTE",
+   "Title": "Record company involvement",
+   "InitialFocus": "ComboBox CompanyBox",
+   "FocusEnteredDialog": true,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "Accessibility": [],
+   "Buttons": [
+    "Cancel",
+    "Record (disabled)",
+    "\u200f\u200f\u05d1\u05d5\u05e8\u05e8 \u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd Involved from \u200f16\u200f \u200f\u05e1\u05e4\u05d8\u05de\u05d1\u05e8\u200f \u200f2026"
+   ],
+   "TabStops": 14,
+   "ReverseTabStops": 14
+  },
+  "AttachToRoleDialog": {
+   "Outcome": "APPLICATION_CLOSED",
+   "How": "NONE",
+   "Title": null,
+   "InitialFocus": null,
+   "FocusEnteredDialog": false,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": false,
+   "FocusRestored": false,
+   "Accessibility": [],
+   "Buttons": [],
+   "TabStops": 0,
+   "ReverseTabStops": 0
+  },
+  "CreateContractDialog": {
+   "Outcome": "OPENED",
+   "How": "BUTTON",
+   "Title": "Open a contract",
+   "InitialFocus": "ComboBox DealBox",
+   "FocusEnteredDialog": true,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "Accessibility": [],
+   "Buttons": [
+    "Cancel",
+    "Open (disabled)"
+   ],
+   "TabStops": 14,
+   "ReverseTabStops": 14
+  },
+  "CreateDealDialog": {
+   "Outcome": "OPENED",
+   "How": "BUTTON",
+   "Title": "Open a negotiation",
+   "InitialFocus": "ComboBox OpportunityBox",
+   "FocusEnteredDialog": true,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "Accessibility": [],
+   "Buttons": [
+    "Cancel",
+    "Open (disabled)"
+   ],
+   "TabStops": 14,
+   "ReverseTabStops": 14
+  },
+  "CreateOpportunityDialog": {
+   "Outcome": "OPENED",
+   "How": "BUTTON",
+   "Title": "New opportunity",
+   "InitialFocus": "Edit NameBox",
+   "FocusEnteredDialog": true,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "Accessibility": [],
+   "Buttons": [
+    "Cancel",
+    "Create (disabled)"
+   ],
+   "TabStops": 14,
+   "ReverseTabStops": 14
+  },
+  "CreatePackageDialog": {
+   "Outcome": "OPENED",
+   "How": "BUTTON",
+   "Title": "New package",
+   "InitialFocus": "ComboBox ProjectBox",
+   "FocusEnteredDialog": true,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "Accessibility": [],
+   "Buttons": [
+    "Cancel",
+    "Create (disabled)"
+   ],
+   "TabStops": 14,
+   "ReverseTabStops": 14
+  },
+  "LinkResearchItemDialog": {
+   "Outcome": "OPENED",
+   "How": "PALETTE",
+   "Title": "Attach something to this case",
+   "InitialFocus": "ComboBox KindBox",
+   "FocusEnteredDialog": true,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": true,
+   "FocusRestored": true,
+   "Accessibility": [],
+   "Buttons": [
+    "Attach (disabled)",
+    "Cancel"
+   ],
+   "TabStops": 14,
+   "ReverseTabStops": 14
+  },
+  "RecordPitchDialog": {
+   "Outcome": "APPLICATION_CLOSED",
+   "How": "NONE",
+   "Title": null,
+   "InitialFocus": null,
+   "FocusEnteredDialog": false,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": false,
+   "FocusRestored": false,
+   "Accessibility": [],
+   "Buttons": [],
+   "TabStops": 0,
+   "ReverseTabStops": 0
+  },
+  "RecordSubmissionDialog": {
+   "Outcome": "APPLICATION_CLOSED",
+   "How": "NONE",
+   "Title": null,
+   "InitialFocus": null,
+   "FocusEnteredDialog": false,
+   "FocusEscapedDialog": false,
+   "ClosedOnEscape": false,
+   "FocusRestored": false,
+   "Accessibility": [],
+   "Buttons": [],
+   "TabStops": 0,
+   "ReverseTabStops": 0
+  }
+ },
+ "RepresentativeMutation": {
+  "dialog": "AddProjectCompanyDialog",
+  "operatorChose": "A24 \u00b7 Studio",
+  "requestCompanyId": "01a0a015-c5eb-7113-8db8-1888e1b4febb",
+  "result": "201 Created, id 01a0a71e-48f0-7af0-9d4f-1865a61767d8",
+  "readBackCompanyId": "01a0a015-c5eb-7113-8db8-1888e1b4febb",
+  "readBackCompanyName": "A24",
+  "verdict": "The label is presentation only; the canonical identifier persisted is the one behind the choice."
+ },
+ "SecurityMatrix": {
+  "columns": [
+   "people",
+   "companies",
+   "projects",
+   "write"
+  ],
+  "rows": {
+   "review-elsewhere (other tenant, owner there)": [
+    "403",
+    "403",
+    "403",
+    "403"
+   ],
+   "review-observer (read-only)": [
+    "200",
+    "200",
+    "200",
+    "403"
+   ],
+   "review-member": [
+    "200",
+    "200",
+    "200",
+    "409 (version conflict - authorization passed)"
+   ],
+   "review-restricted": [
+    "200",
+    "200",
+    "403",
+    "403"
+   ],
+   "w2-owner (owner)": [
+    "200",
+    "200",
+    "200",
+    "409 (version conflict - authorization passed)"
+   ],
+   "nobody-at-all (unauthenticated)": [
+    "401",
+    "401",
+    "401",
+    "401"
+   ]
+  },
+  "inventedTargetId": "404 \"Company '00000000-...-0000000000ff' was not found.\"",
+  "verdict": "Picker visibility is convenience; every write remains server-authorized. No cross-tenant record is reachable through any picker source."
+ },
+ "NotRuntimeVerified": {
+  "dialogs": [
+   "AttachToRoleDialog",
+   "RecordPitchDialog",
+   "RecordSubmissionDialog"
+  ],
+  "reason": "The WinUI client exits with a stowed exception (0xc000027b in Microsoft.UI.Xaml.dll) while the pass reaches these three.",
+  "predatesThisWave": true,
+  "evidence": "Reproduced identically with src/ stashed to the pre-repair baseline, and at both 1600x1000 and 1920x1080."
+ }
+}

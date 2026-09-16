@@ -199,3 +199,47 @@ Detail: [`final-closure/AUDIT-002-FINAL-CLOSURE-SUMMARY.md`](final-closure/AUDIT
 | C | `docs/reviews/audit-002/phase-c/` |
 | D | `docs/reviews/audit-002/phase-d/` |
 | evidence | `artifacts/reviewer/run-002-audit/`, `run-002-phase-b/`, `run-002-phase-c/` |
+
+---
+
+## 7. Finding dispositions after Audit 002 closed
+
+**Audit 002 is COMPLETE and is not reopened by this section.** Findings it filed
+are being repaired by later waves; their dispositions are recorded here as they
+change, so the register stays in one place. Nothing above is rewritten.
+
+| Finding | Filed as | Now | By |
+| --- | --- | --- | --- |
+| `AOS-R002-019` | NEW, S3 | **REPAIRED** | Repair Wave 003A |
+| `AOS-R002-017` | NEW, S3 | **REPAIRED** | Repair Wave 003A |
+| `AOS-R001-006` | CONFIRMED | **PARTIALLY_REPAIRED** | Repair Wave 003B |
+
+**`AOS-R001-006`.** Fourteen of the twenty typed-identifier fields became pickers
+or derived context. Six remain, deliberately: four owner/lead fields awaiting an
+owner decision, `LinkRecordDialog.TargetIdBox` awaiting a design decision, and
+`AddIntelligenceSubjectDialog.IdBox` in a dialog nothing constructs. The finding
+is not called repaired while three create dialogs still require an owner nobody
+can name. See
+[`../repair-003b/REPAIR-003B-REPORT.md`](../repair-003b/REPAIR-003B-REPORT.md).
+
+Three of Audit 002's per-field readings were corrected during that repair, with
+evidence, and are recorded there rather than edited into Phase B:
+
+- `CreateDealDialog.OpportunityIdBox` and `CreateContractDialog.DealIdBox` were
+  classified derivable on the reading that a deal is opened from an opportunity
+  and a contract from a deal. Neither workflow exists in the client.
+- `CreateOpportunityDialog.SubjectIdBox` references a talent profile, package,
+  project role or project — not a person or company.
+- `AddPackageElementDialog.TargetIdBox` has six kinds, not three.
+
+### A new observation
+
+**`AttachToRoleDialog`, `RecordPitchDialog` and `RecordSubmissionDialog` crash
+the Windows client** in the current synthetic fixture — a stowed exception,
+`0xc000027b`, in `Microsoft.UI.Xaml.dll`. Repair Wave 003B found it while
+re-verifying its own work, reproduced it on the pre-repair baseline, and ruled out
+the window size. Audit 002's closure slice opened all three against earlier data,
+so it is a data-dependent framework crash rather than a regression of anything
+Audit 002 measured. **Not yet filed as a numbered finding and not diagnosed** —
+it needs its own investigation, starting from the Windows Error Reporting
+minidump.

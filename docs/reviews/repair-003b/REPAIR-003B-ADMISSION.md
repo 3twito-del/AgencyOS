@@ -25,10 +25,10 @@ same **20 controls**, name for name. The count has not moved.
 | `DEBUG_ONLY` | 1 | 1 | 0 | **1** |
 | **Total** | **20** | **20** | **14** | **6** |
 
-**13 dialogs**, of which **11** are repaired and **3** carry a deferred field
-(`CreateDealDialog`, `CreateContractDialog`, `CreateOpportunityDialog` and
-`CreatePackageDialog` each keep an owner/lead field; `LinkRecordDialog` and
-`AddIntelligenceSubjectDialog` are untouched).
+**13 dialogs.** **11** are changed. Four of those keep one deferred owner/lead
+field (`CreateDealDialog`, `CreateContractDialog`, `CreateOpportunityDialog`,
+`CreatePackageDialog`). Two are untouched (`LinkRecordDialog`,
+`AddIntelligenceSubjectDialog`).
 
 ---
 
@@ -116,16 +116,25 @@ Abbreviations: **CD** = `CONTEXT_DERIVABLE_LIKELY`, **PR** =
 
 | | |
 | --- | --- |
-| ID type | `PersonId` or `CompanyId` |
-| Entity | Person or company, chosen by a sibling kind box |
-| Current control | `TextBox`, header "Subject id" |
+| ID type | `TalentProfileId`, `PackageId`, `ProjectRoleId` or `ProjectId`, by the opportunity kind |
+| Entity | **Not "person or company"** as Audit 002 recorded — see correction below |
+| Current control | `TextBox`, header "Subject" |
 | Workflow context | Opened from Pipeline with no subject in context |
-| Human representation | Yes — People and Companies both list by name |
-| Lookup API | `ListPeopleAsync`, `ListCompaniesAsync` |
+| Human representation | Yes — each kind lists by name |
+| Lookup API | `ListTalentAsync`, `ListPackagesAsync`, `ListProjectsAsync`; for staffing, `GetProjectAsync(id).Roles` |
 | Audit classification | **PR** |
 | Admitted | **Yes** |
 | Planned repair | **HUMAN_ENTITY_SELECTION**, source chosen by the existing kind box |
-| Reason | The dialog already asks which kind the subject is; the picker follows that answer. Changing the kind invalidates the selection visibly (§12). |
+| Reason | The dialog already asks which kind of pursuit this is, and `SubjectKindFor` maps that kind to the subject's record type. The picker follows it; changing the kind invalidates the selection (§12). |
+
+**Correction found during repair.** Audit 002's table says this field references
+"Person or company". The code says otherwise: `SubjectKindFor` maps
+`TalentEngagement` → TalentProfile, `PackageMarket` → Package, `Staffing` →
+ProjectRole, and everything else → Project. Staffing is the awkward one: project
+roles have **no tenant-wide list**, only `ProjectDetailResponse.Roles`, so the
+project is chosen first and its roles fetched. Still admitted — four kinds, all
+meaningful, one bounded cascade — which is a different answer from field 18's
+fourteen.
 
 ### 9 · `CreatePackageDialog` · `ProjectIdBox`
 
@@ -160,9 +169,25 @@ Abbreviations: **CD** = `CONTEXT_DERIVABLE_LIKELY`, **PR** =
 
 | | |
 | --- | --- |
-| Entity | Person, company or project, by the dialog's kind box |
-| Lookup API | `ListPeopleAsync`, `ListCompaniesAsync`, `ListProjectsAsync` |
+| Entity | **Six kinds**, not three — see correction below |
+| Lookup API | `GetProjectAsync(package.ProjectId)` for four kinds, `ListPeopleAsync` and `ListCompaniesAsync` for two |
 | Audit classification | **PR** · Admitted **Yes** · **HUMAN_ENTITY_SELECTION** |
+
+**Correction found during repair.** Audit 002 recorded "person, company or
+project". The dialog offers six kinds, and the server checks each against a
+different table (`M5Repositories`):
+
+| Kind | Checked against | Source |
+| --- | --- | --- |
+| Attached party | attachments **on this package's project** | the project's roles |
+| Proposed person | people in the organization | `ListPeopleAsync` |
+| Proposed company | companies in the organization | `ListCompaniesAsync` |
+| Open role | roles **on this package's project** | the project's unfilled roles |
+| Material | materials in the organization | the project's materials |
+| Source property | source properties in the organization | the project's source properties |
+
+All six resolve from one read of the package's own project plus two
+organization lists, which is why this field is admitted where field 18 is not.
 
 ### 14 · `AddProjectCompanyDialog` · `CompanyIdBox`
 
@@ -176,11 +201,15 @@ Abbreviations: **CD** = `CONTEXT_DERIVABLE_LIKELY`, **PR** =
 
 | | |
 | --- | --- |
-| Entity | Person or company — **which one is decided by the role's own type** |
-| Workflow context | `ProjectsPage` passes `role.Type` and `role.Label` already |
+| Entity | Person or company, by the dialog's own party-kind box |
+| Workflow context | `ProjectsPage` passes `role.Type` and `role.Label` for the heading |
 | Lookup API | `ListPeopleAsync`, `ListCompaniesAsync` |
 | Audit classification | **PR** · Admitted **Yes** · **HUMAN_ENTITY_SELECTION** |
-| Reason | The role already tells the dialog whether a person or a company is wanted, so the picker needs no kind box of its own — the context narrows the source and the operator chooses within it. |
+| Reason | The dialog asks whether the party is a person or a company; the picker follows that answer and clears when it changes (§12). |
+
+**Correction.** An earlier draft of this note said the role's own type decides
+the kind. It does not — the dialog has its own `PartyKindBox`. Corrected on
+reading the markup.
 
 ### 16 · `RecordPitchDialog` · `MaterialIdBox`
 
