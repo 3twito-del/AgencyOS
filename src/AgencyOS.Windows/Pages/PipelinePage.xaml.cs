@@ -321,12 +321,6 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
     private OpportunityTargetResponse? SelectedTarget() =>
         TargetList.SelectedItem as OpportunityTargetResponse;
 
-    /// <summary>Runs a call and shows the server's own explanation if it refuses.</summary>
-    /// <remarks>
-    /// The message comes from the server. When a submission is refused because the
-    /// pursuit was closed last week, the useful sentence is the one the domain
-    /// wrote.
-    /// </remarks>
     /// <summary>
     /// The materials belonging to the people this pursuit is about.
     /// </summary>
@@ -341,24 +335,43 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
     /// A subject that is not a person has no materials and is skipped rather than
     /// requested: a package is not somebody whose script one sends.
     /// </para>
+    /// <para>
+    /// The person behind a subject is looked up, not assumed: a pursuit names talent
+    /// by profile and materials are listed by person (<c>AOS-R002-023</c>). The
+    /// roster is the one the create dialog already reads.
+    /// </para>
     /// </remarks>
     private static async Task<IReadOnlyList<EntityChoice>> SubjectMaterialsAsync(
         IAgencyOsApi api,
         OpportunityDetailResponse opportunity)
     {
+        if (!SubjectMaterials.NamesTalent(opportunity.Subjects))
+        {
+            return [];
+        }
+
+        IReadOnlyList<Guid> people;
+
+        try
+        {
+            people = SubjectMaterials.People(
+                opportunity.Subjects, await api.ListTalentAsync().ConfigureAwait(true));
+        }
+        catch (AgencyOsApiException)
+        {
+            // A caller who may not read the roster may not read its materials
+            // either. The picker then offers "nothing", which is still true.
+            return [];
+        }
+
         List<MaterialResponse> materials = [];
 
-        foreach (OpportunitySubjectResponse subject in opportunity.Subjects)
+        foreach (Guid person in people)
         {
-            if (subject.Kind is not ("Person" or "TalentProfile"))
-            {
-                continue;
-            }
-
             try
             {
                 materials.AddRange(
-                    await api.ListMaterialsAsync(subject.TargetId).ConfigureAwait(true));
+                    await api.ListMaterialsAsync(person).ConfigureAwait(true));
             }
             catch (AgencyOsApiException)
             {
@@ -379,6 +392,12 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
         DetailBar.IsOpen = true;
     }
 
+    /// <summary>Runs a call and shows the server's own explanation if it refuses.</summary>
+    /// <remarks>
+    /// The message comes from the server. When a submission is refused because the
+    /// pursuit was closed last week, the useful sentence is the one the domain
+    /// wrote.
+    /// </remarks>
     private async Task Guarded(Func<Task> action)
     {
         try
