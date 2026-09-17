@@ -1,0 +1,13 @@
+# Minidump summary: AgencyOS.Windows.exe pid 14920, written by Windows Error Reporting 2026-09-15T21:42:46Z
+# Exception metadata only. No memory contents and no environment strings are reproduced here;
+# the dump itself is not copied into the repository because its environment block holds credentials.
+dump size bytes: 16051486 memory ranges: 9373
+faulting thread id: 31956
+exception code: 0xC000027B  flags: 0x1
+exception address: Microsoft.UI.Xaml.dll+0x3a9c5d
+parameters: [stowed exception array, count] = ['0x1e592b51130', '0x34']
+stowed[00] sig=SE02 HRESULT=0x88000FA8 form=1 thread=31956 stack-words=33 captured=0 nested=XAML
+stowed[01] sig=SE02 HRESULT=0x80040111 form=1 thread=31956 stack-words=43 captured=0 nested=XAML
+stowed[02] sig=SE02 HRESULT=0x00000001 form=1 thread=31956 stack-words=136 captured=0 nested=XAMW
+all stowed records by (HRESULT, nested type): {('0x88000FA8', 'XAML'): 1, ('0x80040111', 'XAML'): 1, ('0x00000001', 'XAMW'): 50}
+module containing the fault: [('Microsoft.UI.Xaml.dll', '3.2.3.0')]

@@ -1,0 +1,285 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 3,
+  "Results": [
+    {
+      "DialogId": "T-Attachments",
+      "Workspace": "Projects",
+      "ProcessId": 26352,
+      "LaunchedUtc": "2026-09-16T21:51:38.0397143Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Attachments",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:51:45.4474986Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.66
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 7.03
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 8.37
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "T-Companies",
+      "Workspace": "Projects",
+      "ProcessId": 35200,
+      "LaunchedUtc": "2026-09-16T21:51:46.4374477Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.52
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.88
+        },
+        {
+          "Step": "tab:Companies",
+          "Detail": "selected tab \u0027Companies\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.24
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 12.56
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "T-Source",
+      "Workspace": "Projects",
+      "ProcessId": 23856,
+      "LaunchedUtc": "2026-09-16T21:51:59.093065Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.49
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.84
+        },
+        {
+          "Step": "tab:Source",
+          "Detail": "selected tab \u0027Source\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.19
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 12.5
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "T-Materials",
+      "Workspace": "Projects",
+      "ProcessId": 28960,
+      "LaunchedUtc": "2026-09-16T21:52:11.683335Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Materials",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:52:19.1171396Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.6
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.97
+        },
+        {
+          "Step": "tab:Materials",
+          "Detail": "selected tab \u0027Materials\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 8.31
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "T-Packages",
+      "Workspace": "Projects",
+      "ProcessId": 12812,
+      "LaunchedUtc": "2026-09-16T21:52:19.9950809Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Packages",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:52:27.2496602Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.51
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.86
+        },
+        {
+          "Step": "tab:Packages",
+          "Detail": "selected tab \u0027Packages\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 8.2
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "T-Activity",
+      "Workspace": "Projects",
+      "ProcessId": 29544,
+      "LaunchedUtc": "2026-09-16T21:52:28.1971096Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.48
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.84
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.17
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 12.48
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "T-Attachments-noproject",
+      "Workspace": "Projects",
+      "ProcessId": 10700,
+      "LaunchedUtc": "2026-09-16T21:52:40.7765483Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Attachments",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:52:46.7679997Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.54
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 6.91
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    }
+  ]
+}

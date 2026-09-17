@@ -1,0 +1,77 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 10,
+  "Results": [
+    {
+      "DialogId": "RecordPitchDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 35472,
+      "LaunchedUtc": "2026-09-16T21:56:06.3452197Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Interested\u0022",
+      "FocusAfter": "Edit SummaryBox",
+      "FocusAfterClose": "Button PitchButton",
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.67
+        },
+        {
+          "Step": "row:OpportunityList:0",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 7.01
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.35
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Interested\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.68
+        },
+        {
+          "Step": "open:PitchButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting RecordPitchDialog",
+          "Alive": true,
+          "ElapsedSeconds": 10.66
+        },
+        {
+          "Step": "open:PitchButton",
+          "Detail": "invoked \u0027PitchButton\u0027 (\u0027Record pitch\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 10 s watch; Escape pressed",
+          "Alive": true,
+          "ElapsedSeconds": 22.74
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.RecordPitchDialog/01-before.png",
+        "evidence/crash.RecordPitchDialog/02-open.png",
+        "evidence/crash.RecordPitchDialog/03-closed.png"
+      ],
+      "Trees": [
+        "evidence/crash.RecordPitchDialog/01-before.json",
+        "evidence/crash.RecordPitchDialog/02-open.json",
+        "evidence/crash.RecordPitchDialog/03-closed.json"
+      ]
+    }
+  ]
+}

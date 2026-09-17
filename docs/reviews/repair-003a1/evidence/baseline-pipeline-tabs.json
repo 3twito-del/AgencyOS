@@ -1,0 +1,366 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 10,
+  "Results": [
+    {
+      "DialogId": "P-Targets",
+      "Workspace": "Pipeline",
+      "ProcessId": 15640,
+      "LaunchedUtc": "2026-09-16T21:54:27.6784261Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.59
+        },
+        {
+          "Step": "row:OpportunityList:0",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.92
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.26
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 12.58
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "P-Submissions",
+      "Workspace": "Pipeline",
+      "ProcessId": 20052,
+      "LaunchedUtc": "2026-09-16T21:54:40.3647063Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.52
+        },
+        {
+          "Step": "row:OpportunityList:0",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.85
+        },
+        {
+          "Step": "tab:Submissions",
+          "Detail": "selected tab \u0027Submissions\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.19
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 12.52
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "P-Pitches",
+      "Workspace": "Pipeline",
+      "ProcessId": 29296,
+      "LaunchedUtc": "2026-09-16T21:54:52.966705Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Pitches",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:55:00.2243385Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.54
+        },
+        {
+          "Step": "row:OpportunityList:0",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.88
+        },
+        {
+          "Step": "tab:Pitches",
+          "Detail": "selected tab \u0027Pitches\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 8.2
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "P-Subjects",
+      "Workspace": "Pipeline",
+      "ProcessId": 21600,
+      "LaunchedUtc": "2026-09-16T21:55:01.1718509Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.49
+        },
+        {
+          "Step": "row:OpportunityList:0",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.83
+        },
+        {
+          "Step": "tab:Subjects",
+          "Detail": "selected tab \u0027Subjects\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.17
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 12.49
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "P-Tasks",
+      "Workspace": "Pipeline",
+      "ProcessId": 24708,
+      "LaunchedUtc": "2026-09-16T21:55:13.7589119Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Tasks",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:55:20.9715228Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.48
+        },
+        {
+          "Step": "row:OpportunityList:0",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.82
+        },
+        {
+          "Step": "tab:Tasks",
+          "Detail": "selected tab \u0027Tasks\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 8.16
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "P-Activity",
+      "Workspace": "Pipeline",
+      "ProcessId": 31072,
+      "LaunchedUtc": "2026-09-16T21:55:21.9239497Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.8
+        },
+        {
+          "Step": "row:OpportunityList:0",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 7.14
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.49
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 12.82
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "RecordPitchDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 16828,
+      "LaunchedUtc": "2026-09-16T21:55:34.836543Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": "TabItem \u0022Targets\u0022",
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.61
+        },
+        {
+          "Step": "row:OpportunityList:2",
+          "Detail": "\u0027OpportunityList\u0027 has 1 row(s); row 2 does not exist",
+          "Alive": true,
+          "ElapsedSeconds": 6.96
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.28
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "\u0027TargetList\u0027 has 0 row(s); row 0 does not exist",
+          "Alive": true,
+          "ElapsedSeconds": 9.61
+        },
+        {
+          "Step": "open:PitchButton",
+          "Detail": "\u0027PitchButton\u0027 is disabled",
+          "Alive": true,
+          "ElapsedSeconds": 10.23
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.RecordPitchDialog/01-before.png"
+      ],
+      "Trees": [
+        "evidence/crash.RecordPitchDialog/01-before.json"
+      ]
+    },
+    {
+      "DialogId": "RecordSubmissionDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 26156,
+      "LaunchedUtc": "2026-09-16T21:55:45.1356234Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": "TabItem \u0022Targets\u0022",
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.51
+        },
+        {
+          "Step": "row:OpportunityList:2",
+          "Detail": "\u0027OpportunityList\u0027 has 1 row(s); row 2 does not exist",
+          "Alive": true,
+          "ElapsedSeconds": 6.85
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.18
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "\u0027TargetList\u0027 has 0 row(s); row 0 does not exist",
+          "Alive": true,
+          "ElapsedSeconds": 9.51
+        },
+        {
+          "Step": "open:SubmissionButton",
+          "Detail": "\u0027SubmissionButton\u0027 is disabled",
+          "Alive": true,
+          "ElapsedSeconds": 9.96
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.RecordSubmissionDialog/01-before.png"
+      ],
+      "Trees": [
+        "evidence/crash.RecordSubmissionDialog/01-before.json"
+      ]
+    }
+  ]
+}

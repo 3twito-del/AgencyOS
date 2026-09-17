@@ -1,0 +1,124 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 10,
+  "Results": [
+    {
+      "DialogId": "AttachToRoleDialog",
+      "Workspace": "Projects",
+      "ProcessId": 12536,
+      "LaunchedUtc": "2026-09-16T21:47:06.4535648Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DID_NOT_APPEAR",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": "TabItem \u0022Roles\u0022",
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.85
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 7.21
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.55
+        },
+        {
+          "Step": "open:AttachButton",
+          "Detail": "invoked \u0027AttachButton\u0027 (\u0027Attach\u0027); the process stayed alive and no dialog appeared",
+          "Alive": true,
+          "ElapsedSeconds": 19.85
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.AttachToRoleDialog/01-before.png"
+      ],
+      "Trees": [
+        "evidence/crash.AttachToRoleDialog/01-before.json"
+      ]
+    },
+    {
+      "DialogId": "AttachToRoleDialog",
+      "Workspace": "Projects",
+      "ProcessId": 5944,
+      "LaunchedUtc": "2026-09-16T21:47:26.4164208Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022Idempotency probe, Open, Writer\u0022",
+      "FocusAfter": "ComboBox PartyKindBox",
+      "FocusAfterClose": "Button AttachButton",
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.46
+        },
+        {
+          "Step": "row:ProjectList:15",
+          "Detail": "selected row 15 of \u0027ProjectList\u0027 of 20: \u0027Audit 002B \u2014 The Quiet Coast, Active, Packaging, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.82
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.15
+        },
+        {
+          "Step": "row:RoleList:0",
+          "Detail": "selected row 0 of \u0027RoleList\u0027 of 3: \u0027Idempotency probe, Open, Writer\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.49
+        },
+        {
+          "Step": "open:AttachButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting AttachToRoleDialog",
+          "Alive": true,
+          "ElapsedSeconds": 10.68
+        },
+        {
+          "Step": "open:AttachButton",
+          "Detail": "invoked \u0027AttachButton\u0027 (\u0027Attach\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 10 s watch; Escape pressed",
+          "Alive": true,
+          "ElapsedSeconds": 24.55
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.AttachToRoleDialog/01-before.png",
+        "evidence/crash.AttachToRoleDialog/02-open.png",
+        "evidence/crash.AttachToRoleDialog/03-closed.png"
+      ],
+      "Trees": [
+        "evidence/crash.AttachToRoleDialog/01-before.json",
+        "evidence/crash.AttachToRoleDialog/02-open.json",
+        "evidence/crash.AttachToRoleDialog/03-closed.json"
+      ]
+    }
+  ]
+}

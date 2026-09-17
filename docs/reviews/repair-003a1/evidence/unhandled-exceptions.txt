@@ -1,0 +1,32 @@
+2026-09-16T22:01:03.1989634Z pid 13072 hr 0x802B0014 handled=False message=Layout cycle detected.  Layout could not complete.
+Microsoft.UI.Xaml.LayoutCycleException: The text associated with this error code could not be found.
+
+Layout cycle detected.  Layout could not complete.
+2026-09-16T22:01:11.3405471Z pid 23032 hr 0x802B0014 handled=False message=Layout cycle detected.  Layout could not complete.
+Microsoft.UI.Xaml.LayoutCycleException: The text associated with this error code could not be found.
+
+Layout cycle detected.  Layout could not complete.
+2026-09-16T22:01:19.5178961Z pid 7176 hr 0x802B0014 handled=False message=Layout cycle detected.  Layout could not complete.
+Microsoft.UI.Xaml.LayoutCycleException: The text associated with this error code could not be found.
+
+Layout cycle detected.  Layout could not complete.
+2026-09-16T22:07:22.6231305Z pid 29496 hr 0x802B0014 handled=False message=Layout cycle detected.  Layout could not complete.
+Microsoft.UI.Xaml.LayoutCycleException: The text associated with this error code could not be found.
+
+Layout cycle detected.  Layout could not complete.
+2026-09-16T22:07:29.4688844Z pid 30148 hr 0x802B0014 handled=False message=Layout cycle detected.  Layout could not complete.
+Microsoft.UI.Xaml.LayoutCycleException: The text associated with this error code could not be found.
+
+Layout cycle detected.  Layout could not complete.
+2026-09-16T22:07:47.6356634Z pid 33936 hr 0x802B0014 handled=False message=Layout cycle detected.  Layout could not complete.
+Microsoft.UI.Xaml.LayoutCycleException: The text associated with this error code could not be found.
+
+Layout cycle detected.  Layout could not complete.
+2026-09-16T22:08:31.5017203Z pid 15784 hr 0x802B0014 handled=False message=Layout cycle detected.  Layout could not complete.
+Microsoft.UI.Xaml.LayoutCycleException: The text associated with this error code could not be found.
+
+Layout cycle detected.  Layout could not complete.
+2026-09-16T22:08:38.3951261Z pid 29736 hr 0x802B0014 handled=False message=Layout cycle detected.  Layout could not complete.
+Microsoft.UI.Xaml.LayoutCycleException: The text associated with this error code could not be found.
+
+Layout cycle detected.  Layout could not complete.

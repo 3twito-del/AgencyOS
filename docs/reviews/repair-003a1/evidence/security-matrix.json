@@ -1,0 +1,313 @@
+{
+ "takenUtc": "2026-09-16T22:47:39.039769Z",
+ "project": "01a0a1fe-3d6d-7135-bf69-f49a32b98025",
+ "role": "01a0a204-0b2b-736a-80c0-dc162f90dc6e",
+ "opportunity": "01a0ac57-5c29-779e-a237-0580c6c9b25c",
+ "target": "01a0ac57-8de0-72be-b8f8-83a29e4de3aa",
+ "rows": [
+  {
+   "workflow": "AttachToRole",
+   "case": "UNAUTHENTICATED",
+   "subject": null,
+   "status": 401,
+   "expected": "401",
+   "detail": null
+  },
+  {
+   "workflow": "AttachToRole",
+   "case": "READ_ONLY_OBSERVER",
+   "subject": "review-observer",
+   "status": 403,
+   "expected": "403",
+   "detail": null
+  },
+  {
+   "workflow": "AttachToRole",
+   "case": "AUTHENTICATED_NON_MEMBER",
+   "subject": "review-elsewhere",
+   "status": 403,
+   "expected": "403",
+   "detail": "Permission 'projects.write' is required."
+  },
+  {
+   "workflow": "AttachToRole",
+   "case": "CROSS_TENANT_ROUTE",
+   "subject": "w2-owner",
+   "status": 404,
+   "expected": "404",
+   "detail": "Person '01a0a015-c71e-7703-abd7-a1672cedd556' was not found."
+  },
+  {
+   "workflow": "AttachToRole",
+   "case": "STALE_VERSION",
+   "subject": "w2-owner",
+   "status": 409,
+   "expected": "409",
+   "detail": "Project '01a0a1fe-3d6d-7135-bf69-f49a32b98025' has changed since you last saw it (you had version 99, it is now 6)."
+  },
+  {
+   "workflow": "RecordPitch",
+   "case": "UNAUTHENTICATED",
+   "subject": null,
+   "status": 401,
+   "expected": "401",
+   "detail": null
+  },
+  {
+   "workflow": "RecordPitch",
+   "case": "READ_ONLY_OBSERVER",
+   "subject": "review-observer",
+   "status": 403,
+   "expected": "403",
+   "detail": null
+  },
+  {
+   "workflow": "RecordPitch",
+   "case": "AUTHENTICATED_NON_MEMBER",
+   "subject": "review-elsewhere",
+   "status": 403,
+   "expected": "403",
+   "detail": "Permission 'opportunities.write' is required."
+  },
+  {
+   "workflow": "RecordPitch",
+   "case": "CROSS_TENANT_ROUTE",
+   "subject": "w2-owner",
+   "status": 404,
+   "expected": "404",
+   "detail": "OpportunityTarget '01a0ac57-8de0-72be-b8f8-83a29e4de3aa' was not found."
+  },
+  {
+   "workflow": "RecordPitch",
+   "case": "STALE_VERSION",
+   "subject": "w2-owner",
+   "status": 409,
+   "expected": "409",
+   "detail": "OpportunityTarget '01a0ac57-8de0-72be-b8f8-83a29e4de3aa' has changed since you last saw it (you had version 99, it is now 3)."
+  },
+  {
+   "workflow": "RecordSubmission",
+   "case": "UNAUTHENTICATED",
+   "subject": null,
+   "status": 401,
+   "expected": "401",
+   "detail": null
+  },
+  {
+   "workflow": "RecordSubmission",
+   "case": "READ_ONLY_OBSERVER",
+   "subject": "review-observer",
+   "status": 403,
+   "expected": "403",
+   "detail": null
+  },
+  {
+   "workflow": "RecordSubmission",
+   "case": "AUTHENTICATED_NON_MEMBER",
+   "subject": "review-elsewhere",
+   "status": 403,
+   "expected": "403",
+   "detail": "Permission 'submissions.write' is required."
+  },
+  {
+   "workflow": "RecordSubmission",
+   "case": "CROSS_TENANT_ROUTE",
+   "subject": "w2-owner",
+   "status": 404,
+   "expected": "404",
+   "detail": "OpportunityTarget '01a0ac57-8de0-72be-b8f8-83a29e4de3aa' was not found."
+  },
+  {
+   "workflow": "RecordSubmission",
+   "case": "STALE_VERSION",
+   "subject": "w2-owner",
+   "status": 409,
+   "expected": "409",
+   "detail": "OpportunityTarget '01a0ac57-8de0-72be-b8f8-83a29e4de3aa' has changed since you last saw it (you had version 99, it is now 3)."
+  },
+  {
+   "workflow": "AttachToRole",
+   "case": "INVENTED_ROLE",
+   "subject": "w2-owner",
+   "status": 400,
+   "expected": "404",
+   "detail": "That role does not belong to this project."
+  },
+  {
+   "workflow": "AttachToRole",
+   "case": "INVENTED_PERSON",
+   "subject": "w2-owner",
+   "status": 404,
+   "expected": "404",
+   "detail": "Person '7b0f11da-21aa-416f-ab10-944695bb6956' was not found."
+  },
+  {
+   "workflow": "RecordPitch",
+   "case": "INVENTED_TARGET",
+   "subject": "w2-owner",
+   "status": 404,
+   "expected": "404",
+   "detail": "OpportunityTarget '7b0f11da-21aa-416f-ab10-944695bb6956' was not found."
+  },
+  {
+   "workflow": "RecordPitch",
+   "case": "INVENTED_MATERIAL",
+   "subject": "w2-owner",
+   "status": 404,
+   "expected": "404",
+   "detail": "Material '7b0f11da-21aa-416f-ab10-944695bb6956' was not found."
+  },
+  {
+   "workflow": "RecordSubmission",
+   "case": "INVENTED_TARGET",
+   "subject": "w2-owner",
+   "status": 404,
+   "expected": "404",
+   "detail": "OpportunityTarget '7b0f11da-21aa-416f-ab10-944695bb6956' was not found."
+  },
+  {
+   "workflow": "RecordSubmission",
+   "case": "INVENTED_MATERIAL",
+   "subject": "w2-owner",
+   "status": 404,
+   "expected": "404",
+   "detail": "Material '7b0f11da-21aa-416f-ab10-944695bb6956' was not found."
+  },
+  {
+   "workflow": "selector read people",
+   "case": "UNAUTHENTICATED",
+   "subject": null,
+   "status": 401,
+   "expected": "401",
+   "detail": null
+  },
+  {
+   "workflow": "selector read people",
+   "case": "review-observer",
+   "subject": "review-observer",
+   "status": 200,
+   "expected": "200",
+   "detail": null
+  },
+  {
+   "workflow": "selector read people",
+   "case": "review-elsewhere",
+   "subject": "review-elsewhere",
+   "status": 403,
+   "expected": "403",
+   "detail": null
+  },
+  {
+   "workflow": "selector read people",
+   "case": "w2-owner",
+   "subject": "w2-owner",
+   "status": 200,
+   "expected": "200",
+   "detail": null
+  },
+  {
+   "workflow": "selector read companies",
+   "case": "UNAUTHENTICATED",
+   "subject": null,
+   "status": 401,
+   "expected": "401",
+   "detail": null
+  },
+  {
+   "workflow": "selector read companies",
+   "case": "review-observer",
+   "subject": "review-observer",
+   "status": 200,
+   "expected": "200",
+   "detail": null
+  },
+  {
+   "workflow": "selector read companies",
+   "case": "review-elsewhere",
+   "subject": "review-elsewhere",
+   "status": 403,
+   "expected": "403",
+   "detail": null
+  },
+  {
+   "workflow": "selector read companies",
+   "case": "w2-owner",
+   "subject": "w2-owner",
+   "status": 200,
+   "expected": "200",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent",
+   "case": "UNAUTHENTICATED",
+   "subject": null,
+   "status": 401,
+   "expected": "401",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent",
+   "case": "review-observer",
+   "subject": "review-observer",
+   "status": 200,
+   "expected": "200",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent",
+   "case": "review-elsewhere",
+   "subject": "review-elsewhere",
+   "status": 403,
+   "expected": "403",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent",
+   "case": "w2-owner",
+   "subject": "w2-owner",
+   "status": 200,
+   "expected": "200",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent/materials",
+   "case": "UNAUTHENTICATED",
+   "subject": null,
+   "status": 401,
+   "expected": "401",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent/materials",
+   "case": "review-observer",
+   "subject": "review-observer",
+   "status": 200,
+   "expected": "200",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent/materials",
+   "case": "review-elsewhere",
+   "subject": "review-elsewhere",
+   "status": 403,
+   "expected": "403",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent/materials",
+   "case": "w2-owner",
+   "subject": "w2-owner",
+   "status": 200,
+   "expected": "200",
+   "detail": null
+  },
+  {
+   "workflow": "selector read talent/materials",
+   "case": "CROSS_TENANT_ROUTE",
+   "subject": "w2-owner",
+   "status": 200,
+   "expected": "404 or empty",
+   "detail": null
+  }
+ ]
+}

@@ -1,0 +1,104 @@
+diff --git a/src/AgencyOS.Windows/App.xaml.cs b/src/AgencyOS.Windows/App.xaml.cs
+index 48bb812..d054f8b 100644
+--- a/src/AgencyOS.Windows/App.xaml.cs
++++ b/src/AgencyOS.Windows/App.xaml.cs
+@@ -12,7 +12,17 @@ namespace AgencyOS.Windows;
+ public partial class App : Application
+ {
+     /// <summary>Initializes the application.</summary>
+-    public App() => InitializeComponent();
++    public App()
++    {
++        InitializeComponent();
++        // DIAG-003A1 (temporary, not for commit)
++        DebugSettings.LayoutCycleTracingLevel = LayoutCycleTracingLevel.High;
++        UnhandledException += (_, e) => System.IO.File.AppendAllText(
++            System.IO.Path.Combine(System.IO.Path.GetTempPath(), "agencyos-003a1-unhandled.txt"),
++            System.DateTime.UtcNow.ToString("O") + " pid " + System.Environment.ProcessId
++                + " hr 0x" + e.Exception.HResult.ToString("X8") + " handled=" + e.Handled + " message=" + e.Message
++                + System.Environment.NewLine + e.Exception + System.Environment.NewLine);
++    }
+ 
+     /// <summary>
+     /// The main window, once there is one.
+diff --git a/src/AgencyOS.Windows/Pages/PipelinePage.xaml b/src/AgencyOS.Windows/Pages/PipelinePage.xaml
+index 4589727..c3dca36 100644
+--- a/src/AgencyOS.Windows/Pages/PipelinePage.xaml
++++ b/src/AgencyOS.Windows/Pages/PipelinePage.xaml
+@@ -209,7 +209,7 @@
+                 </TabViewItem>
+ 
+                 <TabViewItem Header="Tasks" IsClosable="False">
+-                    <ScrollViewer>
++                    <ScrollViewer><Grid>
+                         <ListView x:Name="TaskList"
+                                   AutomationProperties.Name="Tasks" SelectionMode="None" Padding="4">
+                             <ListView.ItemTemplate>
+@@ -222,7 +222,7 @@
+                                 </DataTemplate>
+                             </ListView.ItemTemplate>
+                         </ListView>
+-                    </ScrollViewer>
++                    </Grid></ScrollViewer>
+                 </TabViewItem>
+ 
+                 <TabViewItem Header="Activity" IsClosable="False">
+diff --git a/src/AgencyOS.Windows/Pages/ProjectsPage.xaml b/src/AgencyOS.Windows/Pages/ProjectsPage.xaml
+index 99f7fec..46022bb 100644
+--- a/src/AgencyOS.Windows/Pages/ProjectsPage.xaml
++++ b/src/AgencyOS.Windows/Pages/ProjectsPage.xaml
+@@ -146,7 +146,7 @@
+                 <TabViewItem Header="Attachments" IsClosable="False">
+                     <ScrollViewer>
+                         <ListView x:Name="AttachmentList"
+-                                  AutomationProperties.Name="Attachments" SelectionMode="Single" Padding="4">
++                                  AutomationProperties.Name="Attachments" SelectionMode="Single">
+                             <ListView.ItemTemplate>
+                                 <DataTemplate>
+                                     <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+@@ -215,7 +215,7 @@
+                 </TabViewItem>
+ 
+                 <TabViewItem Header="Materials" IsClosable="False">
+-                    <ScrollViewer>
++                    <ScrollViewer><StackPanel>
+                         <ListView x:Name="MaterialList"
+                                   AutomationProperties.Name="Materials" SelectionMode="None" Padding="4">
+                             <ListView.ItemTemplate>
+@@ -228,11 +228,11 @@
+                                 </DataTemplate>
+                             </ListView.ItemTemplate>
+                         </ListView>
+-                    </ScrollViewer>
++                    </StackPanel></ScrollViewer>
+                 </TabViewItem>
+ 
+                 <TabViewItem Header="Packages" IsClosable="False">
+-                    <ScrollViewer>
++                    
+                         <ListView x:Name="PackageList"
+                                   AutomationProperties.Name="Packages" SelectionMode="None" Padding="4">
+                             <ListView.ItemTemplate>
+@@ -245,11 +245,11 @@
+                                 </DataTemplate>
+                             </ListView.ItemTemplate>
+                         </ListView>
+-                    </ScrollViewer>
++                    
+                 </TabViewItem>
+ 
+                 <TabViewItem Header="Activity" IsClosable="False">
+-                    <ScrollViewer>
++                    
+                         <ListView x:Name="HistoryList"
+                                   AutomationProperties.Name="History" SelectionMode="None" Padding="4">
+                             <ListView.ItemTemplate>
+@@ -262,7 +262,7 @@
+                                 </DataTemplate>
+                             </ListView.ItemTemplate>
+                         </ListView>
+-                    </ScrollViewer>
++                    
+                 </TabViewItem>
+             </TabView>
+         </Grid>

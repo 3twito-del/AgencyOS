@@ -1,0 +1,53 @@
+[
+ {
+  "TimeCreated": "2026-09-15T21:42:54.9108303Z",
+  "Id": 1001,
+  "Provider": "Windows Error Reporting",
+  "Properties": [
+   "1299969890301595351",
+   "4",
+   "APPCRASH",
+   "לא זמין",
+   "0",
+   "AgencyOS.Windows.exe",
+   "0.1.0.0",
+   "6a630000",
+   "StackHash12_75e",
+   "0.0.0.0",
+   "00000000",
+   "88000fa8",
+   "0",
+   "",
+   "",
+   "\\\\?\\C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive\\AppCrash_AgencyOS.Windows_fad831c1fb9e5698edbd6f6b2a65e93b62d9b9d_052c004f_830f694d-e18f-40e9-853e-134d18111c2e",
+   "",
+   "0",
+   "71d4d4d5-6add-4022-9519-e91dc6f27a3e",
+   "268435456",
+   "6db6d454743344ab220a6bba4a214ed7",
+   "0"
+  ]
+ },
+ {
+  "TimeCreated": "2026-09-15T21:42:46.0289898Z",
+  "Id": 1000,
+  "Provider": "Application Error",
+  "Properties": [
+   "AgencyOS.Windows.exe",
+   "0.1.0.0",
+   "6a630000",
+   "Microsoft.UI.Xaml.dll",
+   "3.2.3.0",
+   "013b7243",
+   "c000027b",
+   "00000000003a9c5d",
+   "14920",
+   "134339820491666848",
+   "C:\\Projects\\AgencyOS\\src\\AgencyOS.Windows\\bin\\Debug\\net10.0-windows10.0.26100.0\\AgencyOS.Windows.exe",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsAppRuntime.2_2.4.0.0_x64__8wekyb3d8bbwe\\Microsoft.UI.Xaml.dll",
+   "71d4d4d5-6add-4022-9519-e91dc6f27a3e",
+   "",
+   ""
+  ]
+ }
+]

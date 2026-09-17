@@ -1,0 +1,118 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 3,
+  "Results": [
+    {
+      "DialogId": "A1-activity-empty-no-scrollviewer",
+      "Workspace": "Projects",
+      "ProcessId": 28008,
+      "LaunchedUtc": "2026-09-16T22:06:28.785549Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 6.32
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 7.67
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.99
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "A2-activity-31-no-scrollviewer",
+      "Workspace": "Projects",
+      "ProcessId": 20148,
+      "LaunchedUtc": "2026-09-16T22:06:40.9022882Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.5
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027A Project With An Unusually Long Title That Exists Entirely To Test Column Truncation In The Slate View, \u6771\u5B9D\u682A\u5F0F\u4F1A\u793E, Active, Development\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.85
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.2
+        },
+        {
+          "Step": "wait:1500",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.03
+        },
+        {
+          "Step": "shot:long-list",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 12.66
+        },
+        {
+          "Step": "scroll:HistoryList",
+          "Detail": "31 row(s); HistoryList vertically-scrollable=True view=27% | ContentHost vertically-scrollable=False view=100%; last row offscreen=True; scrolled HistoryList to 100%; last row offscreen=False (Project created, Created)",
+          "Alive": true,
+          "ElapsedSeconds": 14.75
+        },
+        {
+          "Step": "shot:scrolled",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 16.6
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.A2-activity-31-no-scrollviewer/long-list.png",
+        "evidence/crash.A2-activity-31-no-scrollviewer/scrolled.png"
+      ],
+      "Trees": [
+        "evidence/crash.A2-activity-31-no-scrollviewer/long-list.json",
+        "evidence/crash.A2-activity-31-no-scrollviewer/scrolled.json"
+      ]
+    }
+  ]
+}

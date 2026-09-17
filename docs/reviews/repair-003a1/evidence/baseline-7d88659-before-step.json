@@ -1,0 +1,494 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Users/Twito/AppData/Local/Temp/claude/c--Projects-AgencyOS/9d5460af-5ec3-4a90-9ce0-9f4466b21c30/scratchpad/wt-7d88659/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 3,
+  "Results": [
+    {
+      "DialogId": "AttachToRoleDialog",
+      "Workspace": "Projects",
+      "ProcessId": 36000,
+      "LaunchedUtc": "2026-09-16T23:29:49.1307159Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Attachments",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T23:30:02.3164611Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 6.5
+        },
+        {
+          "Step": "pick:ProjectList:Phase C synthetic project",
+          "Detail": "selected row 2 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 7.86
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.2
+        },
+        {
+          "Step": "wait:1000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.52
+        },
+        {
+          "Step": "shot:before-fatal-step",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 12.76
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 14.1
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.AttachToRoleDialog/before-fatal-step.png"
+      ],
+      "Trees": [
+        "evidence/crash.AttachToRoleDialog/before-fatal-step.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "RecordPitchDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 4100,
+      "LaunchedUtc": "2026-09-16T23:30:03.2440683Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Pitches",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T23:30:15.913557Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.46
+        },
+        {
+          "Step": "pick:OpportunityList:Autumn slate",
+          "Detail": "selected row 1 of \u0027OpportunityList\u0027 of 2: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.8
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.13
+        },
+        {
+          "Step": "tab:Submissions",
+          "Detail": "selected tab \u0027Submissions\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.47
+        },
+        {
+          "Step": "wait:1000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.8
+        },
+        {
+          "Step": "shot:before-fatal-step",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 12.31
+        },
+        {
+          "Step": "tab:Pitches",
+          "Detail": "selected tab \u0027Pitches\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 13.64
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.RecordPitchDialog/before-fatal-step.png"
+      ],
+      "Trees": [
+        "evidence/crash.RecordPitchDialog/before-fatal-step.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "RecordSubmissionDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 23240,
+      "LaunchedUtc": "2026-09-16T23:30:16.8811648Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Pitches",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T23:30:29.6196598Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.46
+        },
+        {
+          "Step": "pick:OpportunityList:Autumn slate",
+          "Detail": "selected row 1 of \u0027OpportunityList\u0027 of 2: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.8
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.13
+        },
+        {
+          "Step": "tab:Submissions",
+          "Detail": "selected tab \u0027Submissions\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.47
+        },
+        {
+          "Step": "wait:1000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.79
+        },
+        {
+          "Step": "shot:before-fatal-step",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 12.36
+        },
+        {
+          "Step": "tab:Pitches",
+          "Detail": "selected tab \u0027Pitches\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 13.68
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.RecordSubmissionDialog/before-fatal-step.png"
+      ],
+      "Trees": [
+        "evidence/crash.RecordSubmissionDialog/before-fatal-step.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "Deals-Tasks",
+      "Workspace": "Deals",
+      "ProcessId": 13192,
+      "LaunchedUtc": "2026-09-16T23:30:30.5615035Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Tasks",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T23:30:39.4537058Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Deals",
+          "Detail": "Selected \u0027Deals\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.47
+        },
+        {
+          "Step": "wait:1000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 7.77
+        },
+        {
+          "Step": "shot:before-fatal-step",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 8.48
+        },
+        {
+          "Step": "tab:Tasks",
+          "Detail": "selected tab \u0027Tasks\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 9.83
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Deals-Tasks/before-fatal-step.png"
+      ],
+      "Trees": [
+        "evidence/crash.Deals-Tasks/before-fatal-step.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "Deals-Activity",
+      "Workspace": "Deals",
+      "ProcessId": 7588,
+      "LaunchedUtc": "2026-09-16T23:30:40.3880403Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Activity",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T23:30:49.1137669Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Deals",
+          "Detail": "Selected \u0027Deals\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.48
+        },
+        {
+          "Step": "wait:1000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 7.79
+        },
+        {
+          "Step": "shot:before-fatal-step",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 8.36
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 9.68
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Deals-Activity/before-fatal-step.png"
+      ],
+      "Trees": [
+        "evidence/crash.Deals-Activity/before-fatal-step.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "Contracts-Activity",
+      "Workspace": "Contracts",
+      "ProcessId": 20568,
+      "LaunchedUtc": "2026-09-16T23:30:50.0719908Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Activity",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T23:30:58.8932139Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Contracts",
+          "Detail": "Selected \u0027Contracts\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.49
+        },
+        {
+          "Step": "wait:1000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 7.81
+        },
+        {
+          "Step": "shot:before-fatal-step",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 8.45
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 9.77
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Contracts-Activity/before-fatal-step.png"
+      ],
+      "Trees": [
+        "evidence/crash.Contracts-Activity/before-fatal-step.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "Contracts-Tasks-control",
+      "Workspace": "Contracts",
+      "ProcessId": 8308,
+      "LaunchedUtc": "2026-09-16T23:30:59.8453562Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Contracts",
+          "Detail": "Selected \u0027Contracts\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.5
+        },
+        {
+          "Step": "tab:Tasks",
+          "Detail": "selected tab \u0027Tasks\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.85
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.17
+        }
+      ],
+      "Screenshots": [],
+      "Trees": [],
+      "Inspection": null
+    },
+    {
+      "DialogId": "material-picker@RecordPitchDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 25244,
+      "LaunchedUtc": "2026-09-16T23:31:11.1006341Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Engaged\u0022",
+      "FocusAfter": "Edit SummaryBox",
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.48
+        },
+        {
+          "Step": "pick:OpportunityList:Repair 003A.1 pursuit",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 2: \u0027Repair 003A.1 pursuit, Review Owner, Active, Talent engagement\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.82
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.16
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Engaged\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.51
+        },
+        {
+          "Step": "openkeep:PitchButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting material-picker@RecordPitchDialog",
+          "Alive": true,
+          "ElapsedSeconds": 10.72
+        },
+        {
+          "Step": "openkeep:PitchButton",
+          "Detail": "invoked \u0027PitchButton\u0027 (\u0027Record pitch\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 3 s watch; left open",
+          "Alive": true,
+          "ElapsedSeconds": 14.36
+        },
+        {
+          "Step": "read:MaterialBox",
+          "Detail": "name=\u0027Material shown\u0027 selected=[\u0027Nothing was shown\u0027] state=Collapsed",
+          "Alive": true,
+          "ElapsedSeconds": 15.68
+        },
+        {
+          "Step": "focus:MaterialBox",
+          "Detail": "focused \u0027MaterialBox\u0027; focus is on ComboBox MaterialBox",
+          "Alive": true,
+          "ElapsedSeconds": 17.31
+        },
+        {
+          "Step": "key:Alt\u002BDown",
+          "Detail": "pressed Alt\u002BDown",
+          "Alive": true,
+          "ElapsedSeconds": 17.99
+        },
+        {
+          "Step": "wait:800",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 20.11
+        },
+        {
+          "Step": "shot:material-list",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 20.9
+        },
+        {
+          "Step": "key:Escape",
+          "Detail": "pressed Escape",
+          "Alive": true,
+          "ElapsedSeconds": 21.56
+        },
+        {
+          "Step": "key:Escape",
+          "Detail": "pressed Escape",
+          "Alive": true,
+          "ElapsedSeconds": 22.21
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.material-picker@RecordPitchDialog/01-before.png",
+        "evidence/crash.material-picker@RecordPitchDialog/02-open.png",
+        "evidence/crash.material-picker@RecordPitchDialog/material-list.png"
+      ],
+      "Trees": [
+        "evidence/crash.material-picker@RecordPitchDialog/01-before.json",
+        "evidence/crash.material-picker@RecordPitchDialog/02-open.json",
+        "evidence/crash.material-picker@RecordPitchDialog/material-list.json"
+      ],
+      "Inspection": null
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 3,
+  "Results": [
+    {
+      "DialogId": "L0-activity-31-baseline-markup",
+      "Workspace": "Projects",
+      "ProcessId": 35048,
+      "LaunchedUtc": "2026-09-16T22:05:09.5632133Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.59
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027A Project With An Unusually Long Title That Exists Entirely To Test Column Truncation In The Slate View, \u6771\u5B9D\u682A\u5F0F\u4F1A\u793E, Active, Development\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.95
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.29
+        },
+        {
+          "Step": "wait:1500",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.11
+        },
+        {
+          "Step": "scroll:HistoryList",
+          "Detail": "31 row(s); HistoryList vertically-scrollable=False view=100% | ScrollViewer vertically-scrollable=True view=27% | ContentHost vertically-scrollable=False view=100%; last row offscreen=True; scrolled ScrollViewer to 100%; last row offscreen=False (Project created, Created)",
+          "Alive": true,
+          "ElapsedSeconds": 13.2
+        },
+        {
+          "Step": "shot:scrolled",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 14.9
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.L0-activity-31-baseline-markup/scrolled.png"
+      ],
+      "Trees": [
+        "evidence/crash.L0-activity-31-baseline-markup/scrolled.json"
+      ]
+    }
+  ]
+}

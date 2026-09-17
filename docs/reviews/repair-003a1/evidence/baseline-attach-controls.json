@@ -1,0 +1,149 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 3,
+  "Results": [
+    {
+      "DialogId": "C1-no-bar",
+      "Workspace": "Projects",
+      "ProcessId": 31436,
+      "LaunchedUtc": "2026-09-16T21:50:41.1753909Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Attachments",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:50:49.8063726Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.58
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.94
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.27
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 9.6
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "C3-project-with-roles",
+      "Workspace": "Projects",
+      "ProcessId": 3000,
+      "LaunchedUtc": "2026-09-16T21:50:50.7927844Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "CRASH_REPRODUCED",
+      "CrashedDuring": "tab:Attachments",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:51:04.8797537Z",
+      "DialogTitle": null,
+      "FocusBefore": "TabItem \u0022Roles\u0022",
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.5
+        },
+        {
+          "Step": "row:ProjectList:15",
+          "Detail": "selected row 15 of \u0027ProjectList\u0027 of 20: \u0027Audit 002B \u2014 The Quiet Coast, Active, Packaging, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.87
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.21
+        },
+        {
+          "Step": "open:AttachButton",
+          "Detail": "invoked \u0027AttachButton\u0027 (\u0027Attach\u0027); the process stayed alive and no dialog appeared",
+          "Alive": true,
+          "ElapsedSeconds": 13.7
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 15.04
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.C3-project-with-roles/01-before.png",
+        "evidence/crash.C3-project-with-roles/02-after.png"
+      ],
+      "Trees": [
+        "evidence/crash.C3-project-with-roles/01-before.json",
+        "evidence/crash.C3-project-with-roles/02-after.json"
+      ]
+    },
+    {
+      "DialogId": "C4-other-order",
+      "Workspace": "Projects",
+      "ProcessId": 34348,
+      "LaunchedUtc": "2026-09-16T21:51:05.8323943Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "EXITED_BEFORE_OPENER",
+      "CrashedDuring": "tab:Attachments",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:51:13.112511Z",
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.52
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.89
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 8.21
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    }
+  ]
+}

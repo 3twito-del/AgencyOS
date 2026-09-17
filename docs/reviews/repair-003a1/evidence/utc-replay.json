@@ -1,0 +1,82 @@
+{
+ "replays": [
+  {
+   "path": "/opportunity-targets/01a0ac57-8de0-72be-b8f8-83a29e4de3aa/pitches",
+   "status": 201,
+   "reply": {
+    "pitchId": "01a0ac67-f750-7504-b9ed-c4b0b89f7359",
+    "interactionId": "01a0ac67-f750-7fac-be64-3f871df407e7",
+    "followUpTaskId": null
+   },
+   "onlyChange": "timestamps converted to UTC; expectedVersion refreshed"
+  },
+  {
+   "path": "/opportunity-targets/01a0ac57-8de0-72be-b8f8-83a29e4de3aa/submissions",
+   "status": 201,
+   "reply": {
+    "submissionId": "01a0ac67-f7f3-75d0-981f-5931a9f8d0d8",
+    "followUpTaskId": "01a0ac67-f7f5-7a9c-96d7-a8006296fbed"
+   },
+   "onlyChange": "timestamps converted to UTC; expectedVersion refreshed"
+  }
+ ],
+ "readBack": {
+  "pitches": [
+   {
+    "id": "01a0ac67-f750-7504-b9ed-c4b0b89f7359",
+    "opportunityId": "01a0ac57-5c29-779e-a237-0580c6c9b25c",
+    "opportunityTargetId": "01a0ac57-8de0-72be-b8f8-83a29e4de3aa",
+    "targetDisplayName": "A24",
+    "interactionId": "01a0ac67-f750-7fac-be64-3f871df407e7",
+    "kind": "Formal",
+    "outcome": "NoDecision",
+    "subject": "Repair 003A.1 pitch by keyboard",
+    "notes": null,
+    "occurredAt": "2026-09-16T22:45:48.125618+00:00",
+    "participants": [
+     "A24"
+    ],
+    "materials": [
+     {
+      "materialId": "01a0ac56-9aa9-7b2d-8e02-99d574103c31",
+      "titleAtSubmission": "Repair 003A.1 reel",
+      "typeAtSubmission": "Reel",
+      "versionLabelAtSubmission": "Cut one",
+      "currentTitle": "Repair 003A.1 reel",
+      "note": null
+     }
+    ],
+    "version": 1
+   }
+  ],
+  "submissions": [
+   {
+    "id": "01a0ac67-f7f3-75d0-981f-5931a9f8d0d8",
+    "opportunityId": "01a0ac57-5c29-779e-a237-0580c6c9b25c",
+    "opportunityTargetId": "01a0ac57-8de0-72be-b8f8-83a29e4de3aa",
+    "targetDisplayName": "A24",
+    "sentAt": "2026-09-16T22:46:15.775769+00:00",
+    "sentByUserId": "01a0a015-c41c-7811-9c22-8cece1228f1b",
+    "sentByDisplayName": "Review Owner",
+    "channel": "Email",
+    "subject": "Repair 003A.1 submission by keyboard",
+    "notes": null,
+    "responseExpectedBy": "2026-10-01",
+    "externalReference": null,
+    "materials": [
+     {
+      "materialId": "01a0ac56-9bbe-77ad-a2fc-2e9a432d84d7",
+      "titleAtSubmission": "Repair 003A.1 reel",
+      "typeAtSubmission": "Reel",
+      "versionLabelAtSubmission": "Cut two",
+      "currentTitle": "Repair 003A.1 reel",
+      "note": null
+     }
+    ],
+    "lastResponseAt": null,
+    "isAwaitingResponse": false,
+    "version": 1
+   }
+  ]
+ }
+}

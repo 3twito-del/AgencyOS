@@ -243,3 +243,38 @@ so it is a data-dependent framework crash rather than a regression of anything
 Audit 002 measured. **Not yet filed as a numbered finding and not diagnosed** —
 it needs its own investigation, starting from the Windows Error Reporting
 minidump.
+
+### After Repair Wave 003A.1
+
+Added by Repair Wave 003A.1. Nothing above is edited.
+
+| Finding | Filed as | Now | By |
+| --- | --- | --- | --- |
+| `AOS-R002-022` | NEW, **S1** — the observation above, numbered | **REPAIRED** | Repair Wave 003A.1 |
+| `AOS-R002-023` | NEW, S2 — 003B's material pickers never listed a material | **REPAIRED** | Repair Wave 003A.1 |
+| `AOS-R002-024` | NEW, S3 — Projects and Pipeline show "Invalid request" instead of the server's reason | **DEFERRED** (suggested 003C) | — |
+
+**`AOS-R002-022`.** The three dialogs were never the fault. Eleven detail tabs on
+Projects, Pipeline, Deals and Contracts held a padded `ListView` as the whole
+content of a `ScrollViewer`; shown empty, each raised `LayoutCycleException`
+(`0x802B0014`), which nothing handles, and the framework ended the process with
+`0xC000027B`. The review harness walked into those tabs after the dialogs' first
+attempt was refused and recorded the dialog it was attempting. See
+[`../repair-003a1/REPAIR-003A1-ROOT-CAUSE.md`](../repair-003a1/REPAIR-003A1-ROOT-CAUSE.md).
+
+**Two corrections to the observation above**, made here rather than there:
+
+- "Audit 002's closure slice opened all three against earlier data" is not
+  right. The closure slice did not attempt them. They were last opened in
+  **Phase B** (2026-09-14), and **Phase C's final pass** (2026-09-15 02:37Z)
+  already recorded all three — with `AnswerOfferDialog` and `MoveTargetDialog` —
+  as "the application window disappeared".
+- "A data-dependent framework crash" is right in effect but not in mechanism. The
+  data decided whether the harness reached an empty tab; the tab itself crashes
+  with or without data elsewhere, and Projects › Attachments crashes always.
+
+**`AOS-R002-001`, scope.** 003A.1 observed the same `500` —
+`Cannot write DateTimeOffset with Offset=03:00:00` — from
+`RecordSubmissionDialog`, which the finding does not list. Not repaired here; it
+is why 003A.1 could not save a pitch or a submission through the interface on a
+UTC+3 machine.

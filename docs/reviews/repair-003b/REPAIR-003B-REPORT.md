@@ -449,3 +449,28 @@ company — reaches a path that brings the framework down.
 A client that exits is more serious than anything else in this report, and it is
 not this wave's to fix. It needs its own diagnosis, starting from the minidump
 Windows Error Reporting wrote.
+
+## Addendum — Repair Wave 003A.1
+
+Added after this wave closed. The sections above are unchanged.
+
+- **The crash is `AOS-R002-022`, and it was not in these dialogs.** Eleven empty
+  detail tabs ended the process; the harness recorded the dialog it was
+  attempting. 003B's conclusions that it did not cause the crash, and that the
+  window size was not the cause, both stand.
+- **The three dialogs are now runtime-verified**, by 003A.1: each opens through
+  its button, keeps focus inside under Tab and Shift+Tab, closes on Escape and
+  returns focus to its opener, with no accessibility findings. The attachment
+  picker was operated from the keyboard and the saved attachment carries the
+  chosen person's identifier.
+- **Two of the fourteen repaired fields did not work until 003A.1.**
+  `RecordPitchDialog` and `RecordSubmissionDialog` asked for materials with a
+  talent *profile* identifier where the server lists them by *person*, so both
+  pickers only ever offered "nothing" (`AOS-R002-023`). 003A.1 repaired that; the
+  material each picker sends is now the one chosen, confirmed from the request
+  bodies.
+- **The "new observation" above says the closure slice opened all three dialogs.**
+  It did not; Phase B did, and Phase C's final pass had already recorded the
+  closures. Corrected in `AUDIT-002-AGGREGATE.md` §7.
+
+See [`../repair-003a1/REPAIR-003A1-REPORT.md`](../repair-003a1/REPAIR-003A1-REPORT.md).

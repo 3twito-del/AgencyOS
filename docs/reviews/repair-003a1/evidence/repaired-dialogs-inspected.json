@@ -1,0 +1,442 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 5,
+  "Results": [
+    {
+      "DialogId": "AttachToRoleDialog",
+      "Workspace": "Projects",
+      "ProcessId": 29332,
+      "LaunchedUtc": "2026-09-16T22:26:48.1576444Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022Idempotency probe, Open, Writer\u0022",
+      "FocusAfter": "ComboBox PartyKindBox",
+      "FocusAfterClose": "Button AttachButton",
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.55
+        },
+        {
+          "Step": "pick:ProjectList:Audit 002B",
+          "Detail": "selected row 16 of \u0027ProjectList\u0027 of 20: \u0027Audit 002B \u2014 The Quiet Coast, Active, Packaging, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.93
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.27
+        },
+        {
+          "Step": "row:RoleList:0",
+          "Detail": "selected row 0 of \u0027RoleList\u0027 of 3: \u0027Idempotency probe, Open, Writer\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.61
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 10.94
+        },
+        {
+          "Step": "tab:Materials",
+          "Detail": "selected tab \u0027Materials\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 12.29
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 13.63
+        },
+        {
+          "Step": "row:RoleList:0",
+          "Detail": "selected row 0 of \u0027RoleList\u0027 of 3: \u0027Idempotency probe, Open, Writer\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 14.97
+        },
+        {
+          "Step": "open:AttachButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting AttachToRoleDialog",
+          "Alive": true,
+          "ElapsedSeconds": 16.83
+        },
+        {
+          "Step": "open:AttachButton",
+          "Detail": "invoked \u0027AttachButton\u0027 (\u0027Attach\u0027); the dialog was seen after 0.26 s and the process was alive for the whole 5 s watch; inspected by the dialog pass: OPENED, focus-in=True, tab-escapes=False, shift-tab-escapes=False, escape-closed=True, focus-after-close=ELSEWHERE_ON_PAGE, accessibility=0",
+          "Alive": true,
+          "ElapsedSeconds": 30.77
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.AttachToRoleDialog/01-before.png"
+      ],
+      "Trees": [
+        "evidence/crash.AttachToRoleDialog/01-before.json"
+      ],
+      "Inspection": {
+        "DialogId": "AttachToRoleDialog",
+        "Outcome": "OPENED",
+        "How": "BUTTON",
+        "Detail": "invoked \u0027AttachButton\u0027 (\u0027Attach\u0027); the dialog was seen after 0.26 s and the process was alive for the whole 5 s watch",
+        "Screenshots": [
+          "evidence/dialog.AttachToRoleDialog/01-open.png",
+          "evidence/dialog.AttachToRoleDialog/02-after-escape.png"
+        ],
+        "TreePath": "evidence/dialog.AttachToRoleDialog/ui-tree.json",
+        "Title": "Attach to role",
+        "InitialFocus": "ComboBox PartyKindBox",
+        "Buttons": [
+          "Attach (disabled)",
+          "Cancel",
+          "\u200F\u200F\u05D1\u05D5\u05E8\u05E8 \u05EA\u05D0\u05E8\u05D9\u05DB\u05D9\u05DD Starts on \u200F17\u200F \u200F\u05E1\u05E4\u05D8\u05DE\u05D1\u05E8\u200F \u200F2026"
+        ],
+        "Fields": [
+          "ComboBox PartyBox",
+          "ComboBox PartyKindBox",
+          "ComboBox StatusBox",
+          "Edit NotesBox",
+          "Edit SourceBox"
+        ],
+        "TabOrder": [
+          "ComboBox PartyBox",
+          "ComboBox StatusBox",
+          "Button FlyoutButton",
+          "Edit SourceBox",
+          "Edit NotesBox",
+          "Button CloseButton",
+          "ComboBox PartyKindBox",
+          "ComboBox PartyBox",
+          "ComboBox StatusBox",
+          "Button FlyoutButton",
+          "Edit SourceBox",
+          "Edit NotesBox",
+          "Button CloseButton",
+          "ComboBox PartyKindBox"
+        ],
+        "ReverseTabOrder": [
+          "Button CloseButton",
+          "Edit NotesBox",
+          "Edit SourceBox",
+          "Button FlyoutButton",
+          "ComboBox StatusBox",
+          "ComboBox PartyBox",
+          "ComboBox PartyKindBox",
+          "Button CloseButton",
+          "Edit NotesBox",
+          "Edit SourceBox",
+          "Button FlyoutButton",
+          "ComboBox StatusBox",
+          "ComboBox PartyBox",
+          "ComboBox PartyKindBox"
+        ],
+        "ReverseTabEscaped": false,
+        "DefaultAction": "Primary",
+        "Accessibility": [],
+        "FocusEnteredDialog": true,
+        "FocusEscapedDialog": false,
+        "ClosedOnEscape": true,
+        "FocusRestored": true,
+        "ExtraModals": -1,
+        "RowSpeech": [],
+        "FocusAfterClose": "ELSEWHERE_ON_PAGE",
+        "FocusLandedOn": "Button AttachButton"
+      }
+    },
+    {
+      "DialogId": "RecordPitchDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 33176,
+      "LaunchedUtc": "2026-09-16T22:27:19.055523Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Interested\u0022",
+      "FocusAfter": "Edit SummaryBox",
+      "FocusAfterClose": "Button PitchButton",
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.49
+        },
+        {
+          "Step": "pick:OpportunityList:Autumn slate",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.84
+        },
+        {
+          "Step": "tab:Pitches",
+          "Detail": "selected tab \u0027Pitches\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.17
+        },
+        {
+          "Step": "tab:Tasks",
+          "Detail": "selected tab \u0027Tasks\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.5
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 10.84
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Interested\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 12.18
+        },
+        {
+          "Step": "open:PitchButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting RecordPitchDialog",
+          "Alive": true,
+          "ElapsedSeconds": 12.88
+        },
+        {
+          "Step": "open:PitchButton",
+          "Detail": "invoked \u0027PitchButton\u0027 (\u0027Record pitch\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 5 s watch; inspected by the dialog pass: OPENED, focus-in=True, tab-escapes=False, shift-tab-escapes=False, escape-closed=True, focus-after-close=ELSEWHERE_ON_PAGE, accessibility=0",
+          "Alive": true,
+          "ElapsedSeconds": 25.19
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.RecordPitchDialog/01-before.png"
+      ],
+      "Trees": [
+        "evidence/crash.RecordPitchDialog/01-before.json"
+      ],
+      "Inspection": {
+        "DialogId": "RecordPitchDialog",
+        "Outcome": "OPENED",
+        "How": "BUTTON",
+        "Detail": "invoked \u0027PitchButton\u0027 (\u0027Record pitch\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 5 s watch",
+        "Screenshots": [
+          "evidence/dialog.RecordPitchDialog/01-open.png",
+          "evidence/dialog.RecordPitchDialog/02-after-escape.png"
+        ],
+        "TreePath": "evidence/dialog.RecordPitchDialog/ui-tree.json",
+        "Title": "Record pitch",
+        "InitialFocus": "Edit SummaryBox",
+        "Buttons": [
+          "Cancel",
+          "Record (disabled)",
+          "\u200F\u200F\u05D1\u05D5\u05E8\u05E8 \u05EA\u05D0\u05E8\u05D9\u05DB\u05D9\u05DD When \u200F17\u200F \u200F\u05E1\u05E4\u05D8\u05DE\u05D1\u05E8\u200F \u200F2026"
+        ],
+        "Fields": [
+          "CheckBox FollowUpBox",
+          "ComboBox KindBox",
+          "ComboBox MaterialBox",
+          "ComboBox OutcomeBox",
+          "ComboBox TypeBox",
+          "Edit FollowUpTitleBox",
+          "Edit NotesBox",
+          "Edit SummaryBox"
+        ],
+        "TabOrder": [
+          "ComboBox TypeBox",
+          "Button FlyoutButton",
+          "ComboBox KindBox",
+          "ComboBox OutcomeBox",
+          "ComboBox MaterialBox",
+          "Edit NotesBox",
+          "CheckBox FollowUpBox",
+          "Edit FollowUpTitleBox",
+          "Button CloseButton",
+          "Edit SummaryBox",
+          "ComboBox TypeBox",
+          "Button FlyoutButton",
+          "ComboBox KindBox",
+          "ComboBox OutcomeBox"
+        ],
+        "ReverseTabOrder": [
+          "ComboBox KindBox",
+          "Button FlyoutButton",
+          "ComboBox TypeBox",
+          "Edit SummaryBox",
+          "Button CloseButton",
+          "Edit FollowUpTitleBox",
+          "CheckBox FollowUpBox",
+          "Edit NotesBox",
+          "ComboBox MaterialBox",
+          "ComboBox OutcomeBox",
+          "ComboBox KindBox",
+          "Button FlyoutButton",
+          "ComboBox TypeBox",
+          "Edit SummaryBox"
+        ],
+        "ReverseTabEscaped": false,
+        "DefaultAction": "Primary",
+        "Accessibility": [],
+        "FocusEnteredDialog": true,
+        "FocusEscapedDialog": false,
+        "ClosedOnEscape": true,
+        "FocusRestored": true,
+        "ExtraModals": -1,
+        "RowSpeech": [],
+        "FocusAfterClose": "ELSEWHERE_ON_PAGE",
+        "FocusLandedOn": "Button PitchButton"
+      }
+    },
+    {
+      "DialogId": "RecordSubmissionDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 7676,
+      "LaunchedUtc": "2026-09-16T22:27:44.3434084Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Interested\u0022",
+      "FocusAfter": "Button FlyoutButton",
+      "FocusAfterClose": "Button SubmissionButton",
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.5
+        },
+        {
+          "Step": "pick:OpportunityList:Autumn slate",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.85
+        },
+        {
+          "Step": "tab:Subjects",
+          "Detail": "selected tab \u0027Subjects\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.19
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.52
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Interested\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 10.86
+        },
+        {
+          "Step": "open:SubmissionButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting RecordSubmissionDialog",
+          "Alive": true,
+          "ElapsedSeconds": 11.73
+        },
+        {
+          "Step": "open:SubmissionButton",
+          "Detail": "invoked \u0027SubmissionButton\u0027 (\u0027Record submission\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 5 s watch; inspected by the dialog pass: OPENED, focus-in=True, tab-escapes=False, shift-tab-escapes=False, escape-closed=True, focus-after-close=ELSEWHERE_ON_PAGE, accessibility=0",
+          "Alive": true,
+          "ElapsedSeconds": 24.05
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.RecordSubmissionDialog/01-before.png"
+      ],
+      "Trees": [
+        "evidence/crash.RecordSubmissionDialog/01-before.json"
+      ],
+      "Inspection": {
+        "DialogId": "RecordSubmissionDialog",
+        "Outcome": "OPENED",
+        "How": "BUTTON",
+        "Detail": "invoked \u0027SubmissionButton\u0027 (\u0027Record submission\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 5 s watch",
+        "Screenshots": [
+          "evidence/dialog.RecordSubmissionDialog/01-open.png",
+          "evidence/dialog.RecordSubmissionDialog/02-after-escape.png"
+        ],
+        "TreePath": "evidence/dialog.RecordSubmissionDialog/ui-tree.json",
+        "Title": "Record submission",
+        "InitialFocus": "Button FlyoutButton",
+        "Buttons": [
+          "Cancel",
+          "Record",
+          "\u200F\u200F\u05D1\u05D5\u05E8\u05E8 \u05EA\u05D0\u05E8\u05D9\u05DB\u05D9\u05DD Reply expected by \u200F01\u200F \u200F\u05D0\u05D5\u05E7\u05D8\u05D5\u05D1\u05E8\u200F \u200F2026",
+          "\u200F\u200F\u05D1\u05D5\u05E8\u05E8 \u05EA\u05D0\u05E8\u05D9\u05DB\u05D9\u05DD Sent \u200F17\u200F \u200F\u05E1\u05E4\u05D8\u05DE\u05D1\u05E8\u200F \u200F2026"
+        ],
+        "Fields": [
+          "CheckBox FollowUpBox",
+          "ComboBox ChannelBox",
+          "ComboBox MaterialBox",
+          "Edit FollowUpTitleBox",
+          "Edit NotesBox",
+          "Edit SubjectBox"
+        ],
+        "TabOrder": [
+          "ComboBox ChannelBox",
+          "Edit SubjectBox",
+          "ComboBox MaterialBox",
+          "Button FlyoutButton",
+          "Edit NotesBox",
+          "CheckBox FollowUpBox",
+          "Edit FollowUpTitleBox",
+          "Button PrimaryButton",
+          "Button CloseButton",
+          "Button FlyoutButton",
+          "ComboBox ChannelBox",
+          "Edit SubjectBox",
+          "ComboBox MaterialBox",
+          "Button FlyoutButton"
+        ],
+        "ReverseTabOrder": [
+          "ComboBox MaterialBox",
+          "Edit SubjectBox",
+          "ComboBox ChannelBox",
+          "Button FlyoutButton",
+          "Button CloseButton",
+          "Button PrimaryButton",
+          "Edit FollowUpTitleBox",
+          "CheckBox FollowUpBox",
+          "Edit NotesBox",
+          "Button FlyoutButton",
+          "ComboBox MaterialBox",
+          "Edit SubjectBox",
+          "ComboBox ChannelBox",
+          "Button FlyoutButton"
+        ],
+        "ReverseTabEscaped": false,
+        "DefaultAction": "Primary",
+        "Accessibility": [],
+        "FocusEnteredDialog": true,
+        "FocusEscapedDialog": false,
+        "ClosedOnEscape": true,
+        "FocusRestored": true,
+        "ExtraModals": -1,
+        "RowSpeech": [],
+        "FocusAfterClose": "ELSEWHERE_ON_PAGE",
+        "FocusLandedOn": "Button SubmissionButton"
+      }
+    }
+  ]
+}

@@ -1,0 +1,650 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 3,
+  "Results": [
+    {
+      "DialogId": "Projects-Attachments",
+      "Workspace": "Projects",
+      "ProcessId": 4276,
+      "LaunchedUtc": "2026-09-16T22:16:25.7747548Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 6.2
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 7.55
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.87
+        },
+        {
+          "Step": "shot:Attachments",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 13.01
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Projects-Attachments/Attachments.png"
+      ],
+      "Trees": [
+        "evidence/crash.Projects-Attachments/Attachments.json"
+      ]
+    },
+    {
+      "DialogId": "Projects-Materials",
+      "Workspace": "Projects",
+      "ProcessId": 32528,
+      "LaunchedUtc": "2026-09-16T22:16:38.8875938Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.48
+        },
+        {
+          "Step": "tab:Materials",
+          "Detail": "selected tab \u0027Materials\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.83
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.14
+        },
+        {
+          "Step": "shot:Materials",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 12.45
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Projects-Materials/Materials.png"
+      ],
+      "Trees": [
+        "evidence/crash.Projects-Materials/Materials.json"
+      ]
+    },
+    {
+      "DialogId": "Projects-Packages",
+      "Workspace": "Projects",
+      "ProcessId": 21644,
+      "LaunchedUtc": "2026-09-16T22:16:51.451994Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.52
+        },
+        {
+          "Step": "tab:Packages",
+          "Detail": "selected tab \u0027Packages\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.87
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.19
+        },
+        {
+          "Step": "shot:Packages",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 12.46
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Projects-Packages/Packages.png"
+      ],
+      "Trees": [
+        "evidence/crash.Projects-Packages/Packages.json"
+      ]
+    },
+    {
+      "DialogId": "Projects-Activity",
+      "Workspace": "Projects",
+      "ProcessId": 24496,
+      "LaunchedUtc": "2026-09-16T22:17:04.0020232Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.51
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.85
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.18
+        },
+        {
+          "Step": "shot:Activity",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 12.1
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Projects-Activity/Activity.png"
+      ],
+      "Trees": [
+        "evidence/crash.Projects-Activity/Activity.json"
+      ]
+    },
+    {
+      "DialogId": "Pipeline-Pitches",
+      "Workspace": "Pipeline",
+      "ProcessId": 31204,
+      "LaunchedUtc": "2026-09-16T22:17:16.1826446Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.52
+        },
+        {
+          "Step": "tab:Pitches",
+          "Detail": "selected tab \u0027Pitches\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.86
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.18
+        },
+        {
+          "Step": "shot:Pitches",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 11.77
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Pipeline-Pitches/Pitches.png"
+      ],
+      "Trees": [
+        "evidence/crash.Pipeline-Pitches/Pitches.json"
+      ]
+    },
+    {
+      "DialogId": "Pipeline-Subjects",
+      "Workspace": "Pipeline",
+      "ProcessId": 28112,
+      "LaunchedUtc": "2026-09-16T22:17:28.03538Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.56
+        },
+        {
+          "Step": "tab:Subjects",
+          "Detail": "selected tab \u0027Subjects\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.89
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.21
+        },
+        {
+          "Step": "shot:Subjects",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 11.64
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Pipeline-Subjects/Subjects.png"
+      ],
+      "Trees": [
+        "evidence/crash.Pipeline-Subjects/Subjects.json"
+      ]
+    },
+    {
+      "DialogId": "Pipeline-Tasks",
+      "Workspace": "Pipeline",
+      "ProcessId": 23760,
+      "LaunchedUtc": "2026-09-16T22:17:39.7587679Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.54
+        },
+        {
+          "Step": "tab:Tasks",
+          "Detail": "selected tab \u0027Tasks\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.89
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.22
+        },
+        {
+          "Step": "shot:Tasks",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 11.56
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Pipeline-Tasks/Tasks.png"
+      ],
+      "Trees": [
+        "evidence/crash.Pipeline-Tasks/Tasks.json"
+      ]
+    },
+    {
+      "DialogId": "Pipeline-Activity",
+      "Workspace": "Pipeline",
+      "ProcessId": 6432,
+      "LaunchedUtc": "2026-09-16T22:17:51.4060084Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.54
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.89
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.21
+        },
+        {
+          "Step": "shot:Activity",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 12
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Pipeline-Activity/Activity.png"
+      ],
+      "Trees": [
+        "evidence/crash.Pipeline-Activity/Activity.json"
+      ]
+    },
+    {
+      "DialogId": "Deals-Tasks",
+      "Workspace": "Deals",
+      "ProcessId": 13276,
+      "LaunchedUtc": "2026-09-16T22:18:03.482732Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Deals",
+          "Detail": "Selected \u0027Deals\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.52
+        },
+        {
+          "Step": "tab:Tasks",
+          "Detail": "selected tab \u0027Tasks\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.85
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.17
+        },
+        {
+          "Step": "shot:Tasks",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 11.75
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Deals-Tasks/Tasks.png"
+      ],
+      "Trees": [
+        "evidence/crash.Deals-Tasks/Tasks.json"
+      ]
+    },
+    {
+      "DialogId": "Deals-Activity",
+      "Workspace": "Deals",
+      "ProcessId": 23184,
+      "LaunchedUtc": "2026-09-16T22:18:15.3086889Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Deals",
+          "Detail": "Selected \u0027Deals\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.49
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.83
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.16
+        },
+        {
+          "Step": "shot:Activity",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 11.62
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Deals-Activity/Activity.png"
+      ],
+      "Trees": [
+        "evidence/crash.Deals-Activity/Activity.json"
+      ]
+    },
+    {
+      "DialogId": "Contracts-Activity",
+      "Workspace": "Contracts",
+      "ProcessId": 34036,
+      "LaunchedUtc": "2026-09-16T22:18:27.0039483Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Contracts",
+          "Detail": "Selected \u0027Contracts\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.45
+        },
+        {
+          "Step": "tab:Activity",
+          "Detail": "selected tab \u0027Activity\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.79
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.11
+        },
+        {
+          "Step": "shot:Activity",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 11.57
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Contracts-Activity/Activity.png"
+      ],
+      "Trees": [
+        "evidence/crash.Contracts-Activity/Activity.json"
+      ]
+    },
+    {
+      "DialogId": "Contracts-Tasks-control",
+      "Workspace": "Contracts",
+      "ProcessId": 24476,
+      "LaunchedUtc": "2026-09-16T22:18:38.658966Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Contracts",
+          "Detail": "Selected \u0027Contracts\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.51
+        },
+        {
+          "Step": "tab:Tasks",
+          "Detail": "selected tab \u0027Tasks\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.86
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 11.17
+        }
+      ],
+      "Screenshots": [],
+      "Trees": []
+    },
+    {
+      "DialogId": "Sync-control",
+      "Workspace": "Sync and Offline",
+      "ProcessId": 32096,
+      "LaunchedUtc": "2026-09-16T22:18:49.922178Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Sync and Offline",
+          "Detail": "Selected \u0027Sync and Offline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.57
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 9.89
+        },
+        {
+          "Step": "shot:sync",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 10.27
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Sync-control/sync.png"
+      ],
+      "Trees": [
+        "evidence/crash.Sync-control/sync.json"
+      ]
+    },
+    {
+      "DialogId": "Organization-control",
+      "Workspace": "Organization",
+      "ProcessId": 32140,
+      "LaunchedUtc": "2026-09-16T22:19:00.2638481Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "NOT_INVOKED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": null,
+      "FocusBefore": null,
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Organization",
+          "Detail": "Selected \u0027Organization\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.59
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 9.92
+        },
+        {
+          "Step": "shot:organization",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 10.41
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.Organization-control/organization.png"
+      ],
+      "Trees": [
+        "evidence/crash.Organization-control/organization.json"
+      ]
+    }
+  ]
+}

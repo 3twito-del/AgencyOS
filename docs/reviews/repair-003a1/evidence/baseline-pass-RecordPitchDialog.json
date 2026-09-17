@@ -1,0 +1,42 @@
+{
+  "RunId": "REPAIR-003A1",
+  "StartedUtc": "2026-09-16T21:57:03.8991616+00:00",
+  "FinishedUtc": "2026-09-16T21:57:41.2765395+00:00",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "Observations": [
+    {
+      "DialogId": "RecordPitchDialog",
+      "Outcome": "APPLICATION_CLOSED",
+      "How": "NONE",
+      "Detail": "the application exited while this dialog was being attempted from PipelinePage; exit code 0xC000027B at 2026-09-16T21:57:38.0618965Z, pid 33664",
+      "Screenshots": [],
+      "TreePath": null,
+      "Title": null,
+      "InitialFocus": null,
+      "Buttons": [],
+      "Fields": [],
+      "TabOrder": [],
+      "ReverseTabOrder": [],
+      "ReverseTabEscaped": false,
+      "DefaultAction": "not attempted",
+      "Accessibility": [],
+      "FocusEnteredDialog": false,
+      "FocusEscapedDialog": false,
+      "ClosedOnEscape": false,
+      "FocusRestored": false,
+      "ExtraModals": 0,
+      "RowSpeech": [],
+      "FocusAfterClose": "NOT_ATTEMPTED",
+      "FocusLandedOn": null
+    }
+  ],
+  "RefusedKeystrokes": 0,
+  "ApplicationClosedAt": [
+    "RecordPitchDialog (APPLICATION_CLOSED)"
+  ]
+}

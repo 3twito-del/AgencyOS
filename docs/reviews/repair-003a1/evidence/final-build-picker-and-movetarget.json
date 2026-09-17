@@ -1,0 +1,255 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 5,
+  "Results": [
+    {
+      "DialogId": "material-picker@RecordPitchDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 35880,
+      "LaunchedUtc": "2026-09-16T23:31:46.2921749Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Engaged\u0022",
+      "FocusAfter": "Edit SummaryBox",
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.57
+        },
+        {
+          "Step": "pick:OpportunityList:Repair 003A.1 pursuit",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 2: \u0027Repair 003A.1 pursuit, Review Owner, Active, Talent engagement\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.91
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.25
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Engaged\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.6
+        },
+        {
+          "Step": "openkeep:PitchButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting material-picker@RecordPitchDialog",
+          "Alive": true,
+          "ElapsedSeconds": 10.58
+        },
+        {
+          "Step": "openkeep:PitchButton",
+          "Detail": "invoked \u0027PitchButton\u0027 (\u0027Record pitch\u0027); the dialog was seen after 0.26 s and the process was alive for the whole 5 s watch; left open",
+          "Alive": true,
+          "ElapsedSeconds": 16.23
+        },
+        {
+          "Step": "read:MaterialBox",
+          "Detail": "name=\u0027Material shown\u0027 selected=[\u0027Nothing was shown\u0027] state=Collapsed",
+          "Alive": true,
+          "ElapsedSeconds": 17.56
+        },
+        {
+          "Step": "focus:MaterialBox",
+          "Detail": "focused \u0027MaterialBox\u0027; focus is on ComboBox MaterialBox",
+          "Alive": true,
+          "ElapsedSeconds": 19.21
+        },
+        {
+          "Step": "key:Alt\u002BDown",
+          "Detail": "pressed Alt\u002BDown",
+          "Alive": true,
+          "ElapsedSeconds": 19.88
+        },
+        {
+          "Step": "wait:800",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 22
+        },
+        {
+          "Step": "shot:material-list",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 23.13
+        },
+        {
+          "Step": "key:Escape",
+          "Detail": "pressed Escape",
+          "Alive": true,
+          "ElapsedSeconds": 23.78
+        },
+        {
+          "Step": "key:Escape",
+          "Detail": "pressed Escape",
+          "Alive": true,
+          "ElapsedSeconds": 24.44
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.material-picker@RecordPitchDialog/01-before.png",
+        "evidence/crash.material-picker@RecordPitchDialog/02-open.png",
+        "evidence/crash.material-picker@RecordPitchDialog/material-list.png"
+      ],
+      "Trees": [
+        "evidence/crash.material-picker@RecordPitchDialog/01-before.json",
+        "evidence/crash.material-picker@RecordPitchDialog/02-open.json",
+        "evidence/crash.material-picker@RecordPitchDialog/material-list.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "MoveTargetDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 35852,
+      "LaunchedUtc": "2026-09-16T23:32:10.8480432Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Interested\u0022",
+      "FocusAfter": "ComboBox StageBox",
+      "FocusAfterClose": "Button StageButton",
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.51
+        },
+        {
+          "Step": "pick:OpportunityList:Autumn slate",
+          "Detail": "selected row 1 of \u0027OpportunityList\u0027 of 2: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.85
+        },
+        {
+          "Step": "tab:Pitches",
+          "Detail": "selected tab \u0027Pitches\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.19
+        },
+        {
+          "Step": "tab:Tasks",
+          "Detail": "selected tab \u0027Tasks\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.51
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 10.83
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Interested\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 12.18
+        },
+        {
+          "Step": "open:StageButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting MoveTargetDialog",
+          "Alive": true,
+          "ElapsedSeconds": 13.16
+        },
+        {
+          "Step": "open:StageButton",
+          "Detail": "invoked \u0027StageButton\u0027 (\u0027Move target\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 5 s watch; inspected by the dialog pass: OPENED, focus-in=True, tab-escapes=False, shift-tab-escapes=False, escape-closed=True, focus-after-close=ELSEWHERE_ON_PAGE, accessibility=0",
+          "Alive": true,
+          "ElapsedSeconds": 25.43
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.MoveTargetDialog/01-before.png"
+      ],
+      "Trees": [
+        "evidence/crash.MoveTargetDialog/01-before.json"
+      ],
+      "Inspection": {
+        "DialogId": "MoveTargetDialog",
+        "Outcome": "OPENED",
+        "How": "BUTTON",
+        "Detail": "invoked \u0027StageButton\u0027 (\u0027Move target\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 5 s watch",
+        "Screenshots": [
+          "evidence/dialog.MoveTargetDialog/01-open.png",
+          "evidence/dialog.MoveTargetDialog/02-after-escape.png"
+        ],
+        "TreePath": "evidence/dialog.MoveTargetDialog/ui-tree.json",
+        "Title": "Move target",
+        "InitialFocus": "ComboBox StageBox",
+        "Buttons": [
+          "Cancel",
+          "Move"
+        ],
+        "Fields": [
+          "ComboBox StageBox",
+          "Edit NoteBox"
+        ],
+        "TabOrder": [
+          "Edit NoteBox",
+          "Button PrimaryButton",
+          "Button CloseButton",
+          "ComboBox StageBox",
+          "Edit NoteBox",
+          "Button PrimaryButton",
+          "Button CloseButton",
+          "ComboBox StageBox",
+          "Edit NoteBox",
+          "Button PrimaryButton",
+          "Button CloseButton",
+          "ComboBox StageBox",
+          "Edit NoteBox",
+          "Button PrimaryButton"
+        ],
+        "ReverseTabOrder": [
+          "Edit NoteBox",
+          "ComboBox StageBox",
+          "Button CloseButton",
+          "Button PrimaryButton",
+          "Edit NoteBox",
+          "ComboBox StageBox",
+          "Button CloseButton",
+          "Button PrimaryButton",
+          "Edit NoteBox",
+          "ComboBox StageBox",
+          "Button CloseButton",
+          "Button PrimaryButton",
+          "Edit NoteBox",
+          "ComboBox StageBox"
+        ],
+        "ReverseTabEscaped": false,
+        "DefaultAction": "Primary",
+        "Accessibility": [],
+        "FocusEnteredDialog": true,
+        "FocusEscapedDialog": false,
+        "ClosedOnEscape": true,
+        "FocusRestored": true,
+        "ExtraModals": -1,
+        "RowSpeech": [],
+        "FocusAfterClose": "ELSEWHERE_ON_PAGE",
+        "FocusLandedOn": "Button StageButton"
+      }
+    }
+  ]
+}

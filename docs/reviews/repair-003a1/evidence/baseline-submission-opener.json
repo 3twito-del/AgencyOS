@@ -1,0 +1,77 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 10,
+  "Results": [
+    {
+      "DialogId": "RecordSubmissionDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 19916,
+      "LaunchedUtc": "2026-09-16T21:56:29.3240397Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Interested\u0022",
+      "FocusAfter": "Button FlyoutButton",
+      "FocusAfterClose": "Button SubmissionButton",
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.58
+        },
+        {
+          "Step": "row:OpportunityList:0",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 1: \u0027Autumn slate \u2014 lead role, Review Owner, Active, Project market\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.93
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.27
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Interested\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.6
+        },
+        {
+          "Step": "open:SubmissionButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting RecordSubmissionDialog",
+          "Alive": true,
+          "ElapsedSeconds": 10.5
+        },
+        {
+          "Step": "open:SubmissionButton",
+          "Detail": "invoked \u0027SubmissionButton\u0027 (\u0027Record submission\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 10 s watch; Escape pressed",
+          "Alive": true,
+          "ElapsedSeconds": 22.68
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.RecordSubmissionDialog/01-before.png",
+        "evidence/crash.RecordSubmissionDialog/02-open.png",
+        "evidence/crash.RecordSubmissionDialog/03-closed.png"
+      ],
+      "Trees": [
+        "evidence/crash.RecordSubmissionDialog/01-before.json",
+        "evidence/crash.RecordSubmissionDialog/02-open.json",
+        "evidence/crash.RecordSubmissionDialog/03-closed.json"
+      ]
+    }
+  ]
+}

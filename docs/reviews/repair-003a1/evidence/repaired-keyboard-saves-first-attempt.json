@@ -1,0 +1,510 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 3,
+  "Results": [
+    {
+      "DialogId": "pitch@RecordPitchDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 20568,
+      "LaunchedUtc": "2026-09-16T22:37:53.4233403Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Identified\u0022",
+      "FocusAfter": "Edit SummaryBox",
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 6.26
+        },
+        {
+          "Step": "pick:OpportunityList:Repair 003A.1 pursuit",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 2: \u0027Repair 003A.1 pursuit, Review Owner, Active, Talent engagement\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 7.62
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.95
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Identified\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 10.3
+        },
+        {
+          "Step": "openkeep:PitchButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting pitch@RecordPitchDialog",
+          "Alive": true,
+          "ElapsedSeconds": 11.49
+        },
+        {
+          "Step": "openkeep:PitchButton",
+          "Detail": "invoked \u0027PitchButton\u0027 (\u0027Record pitch\u0027); the dialog was seen after 0.26 s and the process was alive for the whole 3 s watch; left open",
+          "Alive": true,
+          "ElapsedSeconds": 14.94
+        },
+        {
+          "Step": "read:MaterialBox",
+          "Detail": "name=\u0027Material shown\u0027 selected=[\u0027Nothing was shown\u0027] state=Collapsed",
+          "Alive": true,
+          "ElapsedSeconds": 16.25
+        },
+        {
+          "Step": "focus:MaterialBox",
+          "Detail": "focused \u0027MaterialBox\u0027; focus is on ComboBox MaterialBox",
+          "Alive": true,
+          "ElapsedSeconds": 17.89
+        },
+        {
+          "Step": "key:Alt\u002BDown",
+          "Detail": "pressed Alt\u002BDown",
+          "Alive": true,
+          "ElapsedSeconds": 18.57
+        },
+        {
+          "Step": "shot:material-open",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 19.71
+        },
+        {
+          "Step": "key:Down",
+          "Detail": "pressed Down",
+          "Alive": true,
+          "ElapsedSeconds": 20.36
+        },
+        {
+          "Step": "key:Enter",
+          "Detail": "pressed Enter",
+          "Alive": true,
+          "ElapsedSeconds": 21.02
+        },
+        {
+          "Step": "read:MaterialBox",
+          "Detail": "name=\u0027Material shown\u0027 selected=[\u0027Repair 003A.1 reel \u00B7 Reel \u00B7 Cut one\u0027] state=Collapsed",
+          "Alive": true,
+          "ElapsedSeconds": 22.33
+        },
+        {
+          "Step": "focus:SummaryBox",
+          "Detail": "focused \u0027SummaryBox\u0027; focus is on Edit SummaryBox",
+          "Alive": true,
+          "ElapsedSeconds": 23.95
+        },
+        {
+          "Step": "type:Repair 003A.1 pitch by keyboard",
+          "Detail": "typed \u0027Repair 003A.1 pitch by keyboard\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 25.06
+        },
+        {
+          "Step": "shot:filled",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 25.67
+        },
+        {
+          "Step": "key:Enter",
+          "Detail": "pressed Enter",
+          "Alive": true,
+          "ElapsedSeconds": 26.33
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 30.65
+        },
+        {
+          "Step": "shot:after-record",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 31.2
+        },
+        {
+          "Step": "tab:Pitches",
+          "Detail": "selected tab \u0027Pitches\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 32.53
+        },
+        {
+          "Step": "wait:1500",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 35.35
+        },
+        {
+          "Step": "shot:pitches-tab",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 35.88
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.pitch@RecordPitchDialog/01-before.png",
+        "evidence/crash.pitch@RecordPitchDialog/02-open.png",
+        "evidence/crash.pitch@RecordPitchDialog/material-open.png",
+        "evidence/crash.pitch@RecordPitchDialog/filled.png",
+        "evidence/crash.pitch@RecordPitchDialog/after-record.png",
+        "evidence/crash.pitch@RecordPitchDialog/pitches-tab.png"
+      ],
+      "Trees": [
+        "evidence/crash.pitch@RecordPitchDialog/01-before.json",
+        "evidence/crash.pitch@RecordPitchDialog/02-open.json",
+        "evidence/crash.pitch@RecordPitchDialog/material-open.json",
+        "evidence/crash.pitch@RecordPitchDialog/filled.json",
+        "evidence/crash.pitch@RecordPitchDialog/after-record.json",
+        "evidence/crash.pitch@RecordPitchDialog/pitches-tab.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "submission@RecordSubmissionDialog",
+      "Workspace": "Pipeline",
+      "ProcessId": 29372,
+      "LaunchedUtc": "2026-09-16T22:38:29.4142354Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022A24, Identified\u0022",
+      "FocusAfter": "Button FlyoutButton",
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Pipeline",
+          "Detail": "Selected \u0027Pipeline\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.46
+        },
+        {
+          "Step": "pick:OpportunityList:Repair 003A.1 pursuit",
+          "Detail": "selected row 0 of \u0027OpportunityList\u0027 of 2: \u0027Repair 003A.1 pursuit, Review Owner, Active, Talent engagement\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.82
+        },
+        {
+          "Step": "tab:Targets",
+          "Detail": "selected tab \u0027Targets\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.15
+        },
+        {
+          "Step": "row:TargetList:0",
+          "Detail": "selected row 0 of \u0027TargetList\u0027 of 1: \u0027A24, Identified\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.49
+        },
+        {
+          "Step": "openkeep:SubmissionButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting submission@RecordSubmissionDialog",
+          "Alive": true,
+          "ElapsedSeconds": 10.55
+        },
+        {
+          "Step": "openkeep:SubmissionButton",
+          "Detail": "invoked \u0027SubmissionButton\u0027 (\u0027Record submission\u0027); the dialog was seen after 0.27 s and the process was alive for the whole 3 s watch; left open",
+          "Alive": true,
+          "ElapsedSeconds": 14.02
+        },
+        {
+          "Step": "read:MaterialBox",
+          "Detail": "name=\u0027Material\u0027 selected=[\u0027Nothing attached\u0027] state=Collapsed",
+          "Alive": true,
+          "ElapsedSeconds": 15.34
+        },
+        {
+          "Step": "focus:MaterialBox",
+          "Detail": "focused \u0027MaterialBox\u0027; focus is on ComboBox MaterialBox",
+          "Alive": true,
+          "ElapsedSeconds": 16.99
+        },
+        {
+          "Step": "key:Alt\u002BDown",
+          "Detail": "pressed Alt\u002BDown",
+          "Alive": true,
+          "ElapsedSeconds": 17.65
+        },
+        {
+          "Step": "key:Down",
+          "Detail": "pressed Down",
+          "Alive": true,
+          "ElapsedSeconds": 18.31
+        },
+        {
+          "Step": "key:Down",
+          "Detail": "pressed Down",
+          "Alive": true,
+          "ElapsedSeconds": 18.97
+        },
+        {
+          "Step": "key:Enter",
+          "Detail": "pressed Enter",
+          "Alive": true,
+          "ElapsedSeconds": 19.62
+        },
+        {
+          "Step": "read:MaterialBox",
+          "Detail": "name=\u0027Material\u0027 selected=[\u0027Repair 003A.1 reel \u00B7 Reel \u00B7 Cut two\u0027] state=Collapsed",
+          "Alive": true,
+          "ElapsedSeconds": 20.93
+        },
+        {
+          "Step": "focus:SubjectBox",
+          "Detail": "focused \u0027SubjectBox\u0027; focus is on Edit SubjectBox",
+          "Alive": true,
+          "ElapsedSeconds": 22.56
+        },
+        {
+          "Step": "type:Repair 003A.1 submission by keyboard",
+          "Detail": "typed \u0027Repair 003A.1 submission by keyboard\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 23.73
+        },
+        {
+          "Step": "shot:filled",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 24.49
+        },
+        {
+          "Step": "key:Enter",
+          "Detail": "pressed Enter",
+          "Alive": true,
+          "ElapsedSeconds": 25.16
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 29.48
+        },
+        {
+          "Step": "shot:after-record",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 30.07
+        },
+        {
+          "Step": "tab:Submissions",
+          "Detail": "selected tab \u0027Submissions\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 31.4
+        },
+        {
+          "Step": "wait:1500",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 34.23
+        },
+        {
+          "Step": "shot:submissions-tab",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 34.76
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.submission@RecordSubmissionDialog/01-before.png",
+        "evidence/crash.submission@RecordSubmissionDialog/02-open.png",
+        "evidence/crash.submission@RecordSubmissionDialog/filled.png",
+        "evidence/crash.submission@RecordSubmissionDialog/after-record.png",
+        "evidence/crash.submission@RecordSubmissionDialog/submissions-tab.png"
+      ],
+      "Trees": [
+        "evidence/crash.submission@RecordSubmissionDialog/01-before.json",
+        "evidence/crash.submission@RecordSubmissionDialog/02-open.json",
+        "evidence/crash.submission@RecordSubmissionDialog/filled.json",
+        "evidence/crash.submission@RecordSubmissionDialog/after-record.json",
+        "evidence/crash.submission@RecordSubmissionDialog/submissions-tab.json"
+      ],
+      "Inspection": null
+    },
+    {
+      "DialogId": "attach@AttachToRoleDialog",
+      "Workspace": "Projects",
+      "ProcessId": 31556,
+      "LaunchedUtc": "2026-09-16T22:39:04.2644035Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "DIALOG_OPENED",
+      "CrashedDuring": null,
+      "ExitCode": null,
+      "ExitedUtc": null,
+      "DialogTitle": "\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5",
+      "FocusBefore": "ListItem \u0022Idempotency probe, Open, Writer\u0022",
+      "FocusAfter": "ComboBox PartyKindBox",
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.5
+        },
+        {
+          "Step": "pick:ProjectList:Audit 002B",
+          "Detail": "selected row 16 of \u0027ProjectList\u0027 of 20: \u0027Audit 002B \u2014 The Quiet Coast, Active, Packaging, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.84
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.17
+        },
+        {
+          "Step": "row:RoleList:0",
+          "Detail": "selected row 0 of \u0027RoleList\u0027 of 3: \u0027Idempotency probe, Open, Writer\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 9.52
+        },
+        {
+          "Step": "openkeep:AttachButton (watch)",
+          "Detail": "a dialog titled \u0027\u200F\u200F\u05D7\u05DC\u05D5\u05DF \u05E7\u05D5\u05E4\u05E5\u0027 is in the tree, expecting attach@AttachToRoleDialog",
+          "Alive": true,
+          "ElapsedSeconds": 11.03
+        },
+        {
+          "Step": "openkeep:AttachButton",
+          "Detail": "invoked \u0027AttachButton\u0027 (\u0027Attach\u0027); the dialog was seen after 0.26 s and the process was alive for the whole 3 s watch; left open",
+          "Alive": true,
+          "ElapsedSeconds": 15.2
+        },
+        {
+          "Step": "read:PartyBox",
+          "Detail": "name=\u0027Who\u0027 selected=[] state=Collapsed",
+          "Alive": true,
+          "ElapsedSeconds": 16.53
+        },
+        {
+          "Step": "focus:PartyBox",
+          "Detail": "focused \u0027PartyBox\u0027; focus is on ComboBox PartyBox",
+          "Alive": true,
+          "ElapsedSeconds": 18.18
+        },
+        {
+          "Step": "key:Alt\u002BDown",
+          "Detail": "pressed Alt\u002BDown",
+          "Alive": true,
+          "ElapsedSeconds": 18.84
+        },
+        {
+          "Step": "shot:party-open",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 21.66
+        },
+        {
+          "Step": "key:Down",
+          "Detail": "pressed Down",
+          "Alive": true,
+          "ElapsedSeconds": 22.32
+        },
+        {
+          "Step": "key:Enter",
+          "Detail": "pressed Enter",
+          "Alive": true,
+          "ElapsedSeconds": 22.97
+        },
+        {
+          "Step": "read:PartyBox",
+          "Detail": "name=\u0027Who\u0027 selected=[\u0027Bartholomew-Fitzgerald Pemberton-Featherstonehaugh III \u00B7 \u6771\u5B9D\u682A\u5F0F\u4F1A\u793E\u0027] state=Collapsed",
+          "Alive": true,
+          "ElapsedSeconds": 24.3
+        },
+        {
+          "Step": "focus:SourceBox",
+          "Detail": "focused \u0027SourceBox\u0027; focus is on Edit SourceBox",
+          "Alive": true,
+          "ElapsedSeconds": 25.92
+        },
+        {
+          "Step": "type:Repair 003A.1 attach by keyboard",
+          "Detail": "typed \u0027Repair 003A.1 attach by keyboard\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 27.03
+        },
+        {
+          "Step": "shot:filled",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 28.43
+        },
+        {
+          "Step": "key:Enter",
+          "Detail": "pressed Enter",
+          "Alive": true,
+          "ElapsedSeconds": 29.1
+        },
+        {
+          "Step": "wait:3000",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 33.43
+        },
+        {
+          "Step": "shot:after-attach",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 34.65
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 35.97
+        },
+        {
+          "Step": "wait:1500",
+          "Detail": "waited",
+          "Alive": true,
+          "ElapsedSeconds": 38.81
+        },
+        {
+          "Step": "shot:attachments-tab",
+          "Detail": "captured",
+          "Alive": true,
+          "ElapsedSeconds": 39.8
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.attach@AttachToRoleDialog/01-before.png",
+        "evidence/crash.attach@AttachToRoleDialog/02-open.png",
+        "evidence/crash.attach@AttachToRoleDialog/party-open.png",
+        "evidence/crash.attach@AttachToRoleDialog/filled.png",
+        "evidence/crash.attach@AttachToRoleDialog/after-attach.png",
+        "evidence/crash.attach@AttachToRoleDialog/attachments-tab.png"
+      ],
+      "Trees": [
+        "evidence/crash.attach@AttachToRoleDialog/01-before.json",
+        "evidence/crash.attach@AttachToRoleDialog/02-open.json",
+        "evidence/crash.attach@AttachToRoleDialog/party-open.json",
+        "evidence/crash.attach@AttachToRoleDialog/filled.json",
+        "evidence/crash.attach@AttachToRoleDialog/after-attach.json",
+        "evidence/crash.attach@AttachToRoleDialog/attachments-tab.json"
+      ],
+      "Inspection": null
+    }
+  ]
+}

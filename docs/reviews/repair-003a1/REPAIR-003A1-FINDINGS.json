@@ -1,0 +1,130 @@
+{
+  "runId": "REPAIR-003A1",
+  "productBaseline": "7d88659",
+  "note": "Three findings. AOS-R002-022 is the crash 003B observed and did not number; it is repaired here. AOS-R002-023 was found by completing 003B's runtime verification and is repaired here. AOS-R002-024 is filed and deferred.",
+  "findings": [
+    {
+      "id": "AOS-R002-022",
+      "category": "Bug",
+      "severity": "S1",
+      "confidence": "ConfirmedDefect",
+      "reproducibility": "Always",
+      "phase": "Repair003A1",
+      "firstObserved": "2026-09-15T02:37Z, Audit 002 Phase C final dialog pass, recorded as 'the application window disappeared' against AnswerOfferDialog, AttachToRoleDialog, MoveTargetDialog, RecordPitchDialog and RecordSubmissionDialog. The wording could not then tell a closed window from a dead process (Phase C reviewer defect 20). First Windows fault record: 2026-09-15T21:42:46Z, pid 14920, during Repair Wave 003B. First exit code: 2026-09-16T21:48:55Z, 0xC000027B, pid 32008, this wave.",
+      "historicalBaseline": "Reproduced on 2301fe5, the last commit before Repair Wave 003B, built in an isolated worktree: the same three tabs exit with 0xC000027B and the dialog pass records all three closures. PREEXISTING_BEFORE_003B = true. The eleven markup sites are unchanged since milestones M5-M8 (a59d4f0, 6bc1338, 1dc6b43, 6a29198); commits older than 2301fe5 were not run.",
+      "workspace": [
+        "workspace.projects",
+        "workspace.pipeline",
+        "workspace.deals",
+        "workspace.contracts"
+      ],
+      "dialog": [
+        "AttachToRoleDialog",
+        "RecordPitchDialog",
+        "RecordSubmissionDialog"
+      ],
+      "role": "owner",
+      "preconditions": "A detail tab whose list is empty. Attachments on Projects is always empty, because nothing sets its ItemsSource.",
+      "steps": [
+        "Open Projects.",
+        "Select any project, or none.",
+        "Select the Attachments tab."
+      ],
+      "expected": "An empty list.",
+      "actual": "The client process ends with exit code 0xC000027B (STATUS_STOWED_EXCEPTION) in Microsoft.UI.Xaml.dll 3.2.3.0. The stowed exception is XAML error 0x88000FA8; Application.UnhandledException receives Microsoft.UI.Xaml.LayoutCycleException, HRESULT 0x802B0014, 'Layout cycle detected. Layout could not complete.', unhandled. None of the three dialogs is involved: each opens and survives when reached without visiting an empty tab. The dialog pass walks every tab when its first attempt does not open the dialog, so it died on an empty tab and recorded the dialog it was attempting.",
+      "sites": [
+        "ProjectsPage.xaml AttachmentList, MaterialList, PackageList, HistoryList",
+        "PipelinePage.xaml PitchList, SubjectList, TaskList, HistoryList",
+        "DealsPage.xaml TaskList, HistoryList",
+        "ContractsPage.xaml HistoryList"
+      ],
+      "httpResult": null,
+      "persistedResult": "Nothing. The crash is in layout, before any request.",
+      "mutationAttempted": false,
+      "userImpact": "Opening an ordinary tab on an ordinary record ends the application. Attachments does it on every project. Anything unsaved elsewhere in the client is lost. Not S0: nothing wrong is persisted.",
+      "rootCause": "Each site was a ListView with Padding=\"4\" as the whole content of a ScrollViewer. Empty, the list alternates between two desired heights (14x26 with its own vertical scroll bar part visible, 8x8 without) on successive layout passes, so the tab content is arranged at 26 then 14 then 26 until WinUI's layout countdown expires and it raises LayoutCycleException. With no UnhandledException handler, the framework fails fast.",
+      "likelySource": "src/AgencyOS.Windows/Pages/{Projects,Pipeline,Deals,Contracts}Page.xaml: <ScrollViewer><ListView Padding=\"4\"> on a TabViewItem.",
+      "ownerDecisionRequired": false,
+      "repairRisk": "Markup only. The outer ScrollViewer is removed; the list scrolls itself.",
+      "repair": "Repair Wave 003A.1. Outer ScrollViewer removed at all eleven sites.",
+      "disposition": "REPAIRED",
+      "distinctFrom": "AOS-R002-021, which is a clipped command bar at 1600x1000 and never ends the process. The window-size hypothesis for this crash was rejected by 003B and was not reopened: the native evidence points at a layout cycle inside one tab, not at the window.",
+      "evidence": [
+        "docs/reviews/repair-003a1/REPAIR-003A1-ROOT-CAUSE.md",
+        "docs/reviews/repair-003a1/evidence/"
+      ],
+      "whyNotFoundEarlier": "Phase B's dialog pass opened all three dialogs at the first attempt, so it never walked into an empty tab. Phase C created records with no roles and no targets at the top of both lists; from then on the first attempt was refused, the pass walked the tabs, and the process died. Every observation named the dialog being attempted, because nothing recorded which step was running."
+    },
+    {
+      "id": "AOS-R002-023",
+      "category": "Bug",
+      "severity": "S2",
+      "confidence": "ConfirmedDefect",
+      "reproducibility": "Always",
+      "phase": "Repair003A1",
+      "firstObserved": "2026-09-16, completing Repair Wave 003B's runtime verification of RecordPitchDialog and RecordSubmissionDialog.",
+      "historicalBaseline": "Introduced by Repair Wave 003B (7d88659), which added SubjectMaterialsAsync. Before 003B the field was a typed identifier nobody could obtain (AOS-R001-006).",
+      "workspace": [
+        "workspace.pipeline"
+      ],
+      "dialog": [
+        "RecordPitchDialog",
+        "RecordSubmissionDialog"
+      ],
+      "role": "owner",
+      "preconditions": "A pursuit whose subject is a talent profile with materials.",
+      "steps": [
+        "Open Pipeline, select such a pursuit and one of its targets.",
+        "Record pitch, or Record submission.",
+        "Open the material picker."
+      ],
+      "expected": "The subject's materials.",
+      "actual": "Only 'Nothing was shown' / 'Nothing attached'. A pursuit names talent by profile identifier; materials are listed by person identifier; the picker asked with the profile's. GET /talent/{profileId}/materials returned 0 items and GET /talent/{personId}/materials returned 2 for the same talent. The 'Person' branch was unreachable: the server accepts only TalentProfile, Project, Package and ProjectRole as subject kinds.",
+      "httpResult": "200 with an empty list",
+      "persistedResult": null,
+      "mutationAttempted": true,
+      "userImpact": "An operator cannot record which material was sent or shown. Two of the fourteen fields 003B counted as repaired did not work for any real pursuit.",
+      "likelySource": "src/AgencyOS.Windows/Pages/PipelinePage.xaml.cs SubjectMaterialsAsync (7d88659).",
+      "ownerDecisionRequired": false,
+      "repairRisk": "Client only. One call to the talent roster, which CreateOpportunityDialog already reads, to map profile to person.",
+      "repair": "Repair Wave 003A.1. SubjectMaterials.People maps each talent subject to its person; the page asks for that person's materials.",
+      "disposition": "REPAIRED",
+      "evidence": [
+        "docs/reviews/repair-003a1/REPAIR-003A1-RUNTIME.md",
+        "docs/reviews/repair-003a1/evidence/request-bodies.jsonl",
+        "docs/reviews/repair-003a1/evidence/utc-replay.json"
+      ],
+      "whyNotFoundEarlier": "003B's runtime verification of these two dialogs was blocked by AOS-R002-022, and every fixture pursuit had a Project subject, which has no materials by design."
+    },
+    {
+      "id": "AOS-R002-024",
+      "category": "Ux",
+      "severity": "S3",
+      "confidence": "ConfirmedDefect",
+      "reproducibility": "Always",
+      "phase": "Repair003A1",
+      "workspace": [
+        "workspace.projects",
+        "workspace.pipeline"
+      ],
+      "dialog": [],
+      "role": "owner",
+      "preconditions": "A command the server refuses with a domain reason.",
+      "steps": [
+        "On a pursuit whose target is still Identified, record a pitch."
+      ],
+      "expected": "The server's reason: 'This target has not been approved yet. Approve it before recording a pitch.'",
+      "actual": "'That did not happen — Invalid request.' ProjectsPage and PipelinePage show AgencyOsApiException.Message, which is the problem title. Six other pages show Detail ?? Message. PipelinePage's own comment says the useful sentence is the one the domain wrote.",
+      "httpResult": "400",
+      "persistedResult": "Nothing.",
+      "mutationAttempted": true,
+      "userImpact": "The operator is told the request was invalid and not why, so the rule that would let them proceed is hidden.",
+      "likelySource": "src/AgencyOS.Windows/Pages/ProjectsPage.xaml.cs:307 and PipelinePage.xaml.cs Guarded: DetailError(failure.Message).",
+      "ownerDecisionRequired": false,
+      "repairRisk": "Low. Two call sites, the pattern the other six pages already use.",
+      "disposition": "DEFERRED",
+      "suggestedRepairWave": "003C",
+      "whyNotRepairedHere": "A different root, and it neither causes nor blocks the crash. Admitting it would widen the wave beyond its three crashes."
+    }
+  ]
+}

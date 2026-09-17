@@ -1,0 +1,69 @@
+{
+  "RunId": "REPAIR-003A1",
+  "Executable": "C:/Projects/AgencyOS/src/AgencyOS.Windows/bin/Debug/net10.0-windows10.0.26100.0/AgencyOS.Windows.exe",
+  "Environment": {
+    "AGENCYOS_API_BASE": "http://127.0.0.1:5199",
+    "AGENCYOS_ORGANIZATION_ID": "01a0a015-c44e-7f0e-9c4c-380e118b5e2b",
+    "AGENCYOS_DEV_SUBJECT": "w2-owner"
+  },
+  "MinimalEnvironment": true,
+  "WindowSize": "1600x1000",
+  "WatchSeconds": 3,
+  "Results": [
+    {
+      "DialogId": "AttachToRoleDialog",
+      "Workspace": "Projects",
+      "ProcessId": 8976,
+      "LaunchedUtc": "2026-09-16T21:50:07.450183Z",
+      "WindowSize": "1600x1000",
+      "Verdict": "CRASH_REPRODUCED",
+      "CrashedDuring": "tab:Attachments",
+      "ExitCode": "0xC000027B",
+      "ExitedUtc": "2026-09-16T21:50:21.5739104Z",
+      "DialogTitle": null,
+      "FocusBefore": "TabItem \u0022Roles\u0022",
+      "FocusAfter": null,
+      "FocusAfterClose": null,
+      "Steps": [
+        {
+          "Step": "nav:Projects",
+          "Detail": "Selected \u0027Projects\u0027.",
+          "Alive": true,
+          "ElapsedSeconds": 5.58
+        },
+        {
+          "Step": "row:ProjectList:0",
+          "Detail": "selected row 0 of \u0027ProjectList\u0027 of 20: \u0027Phase C synthetic project, Active, Concept, Feature film\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 6.94
+        },
+        {
+          "Step": "tab:Roles",
+          "Detail": "selected tab \u0027Roles\u0027",
+          "Alive": true,
+          "ElapsedSeconds": 8.29
+        },
+        {
+          "Step": "open:AttachButton",
+          "Detail": "invoked \u0027AttachButton\u0027 (\u0027Attach\u0027); the process stayed alive and no dialog appeared",
+          "Alive": true,
+          "ElapsedSeconds": 13.74
+        },
+        {
+          "Step": "tab:Attachments",
+          "Detail": "selected tab \u0027Attachments\u0027",
+          "Alive": false,
+          "ElapsedSeconds": 15.08
+        }
+      ],
+      "Screenshots": [
+        "evidence/crash.AttachToRoleDialog/01-before.png",
+        "evidence/crash.AttachToRoleDialog/02-after.png"
+      ],
+      "Trees": [
+        "evidence/crash.AttachToRoleDialog/01-before.json",
+        "evidence/crash.AttachToRoleDialog/02-after.json"
+      ]
+    }
+  ]
+}
