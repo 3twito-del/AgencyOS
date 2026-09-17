@@ -270,37 +270,39 @@
                 </TabViewItem>
 
                 <TabViewItem Header="Tasks" IsClosable="False">
-                    <ScrollViewer>
-                        <ListView x:Name="TaskList"
-                                  AutomationProperties.Name="Tasks" SelectionMode="None" Padding="4">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
-                                        <TextBlock Text="{Binding Title}" />
-                                        <TextBlock Text="{Binding Priority, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
-                                                   Style="{StaticResource CaptionTextBlockStyle}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </ScrollViewer>
+                    <!--
+                        The list scrolls itself. Wrapped in a ScrollViewer as well, an empty
+                        list with padding alternated between two heights on every layout pass
+                        until WinUI stopped with a layout cycle, which ends the process
+                        (AOS-R002-022).
+                    -->
+                    <ListView x:Name="TaskList"
+                              AutomationProperties.Name="Tasks" SelectionMode="None" Padding="4">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                    <TextBlock Text="{Binding Title}" />
+                                    <TextBlock Text="{Binding Priority, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </TabViewItem>
 
                 <TabViewItem Header="Activity" IsClosable="False">
-                    <ScrollViewer>
-                        <ListView x:Name="HistoryList"
-                                  AutomationProperties.Name="History" SelectionMode="None" Padding="4">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
-                                        <TextBlock Text="{Binding Summary}" />
-                                        <TextBlock Text="{Binding Detail}" Opacity="0.7"
-                                                   Style="{StaticResource CaptionTextBlockStyle}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </ScrollViewer>
+                    <ListView x:Name="HistoryList"
+                              AutomationProperties.Name="History" SelectionMode="None" Padding="4">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                    <TextBlock Text="{Binding Summary}" />
+                                    <TextBlock Text="{Binding Detail}" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </TabViewItem>
             </TabView>
         </Grid>

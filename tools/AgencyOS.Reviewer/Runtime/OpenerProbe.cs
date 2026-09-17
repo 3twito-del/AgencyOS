@@ -525,7 +525,7 @@ internal sealed class OpenerProbe
         ];
     }
 
-    private (bool Ran, string Why) RunFromPalette(string commandId, string directory)
+    internal (bool Ran, string Why) RunFromPalette(string commandId, string directory)
     {
         if (CommandRegistry.Default.Find(commandId) is not { } command)
         {

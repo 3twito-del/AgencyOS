@@ -35,6 +35,17 @@ public readonly record struct ReviewStep(bool Succeeded, string Detail)
 /// </remarks>
 internal sealed class ReviewApp : IDisposable
 {
+    /// <summary>What a Windows desktop process needs, and nothing that is a secret.</summary>
+    internal static readonly IReadOnlyList<string> WindowsVariables =
+    [
+        "ALLUSERSPROFILE", "APPDATA", "CommonProgramFiles", "CommonProgramFiles(x86)",
+        "CommonProgramW6432", "COMPUTERNAME", "ComSpec", "DOTNET_ROOT", "HOMEDRIVE",
+        "HOMEPATH", "LOCALAPPDATA", "NUMBER_OF_PROCESSORS", "OS", "Path", "PATHEXT",
+        "PROCESSOR_ARCHITECTURE", "ProgramData", "ProgramFiles", "ProgramFiles(x86)",
+        "ProgramW6432", "PUBLIC", "SystemDrive", "SystemRoot", "TEMP", "TMP",
+        "USERDOMAIN", "USERNAME", "USERPROFILE", "windir",
+    ];
+
     private readonly Process _process;
 
     private ReviewApp(Process process, AutomationElement window, nint handle)
@@ -68,11 +79,53 @@ internal sealed class ReviewApp : IDisposable
         }
     }
 
+    /// <summary>
+    /// How the process ended, once it has: the exit code and when.
+    /// </summary>
+    /// <remarks>
+    /// Added by Repair Wave 003A.1. "The application closed" was recorded sixteen
+    /// times across Audit 002 Phase C and Repair Wave 003B, and the event log holds
+    /// one crash. An exit code is what separates a stowed-exception termination
+    /// (<c>0xC000027B</c>) from every other way a process can go away.
+    /// </remarks>
+    internal (int Code, DateTime ExitedUtc)? Exit
+    {
+        get
+        {
+            try
+            {
+                _process.Refresh();
+
+                return _process.HasExited
+                    ? (_process.ExitCode, _process.ExitTime.ToUniversalTime())
+                    : null;
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+        }
+    }
+
     /// <summary>Starts the client against a named environment and waits for its window.</summary>
+    /// <param name="executablePath">The client executable.</param>
+    /// <param name="environment">Variables the client is pointed with.</param>
+    /// <param name="timeout">How long to wait for its window.</param>
+    /// <param name="minimalEnvironment">
+    /// Start from an empty environment rather than the harness's own.
+    /// </param>
+    /// <remarks>
+    /// <paramref name="minimalEnvironment"/> exists because a crashing client
+    /// leaves a minidump, and a minidump holds the process environment block. The
+    /// one Windows Error Reporting kept during Repair Wave 003B carried every
+    /// credential in the shell that launched the harness. A probe whose purpose is
+    /// to make the client crash starts it with only what Windows needs.
+    /// </remarks>
     internal static ReviewApp Launch(
         string executablePath,
         IReadOnlyDictionary<string, string> environment,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        bool minimalEnvironment = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
         ArgumentNullException.ThrowIfNull(environment);
@@ -82,6 +135,26 @@ internal sealed class ReviewApp : IDisposable
             UseShellExecute = false,
             WorkingDirectory = Path.GetDirectoryName(executablePath)!,
         };
+
+        if (minimalEnvironment)
+        {
+            Dictionary<string, string> kept = new(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string name in WindowsVariables)
+            {
+                if (start.Environment.TryGetValue(name, out string? value) && value is not null)
+                {
+                    kept[name] = value;
+                }
+            }
+
+            start.Environment.Clear();
+
+            foreach ((string name, string value) in kept)
+            {
+                start.Environment[name] = value;
+            }
+        }
 
         foreach ((string name, string value) in environment)
         {

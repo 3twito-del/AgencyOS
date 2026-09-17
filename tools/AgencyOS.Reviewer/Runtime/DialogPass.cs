@@ -89,7 +89,8 @@ internal sealed class DialogPass
                             + "while this dialog was being attempted from "
                             + (opening.Page ?? "?") + "; the process is still running"
                         : "the application exited while this dialog was being "
-                            + "attempted from " + (opening.Page ?? "?"));
+                            + "attempted from " + (opening.Page ?? "?")
+                            + ExitDescription());
             }
 
             if (attempt.Outcome == "OPENED")
@@ -105,6 +106,62 @@ internal sealed class DialogPass
             "DID_NOT_APPEAR",
             string.Join(" | ", tried));
     }
+
+    /// <summary>Describes a dialog that something else has already opened.</summary>
+    /// <param name="dialog">What the source says about it.</param>
+    /// <param name="focusBefore">Where focus was before the opener ran.</param>
+    /// <param name="how">How it was opened.</param>
+    /// <param name="detail">What the opener reported.</param>
+    /// <returns>The same observation the pass records, Escape and focus included.</returns>
+    /// <remarks>
+    /// Repair Wave 003A.1. The pass selects the first row of one list, and when
+    /// that row is not one the opener's guard accepts, the product correctly
+    /// refuses and the dialog is never inspected. A probe that walks an explicit
+    /// path to the opener hands the open dialog here, so it is measured by exactly
+    /// the checks every other dialog was measured by.
+    /// </remarks>
+    internal DialogObservation Describe(
+        DialogRecord dialog, UiaNode? focusBefore, string how, string detail)
+    {
+        ArgumentNullException.ThrowIfNull(dialog);
+
+        string directory = Path.Combine(_runDirectory, "evidence", "dialog." + dialog.DialogId);
+
+        Directory.CreateDirectory(directory);
+
+        _app.Refresh();
+
+        UiaNode afterOpen = _app.Snapshot();
+        UiaNode? modal = Modal(afterOpen, dialog);
+
+        List<string> screenshots = [];
+        string shot = Path.Combine(directory, "01-open.png");
+
+        if (_app.Capture(shot))
+        {
+            screenshots.Add(Relative(shot));
+        }
+
+        string treePath = Path.Combine(directory, "ui-tree.json");
+
+        File.WriteAllText(treePath, JsonSerializer.Serialize(afterOpen, Json));
+
+        return modal is null
+            ? DialogObservation.NotAttempted(dialog.DialogId, "DID_NOT_APPEAR", detail)
+            : Inspect(dialog, modal, afterOpen, focusBefore, how, detail, directory, screenshots, treePath);
+    }
+
+    /// <summary>The exit code and time of a client that has gone, for the record.</summary>
+    /// <remarks>
+    /// Repair Wave 003A.1: sixteen closures were recorded without one, and only one
+    /// of them left a crash in the event log.
+    /// </remarks>
+    private string ExitDescription() =>
+        _app.Exit is { } exit
+            ? "; exit code 0x" + exit.Code.ToString("X8", System.Globalization.CultureInfo.InvariantCulture)
+                + " at " + exit.ExitedUtc.ToString("O", System.Globalization.CultureInfo.InvariantCulture)
+                + ", pid " + _app.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : string.Empty;
 
     /// <summary>Opens a dialog and leaves it open.</summary>
     /// <param name="dialog">The dialog to reach.</param>

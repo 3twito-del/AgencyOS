@@ -70,6 +70,7 @@ public static class Program
                 "tab-probe" => TabProbeMode(options),
                 "opener-probe" => OpenerProbeMode(options),
                 "reach-probe" => ReachProbeMode(options),
+                "crash-probe" => CrashProbeMode(options),
                 "validation" => Validation(options),
                 "sync" => Sync(options),
                 "report" => Render(options),
@@ -518,6 +519,11 @@ public static class Program
         string subject = Option(options, "subject", "review-owner");
         string only = Option(options, "only", string.Empty);
 
+        // Opt-in, so every earlier run stays reproducible as it was taken. See
+        // ReviewApp.Launch for why a run expected to crash the client wants it.
+        bool minimal = string.Equals(
+            Option(options, "minimal-env", "false"), "true", StringComparison.OrdinalIgnoreCase);
+
         if (executable.Length == 0 || runDirectory.Length == 0)
         {
             Console.Error.WriteLine("reviewer: dialog-runtime needs --exe and --out.");
@@ -549,7 +555,8 @@ public static class Program
 
         Console.WriteLine("Launching " + executable);
 
-        ReviewApp app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+        ReviewApp app = ReviewApp.Launch(
+            executable, environment, TimeSpan.FromSeconds(60), minimalEnvironment: minimal);
         DialogPass pass = new(app, runDirectory);
         List<DialogObservation> observations = [];
         List<string> closures = [];
@@ -589,7 +596,8 @@ public static class Program
 
                 app.Dispose();
 
-                app = ReviewApp.Launch(executable, environment, TimeSpan.FromSeconds(60));
+                app = ReviewApp.Launch(
+                    executable, environment, TimeSpan.FromSeconds(60), minimalEnvironment: minimal);
                 pass = new DialogPass(app, runDirectory);
             }
 
@@ -1414,6 +1422,130 @@ public static class Program
         return 0;
     }
 
+    // ---------------------------------------------------------- crash-probe
+
+    /// <summary>
+    /// Walks to named openers one step at a time and records whether the client
+    /// survives each one.
+    /// </summary>
+    /// <remarks>
+    /// Added by Repair Wave 003A.1 for <c>AOS-R002-022</c>. Every case gets a
+    /// fresh client, so one crash cannot be reported against the next dialog, and
+    /// every client is started with a minimal environment because the point is to
+    /// make it leave a minidump. Cases are <c>Dialog|Workspace|step;step;...</c>,
+    /// separated by commas.
+    /// </remarks>
+    private static int CrashProbeMode(IReadOnlyDictionary<string, string> options)
+    {
+        string executable = Option(options, "exe", string.Empty);
+        string runDirectory = Option(options, "out", string.Empty);
+        string apiBase = Option(options, "api", "http://127.0.0.1:5199");
+        string organization = Option(options, "org", string.Empty);
+        string subject = Option(options, "subject", "review-owner");
+        string requested = Option(options, "cases", string.Empty);
+        string size = Option(options, "size", "1600x1000");
+        int watch = int.Parse(Option(options, "watch", "10"), CultureInfo.InvariantCulture);
+
+        if (executable.Length == 0 || runDirectory.Length == 0 || requested.Length == 0)
+        {
+            Console.Error.WriteLine("reviewer: crash-probe needs --exe, --out and --cases.");
+
+            return 2;
+        }
+
+        int width = 1600;
+        int height = 1000;
+
+        if (size.Split('x') is [string w, string h]
+            && int.TryParse(w, CultureInfo.InvariantCulture, out int parsedWidth)
+            && int.TryParse(h, CultureInfo.InvariantCulture, out int parsedHeight))
+        {
+            width = parsedWidth;
+            height = parsedHeight;
+        }
+
+        Directory.CreateDirectory(runDirectory);
+
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
+        {
+            ["AGENCYOS_API_BASE"] = apiBase,
+            ["AGENCYOS_ORGANIZATION_ID"] = organization,
+            ["AGENCYOS_DEV_SUBJECT"] = subject,
+        };
+
+        // The inventory names each dialog's title, which is how the dialog pass
+        // recognises it. Without --repo the probe still watches the process; it
+        // just cannot hand the dialog to the pass. A case may be labelled
+        // label@DialogId so that one dialog can be probed down several paths.
+        string repository = Option(options, "repo", string.Empty);
+        IReadOnlyList<DialogRecord> inventory = repository.Length > 0
+            ? DialogScanner.Scan(SourceIndex.Load(repository))
+            : [];
+
+        DialogRecord? Record(string label) =>
+            inventory.FirstOrDefault(x => string.Equals(
+                x.DialogId,
+                label.Contains('@', StringComparison.Ordinal) ? label[(label.IndexOf('@', StringComparison.Ordinal) + 1)..] : label,
+                StringComparison.Ordinal));
+
+        List<CrashProbeResult> results = [];
+
+        foreach (string entry in requested.Split(
+            ',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            string[] parts = entry.Split('|', StringSplitOptions.TrimEntries);
+
+            if (parts.Length < 3)
+            {
+                Console.Error.WriteLine("reviewer: '" + entry + "' is not dialog|workspace|steps.");
+
+                continue;
+            }
+
+            string[] path = parts[2].Split(
+                ';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            Console.WriteLine("Launching " + executable + " for " + parts[0]);
+
+            DateTime launched = DateTime.UtcNow;
+            System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
+
+            using ReviewApp app = ReviewApp.Launch(
+                executable, environment, TimeSpan.FromSeconds(60), minimalEnvironment: true);
+
+            CrashProbe probe = new(app, runDirectory, clock, Record);
+
+            CrashProbeResult result = probe.Run(
+                parts[0], parts[1], path, width, height, TimeSpan.FromSeconds(watch), launched);
+
+            results.Add(result);
+
+            Console.WriteLine("== " + result.DialogId + "  ->  " + result.Verdict
+                + "  pid " + result.ProcessId.ToString(CultureInfo.InvariantCulture)
+                + (result.ExitCode is { } code ? "  exit " + code : string.Empty));
+
+            foreach (CrashProbeStep step in result.Steps)
+            {
+                Console.WriteLine("   " + step.ElapsedSeconds.ToString("0.00", CultureInfo.InvariantCulture).PadLeft(7)
+                    + (step.Alive ? "  alive  " : "  GONE   ") + step.Step + " — " + step.Detail);
+            }
+        }
+
+        Write(Path.Combine(runDirectory, "crash-probe.json"), new
+        {
+            RunId = Option(options, "run", "REPAIR-003A1"),
+            Executable = executable,
+            Environment = environment,
+            MinimalEnvironment = true,
+            WindowSize = width.ToString(CultureInfo.InvariantCulture) + "x"
+                + height.ToString(CultureInfo.InvariantCulture),
+            WatchSeconds = watch,
+            Results = results,
+        });
+
+        return 0;
+    }
+
     // ---------------------------------------------------------------- report
 
     /// <summary>Renders the audit outputs from gathered evidence.</summary>
@@ -1516,9 +1648,10 @@ public static class Program
         Console.WriteLine("  layout     --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...] [--pages Deals,...]");
         Console.WriteLine("  rebaseline --exe <path> --out <run-dir> --org <guid> [--sizes 900x700,...]  re-runs corrected detectors only");
         Console.WriteLine("  dialogs    --repo <path> [--out <file>]                      the static dialog inventory");
-        Console.WriteLine("  dialog-runtime --exe <path> --out <run-dir> --org <guid> [--only <DialogId,...>]  opens and operates them");
+        Console.WriteLine("  dialog-runtime --exe <path> --out <run-dir> --org <guid> [--only <DialogId,...>] [--minimal-env true]  opens and operates them");
         Console.WriteLine("  validation --exe <path> --out <run-dir> --org <guid> [--only <DialogId,...>]      submits them unready");
         Console.WriteLine("  opener-probe --exe <path> --out <run-dir> --org <guid> [--cases <Dialog/Workspace/Tab/command[/control][/row],...>]  one opener at a time, with a verdict");
+        Console.WriteLine("  crash-probe --exe <path> --out <run-dir> --org <guid> --cases <[label@]Dialog|Workspace|step;step,...> [--repo <path>] [--watch <s>]  whether the client survives each step");
         Console.WriteLine("  report     --out <run-dir> [--static <dir>]");
         Console.WriteLine("  reproduce  --finding <id> --out <run-dir>");
         Console.WriteLine("  repair     refused during an audit");
