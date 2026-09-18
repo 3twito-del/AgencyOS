@@ -230,6 +230,12 @@ string? bootstrapToken =
 BootstrapTokenGate? bootstrapGate =
     string.IsNullOrWhiteSpace(bootstrapToken) ? null : new BootstrapTokenGate(bootstrapToken);
 
+// Timestamps arrive written in whatever offset the caller's machine uses, and
+// mean the instant they denote. They become UTC here, once, on the way in
+// (AOS-R002-001). Calendar dates are DateOnly and are not touched.
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new UtcInstantConverter()));
+
 // Application composition. The host decides which capabilities it uses; the
 // infrastructure assembly only provides them.
 builder.Services.AddHttpContextAccessor();
