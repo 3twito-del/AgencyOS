@@ -98,46 +98,10 @@ public sealed class MissingNestedObjectTests
     public void AnOptionalPartyMayStillBeOmitted() =>
         Assert.Null(EndpointParsing.ToEndpointOrNull(null, "subject"));
 
-    /// <summary>The published contract already required it.</summary>
-    /// <remarks>
-    /// Recorded as a test because the alternative reading — that the contract was
-    /// wrong and the server right — would have called for a contract change
-    /// instead of this one.
-    /// </remarks>
-    [Fact]
-    public void TheContractAlreadyRequiredTheParty()
-    {
-        string document = File.ReadAllText(Path.Combine(
-            RepositoryRoot, "artifacts", "openapi", "AgencyOS.Api.json"));
-
-        using System.Text.Json.JsonDocument parsed = System.Text.Json.JsonDocument.Parse(document);
-
-        System.Text.Json.JsonElement schema = parsed.RootElement
-            .GetProperty("components")
-            .GetProperty("schemas")
-            .GetProperty("InteractionParticipantRequest");
-
-        Assert.Contains(
-            schema.GetProperty("required").EnumerateArray().Select(x => x.GetString()),
-            x => x == "party");
-    }
-
-    private static string RepositoryRoot { get; } = Find();
-
-    private static string Find()
-    {
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
-
-        while (directory is not null)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "AgencyOS.sln")))
-            {
-                return directory.FullName;
-            }
-
-            directory = directory.Parent;
-        }
-
-        throw new InvalidOperationException("The repository root was not found.");
-    }
+    // The contract-side half of this finding — that InteractionParticipantRequest
+    // already declares `party` required — is asserted in OpenApiContractTests
+    // against the document the API serves. It was here, reading the generated
+    // artifacts/openapi/AgencyOS.Api.json, which only exists after the contract
+    // gate has run in another CI job; these tests deliberately need no host and no
+    // build output, and that one quietly needed both.
 }

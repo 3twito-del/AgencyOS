@@ -600,6 +600,40 @@ public sealed partial class OpenApiContractTests
         Assert.NotEmpty(schemas.EnumerateObject());
     }
 
+    /// <summary>The published contract requires an interaction participant's party.</summary>
+    /// <remarks>
+    /// <para>
+    /// <c>AOS-R002-025</c>'s other half. The server answered <c>500</c> to a
+    /// participant with no <c>party</c>; the contract already said the field was
+    /// required, so the repair belonged in the server. Recorded as a test because
+    /// the alternative reading — that the contract was wrong and the server right —
+    /// would have called for a contract change instead.
+    /// </para>
+    /// <para>
+    /// It lives here, against the document the API serves, rather than beside the
+    /// mapping tests: those deliberately need no host, and an earlier version of
+    /// this assertion read <c>artifacts/openapi/AgencyOS.Api.json</c> from disk. That
+    /// file is written by the contract gate, which runs in a different CI job, so
+    /// the test passed on a developer's machine and failed in CI on a missing file.
+    /// A test that depends on another job's output is testing the build, not the
+    /// product.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task Contract_RequiresAnInteractionParticipantParty()
+    {
+        using JsonDocument document = await GetContractAsync();
+
+        JsonElement schema = document.RootElement
+            .GetProperty("components")
+            .GetProperty("schemas")
+            .GetProperty("InteractionParticipantRequest");
+
+        Assert.Contains(
+            schema.GetProperty("required").EnumerateArray().Select(x => x.GetString()),
+            x => x == "party");
+    }
+
     private async Task<JsonDocument> GetContractAsync()
     {
         using HttpClient client = _fixture.Factory.CreateClient();
