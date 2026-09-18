@@ -55,6 +55,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.OpenApi;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -464,6 +465,26 @@ builder.Services.AddOpenApi("v1", options =>
             $"AgencyOS versioned domain API. API contract version {ApiContract.Current}. "
                 + "Clients present release identity headers on every request and are refused "
                 + "for mutations when revoked or incompatible (docs/06_FORCED_UPDATE_PROTOCOL.md).";
+
+        return Task.CompletedTask;
+    });
+
+    // A timestamp is still a date-time string on the wire. The converter that
+    // reads it as a UTC instant (AOS-R002-001) is a custom one, and the schema
+    // generator cannot see through a custom converter, so it would publish these
+    // fields as "any value". The document says what it said before.
+    options.AddSchemaTransformer((schema, context, cancellationToken) =>
+    {
+        if (context.JsonTypeInfo.Type == typeof(DateTimeOffset))
+        {
+            schema.Type = JsonSchemaType.String;
+            schema.Format = "date-time";
+        }
+        else if (context.JsonTypeInfo.Type == typeof(DateTimeOffset?))
+        {
+            schema.Type = JsonSchemaType.String | JsonSchemaType.Null;
+            schema.Format = "date-time";
+        }
 
         return Task.CompletedTask;
     });

@@ -338,6 +338,68 @@ public sealed partial class OpenApiContractTests
     }
 
     /// <summary>
+    /// A timestamp is still published as a date-time string.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Repair Wave 003A.2 reads incoming timestamps as UTC instants through a
+    /// custom converter (<c>AOS-R002-001</c>), and the schema generator cannot see
+    /// through a custom converter: without help it published every timestamp as
+    /// "any value at all", losing the type, the format and the nullability. The
+    /// document is the contract, and clients are generated from it.
+    /// </para>
+    /// <para>
+    /// The contract gate counts paths and schemas, and both counts were unchanged
+    /// by that degradation. This is the assertion that would have caught it.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData("RecordSubmissionRequest", "sentAt", true)]
+    [InlineData("RecordPitchRequest", "occurredAt", true)]
+    [InlineData("OpportunityFollowUpRequest", "dueAt", true)]
+    [InlineData("RecordInteractionRequest", "occurredAt", false)]
+    public async Task Contract_PublishesTimestampsAsDateTimeStrings(
+        string schemaName, string property, bool nullable)
+    {
+        using JsonDocument document = await GetContractAsync();
+
+        JsonElement schema = document.RootElement
+            .GetProperty("components").GetProperty("schemas")
+            .GetProperty(schemaName).GetProperty("properties").GetProperty(property);
+
+        Assert.Equal("date-time", schema.GetProperty("format").GetString());
+
+        JsonElement type = schema.GetProperty("type");
+
+        string[] declared = type.ValueKind == JsonValueKind.Array
+            ? [.. type.EnumerateArray().Select(x => x.GetString()!)]
+            : [type.GetString()!];
+
+        Assert.Contains("string", declared);
+        Assert.Equal(nullable, declared.Contains("null"));
+    }
+
+    /// <summary>
+    /// A calendar date is still published as a date, not as a date-time.
+    /// </summary>
+    /// <remarks>
+    /// The distinction the same request carries: "reply expected by" is a business
+    /// date and must not acquire a time zone on the way to a client.
+    /// </remarks>
+    [Fact]
+    public async Task Contract_PublishesCalendarDatesAsDates()
+    {
+        using JsonDocument document = await GetContractAsync();
+
+        JsonElement schema = document.RootElement
+            .GetProperty("components").GetProperty("schemas")
+            .GetProperty("RecordSubmissionRequest").GetProperty("properties")
+            .GetProperty("responseExpectedBy");
+
+        Assert.Equal("date", schema.GetProperty("format").GetString());
+    }
+
+    /// <summary>
     /// The bootstrap route is absent here because this host has no bootstrap token
     /// configured, so it is genuinely not mapped. The published contract is
     /// generated with a throwaway token by
