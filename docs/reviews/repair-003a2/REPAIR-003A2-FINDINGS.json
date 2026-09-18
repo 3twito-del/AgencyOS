@@ -1,0 +1,148 @@
+{
+  "runId": "REPAIR-003A2",
+  "productBaseline": "a728324",
+  "note": "AOS-R002-001 repaired. Three new findings: two deferred, one (the contract gate's blindness to schema content) repaired narrowly where it bit this wave. One residual risk is recorded against AOS-R002-001 rather than given an identifier, because it was not reproduced.",
+  "findings": [
+    {
+      "id": "AOS-R002-001",
+      "category": "Bug",
+      "severity": "S1",
+      "confidence": "ConfirmedDefect",
+      "reproducibility": "Always",
+      "phase": "Repair003A2",
+      "workspace": [
+        "workspace.pipeline",
+        "workspace.people",
+        "workspace.intelligence",
+        "workspace.communications"
+      ],
+      "dialog": [
+        "RecordPitchDialog",
+        "RecordSubmissionDialog",
+        "RecordInteractionDialog",
+        "CreatePredictionDialog",
+        "RecordSignalDialog",
+        "RecordSourceDialog"
+      ],
+      "role": "owner",
+      "preconditions": "A machine whose local offset is not zero. Reproduced at UTC+03:00 (Israel, daylight saving active).",
+      "steps": [
+        "Open Pipeline, select a pursuit and one of its targets.",
+        "Record pitch, or Record submission.",
+        "Leave the date picker at its default and press the primary button."
+      ],
+      "expected": "The pitch or submission is recorded.",
+      "actual": "HTTP 500 with a trace id. The client sent \"2026-09-18T03:13:39.1646065+03:00\"; Npgsql refused it at Npgsql.Internal.Converters.DateTimeOffsetConverter.WriteCore — 'Cannot write DateTimeOffset with Offset=03:00:00 to PostgreSQL type timestamp with time zone, only offset 0 (UTC) is supported' — wrapped in DbUpdateException from SaveChangesAsync. The value passed binding, the application command and the domain unchecked.",
+      "failureBoundary": "EF/NPGSQL_TYPE_RULE. PostgreSQL never received the statement.",
+      "semanticClassification": "INSTANT for OccurredAt, SentAt and FollowUp.DueAt; CALENDAR_DATE for ResponseExpectedBy, which was already a DateOnly against a date column and is untouched.",
+      "rootScope": "SHARED_SERVER_MAPPING_ROOT. Proved at the API: /pitches, /submissions and /interactions all return 500 for +03:00 and -07:00 and 201 for Z.",
+      "httpResult": "500 before, 201 after",
+      "persistedResult": "Nothing before. After: the instant, in UTC, rendering as the operator's own date and time.",
+      "mutationAttempted": true,
+      "userImpact": "Recording a pitch or a submission was impossible from any machine outside UTC, which is most of them, and the failure presented as an internal error rather than anything the operator could correct.",
+      "likelySource": "No normalization existed anywhere between the Windows date picker and the Npgsql parameter.",
+      "repair": "One JsonConverter<DateTimeOffset> registered on the API host's serializer options: an incoming timestamp is read as the instant it denotes and kept in UTC. Lossless, once, at the boundary where an outside representation becomes an internal value. No dialog, endpoint, command, domain type, EF mapping, schema or contract version changed. A custom converter is opaque to the OpenAPI schema generator, so a schema transformer was added with it to keep the published document byte-identical (AOS-R002-027).",
+      "disposition": "REPAIRED",
+      "residualRisk": "MailboxSynchronizer persists ProviderMessage.SentAt / ReceivedAt exactly as a provider supplies them, so the same shape exists off the HTTP path. Microsoft Graph normally returns UTC, Graph is not configured in this environment, and nothing was observed; not repaired, because nothing was reproduced.",
+      "evidence": [
+        "docs/reviews/repair-003a2/REPAIR-003A2-ROOT-CAUSE.md",
+        "docs/reviews/repair-003a2/REPAIR-003A2-TEMPORAL-MAP.md",
+        "docs/reviews/repair-003a2/evidence/"
+      ],
+      "whyNotFoundEarlier": "Audit 002 filed it from CreatePredictionDialog and named five dialogs. Repair Wave 003A.1 met it again in RecordSubmissionDialog, which the record did not list, and could not complete the two UI saves because of it."
+    },
+    {
+      "id": "AOS-R002-025",
+      "category": "Bug",
+      "severity": "S3",
+      "confidence": "ConfirmedDefect",
+      "reproducibility": "Always",
+      "phase": "Repair003A2",
+      "workspace": [
+        "workspace.people"
+      ],
+      "dialog": [],
+      "role": "owner",
+      "preconditions": "A request body whose required nested object is absent.",
+      "steps": [
+        "POST /interactions with participants: [ { \"role\": \"Contact\" } ] — no party."
+      ],
+      "expected": "400, naming what is missing.",
+      "actual": "500 with a trace id. ArgumentNullException ('party') from EndpointParsing, unhandled.",
+      "httpResult": "500",
+      "persistedResult": "Nothing.",
+      "mutationAttempted": true,
+      "userImpact": "A malformed request from any client is reported as an internal error rather than a bad request. Not reachable from the Windows client, which always sends the nested object.",
+      "likelySource": "src/AgencyOS.Api/Endpoints/EndpointParsing.cs:49 — ArgumentNullException.ThrowIfNull(party) on a value the caller controls.",
+      "ownerDecisionRequired": false,
+      "repairRisk": "Low, but it is input validation across endpoints rather than one site.",
+      "disposition": "DEFERRED",
+      "suggestedRepairWave": "003C",
+      "whyNotRepairedHere": "Found while constructing a probe, not on the temporal path. A different root, and admitting it would turn a temporal-correctness wave into request-validation work.",
+      "distinctFrom": "AOS-R002-001, which was a valid request the server could not persist; this is an invalid request the server does not refuse cleanly."
+    },
+    {
+      "id": "AOS-R002-026",
+      "category": "Ux",
+      "severity": "S3",
+      "confidence": "ConfirmedDefect",
+      "reproducibility": "Always",
+      "phase": "Repair003A2",
+      "workspace": [
+        "workspace.pipeline"
+      ],
+      "dialog": [
+        "RecordPitchDialog",
+        "RecordSubmissionDialog"
+      ],
+      "role": "owner",
+      "preconditions": "Recording a meeting that happened on an earlier day.",
+      "steps": [
+        "Open Record pitch and set 'When' to a previous date.",
+        "Record it, and read the stored instant."
+      ],
+      "expected": "Either the operator can say what time it happened, or the record does not claim one.",
+      "actual": "The field is an instant, but the dialog offers a DatePicker only. The time of day stored is whichever moment the dialog was constructed at, so a meeting recorded on Friday for Tuesday is stored as Tuesday at Friday's time of day.",
+      "httpResult": null,
+      "persistedResult": "An instant whose time component nobody chose.",
+      "mutationAttempted": false,
+      "userImpact": "Timelines order interactions by instant. A pitch recorded days later carries a plausible but invented time, and two pitches recorded in one sitting for different days share a time of day.",
+      "likelySource": "RecordPitchDialog.xaml OccurredPicker, RecordSubmissionDialog.xaml SentPicker — DatePicker with no TimePicker; the value comes from DatePicker.Date.",
+      "ownerDecisionRequired": true,
+      "ownerDecision": "Add a time control, or model these as calendar dates, or state that the time is not meaningful. Each changes what the two workflows mean.",
+      "repairRisk": "Changes domain meaning or the contract; not a representational fix.",
+      "disposition": "DEFERRED",
+      "whyNotRepairedHere": "Section 16 forbids changing pitch and submission semantics in this wave, and this cannot be repaired without choosing what the field means.",
+      "foundBy": "The semantic classification this wave's brief required before coding."
+    },
+    {
+      "id": "AOS-R002-027",
+      "category": "TestGap",
+      "severity": "S3",
+      "confidence": "ConfirmedDefect",
+      "reproducibility": "Always",
+      "phase": "Repair003A2",
+      "workspace": [],
+      "dialog": [],
+      "role": "engineering",
+      "preconditions": "A change that alters what the OpenAPI document says without changing how many paths or schemas it has.",
+      "steps": [
+        "Register a custom JsonConverter<DateTimeOffset> on the API host.",
+        "Run scripts/Invoke-AgencyOS.ps1 contract."
+      ],
+      "expected": "The gate notices that every timestamp property lost its type, its date-time format and its nullability.",
+      "actual": "[OK] OpenAPI 3.1.1; 263 paths; 187 schemas. The counts are what the gate compares; the content is not. The degradation was found by regenerating the document and diffing it against the copy kept from before the wave.",
+      "httpResult": null,
+      "persistedResult": null,
+      "mutationAttempted": false,
+      "userImpact": "Not user-facing. A silent contract change would reach every generated client, and the gate that exists to prevent exactly that would pass.",
+      "likelySource": "scripts/Invoke-AgencyOS.ps1 contract — counts paths and components.schemas, asserts the OpenAPI version, and does not compare the document with a published baseline.",
+      "ownerDecisionRequired": false,
+      "repairRisk": "A checked-in baseline document and a diff would change what the gate is, which is a decision about engineering process rather than a bug fix.",
+      "disposition": "REPAIRED_NARROWLY",
+      "repair": "The document is restored and byte-identical. OpenApiContractTests now assert the published shape of four instants and one calendar date, so this particular degradation cannot recur silently. The gate itself still compares counts.",
+      "whyNotRepairedFully": "Turning the contract gate into a baseline comparison is a change to the canonical gates, which this wave was not asked to make.",
+      "foundBy": "Comparing the regenerated document against the one built before the wave, as section 26 requires."
+    }
+  ]
+}

@@ -278,3 +278,31 @@ attempt was refused and recorded the dialog it was attempting. See
 `RecordSubmissionDialog`, which the finding does not list. Not repaired here; it
 is why 003A.1 could not save a pitch or a submission through the interface on a
 UTC+3 machine.
+
+### After Repair Wave 003A.2
+
+Added by Repair Wave 003A.2. Nothing above is edited.
+
+| Finding | Filed as | Now | By |
+| --- | --- | --- | --- |
+| `AOS-R002-001` | CONFIRMED, **S1** | **REPAIRED** | Repair Wave 003A.2 |
+| `AOS-R002-025` | NEW, S3 — a missing nested object answers `500` rather than `400` | **DEFERRED** (suggested 003C) | — |
+| `AOS-R002-026` | NEW, S3 — the pitch and submission dialogs cannot express the time of day of an instant | **DEFERRED**, owner decision | — |
+
+**`AOS-R002-001`.** The fields are instants, and the client wrote them in the
+operator's own offset; nothing normalized them and Npgsql refused to write any
+offset but zero, at
+`Npgsql.Internal.Converters.DateTimeOffsetConverter.WriteCore` — before
+PostgreSQL saw the statement. One converter on the API host's serializer options
+now reads an incoming timestamp as the instant it denotes and keeps it in UTC.
+Both workflows were then saved through the real Windows interface at UTC+03:00.
+The calendar date in the same request (`ResponseExpectedBy`, a `DateOnly`
+against a `date` column) was deliberately left alone. No schema, contract or
+OpenAPI change. See
+[`../repair-003a2/REPAIR-003A2-REPORT.md`](../repair-003a2/REPAIR-003A2-REPORT.md).
+
+**Scope note.** The finding named five dialogs and 003A.1 added a sixth. The root
+is not per-dialog: every endpoint accepting a client-supplied `DateTimeOffset`
+was affected, which is why the repair is one registration rather than six edits.
+`MailboxSynchronizer` persists provider timestamps unchanged and has the same
+shape, but nothing was observed there and it is recorded rather than repaired.

@@ -1,0 +1,141 @@
+{
+ "takenUtc": "2026-09-18T00:35:38.988107+00:00",
+ "hostZone": "Israel Standard Time, UTC+03:00 (DST)",
+ "cases": [
+  {
+   "case": "submission written east +03:00",
+   "status": 201,
+   "expected": "201",
+   "note": null
+  },
+  {
+   "case": "pitch written east +03:00",
+   "status": 201,
+   "expected": "201",
+   "note": null
+  },
+  {
+   "case": "submission written west -07:00",
+   "status": 201,
+   "expected": "201",
+   "note": null
+  },
+  {
+   "case": "pitch written west -07:00",
+   "status": 201,
+   "expected": "201",
+   "note": null
+  },
+  {
+   "case": "submission written UTC Z",
+   "status": 201,
+   "expected": "201",
+   "note": null
+  },
+  {
+   "case": "pitch written UTC Z",
+   "status": 201,
+   "expected": "201",
+   "note": null
+  },
+  {
+   "case": "idempotent retry rewritten as UTC",
+   "status": "201 then 201",
+   "expected": "201 then 201, same id",
+   "note": "same id"
+  },
+  {
+   "case": "stale expectedVersion",
+   "status": 409,
+   "expected": "409",
+   "note": null
+  },
+  {
+   "case": "unauthenticated",
+   "status": 401,
+   "expected": "401",
+   "note": null
+  },
+  {
+   "case": "read-only observer",
+   "status": 403,
+   "expected": "403",
+   "note": null
+  },
+  {
+   "case": "authenticated non-member",
+   "status": 403,
+   "expected": "403",
+   "note": null
+  },
+  {
+   "case": "cross-tenant route",
+   "status": 404,
+   "expected": "404",
+   "note": null
+  },
+  {
+   "case": "malformed timestamp",
+   "status": 400,
+   "expected": "400, not 500",
+   "note": null
+  },
+  {
+   "case": "absent timestamp uses the server clock",
+   "status": 201,
+   "expected": "201",
+   "note": null
+  }
+ ],
+ "readBack": [
+  {
+   "subject": "Repair 003A.2 absent",
+   "sentAtStored": "2026-09-18T00:35:41.985129+00:00",
+   "renderedAtUtcPlus3": "2026-09-18T03:35:41.985129+03:00",
+   "responseExpectedBy": null
+  },
+  {
+   "subject": "Repair 003A.2 offset east +03:00",
+   "sentAtStored": "2026-09-18T00:35:38.988107+00:00",
+   "renderedAtUtcPlus3": "2026-09-18T03:35:38.988107+03:00",
+   "responseExpectedBy": null
+  },
+  {
+   "subject": "Repair 003A.2 offset west -07:00",
+   "sentAtStored": "2026-09-18T00:35:38.988107+00:00",
+   "renderedAtUtcPlus3": "2026-09-18T03:35:38.988107+03:00",
+   "responseExpectedBy": null
+  },
+  {
+   "subject": "Repair 003A.2 offset UTC Z",
+   "sentAtStored": "2026-09-18T00:35:38.988107+00:00",
+   "renderedAtUtcPlus3": "2026-09-18T03:35:38.988107+03:00",
+   "responseExpectedBy": null
+  },
+  {
+   "subject": "Repair 003A.2 replay d6eb2b",
+   "sentAtStored": "2026-09-18T00:35:38.988107+00:00",
+   "renderedAtUtcPlus3": "2026-09-18T03:35:38.988107+03:00",
+   "responseExpectedBy": null
+  },
+  {
+   "subject": "Repair 003A.2 idempotent retry fb6a95",
+   "sentAtStored": "2026-09-18T00:33:03.466571+00:00",
+   "renderedAtUtcPlus3": "2026-09-18T03:33:03.466571+03:00",
+   "responseExpectedBy": null
+  }
+ ],
+ "ordering": [
+  "2026-09-18T00:35:41.985129+00:00",
+  "2026-09-18T00:35:38.988107+00:00",
+  "2026-09-18T00:35:38.988107+00:00",
+  "2026-09-18T00:35:38.988107+00:00",
+  "2026-09-18T00:35:38.988107+00:00",
+  "2026-09-18T00:33:03.466571+00:00",
+  "2026-09-18T00:32:40.68632+00:00",
+  "2026-09-18T00:32:40.405078+00:00",
+  "2026-09-18T00:30:59.274512+00:00",
+  "2026-09-16T22:46:15.775769+00:00"
+ ],
+ "orderingIsNewestFirst": true
+}

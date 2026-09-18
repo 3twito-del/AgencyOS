@@ -1,0 +1,37 @@
+2026-09-18T00:13:51.2019355Z
+Microsoft.EntityFrameworkCore.Update
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> System.ArgumentException: Cannot write DateTimeOffset with Offset=03:00:00 to PostgreSQL type 'timestamp with time zone', only offset 0 (UTC) is supported.  (Parameter 'value')
+   at Npgsql.Internal.Converters.DateTimeOffsetConverter.WriteCore(PgWriter writer, DateTimeOffset value)
+   at Npgsql.NpgsqlParameter.Write(Boolean async, PgWriter writer, CancellationToken cancellationToken)
+   at Npgsql.Internal.NpgsqlConnector.WriteBind(List`1 parameters, String portal, Byte[] asciiName, Boolean allResultTypesAreUnknown, Boolean[] unknownResultTypeList, Boolean async, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.<Write>g__WriteExecute|103_0(NpgsqlConnector connector, Boolean async, Boolean flush, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+
+2026-09-18T00:13:51.3575982Z
+Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> System.ArgumentException: Cannot write DateTimeOffset with Offset=03:00:00 to PostgreSQL type 'timestamp with time zone', only offset 0 (UTC) is supported.  (Parameter 'value')
+   at Npgsql.Internal.Converters.DateTimeOffsetConverter.WriteCore(PgWriter writer, DateTimeOffset value)
+   at Npgsql.NpgsqlParameter.Write(Boolean async, PgWriter writer, CancellationToken cancellationToken)
+   at Npgsql.Internal.NpgsqlConnector.WriteBind(List`1 parameters, String portal, Byte[] asciiName, Boolean allResultTypesAreUnknown, Boolean[] unknownResultTypeList, Boolean async, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.<Write>g__WriteExecute|103_0(NpgsqlConnector connector, Boolean async, Boolean flush, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
