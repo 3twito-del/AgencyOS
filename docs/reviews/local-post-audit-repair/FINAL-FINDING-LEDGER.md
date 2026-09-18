@@ -5,7 +5,9 @@ repair waves 003A–003F, the owner-decision passes and this final pass — each
 exactly one disposition. **Nothing is left unknown, forgotten or implicitly open.**
 
 **Date:** 2026-09-18 · **Tree:** the cumulative local repair tree
-**Authoritative validation:** pending
+**Authoritative validation:** **complete** — executable commit `d8a8bc56`, released
+as ALPHA 0.1.0 build 77. CI run 35380367444 and Nightly run 35381444761, both on
+PostgreSQL 18.6. See `docs/releases/ALPHA-0.1.0-build-77.md`.
 
 | Disposition | Count |
 | --- | --- |
