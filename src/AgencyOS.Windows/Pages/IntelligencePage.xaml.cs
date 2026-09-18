@@ -5,10 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Client.Commands;
 using AgencyOS.Contracts.Intelligence;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Windows.Dialogs;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
@@ -61,6 +63,8 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
     public IntelligencePage()
     {
         InitializeComponent();
+
+        BuildAuthoringMenu();
 
         if (AppServices.Api is not { } api)
         {
@@ -570,63 +574,83 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
 
     private async Task RecordSourceAsync()
     {
-        if (_api is null || _sources is null)
+        try
         {
-            return;
+            if (_api is null || _sources is null)
+            {
+                return;
+            }
+
+            RecordSourceDialog dialog = new() { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .RecordIntelligenceSourceAsync(
+                    dialog.ToRequest(), Guid.CreateVersion7().ToString())
+                .ConfigureAwait(true);
+
+            await _sources.LoadAsync().ConfigureAwait(true);
         }
-
-        RecordSourceDialog dialog = new() { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not record the source";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .RecordIntelligenceSourceAsync(
-                dialog.ToRequest(), Guid.CreateVersion7().ToString())
-            .ConfigureAwait(true);
-
-        await _sources.LoadAsync().ConfigureAwait(true);
     }
 
     private async Task RecordSignalAsync()
     {
-        if (_api is null || _signals is null)
+        try
         {
-            return;
-        }
+            if (_api is null || _signals is null)
+            {
+                return;
+            }
 
-        IReadOnlyList<IntelligenceSourceResponse> sources = await _api
-            .ListIntelligenceSourcesAsync()
-            .ConfigureAwait(true);
-
-        // Refused before the dialog opens, with the reason. A signal cannot be
-        // recorded without a source, so offering an empty picker would be an
-        // invitation to a refusal (§1).
-        if (sources.Count == 0)
-        {
-            await NoteAsync(
-                "Record a source first",
-                "A signal is recorded with at least one source, and there are none yet. "
-                    + "Record what you saw as a source, then record the claim it supports.")
+            IReadOnlyList<IntelligenceSourceResponse> sources = await _api
+                .ListIntelligenceSourcesAsync()
                 .ConfigureAwait(true);
 
-            return;
+            // Refused before the dialog opens, with the reason. A signal cannot be
+            // recorded without a source, so offering an empty picker would be an
+            // invitation to a refusal (§1).
+            if (sources.Count == 0)
+            {
+                await NoteAsync(
+                    "Record a source first",
+                    "A signal is recorded with at least one source, and there are none yet. "
+                        + "Record what you saw as a source, then record the claim it supports.")
+                    .ConfigureAwait(true);
+
+                return;
+            }
+
+            RecordSignalDialog dialog = new(sources) { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .RecordSignalAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
+                .ConfigureAwait(true);
+
+            await _signals.LoadAsync().ConfigureAwait(true);
         }
-
-        RecordSignalDialog dialog = new(sources) { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not record the signal";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .RecordSignalAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
-            .ConfigureAwait(true);
-
-        await _signals.LoadAsync().ConfigureAwait(true);
     }
 
     private async Task ChangeVerificationAsync()
@@ -653,23 +677,33 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
 
     private async Task CreateThesisAsync()
     {
-        if (_api is null || _theses is null)
+        try
         {
-            return;
+            if (_api is null || _theses is null)
+            {
+                return;
+            }
+
+            CreateThesisDialog dialog = new() { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .CreateThesisAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
+                .ConfigureAwait(true);
+
+            await _theses.LoadAsync().ConfigureAwait(true);
         }
-
-        CreateThesisDialog dialog = new() { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not state the thesis";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .CreateThesisAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
-            .ConfigureAwait(true);
-
-        await _theses.LoadAsync().ConfigureAwait(true);
     }
 
     private async Task ReviseThesisAsync()
@@ -697,53 +731,73 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
 
     private async Task RetireThesisAsync()
     {
-        if (_api is null || _thesis?.Thesis is not { } detail)
+        try
         {
-            return;
+            if (_api is null || _thesis?.Thesis is not { } detail)
+            {
+                return;
+            }
+
+            IntelligenceReasonDialog dialog = new(
+                "Retire this thesis",
+                detail.Thesis.Title,
+                "The thesis stays on the record with your reason attached. Nothing is deleted: "
+                    + "what the agency used to think is part of the history.",
+                "Retire")
+            { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .CloseThesisAsync(
+                    detail.Thesis.Id,
+                    new CloseThesisRequest(dialog.Reason, detail.Thesis.Version))
+                .ConfigureAwait(true);
+
+            await _thesis.LoadAsync(detail.Thesis.Id).ConfigureAwait(true);
+            await (_theses?.LoadAsync() ?? Task.CompletedTask).ConfigureAwait(true);
         }
-
-        IntelligenceReasonDialog dialog = new(
-            "Retire this thesis",
-            detail.Thesis.Title,
-            "The thesis stays on the record with your reason attached. Nothing is deleted: "
-                + "what the agency used to think is part of the history.",
-            "Retire")
-        { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not retire the thesis";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .CloseThesisAsync(
-                detail.Thesis.Id,
-                new CloseThesisRequest(dialog.Reason, detail.Thesis.Version))
-            .ConfigureAwait(true);
-
-        await _thesis.LoadAsync(detail.Thesis.Id).ConfigureAwait(true);
-        await (_theses?.LoadAsync() ?? Task.CompletedTask).ConfigureAwait(true);
     }
 
     private async Task CreatePredictionAsync()
     {
-        if (_api is null || _predictions is null)
+        try
         {
-            return;
+            if (_api is null || _predictions is null)
+            {
+                return;
+            }
+
+            CreatePredictionDialog dialog = new() { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .CreatePredictionAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
+                .ConfigureAwait(true);
+
+            await _predictions.LoadAsync().ConfigureAwait(true);
         }
-
-        CreatePredictionDialog dialog = new() { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not record the prediction";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .CreatePredictionAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
-            .ConfigureAwait(true);
-
-        await _predictions.LoadAsync().ConfigureAwait(true);
     }
 
     private async Task RecordForecastAsync()
@@ -768,63 +822,83 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
 
     private async Task ResolvePredictionAsync()
     {
-        if (_api is null || _predictions is null)
+        try
         {
-            return;
-        }
+            if (_api is null || _predictions is null)
+            {
+                return;
+            }
 
-        // Said rather than ignored. The command palette offers this from every
-        // tab and takes no argument, so running it with nothing selected is an
-        // ordinary thing for an operator to do - and until AOS-R002-019 it
-        // returned in silence, which is indistinguishable from the command
-        // being broken.
-        if (PredictionList.SelectedItem is not PredictionResponse prediction)
-        {
-            await NoteAsync(
-                "Choose a prediction first",
-                "Resolving records what actually happened against one stated forecast, "
-                    + "so there is nothing to resolve until one is selected. Open the "
-                    + "Predictions tab and pick the question you are settling.")
+            // Said rather than ignored. The command palette offers this from every
+            // tab and takes no argument, so running it with nothing selected is an
+            // ordinary thing for an operator to do - and until AOS-R002-019 it
+            // returned in silence, which is indistinguishable from the command
+            // being broken.
+            if (PredictionList.SelectedItem is not PredictionResponse prediction)
+            {
+                await NoteAsync(
+                    "Choose a prediction first",
+                    "Resolving records what actually happened against one stated forecast, "
+                        + "so there is nothing to resolve until one is selected. Open the "
+                        + "Predictions tab and pick the question you are settling.")
+                    .ConfigureAwait(true);
+
+                return;
+            }
+
+            PredictionDetailResponse detail = await _api
+                .GetPredictionAsync(prediction.Id).ConfigureAwait(true);
+
+            ResolvePredictionDialog dialog =
+                new(prediction, detail.ResolutionCriteria) { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _predictions
+                .ResolveAsync(prediction, dialog.Outcome, dialog.Note)
                 .ConfigureAwait(true);
-
-            return;
         }
-
-        PredictionDetailResponse detail = await _api
-            .GetPredictionAsync(prediction.Id).ConfigureAwait(true);
-
-        ResolvePredictionDialog dialog =
-            new(prediction, detail.ResolutionCriteria) { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
-        }
+            PageError.Title = "Could not resolve the prediction";
 
-        await _predictions
-            .ResolveAsync(prediction, dialog.Outcome, dialog.Note)
-            .ConfigureAwait(true);
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
+        }
     }
 
     private async Task CreateWatchlistAsync()
     {
-        if (_api is null || _watchlists is null)
+        try
         {
-            return;
+            if (_api is null || _watchlists is null)
+            {
+                return;
+            }
+
+            CreateWatchlistDialog dialog = new() { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .CreateWatchlistAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
+                .ConfigureAwait(true);
+
+            await _watchlists.LoadAsync().ConfigureAwait(true);
         }
-
-        CreateWatchlistDialog dialog = new() { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not create the watchlist";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .CreateWatchlistAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
-            .ConfigureAwait(true);
-
-        await _watchlists.LoadAsync().ConfigureAwait(true);
     }
 
     private async Task ReviewWatchlistAsync()
@@ -843,37 +917,47 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
 
     private async Task AddRadarEntryAsync()
     {
-        if (_api is null || _radar is null)
+        try
         {
-            return;
-        }
+            if (_api is null || _radar is null)
+            {
+                return;
+            }
 
-        IReadOnlyList<PersonSummaryResponse> people =
-            await _api.ListPeopleAsync().ConfigureAwait(true);
+            IReadOnlyList<PersonSummaryResponse> people =
+                await _api.ListPeopleAsync().ConfigureAwait(true);
 
-        if (people.Count == 0)
-        {
-            await NoteAsync(
-                "No people to watch",
-                "The radar points at an existing person record. Create the person first, "
-                    + "so two spellings of the same name do not become two pursuits.")
+            if (people.Count == 0)
+            {
+                await NoteAsync(
+                    "No people to watch",
+                    "The radar points at an existing person record. Create the person first, "
+                        + "so two spellings of the same name do not become two pursuits.")
+                    .ConfigureAwait(true);
+
+                return;
+            }
+
+            AddRadarEntryDialog dialog = new(people) { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .CreateTalentRadarEntryAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
                 .ConfigureAwait(true);
 
-            return;
+            await _radar.LoadAsync().ConfigureAwait(true);
         }
-
-        AddRadarEntryDialog dialog = new(people) { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not add the radar entry";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .CreateTalentRadarEntryAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
-            .ConfigureAwait(true);
-
-        await _radar.LoadAsync().ConfigureAwait(true);
     }
 
     private async Task ConvertRadarEntryAsync()
@@ -940,51 +1024,71 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
 
     private async Task OpenResearchCaseAsync()
     {
-        if (_api is null || _research is null)
+        try
         {
-            return;
+            if (_api is null || _research is null)
+            {
+                return;
+            }
+
+            OpenResearchCaseDialog dialog = new() { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .OpenResearchCaseAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
+                .ConfigureAwait(true);
+
+            await _research.LoadAsync().ConfigureAwait(true);
         }
-
-        OpenResearchCaseDialog dialog = new() { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not open the research case";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .OpenResearchCaseAsync(dialog.ToRequest(), Guid.CreateVersion7().ToString())
-            .ConfigureAwait(true);
-
-        await _research.LoadAsync().ConfigureAwait(true);
     }
 
     private async Task LinkResearchItemAsync()
     {
-        if (_api is null
-            || _researchCase?.ResearchCase is not { } detail)
+        try
         {
-            return;
+            if (_api is null
+                || _researchCase?.ResearchCase is not { } detail)
+            {
+                return;
+            }
+
+            LinkResearchItemDialog dialog = new(_api) { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _api
+                .LinkResearchItemAsync(
+                    detail.ResearchCase.Id,
+                    new LinkResearchItemRequest(
+                        dialog.Kind,
+                        dialog.LinkedId,
+                        detail.ResearchCase.Version,
+                        dialog.Note))
+                .ConfigureAwait(true);
+
+            await _researchCase.LoadAsync(detail.ResearchCase.Id).ConfigureAwait(true);
         }
-
-        LinkResearchItemDialog dialog = new(_api) { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOsApiException failure)
         {
-            return;
+            PageError.Title = "Could not attach that";
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
-
-        await _api
-            .LinkResearchItemAsync(
-                detail.ResearchCase.Id,
-                new LinkResearchItemRequest(
-                    dialog.Kind,
-                    dialog.LinkedId,
-                    detail.ResearchCase.Version,
-                    dialog.Note))
-            .ConfigureAwait(true);
-
-        await _researchCase.LoadAsync(detail.ResearchCase.Id).ConfigureAwait(true);
     }
 
     // --------------------------------------------------------------- input
@@ -1189,26 +1293,36 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
     /// </remarks>
     private async Task LoadRelationshipSubjectsAsync()
     {
-        if (_api is null)
+        try
         {
-            return;
+            if (_api is null)
+            {
+                return;
+            }
+
+            if (Selection(RelationshipKindBox) == "Company")
+            {
+                IReadOnlyList<CompanySummaryResponse> companies =
+                    await _api.ListCompaniesAsync().ConfigureAwait(true);
+
+                RelationshipSubjectBox.ItemsSource =
+                    companies.Select(x => new Counterparty(x.Id, x.Name)).ToList();
+            }
+            else
+            {
+                IReadOnlyList<PersonSummaryResponse> people =
+                    await _api.ListPeopleAsync().ConfigureAwait(true);
+
+                RelationshipSubjectBox.ItemsSource =
+                    people.Select(x => new Counterparty(x.Id, x.DisplayName)).ToList();
+            }
         }
-
-        if (Selection(RelationshipKindBox) == "Company")
+        catch (AgencyOsApiException failure)
         {
-            IReadOnlyList<CompanySummaryResponse> companies =
-                await _api.ListCompaniesAsync().ConfigureAwait(true);
+            PageError.Title = "Could not load the subjects";
 
-            RelationshipSubjectBox.ItemsSource =
-                companies.Select(x => new Counterparty(x.Id, x.Name)).ToList();
-        }
-        else
-        {
-            IReadOnlyList<PersonSummaryResponse> people =
-                await _api.ListPeopleAsync().ConfigureAwait(true);
-
-            RelationshipSubjectBox.ItemsSource =
-                people.Select(x => new Counterparty(x.Id, x.DisplayName)).ToList();
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
         }
     }
 
@@ -1261,4 +1375,70 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
     /// <summary>The tag of the selected item, or null for the "any" entry.</summary>
     private static string? Selection(ComboBox box) =>
         (box.SelectedItem as ComboBoxItem)?.Tag as string is { Length: > 0 } tag ? tag : null;
+    /// <summary>
+    /// Runs a command and shows the server's reason if it refuses.
+    /// </summary>
+    /// <remarks>
+    /// These commands are dispatched and not awaited, so an unhandled refusal was
+    /// simply lost: the dialog closed, nothing was created, and the operator was
+    /// told nothing. Reproduced as an observer, whose thesis create answers 403.
+    /// </remarks>
+    private async Task Guarded(string title, Func<Task> command)
+    {
+        try
+        {
+            PageError.IsOpen = false;
+
+            await command().ConfigureAwait(true);
+        }
+        catch (AgencyOsApiException failure)
+        {
+            PageError.Title = title;
+
+            // The server's own explanation, not the problem's title (AOS-R002-024).
+            ShowError(failure.Detail ?? failure.Message);
+        }
+    }
+
+    /// <summary>
+    /// Fills the workspace's authoring launcher from the command registry.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>AOS-R002-003</c>. Every authoring command here was reachable only by
+    /// opening the command palette and knowing what to type — thirteen dialogs and
+    /// one button in the whole workspace, which was for something else.
+    /// </para>
+    /// <para>
+    /// Built from <see cref="CommandRegistry"/> rather than written out, so the
+    /// launcher cannot drift from the palette: both dispatch the same identifier
+    /// through the same <see cref="Execute"/>, and a command added later appears
+    /// here without anybody remembering to add it. The palette is unchanged — it
+    /// stays the accelerator, and this is the way somebody finds these at all.
+    /// </para>
+    /// </remarks>
+    private void BuildAuthoringMenu()
+    {
+        foreach (CommandDefinition command in CommandRegistry.Default.Commands
+            .Where(x => x.Action == CommandActionKind.Invoke
+                && string.Equals(x.Workspace, "intelligence", StringComparison.Ordinal)
+
+                // Authoring only. The workspace's own "go." commands are dispatched
+                // here too, but a menu called New does not offer to open a tab.
+                && !x.Id.StartsWith("go.", StringComparison.Ordinal))
+            .OrderBy(x => x.Id, StringComparer.Ordinal))
+        {
+            string id = command.Id;
+
+            MenuFlyoutItem item = new() { Text = command.Label };
+
+            // The label is what a screen reader announces, never the definition.
+            AutomationProperties.SetName(item, command.Label);
+
+            item.Click += (_, _) => Execute(id);
+
+            AuthorMenu.Items.Add(item);
+        }
+    }
+
 }

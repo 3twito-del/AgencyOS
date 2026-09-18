@@ -102,6 +102,8 @@ public sealed partial class CompaniesPage : Page, IPaletteCommandTarget
 
         try
         {
+            DetailError.IsOpen = false;
+
             CompanyDetailResponse detail = await api.GetCompanyAsync(companyId).ConfigureAwait(true);
 
             CompanyName.Text = detail.Company.Name;
@@ -118,8 +120,10 @@ public sealed partial class CompaniesPage : Page, IPaletteCommandTarget
         }
         catch (AgencyOsApiException ex)
         {
-            ListError.Message = ex.Detail ?? ex.Message;
-            ListError.IsOpen = true;
+            // One company that cannot be read is not the directory failing to
+            // load, and the list is still on screen behind it (AOS-R002-012).
+            DetailError.Message = ex.Detail ?? ex.Message;
+            DetailError.IsOpen = true;
         }
     }
 
@@ -132,24 +136,42 @@ public sealed partial class CompaniesPage : Page, IPaletteCommandTarget
             return;
         }
 
-        NewCompanyDialog dialog = new() { XamlRoot = XamlRoot };
+        CommandError.IsOpen = false;
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        // The dialog owns the create, so a refusal it can answer keeps the dialog,
+        // the typing and the focus rather than landing here (AOS-R002-010).
+        NewCompanyDialog dialog = new(api) { XamlRoot = XamlRoot };
+
+        await dialog.ShowAsync();
+
+        if (dialog.Terminal is { } terminal)
+        {
+            Refused("Could not create the company", terminal);
+
+            return;
+        }
+
+        if (dialog.Created is not { } created)
         {
             return;
         }
 
-        try
-        {
-            CompanyDetailResponse created = await api.CreateCompanyAsync(dialog.ToRequest()).ConfigureAwait(true);
+        await LoadListAsync().ConfigureAwait(true);
+        await LoadDetailAsync(created.Company.Id).ConfigureAwait(true);
+    }
 
-            await LoadListAsync().ConfigureAwait(true);
-            await LoadDetailAsync(created.Company.Id).ConfigureAwait(true);
-        }
-        catch (AgencyOsApiException ex)
-        {
-            ListError.Message = ex.Detail ?? ex.Message;
-            ListError.IsOpen = true;
-        }
+    /// <summary>Shows a refusal under the name of what was actually attempted.</summary>
+    /// <remarks>
+    /// The list's error bar is titled for a load. Writing a refused create into it
+    /// told the operator that companies could not be loaded, which is not what
+    /// happened and not what they had just done (AOS-R002-012).
+    /// </remarks>
+    private void Refused(string title, AgencyOsApiException failure)
+    {
+        CommandError.Title = title;
+
+        // The server's own explanation, not the problem's title (AOS-R002-024).
+        CommandError.Message = failure.Detail ?? failure.Message;
+        CommandError.IsOpen = true;
     }
 }

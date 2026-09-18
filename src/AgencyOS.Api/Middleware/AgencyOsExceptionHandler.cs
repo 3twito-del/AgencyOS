@@ -158,6 +158,21 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
             Detail = status >= StatusCodes.Status500InternalServerError ? null : exception.Message,
         };
 
+        // A body the framework could not bind. Its own sentence names the DTO
+        // class the endpoint declares — "Failed to read parameter
+        // \"CreateDealRequest request\" from the request body as JSON" — which is
+        // an internal type name, says nothing about which field was wrong, and
+        // says nothing about what was expected. Every domain refusal in this
+        // product does the opposite (AOS-R002-008).
+        if (exception is BadHttpRequestException { StatusCode: StatusCodes.Status400BadRequest } malformedBody
+            && malformedBody.InnerException is System.Text.Json.JsonException reading
+            && Field(reading) is { Length: > 0 } field)
+        {
+            problem.Detail = Expectation(reading, field) is { Length: > 0 } expectation
+                ? $"'{field}' could not be read. Expected {expectation}."
+                : $"'{field}' could not be read.";
+        }
+
         if (status == StatusCodes.Status413PayloadTooLarge)
         {
             // The framework's own message names no number. A refusal that does
@@ -215,5 +230,86 @@ internal sealed class AgencyOsExceptionHandler : IExceptionHandler
 
         await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken).ConfigureAwait(false);
         return true;
+    }
+
+    /// <summary>The field the caller sent that could not be read.</summary>
+    /// <param name="reading">What the serializer refused.</param>
+    /// <returns>The field's name as the caller wrote it, or empty.</returns>
+    /// <remarks>
+    /// The serializer reports a path — <c>$.ownerUserId</c>, or
+    /// <c>$.participants[0].party</c> — which is the caller's own JSON and safe to
+    /// quote back. Only the path is used; the rest of the serializer's sentence
+    /// names .NET types and is never shown.
+    /// </remarks>
+    private static string Field(System.Text.Json.JsonException reading) =>
+        reading.Path is { Length: > 0 } path
+            ? path.StartsWith("$.", StringComparison.Ordinal) ? path[2..] : path.TrimStart('$')
+            : string.Empty;
+
+    /// <summary>What the field should have looked like, in a reader's words.</summary>
+    /// <param name="reading">What the serializer refused.</param>
+    /// <param name="field">The field named by the serializer's path.</param>
+    /// <returns>A description, or empty when nothing can be said with confidence.</returns>
+    /// <remarks>
+    /// <para>
+    /// The serializer says what it was building, not what the member wanted: for a
+    /// record it reports the request type itself, whichever property failed. So
+    /// the member's type is looked up on the contract, and only the contract
+    /// assembly is searched.
+    /// </para>
+    /// <para>
+    /// Deliberately a closed list, and silent about anything outside it. Answering
+    /// with a .NET type name would trade one internal name for another, which is
+    /// the defect rather than the repair.
+    /// </para>
+    /// </remarks>
+    private static string Expectation(System.Text.Json.JsonException reading, string field)
+    {
+        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(
+            reading.Message ?? string.Empty, @"converted to (?<type>[\w.]+)");
+
+        if (!match.Success || field.Contains('.', StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        // The serializer ends its sentence with a full stop, and a type name can
+        // contain dots, so the pattern takes both and the trailing one is dropped.
+        string named = match.Groups["type"].Value.TrimEnd('.');
+
+        Type? target = named.StartsWith("System.", StringComparison.Ordinal)
+            ? Type.GetType(named)
+            : typeof(AgencyOS.Contracts.ClientHeaders).Assembly.GetType(named);
+
+        if (target is null)
+        {
+            return string.Empty;
+        }
+
+        // A record reports itself; the property the path names is the one that
+        // could not be read.
+        Type? member = target.Namespace?.StartsWith("System", StringComparison.Ordinal) == true
+            ? target
+            : target.GetProperties()
+                .FirstOrDefault(x => string.Equals(x.Name, field, StringComparison.OrdinalIgnoreCase))
+                ?.PropertyType;
+
+        if (member is null)
+        {
+            return string.Empty;
+        }
+
+        return (Nullable.GetUnderlyingType(member) ?? member).Name switch
+        {
+            "Guid" => "an identifier",
+            "DateTimeOffset" or "DateTime" => "a timestamp, such as 2026-09-18T03:13:39Z",
+            "DateOnly" => "a date, such as 2026-09-18",
+            "TimeOnly" => "a time of day, such as 14:30",
+            "Int32" or "Int64" or "Int16" => "a whole number",
+            "Decimal" or "Double" or "Single" => "a number",
+            "Boolean" => "true or false",
+            "String" => "text",
+            _ => string.Empty,
+        };
     }
 }

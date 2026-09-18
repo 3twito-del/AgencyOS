@@ -5,7 +5,7 @@
     Title="Store this attachment as a document"
     PrimaryButtonText="Store"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <StackPanel Spacing="10" MinWidth="500">

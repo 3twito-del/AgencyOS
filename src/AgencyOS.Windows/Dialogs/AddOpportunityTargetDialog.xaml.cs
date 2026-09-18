@@ -5,6 +5,7 @@ using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 
 namespace AgencyOS.Windows.Dialogs;
@@ -33,6 +34,11 @@ public sealed partial class AddOpportunityTargetDialog : ContentDialog
         ArgumentNullException.ThrowIfNull(companies);
 
         InitializeComponent();
+
+        // The hint under this field describes it. Declaring that lets a screen
+        // reader reach the explanation from the field, instead of the reader
+        // having to find it by looking (AOS-R002-011).
+        AutomationProperties.GetDescribedBy(ContactBox).Add(ContactHint);
 
         _people = EntityChoice.ForPeople(people);
         _companies = EntityChoice.ForCompanies(companies);

@@ -5,7 +5,7 @@
     Title="Connect a mailbox"
     PrimaryButtonText="Connect"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="None"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="560">
@@ -36,7 +36,12 @@
                       SelectionChanged="OnChanged">
                 <ComboBoxItem Content="Only me" Tag="Private" IsSelected="True" />
                 <ComboBoxItem Content="Members granted mailbox access" Tag="Shared" />
-                <ComboBoxItem Content="Everyone in the organization" Tag="Organization" />
+                <!--
+                    There is no third option. "Everyone in the organization" was
+                    offered and the server refused it, because MailboxVisibility
+                    has only Private and Shared and organization-wide mailbox
+                    reading is not a capability this product has (AOS-R002-020).
+                -->
             </ComboBox>
 
             <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"

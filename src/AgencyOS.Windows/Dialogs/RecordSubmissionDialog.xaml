@@ -14,7 +14,12 @@
                  Title="Recorded, not sent"
                  Message="AgencyOS is recording that you sent this. It does not send anything itself and cannot confirm it arrived." />
 
-        <DatePicker x:Name="SentPicker" Header="Sent" />
+        <!--
+            Date and time, because this field is an instant and the operator has to
+            be able to see and set the whole of it (AOS-R002-026).
+        -->
+        <DatePicker x:Name="SentPicker" Header="Sent — date" />
+        <TimePicker x:Name="SentTimePicker" Header="Sent — time" ClockIdentifier="24HourClock" />
 
         <ComboBox x:Name="ChannelBox" Header="How" HorizontalAlignment="Stretch">
             <ComboBoxItem Content="Email" Tag="Email" />

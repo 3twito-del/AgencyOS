@@ -158,18 +158,26 @@ public sealed partial class ProjectsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        AddProjectRoleDialog dialog = new() { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        // The dialog owns the add, so a refusal it can answer keeps the dialog, the
+        // typing and the focus rather than landing on the page (AOS-R002-010).
+        AddProjectRoleDialog dialog = new(api, project.Project.Id, project.Project.Version)
         {
+            XamlRoot = XamlRoot,
+        };
+
+        await dialog.ShowAsync();
+
+        if (dialog.Terminal is { } terminal)
+        {
+            DetailError(terminal.Detail ?? terminal.Message);
+
             return;
         }
 
-        await Guarded(() => api.CreateProjectRoleAsync(
-                project.Project.Id,
-                dialog.ToRequest(project.Project.Version),
-                Guid.NewGuid().ToString("N")))
-            .ConfigureAwait(true);
+        if (dialog.Created is null)
+        {
+            return;
+        }
 
         await _detail.LoadAsync(project.Project.Id).ConfigureAwait(true);
     }
@@ -304,7 +312,10 @@ public sealed partial class ProjectsPage : Page, IPaletteCommandTarget
         }
         catch (AgencyOsApiException failure)
         {
-            DetailError(failure.Message);
+            // The sentence the domain wrote, not the problem's title. "Invalid
+            // request" tells an operator nothing they can act on, while the detail
+            // says which rule refused them (AOS-R002-024).
+            DetailError(failure.Detail ?? failure.Message);
         }
     }
 

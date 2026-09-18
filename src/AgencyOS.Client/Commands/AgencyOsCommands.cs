@@ -161,6 +161,18 @@ public static class AgencyOsCommands
             CommandActionKind.Invoke,
             Gesture: CommandGesture.Control(CommandKey.K)),
 
+        // The organization surface is the navigation pane's settings destination
+        // rather than a workspace, so it has no tag and no accelerator, and the
+        // palette had no way to reach it (AOS-R002-015). Invoke rather than
+        // Navigate, because Navigate means "select a workspace" and this is not
+        // one: the shell answers it by selecting the settings item, which is the
+        // same path the pane uses.
+        new(
+            "organization.open",
+            "Go to Organization settings",
+            "Navigate",
+            CommandActionKind.Invoke),
+
         // Creating records.
         new(
             "person.create",
@@ -207,6 +219,18 @@ public static class AgencyOsCommands
         new(
             "material.add",
             "Add material",
+            "Represent",
+            CommandActionKind.Invoke,
+            Workspace: "talent"),
+        new(
+            "representation.scope.change",
+            "Change what is represented",
+            "Represent",
+            CommandActionKind.Invoke,
+            Workspace: "talent"),
+        new(
+            "representation.team.change",
+            "Change who works this relationship",
             "Represent",
             CommandActionKind.Invoke,
             Workspace: "talent"),

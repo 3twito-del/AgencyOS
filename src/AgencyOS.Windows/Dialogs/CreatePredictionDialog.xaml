@@ -5,7 +5,7 @@
     Title="State a prediction"
     PrimaryButtonText="State it"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="560">

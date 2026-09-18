@@ -174,6 +174,63 @@ public sealed class CommunicationTests
     /// Synchronization is idempotent: the same provider message never becomes two
     /// rows.
     /// </summary>
+    /// <summary>
+    /// A provider timestamp that is not already UTC is stored, not thrown away.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The <c>MailboxSynchronizer</c> observation. <c>ProviderMessage.SentAt</c> and
+    /// <c>ReceivedAt</c> are <c>DateTimeOffset?</c> with no documented UTC
+    /// requirement, and the synchronizer passed them to persistence untouched. The
+    /// columns are <c>timestamptz</c>, which Npgsql will only write at offset zero
+    /// — the same failure <c>AOS-R002-001</c> repaired at the HTTP boundary.
+    /// </para>
+    /// <para>
+    /// Seeded through the provider interface itself, so nothing unsupported is
+    /// invented: a conforming adapter may report <c>+03:00</c>.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task AProviderTimestampWithAnOffsetIsStoredAsTheSameInstant()
+    {
+        Actor actor = await ActorAsync("m10-offset-probe");
+
+        string code = Guid.NewGuid().ToString("N");
+
+        DateTimeOffset sent = new(2026, 9, 18, 9, 30, 0, TimeSpan.FromHours(3));
+
+        Seed(code, new ProviderMessage(
+            ExternalMessageId: $"ext-{Guid.NewGuid():N}",
+            Direction: MessageDirection.Inbound,
+            ExternalThreadId: null,
+            InternetMessageId: $"<{Guid.NewGuid():N}@studio.test>",
+            Subject: "Offset probe",
+            BodyText: "Plain body.",
+            BodyHtml: null,
+            SentAt: sent,
+            ReceivedAt: sent.AddMinutes(1),
+            Folder: "Inbox",
+            Participants:
+            [
+                new ProviderParticipant(ParticipantRole.From, "producer@studio.test", "Sender"),
+                new ProviderParticipant(ParticipantRole.To, "agent@example.test", "Agent"),
+            ],
+            Attachments: []));
+
+        ConnectMailboxResponse connected = await ConnectAsync(actor, code);
+
+        MailboxSyncResult result = await SynchronizeAsync(actor, connected.AccountId);
+
+        Assert.Equal(1, result.MessagesCreated);
+        Assert.Null(result.Error);
+
+        // The instant is unchanged — only the way it is written. 09:30+03:00 is
+        // 06:30Z, and that is what a reader gets back.
+        MessageSummaryResponse stored = Assert.Single(await MessagesAsync(actor));
+
+        Assert.Equal(sent.ToUniversalTime(), stored.OccurredAt);
+    }
+
     [Fact]
     public async Task Synchronization_IsIdempotent()
     {

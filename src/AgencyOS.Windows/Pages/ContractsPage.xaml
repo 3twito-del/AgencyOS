@@ -132,17 +132,26 @@
             <StackPanel Grid.Row="1" Spacing="8">
                 <InfoBar x:Name="DetailBar" Severity="Error" IsOpen="False" IsClosable="True" />
 
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button x:Name="NewButton" Content="New contract" Click="OnNewClick" />
-                    <Button x:Name="VersionButton" Content="Record version"
-                            Click="OnRecordVersionClick" IsEnabled="False" />
-                    <Button x:Name="ReconcileButton" Content="Reconcile"
-                            Click="OnReconcileClick" IsEnabled="False" />
-                    <Button x:Name="SignatureButton" Content="Record signature"
-                            Click="OnRecordSignatureClick" IsEnabled="False" />
-                    <Button x:Name="NoticeButton" Content="Record notice"
-                            Click="OnRecordNoticeClick" IsEnabled="False" />
-                </StackPanel>
+                <!--
+                    Five commands did not fit this column at 1600x1000: the last
+                    two were enabled, offscreen, and in nothing scrollable, so
+                    they could not be clicked and nothing said they existed
+                    (AOS-R002-021). A CommandBar moves what does not fit into its
+                    own overflow instead of off the window.
+                -->
+                <CommandBar x:Name="DetailCommands" DefaultLabelPosition="Right"
+                            IsOpen="False" OverflowButtonVisibility="Auto"
+                            HorizontalAlignment="Left" Background="Transparent">
+                    <AppBarButton x:Name="NewButton" Label="New contract" Click="OnNewClick" />
+                    <AppBarButton x:Name="VersionButton" Label="Record version"
+                                  Click="OnRecordVersionClick" IsEnabled="False" />
+                    <AppBarButton x:Name="ReconcileButton" Label="Reconcile"
+                                  Click="OnReconcileClick" IsEnabled="False" />
+                    <AppBarButton x:Name="SignatureButton" Label="Record signature"
+                                  Click="OnRecordSignatureClick" IsEnabled="False" />
+                    <AppBarButton x:Name="NoticeButton" Label="Record notice"
+                                  Click="OnRecordNoticeClick" IsEnabled="False" />
+                </CommandBar>
             </StackPanel>
 
             <TabView Grid.Row="2" x:Name="DetailTabs" IsAddTabButtonVisible="False"

@@ -8,6 +8,15 @@
     DefaultButton="Primary">
 
     <StackPanel Spacing="10" MinWidth="400">
+        <!--
+            A refused add is shown here and the dialog stays open, so the entry can
+            be corrected and retried without retyping it (AOS-R002-010). When the
+            refusal is about one field, that field points at this bar
+            (AOS-R002-011).
+        -->
+        <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" IsClosable="False"
+                 Title="Could not add the role" />
+
         <ComboBox x:Name="TypeBox" Header="Role" HorizontalAlignment="Stretch">
             <ComboBoxItem Content="Writer" Tag="Writer" />
             <ComboBoxItem Content="Director" Tag="Director" />
@@ -23,7 +32,8 @@
         </ComboBox>
 
         <TextBox x:Name="LabelBox" Header="Label"
-                 PlaceholderText="Character name, or a description of the position" />
+                 PlaceholderText="Character name, or a description of the position"
+                 TextChanged="OnEntryChanged" />
 
         <CheckBox x:Name="ExclusiveBox"
                   Content="Only one party may hold this role at a time" />
@@ -31,6 +41,7 @@
         <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
                    Text="Leave this unticked unless you are sure. A role marked exclusive refuses a second attachment, which is right for a director and wrong for a cast member." />
 
-        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap"
+                 TextChanged="OnEntryChanged" />
     </StackPanel>
 </ContentDialog>

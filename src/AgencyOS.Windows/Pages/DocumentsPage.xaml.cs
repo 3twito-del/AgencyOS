@@ -237,6 +237,11 @@ public sealed partial class DocumentsPage : Page, IPaletteCommandTarget
             return;
         }
 
+        if (AppServices.Api is not { } api)
+        {
+            return;
+        }
+
         System.Collections.Generic.IReadOnlyList<string> chosen = await FilePicking
             .PickFilesAsync()
             .ConfigureAwait(true);
@@ -313,7 +318,12 @@ public sealed partial class DocumentsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        LinkRecordDialog dialog = new($"Link {document.Document.Title}")
+        if (AppServices.Api is not { } api)
+        {
+            return;
+        }
+
+        LinkRecordDialog dialog = new(api, $"Link {document.Document.Title}")
         {
             XamlRoot = XamlRoot,
         };

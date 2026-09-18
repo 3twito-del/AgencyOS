@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
+using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Contracts.Representation;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 
 namespace AgencyOS.Windows.Dialogs;
@@ -39,14 +42,25 @@ public sealed partial class CreateOpportunityDialog : ContentDialog
         IAgencyOsApi api,
         IReadOnlyList<ProjectSummaryResponse> projects,
         IReadOnlyList<PackageSummaryResponse> packages,
-        IReadOnlyList<TalentSummaryResponse> talent)
+        IReadOnlyList<TalentSummaryResponse> talent,
+        IReadOnlyList<OrganizationMemberResponse> members)
     {
         ArgumentNullException.ThrowIfNull(api);
         ArgumentNullException.ThrowIfNull(projects);
         ArgumentNullException.ThrowIfNull(packages);
         ArgumentNullException.ThrowIfNull(talent);
+        ArgumentNullException.ThrowIfNull(members);
 
         InitializeComponent();
+
+        // The hint under this field describes it. Declaring that lets a screen
+        // reader reach the explanation from the field, instead of the reader
+        // having to find it by looking (AOS-R002-011).
+        AutomationProperties.GetDescribedBy(SubjectBox).Add(SubjectHint);
+
+        // Preselect whoever is signed in, proved by the directory's own IsSelf
+        // rather than guessed; they can still choose somebody else.
+        OwnerPicker(members);
 
         _api = api;
         _projects = EntityChoice.ForProjects(projects);
@@ -72,7 +86,7 @@ public sealed partial class CreateOpportunityDialog : ContentDialog
         return new CreateOpportunityRequest(
             NameBox.Text.Trim(),
             kind,
-            Guid.TryParse(OwnerIdBox.Text.Trim(), out Guid owner) ? owner : Guid.Empty,
+            Chosen(OwnerIdBox),
             OpenedOn: null,
             SelectedTag(PriorityBox),
             Empty(DescriptionBox.Text),
@@ -191,7 +205,7 @@ public sealed partial class CreateOpportunityDialog : ContentDialog
     private void Validate() =>
         IsPrimaryButtonEnabled =
             !string.IsNullOrWhiteSpace(NameBox.Text)
-            && Guid.TryParse(OwnerIdBox.Text.Trim(), out _)
+            && Chosen(OwnerIdBox) != Guid.Empty
             && Chosen() is not null;
 
     private static string SubjectKindFor(string kind) => kind switch
@@ -205,4 +219,28 @@ public sealed partial class CreateOpportunityDialog : ContentDialog
     private static string? Empty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static string? SelectedTag(ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag as string;
+    /// <summary>
+    /// Offers the organization's people, with whoever is signed in preselected.
+    /// </summary>
+    /// <remarks>
+    /// <c>AOS-R001-006</c>. The directory says which member is the caller through
+    /// <c>IsSelf</c>, so the default is proved rather than assumed — and it is only
+    /// a default: every other member stays selectable.
+    /// </remarks>
+    private void OwnerPicker(IReadOnlyList<OrganizationMemberResponse> members)
+    {
+        IReadOnlyList<EntityChoice> choices = EntityChoice.ForMembers(members);
+
+        OwnerIdBox.ItemsSource = choices;
+
+        if (members.FirstOrDefault(x => x.IsSelf) is { } self)
+        {
+            OwnerIdBox.SelectedItem = choices.FirstOrDefault(x => x.Id == self.UserId);
+        }
+    }
+
+    /// <summary>The member chosen in a picker, or empty while none is.</summary>
+    private static Guid Chosen(ComboBox box) =>
+        (box.SelectedItem as EntityChoice)?.Id ?? Guid.Empty;
+
 }

@@ -5,7 +5,7 @@
     Title="Allocate payment"
     PrimaryButtonText="Allocate"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="560">

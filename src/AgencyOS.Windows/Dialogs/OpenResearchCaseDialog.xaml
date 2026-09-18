@@ -5,7 +5,7 @@
     Title="Open a research case"
     PrimaryButtonText="Open"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <StackPanel Spacing="10" MinWidth="520">

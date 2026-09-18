@@ -32,6 +32,8 @@
                 <ProgressBar x:Name="ListBusy"
                              AutomationProperties.Name="List progress" IsIndeterminate="True" Visibility="Collapsed" />
                 <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False" Title="Could not load companies" />
+                <!-- Titled by whatever was refused: a command is not a load (AOS-R002-012). -->
+                <InfoBar x:Name="CommandError" Severity="Error" IsOpen="False" IsClosable="True" />
                 <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
                          Title="No companies yet" Message="Create the first company to begin." />
             </StackPanel>
@@ -59,8 +61,12 @@
                 <TextBlock x:Name="CompanySubtitle" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" />
             </StackPanel>
 
-            <InfoBar Grid.Row="1" x:Name="DetailEmpty" Severity="Informational" IsOpen="True" IsClosable="False"
-                     Title="Select a company" Message="Choose a company to see who works there and what has happened." />
+            <StackPanel Grid.Row="1" Spacing="6">
+                <InfoBar x:Name="DetailError" Severity="Error" IsOpen="False" IsClosable="False"
+                         Title="Could not load this company" />
+                <InfoBar x:Name="DetailEmpty" Severity="Informational" IsOpen="True" IsClosable="False"
+                         Title="Select a company" Message="Choose a company to see who works there and what has happened." />
+            </StackPanel>
 
             <TextBlock Grid.Row="2" Text="People" Style="{StaticResource BodyStrongTextBlockStyle}" />
 

@@ -5,7 +5,7 @@
     Title="Revise this thesis"
     PrimaryButtonText="Record the revision"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="520">

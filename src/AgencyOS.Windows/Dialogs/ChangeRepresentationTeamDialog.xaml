@@ -1,0 +1,32 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ChangeRepresentationTeamDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Change who works this relationship"
+    PrimaryButtonText="Save"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="10" MinWidth="440">
+        <TextBlock x:Name="CurrentText" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="Wrap" />
+
+        <ComboBox x:Name="ActionBox" Header="What is changing" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnActionChanged">
+            <ComboBoxItem Content="Put somebody on the team, or change what they do" Tag="Assign" />
+            <ComboBoxItem Content="Take somebody off the team" Tag="Remove" />
+        </ComboBox>
+
+        <ComboBox x:Name="MemberBox" Header="Who" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="Label" SelectionChanged="OnMemberChanged" />
+
+        <TextBlock x:Name="MemberHint" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75"
+                   TextWrapping="Wrap" />
+
+        <ComboBox x:Name="RoleBox" Header="Role" HorizontalAlignment="Stretch" />
+
+        <DatePicker x:Name="OccurredPicker" Header="Took effect" HorizontalAlignment="Stretch" />
+
+        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                   Text="There is one lead at a time. Assigning a new lead ends the previous one's assignment, and the record keeps both." />
+    </StackPanel>
+</ContentDialog>

@@ -43,10 +43,23 @@ internal static class EndpointParsing
         return string.IsNullOrWhiteSpace(value) ? null : ParseEnum<TEnum>(value, field);
     }
 
-    /// <summary>Turns a wire party reference into a relationship endpoint.</summary>
+    /// <summary>
+    /// Turns a wire party reference into a relationship endpoint.
+    /// </summary>
+    /// <remarks>
+    /// A caller who omits the object entirely is refused the same way a caller who
+    /// sends an unknown enum name is: a <see cref="DomainException"/> naming the
+    /// field, which the handler answers as a <c>400</c>. It used to be
+    /// <c>ArgumentNullException.ThrowIfNull</c> — a programmer-error exception for
+    /// something only a caller can cause — and that answered <c>500</c> with a
+    /// trace id (<c>AOS-R002-025</c>).
+    /// </remarks>
     public static RelationshipEndpoint ToEndpoint(PartyRefRequest party, string field)
     {
-        ArgumentNullException.ThrowIfNull(party);
+        if (party is null)
+        {
+            throw new DomainException($"{field} is required.");
+        }
 
         PartyKind kind = ParseEnum<PartyKind>(party.Kind, $"{field}.Kind");
 

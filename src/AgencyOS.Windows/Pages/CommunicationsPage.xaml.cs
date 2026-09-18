@@ -464,7 +464,12 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        LinkRecordDialog dialog = new($"File \"{message.Message.Subject}\" against a record")
+        if (AppServices.Api is not { } api)
+        {
+            return;
+        }
+
+        LinkRecordDialog dialog = new(api, $"File \"{message.Message.Subject}\" against a record")
         {
             XamlRoot = XamlRoot,
         };

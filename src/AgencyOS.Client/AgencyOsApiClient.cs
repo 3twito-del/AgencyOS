@@ -337,6 +337,30 @@ public partial interface IAgencyOsApi
         TransitionRepresentationRequest request,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Begins representing an area.</summary>
+    Task AddRepresentationScopeAsync(
+        Guid representationId,
+        ChangeRepresentationScopeRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Stops representing an area, keeping what it was.</summary>
+    Task EndRepresentationScopeAsync(
+        Guid representationId,
+        ChangeRepresentationScopeRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Puts somebody on the team, or changes what they do on it.</summary>
+    Task AssignRepresentationTeamMemberAsync(
+        Guid representationId,
+        AssignRepresentationTeamMemberRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Takes somebody off the team, keeping that they were on it.</summary>
+    Task RemoveRepresentationTeamMemberAsync(
+        Guid representationId,
+        RemoveRepresentationTeamMemberRequest request,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<CreditResponse>> ListCreditsAsync(
         Guid personId,
         CancellationToken cancellationToken = default);
@@ -1899,6 +1923,50 @@ public sealed partial class AgencyOsApiClient : IAgencyOsApi
         SendNoContentAsync(
             HttpMethod.Post,
             $"{TenantRoot}/representations/{representationId}/transition",
+            request,
+            idempotencyKey: null,
+            cancellationToken);
+
+    public Task AddRepresentationScopeAsync(
+        Guid representationId,
+        ChangeRepresentationScopeRequest request,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/representations/{representationId}/scopes",
+            request,
+            idempotencyKey: null,
+            cancellationToken);
+
+    public Task EndRepresentationScopeAsync(
+        Guid representationId,
+        ChangeRepresentationScopeRequest request,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/representations/{representationId}/scopes/end",
+            request,
+            idempotencyKey: null,
+            cancellationToken);
+
+    public Task AssignRepresentationTeamMemberAsync(
+        Guid representationId,
+        AssignRepresentationTeamMemberRequest request,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/representations/{representationId}/team",
+            request,
+            idempotencyKey: null,
+            cancellationToken);
+
+    public Task RemoveRepresentationTeamMemberAsync(
+        Guid representationId,
+        RemoveRepresentationTeamMemberRequest request,
+        CancellationToken cancellationToken = default) =>
+        SendNoContentAsync(
+            HttpMethod.Post,
+            $"{TenantRoot}/representations/{representationId}/team/remove",
             request,
             idempotencyKey: null,
             cancellationToken);

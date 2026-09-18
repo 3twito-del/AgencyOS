@@ -153,13 +153,9 @@ public sealed class DialogScannerTests
                 // Nothing constructs this dialog; an operator cannot reach it.
                 "AddIntelligenceSubjectDialog.IdBox",
 
-                // The four owner/lead fields: OWNER_DESIGN_DECISION_REQUIRED.
-                "CreateContractDialog.OwnerIdBox",
-                "CreateDealDialog.OwnerIdBox",
-                "CreateOpportunityDialog.OwnerIdBox",
-                "CreatePackageDialog.LeadIdBox",
-
-                // Fourteen target kinds, one without a flat list. Design decision open.
+                // Twelve of the fourteen target kinds are pickers now. The box
+                // survives for a material and a contract version, which belong to a
+                // parent record and have no list of their own (AOS-R001-006).
                 "LinkRecordDialog.TargetIdBox",
             ],
             remaining);

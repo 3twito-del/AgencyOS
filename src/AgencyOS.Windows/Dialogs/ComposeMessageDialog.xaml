@@ -5,7 +5,7 @@
     Title="Compose a message"
     PrimaryButtonText="Save draft"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="600">

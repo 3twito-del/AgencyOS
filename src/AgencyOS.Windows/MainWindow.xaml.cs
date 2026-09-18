@@ -218,8 +218,16 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        if (args.SelectedItem is NavigationViewItem { Tag: string tag })
+        if (args.SelectedItem is NavigationViewItem { Tag: string tag } selected)
         {
+            // Seventeen destinations do not fit the pane at any footer height, so
+            // four of them sit below the fold. The pane never followed the
+            // selection: working in Intelligence, AI, Saved Views or Sync showed a
+            // list that did not contain the page being worked on, with nothing
+            // marked anywhere (AOS-R001-013, AOS-R001R-001). Scrolling always
+            // worked; nothing ever asked for it.
+            selected.StartBringIntoView();
+
             Navigate(tag);
         }
     }
@@ -360,6 +368,13 @@ public sealed partial class MainWindow : Window
 
             case "sync.now":
                 _ = SynchronizeAsync();
+                return;
+
+            // Selecting the settings item rather than navigating the frame
+            // directly, so there is one navigation state and the pane agrees with
+            // the page (AOS-R002-015).
+            case "organization.open":
+                Navigation.SelectedItem = Navigation.SettingsItem;
                 return;
 
             default:

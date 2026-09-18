@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Projects;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 
 namespace AgencyOS.Windows.Dialogs;
@@ -29,6 +30,11 @@ public sealed partial class AddPackageElementDialog : ContentDialog
         _sources = sources;
 
         InitializeComponent();
+
+        // The hint under this field describes it. Declaring that lets a screen
+        // reader reach the explanation from the field, instead of the reader
+        // having to find it by looking (AOS-R002-011).
+        AutomationProperties.GetDescribedBy(TargetBox).Add(TargetHint);
 
         KindBox.SelectedIndex = 1;
         ApplyKind();

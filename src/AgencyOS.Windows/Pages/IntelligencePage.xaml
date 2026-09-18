@@ -10,12 +10,34 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Spacing="4">
+        <Grid Grid.Row="0" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="4">
             <TextBlock Text="Intelligence" Style="{StaticResource TitleTextBlockStyle}" />
             <TextBlock Opacity="0.7" TextWrapping="Wrap"
                        Style="{StaticResource CaptionTextBlockStyle}"
                        Text="Evidence, claims, views and forecasts, kept apart. AgencyOS records what people know and what they think, with provenance, and never decides which of it is true." />
-        </StackPanel>
+            </StackPanel>
+
+            <!--
+                Every authoring command in this workspace used to be reachable only
+                by opening the command palette and knowing what to type: thirteen
+                dialogs, no button anywhere (AOS-R002-003). One launcher, built from
+                the command registry itself, so a command added later appears here
+                without anybody remembering to add it.
+            -->
+            <DropDownButton Grid.Column="1" x:Name="AuthorButton" Content="New"
+                            VerticalAlignment="Top"
+                            AutomationProperties.Name="New intelligence record">
+                <DropDownButton.Flyout>
+                    <MenuFlyout x:Name="AuthorMenu" Placement="BottomEdgeAlignedRight" />
+                </DropDownButton.Flyout>
+            </DropDownButton>
+        </Grid>
 
         <InfoBar Grid.Row="1" x:Name="PageError" Severity="Error" IsOpen="False"
                  IsClosable="False" Title="Something went wrong" />

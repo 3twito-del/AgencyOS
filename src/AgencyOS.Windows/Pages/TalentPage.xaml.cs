@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.Representation;
 using AgencyOS.Windows.Dialogs;
 using Microsoft.UI.Xaml;
@@ -74,6 +76,14 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
 
             case "material.add":
                 _ = AddMaterialAsync();
+                break;
+
+            case "representation.scope.change":
+                _ = ChangeScopeAsync();
+                break;
+
+            case "representation.team.change":
+                _ = ChangeTeamAsync();
                 break;
 
             default:
@@ -164,44 +174,190 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
         RenderDetail();
     }
 
-    private void OnAddCreditClick(object sender, RoutedEventArgs e) => _ = AddCreditAsync();
+    private void OnChangeScopeClick(object sender, RoutedEventArgs e) => _ = ChangeScopeAsync();
 
-    private async Task AddCreditAsync()
+    /// <summary>
+    /// Begins or ends representing an area.
+    /// </summary>
+    /// <remarks>
+    /// <c>AOS-R001-010</c>. The two commands have existed on the server since M4
+    /// and this tab has always shown their result; nothing called them.
+    /// </remarks>
+    private async Task ChangeScopeAsync()
     {
-        if (_selectedPersonId is not { } personId || AppServices.Api is not { } api)
+        if (_selectedPersonId is not { } personId
+            || AppServices.Api is not { } api
+            || _overview?.Overview?.Representation is not { } representation)
         {
             return;
         }
 
-        AddCreditDialog dialog = new() { XamlRoot = XamlRoot };
+        ChangeRepresentationScopeDialog dialog = new(representation.Scopes) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
             return;
         }
 
-        await api.AddCreditAsync(dialog.ToRequest(personId)).ConfigureAwait(true);
+        ChangeRepresentationScopeRequest request = dialog.ToRequest(representation.Version);
+
+        try
+        {
+            CommandError.IsOpen = false;
+
+            if (dialog.IsBeginning)
+            {
+                await api.AddRepresentationScopeAsync(representation.Id, request).ConfigureAwait(true);
+            }
+            else
+            {
+                await api.EndRepresentationScopeAsync(representation.Id, request).ConfigureAwait(true);
+            }
+        }
+        catch (AgencyOS.Client.AgencyOsApiException failure)
+        {
+            Refused(
+                dialog.IsBeginning ? "Could not begin representing that" : "Could not end that scope",
+                failure);
+
+            return;
+        }
+
         await OpenAsync(personId).ConfigureAwait(true);
+    }
+
+    private void OnChangeTeamClick(object sender, RoutedEventArgs e) => _ = ChangeTeamAsync();
+
+    /// <summary>Puts somebody on the team, changes their role, or takes them off.</summary>
+    private async Task ChangeTeamAsync()
+    {
+        if (_selectedPersonId is not { } personId
+            || AppServices.Api is not { } api
+            || _overview?.Overview?.Representation is not { } representation)
+        {
+            return;
+        }
+
+        IReadOnlyList<OrganizationMemberResponse> members;
+
+        try
+        {
+            CommandError.IsOpen = false;
+
+            members = await api.ListOrganizationMembersAsync().ConfigureAwait(true);
+        }
+        catch (AgencyOS.Client.AgencyOsApiException failure)
+        {
+            Refused("Could not read who is in this organization", failure);
+
+            return;
+        }
+
+        ChangeRepresentationTeamDialog dialog = new(members, representation.Team)
+        {
+            XamlRoot = XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        try
+        {
+            if (dialog.IsAssigning)
+            {
+                await api
+                    .AssignRepresentationTeamMemberAsync(
+                        representation.Id, dialog.ToAssignRequest(representation.Version))
+                    .ConfigureAwait(true);
+            }
+            else
+            {
+                await api
+                    .RemoveRepresentationTeamMemberAsync(
+                        representation.Id, dialog.ToRemoveRequest(representation.Version))
+                    .ConfigureAwait(true);
+            }
+        }
+        catch (AgencyOS.Client.AgencyOsApiException failure)
+        {
+            Refused(
+                dialog.IsAssigning ? "Could not change the team" : "Could not take them off the team",
+                failure);
+
+            return;
+        }
+
+        await OpenAsync(personId).ConfigureAwait(true);
+    }
+
+    /// <summary>Shows a refusal under the name of what was actually attempted.</summary>
+    /// <remarks>
+    /// The list's error bar is titled for a load, and this is not one
+    /// (<c>AOS-R002-012</c>).
+    /// </remarks>
+    private void Refused(string title, AgencyOS.Client.AgencyOsApiException failure)
+    {
+        CommandError.Title = title;
+
+        // The server's own explanation, not the problem's title (AOS-R002-024).
+        CommandError.Message = failure.Detail ?? failure.Message;
+        CommandError.IsOpen = true;
+    }
+
+    private void OnAddCreditClick(object sender, RoutedEventArgs e) => _ = AddCreditAsync();
+
+    private async Task AddCreditAsync()
+    {
+        try
+        {
+            if (_selectedPersonId is not { } personId || AppServices.Api is not { } api)
+            {
+                return;
+            }
+
+            AddCreditDialog dialog = new() { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await api.AddCreditAsync(dialog.ToRequest(personId)).ConfigureAwait(true);
+            await OpenAsync(personId).ConfigureAwait(true);
+        }
+        catch (AgencyOS.Client.AgencyOsApiException failure)
+        {
+            Refused("Could not add the credit", failure);
+        }
     }
 
     private void OnAddMaterialClick(object sender, RoutedEventArgs e) => _ = AddMaterialAsync();
 
     private async Task AddMaterialAsync()
     {
-        if (_selectedPersonId is not { } personId || AppServices.Api is not { } api)
+        try
         {
-            return;
+            if (_selectedPersonId is not { } personId || AppServices.Api is not { } api)
+            {
+                return;
+            }
+
+            AddMaterialDialog dialog = new() { XamlRoot = XamlRoot };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await api.AddMaterialAsync(dialog.ToRequest(personId)).ConfigureAwait(true);
+            await OpenAsync(personId).ConfigureAwait(true);
         }
-
-        AddMaterialDialog dialog = new() { XamlRoot = XamlRoot };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        catch (AgencyOS.Client.AgencyOsApiException failure)
         {
-            return;
+            Refused("Could not add the material", failure);
         }
-
-        await api.AddMaterialAsync(dialog.ToRequest(personId)).ConfigureAwait(true);
-        await OpenAsync(personId).ConfigureAwait(true);
     }
 
     private void RenderList()
@@ -253,6 +409,10 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
 
         NoRepresentationBar.IsOpen = overview.Representation is null;
 
+        // Nothing to change scopes or a team on until there is a relationship.
+        ChangeScopeButton.IsEnabled = overview.Representation is not null;
+        ChangeTeamButton.IsEnabled = overview.Representation is not null;
+
         if (overview.Representation is { } representation)
         {
             string ends = representation.EndsOn is { } end
@@ -273,4 +433,23 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
 
         TaskList.ItemsSource = overview.OpenTasks;
     }
+    /// <summary>Runs a command and shows the server's reason if it refuses.</summary>
+    /// <remarks>
+    /// Dispatched and not awaited, so an unhandled refusal used to be lost
+    /// entirely — the same class reproduced on Intelligence.
+    /// </remarks>
+    private async Task Guarded(string title, Func<Task> command)
+    {
+        try
+        {
+            CommandError.IsOpen = false;
+
+            await command().ConfigureAwait(true);
+        }
+        catch (AgencyOS.Client.AgencyOsApiException failure)
+        {
+            Refused(title, failure);
+        }
+    }
+
 }

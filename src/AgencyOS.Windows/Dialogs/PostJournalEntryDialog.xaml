@@ -5,7 +5,7 @@
     Title="Post journal entry"
     PrimaryButtonText="Post"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="None"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="600">

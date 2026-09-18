@@ -695,6 +695,42 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         return Task.CompletedTask;
     }
 
+    public Task AddRepresentationScopeAsync(
+        Guid representationId,
+        ChangeRepresentationScopeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.CompletedTask;
+    }
+
+    public Task EndRepresentationScopeAsync(
+        Guid representationId,
+        ChangeRepresentationScopeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.CompletedTask;
+    }
+
+    public Task AssignRepresentationTeamMemberAsync(
+        Guid representationId,
+        AssignRepresentationTeamMemberRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveRepresentationTeamMemberAsync(
+        Guid representationId,
+        RemoveRepresentationTeamMemberRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Throw();
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<CreditResponse>> ListCreditsAsync(
         Guid personId,
         CancellationToken cancellationToken = default)

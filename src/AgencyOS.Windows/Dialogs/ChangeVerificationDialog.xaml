@@ -5,7 +5,7 @@
     Title="Change what corroboration this claim has"
     PrimaryButtonText="Record"
     CloseButtonText="Cancel"
-    DefaultButton="Close">
+    DefaultButton="Primary">
 
     <StackPanel Spacing="10" MinWidth="500">
         <TextBlock x:Name="ClaimText" TextWrapping="Wrap"

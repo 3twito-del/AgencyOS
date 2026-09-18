@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 
 namespace AgencyOS.Windows.Dialogs;
@@ -31,6 +33,11 @@ public sealed partial class RecordSubmissionDialog : ContentDialog
 
         InitializeComponent();
 
+        // The hint under this field describes it. Declaring that lets a screen
+        // reader reach the explanation from the field, instead of the reader
+        // having to find it by looking (AOS-R002-011).
+        AutomationProperties.GetDescribedBy(MaterialBox).Add(SnapshotHint);
+
         // "Nothing" is a first-class answer here, not an empty selection.
         MaterialBox.ItemsSource = new[] { Nothing }.Concat(materials).ToList();
         MaterialBox.SelectedItem = Nothing;
@@ -38,8 +45,15 @@ public sealed partial class RecordSubmissionDialog : ContentDialog
         TargetText.Text = $"To {targetName}";
 
         ChannelBox.SelectedIndex = 0;
-        SentPicker.Date = DateTimeOffset.UtcNow;
-        ResponsePicker.Date = DateTimeOffset.UtcNow.AddDays(14);
+        // Local, because that is what the pickers show and what the operator is
+        // answering about. The API boundary makes it canonical UTC (AOS-R002-001).
+        (DateTimeOffset date, TimeSpan timeOfDay) = LocalInstant.Now();
+
+        SentPicker.Date = date;
+        SentTimePicker.Time = timeOfDay;
+
+        // A calendar date, not an instant: it stays a date picker.
+        ResponsePicker.Date = date.AddDays(14);
     }
 
     public RecordSubmissionRequest ToRequest(int expectedVersion)
@@ -58,7 +72,7 @@ public sealed partial class RecordSubmissionDialog : ContentDialog
         return new RecordSubmissionRequest(
             SelectedTag(ChannelBox) ?? "Email",
             expectedVersion,
-            SentPicker.Date,
+            LocalInstant.From(SentPicker.Date, SentTimePicker.Time),
             materials,
             Empty(SubjectBox.Text),
             Empty(NotesBox.Text),

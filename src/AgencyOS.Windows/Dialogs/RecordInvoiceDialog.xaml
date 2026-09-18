@@ -5,7 +5,7 @@
     Title="Record invoice"
     PrimaryButtonText="Record"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="580">

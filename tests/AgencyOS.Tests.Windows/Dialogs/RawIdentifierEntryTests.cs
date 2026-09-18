@@ -43,14 +43,15 @@ public sealed class RawIdentifierEntryTests
     /// </remarks>
     private static readonly Dictionary<string, string> Deferred = new(StringComparer.Ordinal)
     {
-        ["CreateDealDialog.xaml:OwnerIdBox"] = "OWNER_DESIGN_DECISION_REQUIRED",
-        ["CreateContractDialog.xaml:OwnerIdBox"] = "OWNER_DESIGN_DECISION_REQUIRED",
-        ["CreateOpportunityDialog.xaml:OwnerIdBox"] = "OWNER_DESIGN_DECISION_REQUIRED",
-        ["CreatePackageDialog.xaml:LeadIdBox"] = "OWNER_DESIGN_DECISION_REQUIRED",
+        // The four owner/lead fields were decided and are pickers now
+        // (AOS-R001-006). Their exemptions came out, and the rule below enforces
+        // them like every other field.
 
-        // Fourteen target kinds, one of which has no flat list. Which of them
-        // deserve a picker is an open product question.
-        ["LinkRecordDialog.xaml:TargetIdBox"] = "PICKER_DESIGN_DECISION_REQUIRED",
+        // Twelve of the fourteen kinds are pickers now (AOS-R001-006). The box
+        // survives for the two that belong to a parent record and have no list of
+        // their own — a material belongs to a person, a version to a contract — and
+        // the dialog says so rather than hiding the kinds.
+        ["LinkRecordDialog.xaml:TargetIdBox"] = "PARENT_SCOPED_KINDS_ONLY",
 
         // Nothing in the client constructs this dialog. An operator cannot reach it.
         ["AddIntelligenceSubjectDialog.xaml:IdBox"] = "DEBUG_ONLY / unreachable",

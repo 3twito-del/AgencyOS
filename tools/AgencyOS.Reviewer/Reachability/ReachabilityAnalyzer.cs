@@ -25,8 +25,23 @@ namespace AgencyOS.Reviewer.Reachability;
 public static class ReachabilityAnalyzer
 {
     /// <summary>Commands the shell window answers itself rather than delegating.</summary>
+    /// <summary>
+    /// Commands the window answers itself, which no page's <c>Execute</c> will name.
+    /// </summary>
+    /// <remarks>
+    /// The scanner reads dispatch from a page's <c>Execute</c> body; the shell
+    /// answers these in <c>MainWindow.Dispatch</c> instead, so they would read as
+    /// dead. Adding a shell-owned command without adding it here fails
+    /// <c>EveryCommandInTheRegistryIsAnsweredBySomething</c> — which is how
+    /// <c>organization.open</c> arrived (<c>AOS-R002-015</c>).
+    /// </remarks>
     private static readonly IReadOnlySet<string> ShellOwned =
-        new HashSet<string>(StringComparer.Ordinal) { "search.open", "sync.now" };
+        new HashSet<string>(StringComparer.Ordinal)
+        {
+            "search.open",
+            "sync.now",
+            "organization.open",
+        };
 
     /// <summary>Runs every cross-reference.</summary>
     public static IReadOnlyList<ReachabilityObservation> Analyze(

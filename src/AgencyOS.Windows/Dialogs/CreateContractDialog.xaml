@@ -53,8 +53,14 @@
                      Title="An amendment is its own agreement"
                      Message="Record it as a separate contract and then link it to the one it changes. It is not a further drafting version of the original." />
 
-            <TextBox x:Name="OwnerIdBox" Header="Owner" PlaceholderText="Internal owner identifier"
-                     TextChanged="OnRequiredChanged" />
+            <!--
+                Chosen from the people in this organization, not typed as an internal
+                identifier (AOS-R001-006). The directory is the same one the
+                representation team picker uses.
+            -->
+            <ComboBox x:Name="OwnerIdBox" Header="Owner" HorizontalAlignment="Stretch"
+                      PlaceholderText="Choose a member" DisplayMemberPath="Label"
+                      SelectionChanged="OnRequiredChanged" />
 
             <TextBox x:Name="ReferenceBox" Header="Reference" PlaceholderText="Internal handle, if any" />
 

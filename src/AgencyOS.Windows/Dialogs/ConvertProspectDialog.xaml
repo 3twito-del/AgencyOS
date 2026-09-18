@@ -5,7 +5,7 @@
     Title="Convert to client"
     PrimaryButtonText="Sign"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="None"
     IsPrimaryButtonEnabled="False">
 
     <StackPanel Spacing="12" MinWidth="400">

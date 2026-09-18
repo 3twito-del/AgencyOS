@@ -450,6 +450,8 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
         await LoadAsync().ConfigureAwait(true);
     }
 
+    private void OnRecordInvoiceClick(object sender, RoutedEventArgs e) => _ = RecordInvoiceAsync();
+
     private async Task RecordInvoiceAsync()
     {
         if (AppServices.Api is not { } api

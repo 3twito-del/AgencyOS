@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Windows.Dialogs;
 using Microsoft.UI.Xaml;
@@ -118,6 +119,8 @@ public sealed partial class PackagesPage : Page, IPaletteCommandTarget
         }
 
         IReadOnlyList<ProjectSummaryResponse> projects = [];
+        IReadOnlyList<OrganizationMemberResponse> members = [];
+
 
         await Guarded(async () =>
                 projects = await api.ListProjectsAsync().ConfigureAwait(true))
@@ -133,7 +136,13 @@ public sealed partial class PackagesPage : Page, IPaletteCommandTarget
             return;
         }
 
-        CreatePackageDialog dialog = new(projects) { XamlRoot = XamlRoot };
+        // The owner is chosen from this organization's people rather than typed
+        // as an identifier (AOS-R001-006).
+        await Guarded(async () =>
+                members = await api.ListOrganizationMembersAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        CreatePackageDialog dialog = new(projects, members) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -238,7 +247,9 @@ public sealed partial class PackagesPage : Page, IPaletteCommandTarget
         catch (AgencyOsApiException failure)
         {
             DetailBar.Title = "That did not happen";
-            DetailBar.Message = failure.Message;
+            // The server's own explanation, not the title of the problem
+            // (AOS-R002-024).
+            DetailBar.Message = failure.Detail ?? failure.Message;
             DetailBar.Severity = InfoBarSeverity.Error;
             DetailBar.IsOpen = true;
         }

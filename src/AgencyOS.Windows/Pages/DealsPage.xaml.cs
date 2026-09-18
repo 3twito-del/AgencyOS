@@ -7,6 +7,7 @@ using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Windows.Dialogs;
+using AgencyOS.Contracts.Organizations;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -169,6 +170,8 @@ public sealed partial class DealsPage : Page, IPaletteCommandTarget
         }
 
         IReadOnlyList<OpportunitySummaryResponse> opportunities = [];
+        IReadOnlyList<OrganizationMemberResponse> members = [];
+
 
         await Guarded(async () =>
                 opportunities = await api.ListOpportunitiesAsync().ConfigureAwait(true))
@@ -184,7 +187,13 @@ public sealed partial class DealsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        CreateDealDialog dialog = new(api, opportunities) { XamlRoot = XamlRoot };
+        // The owner is chosen from this organization's people rather than typed
+        // as an identifier (AOS-R001-006).
+        await Guarded(async () =>
+                members = await api.ListOrganizationMembersAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        CreateDealDialog dialog = new(api, opportunities, members) { XamlRoot = XamlRoot };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {

@@ -438,6 +438,23 @@ internal sealed class CrashProbe
             case "read":
                 return Read(parts[1]);
 
+            case "see":
+                return See(step["see:".Length..]);
+
+            case "describedby":
+                return DescribedBy(parts[1]);
+
+            case "set":
+                return Set(step["set:".Length..]);
+
+            // Where focus is, without moving it. A refusal that the operator has to
+            // go looking for is most of what AOS-R002-010 was about.
+            case "focused":
+                return "focus is on " + (_app.FocusedNode()?.Describe() ?? "nothing");
+
+            case "palette":
+                return OpenPalette(step["palette:".Length..]);
+
             case "row":
                 return SelectRow(
                     parts[1],
@@ -450,6 +467,41 @@ internal sealed class CrashProbe
             default:
                 return "unknown step";
         }
+    }
+
+    /// <summary>Opens the command palette and types a query, leaving it open.</summary>
+    /// <remarks>
+    /// Repair Wave 003D needs to read what a palette row announces
+    /// (<c>AOS-R002-018</c>), which means the palette open and populated rather
+    /// than a command already run. The gesture is the product's own: Ctrl+P.
+    /// </remarks>
+    private string OpenPalette(string query)
+    {
+        _app.Focus();
+        Thread.Sleep(300);
+
+        if (!_app.Keys.PressGesture('P', ReviewModifiers.Control))
+        {
+            return "the palette keystroke was refused";
+        }
+
+        Thread.Sleep(900);
+        _app.Refresh();
+
+        if (_app.Snapshot().Flatten().All(x => x.AutomationId != "PaletteQuery"))
+        {
+            return "the palette did not open";
+        }
+
+        if (query.Length > 0 && !_app.Keys.Type(query))
+        {
+            return "the query could not be typed";
+        }
+
+        Thread.Sleep(900);
+        _app.Refresh();
+
+        return "the palette is open on '" + query + "'";
     }
 
     private string PressKey(string chord)
@@ -483,6 +535,136 @@ internal sealed class CrashProbe
             + (_app.FocusedNode()?.Describe() ?? "nothing");
     }
 
+    /// <summary>
+    /// Replaces what a control holds, as <c>id=value</c>.
+    /// </summary>
+    /// <remarks>
+    /// Correcting an entry means replacing it, and the keyboard vocabulary here has
+    /// no select-all. Setting the value through the pattern is also what an operator
+    /// editing the field does as far as the product is concerned: it raises the same
+    /// change notification, which is what retires the refusal.
+    /// </remarks>
+    private string Set(string assignment)
+    {
+        int split = assignment.IndexOf('=', StringComparison.Ordinal);
+
+        if (split <= 0)
+        {
+            return "a set step reads 'set:automationId=value'";
+        }
+
+        string automationId = assignment[..split];
+        string value = assignment[(split + 1)..];
+
+        AutomationElement? element = _app.Find(automationId);
+
+        if (element is null)
+        {
+            return "no control with automation id '" + automationId + "'";
+        }
+
+        if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out object? pattern)
+            || pattern is not ValuePattern editable)
+        {
+            return "'" + automationId + "' holds no value";
+        }
+
+        editable.SetValue(value);
+        Thread.Sleep(400);
+
+        return "'" + automationId + "' is now '" + value + "'";
+    }
+
+    /// <summary>
+    /// What a control says describes it, read from UI Automation itself.
+    /// </summary>
+    /// <remarks>
+    /// <c>AOS-R002-011</c> is about a relationship, not about text being visible, so
+    /// the only evidence worth having is the relationship as an assistive technology
+    /// would read it. <c>DescribedBy</c> is property 30105; the managed client has no
+    /// name for it, so it is looked up by id.
+    /// </remarks>
+    private string DescribedBy(string automationId)
+    {
+        AutomationElement? element = _app.Find(automationId);
+
+        if (element is null)
+        {
+            return "no control with automation id '" + automationId + "'";
+        }
+
+        AutomationProperty property = AutomationProperty.LookupById(30105);
+
+        if (property is null)
+        {
+            // Said precisely, because "cannot read it" and "it is not set" are very
+            // different findings. System.Windows.Automation never registered
+            // DescribedBy; LabeledBy, two ids away, proves the lookup itself works.
+            object? labelled = element.GetCurrentPropertyValue(AutomationElement.LabeledByProperty);
+
+            return "this UI Automation client has no DescribedBy property (30105), so the "
+                + "association cannot be read from here; the client does expose LabeledBy, "
+                + "which reads as "
+                + (labelled is AutomationElement label ? "'" + label.Current.Name + "'" : "nothing")
+                + ". Whether the description is spoken is a screen-reader gate, not this one.";
+        }
+
+        object? value = element.GetCurrentPropertyValue(property);
+
+        if (value is not object[] { Length: > 0 } described)
+        {
+            return "'" + automationId + "' is described by nothing";
+        }
+
+        IEnumerable<string> said = described
+            .OfType<AutomationElement>()
+            .Select(x => Text(x));
+
+        return "'" + automationId + "' is described by [" + string.Join(" | ", said) + "]";
+    }
+
+    /// <summary>Everything an element says, itself and beneath it.</summary>
+    private static string Text(AutomationElement element)
+    {
+        string[] beneath = element
+            .FindAll(TreeScope.Descendants, new PropertyCondition(
+                AutomationElement.ControlTypeProperty, ControlType.Text))
+            .Cast<AutomationElement>()
+            .Select(x => x.Current.Name)
+            .Where(x => x is { Length: > 0 })
+            .ToArray();
+
+        return beneath.Length > 0
+            ? string.Join(" — ", beneath)
+            : element.Current.Name;
+    }
+
+    /// <summary>
+    /// Whether something named is actually on the window, and where.
+    /// </summary>
+    /// <remarks>
+    /// By name rather than by automation id, because the navigation pane's
+    /// destinations carry neither an id nor an x:Name, and adding one to measure
+    /// them would be changing the product to suit the harness. Reports what
+    /// <c>AOS-R001-013</c> and <c>AOS-R002-021</c> were measured with: whether
+    /// the element is offscreen, and its rectangle.
+    /// </remarks>
+    private string See(string name)
+    {
+        _app.Refresh();
+
+        UiaNode? found = _app.Snapshot().Flatten()
+            .FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.Ordinal));
+
+        if (found is null)
+        {
+            return "nothing named '" + name + "' is in the tree";
+        }
+
+        return "'" + name + "' is " + (found.IsOffscreen ? "OFFSCREEN" : "on screen")
+            + " at " + (found.Bounds ?? "«no rectangle»");
+    }
+
     /// <summary>What a control shows: its value, or the item it has selected.</summary>
     private string Read(string automationId)
     {
@@ -512,6 +694,22 @@ internal sealed class CrashProbe
             && expand is ExpandCollapsePattern state)
         {
             said.Add("state=" + state.Current.ExpandCollapseState);
+        }
+
+        // An InfoBar announces nothing itself: its heading and its sentence are
+        // separate children, and reading only the bar would have said the
+        // refusal was blank when it was not (AOS-R002-012).
+        string[] beneath = element
+            .FindAll(TreeScope.Descendants, new PropertyCondition(
+                AutomationElement.ControlTypeProperty, ControlType.Text))
+            .Cast<AutomationElement>()
+            .Select(x => x.Current.Name)
+            .Where(x => x is { Length: > 0 })
+            .ToArray();
+
+        if (beneath.Length > 0)
+        {
+            said.Add("says=[" + string.Join(" | ", beneath) + "]");
         }
 
         return string.Join(" ", said);

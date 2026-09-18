@@ -5,7 +5,7 @@
     Title="Record a signal"
     PrimaryButtonText="Record"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="600">

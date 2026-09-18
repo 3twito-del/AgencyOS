@@ -5,7 +5,7 @@
     Title="Attach something to this case"
     PrimaryButtonText="Attach"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <StackPanel Spacing="10" MinWidth="480">

@@ -174,27 +174,43 @@ public sealed partial class PeoplePage : Page, IPaletteCommandTarget
             return;
         }
 
-        NewPersonDialog dialog = new() { XamlRoot = XamlRoot };
+        CommandError.IsOpen = false;
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        // The dialog owns the create, so a refusal it can answer keeps the dialog,
+        // the typing and the focus rather than landing here (AOS-R002-010).
+        NewPersonDialog dialog = new(api) { XamlRoot = XamlRoot };
+
+        await dialog.ShowAsync();
+
+        if (dialog.Terminal is { } terminal)
+        {
+            Refused("Could not create the person", terminal);
+
+            return;
+        }
+
+        if (dialog.Created is not { } created)
         {
             return;
         }
 
-        try
-        {
-            PersonDetailResponse created = await api
-                .CreatePersonAsync(dialog.ToRequest())
-                .ConfigureAwait(true);
+        await LoadListAsync().ConfigureAwait(true);
+        await LoadDetailAsync(created.Person.Id).ConfigureAwait(true);
+    }
 
-            await LoadListAsync().ConfigureAwait(true);
-            await LoadDetailAsync(created.Person.Id).ConfigureAwait(true);
-        }
-        catch (AgencyOS.Client.AgencyOsApiException ex)
-        {
-            ListError.Message = ex.Detail ?? ex.Message;
-            ListError.IsOpen = true;
-        }
+    /// <summary>Shows a refusal under the name of what was actually attempted.</summary>
+    /// <remarks>
+    /// The list's error bar is titled for a load. Writing a refused create into it
+    /// told the operator that people could not be loaded, which is not what
+    /// happened and not what they had just done (AOS-R002-012).
+    /// </remarks>
+    private void Refused(string title, AgencyOS.Client.AgencyOsApiException failure)
+    {
+        CommandError.Title = title;
+
+        // The server's own explanation, not the problem's title (AOS-R002-024).
+        CommandError.Message = failure.Detail ?? failure.Message;
+        CommandError.IsOpen = true;
     }
 
     private void OnRecordClick(object sender, RoutedEventArgs e) => _ = RecordInteractionAsync();

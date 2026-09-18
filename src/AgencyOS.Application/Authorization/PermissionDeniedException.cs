@@ -1,10 +1,18 @@
+using AgencyOS.Domain.Authorization;
+
 namespace AgencyOS.Application.Authorization;
 
 /// <summary>Raised when the acting user does not hold the required permission.</summary>
 public sealed class PermissionDeniedException : Exception
 {
+    /// <remarks>
+    /// The sentence names the capability, not the permission string
+    /// (<c>AOS-R002-014</c>). The string itself stays on <see cref="Permission"/>
+    /// and reaches the caller as the problem's <c>requiredPermission</c> extension,
+    /// so nothing reading this by machine lost anything.
+    /// </remarks>
     public PermissionDeniedException(string permission)
-        : base($"Permission '{permission}' is required.")
+        : base(PermissionCapability.Describe(permission))
     {
         Permission = permission;
     }

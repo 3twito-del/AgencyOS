@@ -7,6 +7,7 @@ using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Contracts.Representation;
 using AgencyOS.Windows.Dialogs;
@@ -153,6 +154,8 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
         IReadOnlyList<ProjectSummaryResponse> projects = [];
         IReadOnlyList<PackageSummaryResponse> packages = [];
         IReadOnlyList<TalentSummaryResponse> talent = [];
+        IReadOnlyList<OrganizationMemberResponse> members = [];
+
 
         await Guarded(async () =>
         {
@@ -171,7 +174,13 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
             return;
         }
 
-        CreateOpportunityDialog dialog = new(api, projects, packages, talent)
+        // The owner is chosen from this organization's people rather than typed
+        // as an identifier (AOS-R001-006).
+        await Guarded(async () =>
+                members = await api.ListOrganizationMembersAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        CreateOpportunityDialog dialog = new(api, projects, packages, talent, members)
         {
             XamlRoot = XamlRoot,
         };
@@ -408,7 +417,10 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
         }
         catch (AgencyOsApiException failure)
         {
-            DetailError(failure.Message);
+            // The sentence the domain wrote, not the problem's title. This page's
+            // own remark says the useful sentence is the one the domain wrote; it
+            // was showing the other one (AOS-R002-024).
+            DetailError(failure.Detail ?? failure.Message);
         }
     }
 

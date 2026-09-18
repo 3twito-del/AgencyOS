@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Legal;
+using AgencyOS.Contracts.Finance;
 using AgencyOS.Contracts.Intelligence;
 using AgencyOS.Contracts.Opportunities;
+using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Contracts.Representation;
@@ -48,6 +52,74 @@ public sealed record EntityChoice(Guid Id, string Label)
         return [.. people.Select(x => new EntityChoice(
             x.Id,
             Join(x.DisplayName, x.PrimaryCompanyName ?? x.Title)))];
+    }
+
+    /// <summary>
+    /// People in this organization, told apart by what they do in it.
+    /// </summary>
+    /// <remarks>
+    /// <c>AOS-R001-006</c>. The owner and lead fields asked an operator to type an
+    /// internal user identifier. The directory that answers "who is in this
+    /// organization" already exists and is what the representation team picker
+    /// uses, so these choose from it rather than from nothing.
+    /// </remarks>
+    public static IReadOnlyList<EntityChoice> ForMembers(
+        IReadOnlyList<OrganizationMemberResponse> members)
+    {
+        ArgumentNullException.ThrowIfNull(members);
+
+        return [.. members.Select(x => new EntityChoice(x.UserId, Join(x.DisplayName, x.Role)))];
+    }
+
+    /// <summary>Submissions, told apart by who they went to and when.</summary>
+    public static IReadOnlyList<EntityChoice> ForSubmissions(
+        IReadOnlyList<SubmissionResponse> submissions)
+    {
+        ArgumentNullException.ThrowIfNull(submissions);
+
+        return [.. submissions.Select(x => new EntityChoice(
+            x.Id,
+            Join(x.TargetDisplayName, x.SentAt.ToString("d", CultureInfo.CurrentCulture))))];
+    }
+
+    /// <summary>Offers, told apart by which way they went and where they stand.</summary>
+    public static IReadOnlyList<EntityChoice> ForOffers(IReadOnlyList<OfferResponse> offers)
+    {
+        ArgumentNullException.ThrowIfNull(offers);
+
+        return [.. offers.Select(x => new EntityChoice(
+            x.Id,
+            Join(
+                "Offer " + x.Sequence.ToString(CultureInfo.CurrentCulture),
+                x.Direction,
+                x.Status)))];
+    }
+
+    /// <summary>Contracts, told apart by the deal they paper.</summary>
+    public static IReadOnlyList<EntityChoice> ForContracts(
+        IReadOnlyList<ContractSummaryResponse> contracts)
+    {
+        ArgumentNullException.ThrowIfNull(contracts);
+
+        return [.. contracts.Select(x => new EntityChoice(x.Id, Join(x.Title, x.Kind, x.Status)))];
+    }
+
+    /// <summary>Invoices, told apart by who owes and against what.</summary>
+    public static IReadOnlyList<EntityChoice> ForInvoices(IReadOnlyList<InvoiceResponse> invoices)
+    {
+        ArgumentNullException.ThrowIfNull(invoices);
+
+        return [.. invoices.Select(x => new EntityChoice(
+            x.Id, Join(x.Reference ?? x.ContractTitle, x.DebtorDisplayName, x.Status)))];
+    }
+
+    /// <summary>Payments, told apart by who paid whom.</summary>
+    public static IReadOnlyList<EntityChoice> ForPayments(IReadOnlyList<PaymentResponse> payments)
+    {
+        ArgumentNullException.ThrowIfNull(payments);
+
+        return [.. payments.Select(x => new EntityChoice(
+            x.Id, Join(x.PayerDisplayName, x.PayeeDisplayName, x.Direction)))];
     }
 
     /// <summary>Companies, told apart by what kind of company they are.</summary>

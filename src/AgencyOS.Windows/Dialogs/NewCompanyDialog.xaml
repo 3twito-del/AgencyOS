@@ -8,7 +8,16 @@
     DefaultButton="Primary">
 
     <StackPanel Spacing="8" Width="380">
-        <TextBox x:Name="NameBox" Header="Name" />
+        <!--
+            A refused create is shown here and the dialog stays open, so the entry
+            can be corrected and retried without retyping it (AOS-R002-010). When
+            the refusal is about one field, that field points at this bar
+            (AOS-R002-011).
+        -->
+        <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" IsClosable="False"
+                 Title="Could not create the company" />
+
+        <TextBox x:Name="NameBox" Header="Name" TextChanged="OnEntryChanged" />
 
         <ComboBox x:Name="TypeBox" Header="Type" HorizontalAlignment="Stretch" SelectedIndex="0">
             <x:String>Studio</x:String>
@@ -23,8 +32,9 @@
             <x:String>Other</x:String>
         </ComboBox>
 
-        <TextBox x:Name="LegalNameBox" Header="Legal name" />
-        <TextBox x:Name="WebsiteBox" Header="Website" />
-        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+        <TextBox x:Name="LegalNameBox" Header="Legal name" TextChanged="OnEntryChanged" />
+        <TextBox x:Name="WebsiteBox" Header="Website" TextChanged="OnEntryChanged" />
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap"
+                 TextChanged="OnEntryChanged" />
     </StackPanel>
 </ContentDialog>

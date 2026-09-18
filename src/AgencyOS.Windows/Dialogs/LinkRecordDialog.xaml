@@ -5,7 +5,7 @@
     Title="Link to a record"
     PrimaryButtonText="Link"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <StackPanel Spacing="10" MinWidth="480">
@@ -15,8 +15,24 @@
         <ComboBox x:Name="TargetBox" Header="Record type" MinWidth="260"
                   PlaceholderText="Choose one" SelectionChanged="OnChanged" />
 
+        <!--
+            Twelve of the fourteen kinds are chosen from this organization's own
+            records (AOS-R001-006). The other two belong to a parent record and
+            have no list of their own, so they still take an identifier and say so.
+        -->
+        <ProgressBar x:Name="RecordBusy" AutomationProperties.Name="Loading records"
+                     IsIndeterminate="True" Visibility="Collapsed" />
+
+        <ComboBox x:Name="RecordBox" Header="Which one" HorizontalAlignment="Stretch"
+                  PlaceholderText="Choose a record" DisplayMemberPath="Label"
+                  SelectionChanged="OnChanged" Visibility="Collapsed" />
+
         <TextBox x:Name="TargetIdBox" Header="Record identifier" TextChanged="OnChanged"
-                 PlaceholderText="00000000-0000-0000-0000-000000000000" />
+                 PlaceholderText="00000000-0000-0000-0000-000000000000"
+                 Visibility="Collapsed" />
+
+        <TextBlock x:Name="RecordHint" Style="{StaticResource CaptionTextBlockStyle}"
+                   Opacity="0.75" TextWrapping="Wrap" />
 
         <TextBox x:Name="NoteBox" Header="Note (optional)" TextWrapping="Wrap"
                  AcceptsReturn="True" Height="70" />

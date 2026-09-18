@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 
 namespace AgencyOS.Windows.Dialogs;
@@ -29,6 +30,11 @@ public sealed partial class LinkResearchItemDialog : ContentDialog
         ArgumentNullException.ThrowIfNull(api);
 
         InitializeComponent();
+
+        // The hint under this field describes it. Declaring that lets a screen
+        // reader reach the explanation from the field, instead of the reader
+        // having to find it by looking (AOS-R002-011).
+        AutomationProperties.GetDescribedBy(ItemBox).Add(ItemHint);
 
         _api = api;
 
@@ -105,7 +111,9 @@ public sealed partial class LinkResearchItemDialog : ContentDialog
         }
         catch (AgencyOsApiException failure)
         {
-            ItemHint.Text = failure.Message;
+            // As the pages: the server's own explanation rather than the title of
+            // the problem (AOS-R002-024).
+            ItemHint.Text = failure.Detail ?? failure.Message;
         }
         finally
         {

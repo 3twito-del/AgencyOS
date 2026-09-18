@@ -246,8 +246,15 @@ public sealed class MailboxSynchronizer
             message.Subject,
             bodyText,
             sanitized,
-            message.SentAt,
-            message.ReceivedAt,
+            // A provider reports an instant, and may report it at any offset: the
+            // interface says DateTimeOffset and requires nothing more. The columns
+            // are timestamptz, which Npgsql writes only at offset zero, so a
+            // conforming adapter reporting +03:00 failed the whole sync. Normalized
+            // here, where provider values enter the product, for the same reason
+            // AOS-R002-001 normalizes once at the HTTP boundary — and it is
+            // lossless: the instant is unchanged, only the way it is written.
+            message.SentAt?.ToUniversalTime(),
+            message.ReceivedAt?.ToUniversalTime(),
             message.Folder,
             message.Attachments.Count > 0);
 

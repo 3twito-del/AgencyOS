@@ -5,7 +5,7 @@
     Title="Resolve this prediction"
     PrimaryButtonText="Resolve"
     CloseButtonText="Cancel"
-    DefaultButton="Close">
+    DefaultButton="Primary">
 
     <StackPanel Spacing="10" MinWidth="520">
         <TextBlock x:Name="StatementText" TextWrapping="Wrap"

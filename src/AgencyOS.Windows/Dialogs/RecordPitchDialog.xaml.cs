@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
 using Microsoft.UI.Xaml.Controls;
@@ -52,7 +53,12 @@ public sealed partial class RecordPitchDialog : ContentDialog
         TypeBox.SelectedIndex = 0;
         KindBox.SelectedIndex = 0;
         OutcomeBox.SelectedIndex = 0;
-        OccurredPicker.Date = DateTimeOffset.UtcNow;
+        // Local, because that is what the pickers show and what the operator is
+        // answering about. The API boundary makes it canonical UTC (AOS-R002-001).
+        (DateTimeOffset date, TimeSpan timeOfDay) = LocalInstant.Now();
+
+        OccurredPicker.Date = date;
+        OccurredTimePicker.Time = timeOfDay;
     }
 
     public RecordPitchRequest ToRequest(int expectedVersion)
@@ -83,7 +89,7 @@ public sealed partial class RecordPitchDialog : ContentDialog
             SelectedTag(KindBox) ?? "Formal",
             SelectedTag(OutcomeBox) ?? "NoDecision",
             expectedVersion,
-            OccurredPicker.Date,
+            LocalInstant.From(OccurredPicker.Date, OccurredTimePicker.Time),
             materials,
             Empty(SummaryBox.Text),
             Empty(NotesBox.Text),

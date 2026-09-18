@@ -5,7 +5,7 @@
     Title="Who may read this mailbox"
     PrimaryButtonText="Change"
     CloseButtonText="Cancel"
-    DefaultButton="Close">
+    DefaultButton="Primary">
 
     <StackPanel Spacing="10" MinWidth="480">
         <TextBlock x:Name="MailboxText" Style="{StaticResource BodyStrongTextBlockStyle}"

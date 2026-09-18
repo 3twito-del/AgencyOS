@@ -37,6 +37,8 @@
                 <ProgressBar x:Name="ListBusy"
                              AutomationProperties.Name="List progress" IsIndeterminate="True" Visibility="Collapsed" />
                 <InfoBar x:Name="ListError" Severity="Error" IsOpen="False" IsClosable="False" Title="Could not load people" />
+                <!-- Titled by whatever was refused: a command is not a load (AOS-R002-012). -->
+                <InfoBar x:Name="CommandError" Severity="Error" IsOpen="False" IsClosable="True" />
                 <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
                          Title="No people yet" Message="Create the first person to begin." />
             </StackPanel>

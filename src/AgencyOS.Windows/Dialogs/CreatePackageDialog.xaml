@@ -15,8 +15,14 @@
         <TextBox x:Name="NameBox" Header="Name" PlaceholderText="What we are calling this package"
                  TextChanged="OnRequiredChanged" />
 
-        <TextBox x:Name="LeadIdBox" Header="Lead" PlaceholderText="Internal owner identifier"
-                 TextChanged="OnRequiredChanged" />
+        <!--
+            Chosen from the people in this organization, not typed as an internal
+            identifier (AOS-R001-006). The directory is the same one the
+            representation team picker uses.
+        -->
+        <ComboBox x:Name="LeadIdBox" Header="Lead" HorizontalAlignment="Stretch"
+                  PlaceholderText="Choose a member" DisplayMemberPath="Label"
+                  SelectionChanged="OnRequiredChanged" />
 
         <TextBox x:Name="ThesisBox" Header="Thesis" AcceptsReturn="True" Height="70"
                  TextWrapping="Wrap" PlaceholderText="What this package argues" />

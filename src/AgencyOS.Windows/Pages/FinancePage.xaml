@@ -81,6 +81,14 @@
                         <TextBox x:Name="ReceivableCurrencyBox" PlaceholderText="Currency"
                                  MaxLength="3" Width="100" />
                         <Button Content="Apply" Click="OnReceivableFilterChanged" />
+                        <!--
+                            Every other authoring command on this page has a button;
+                            recording an invoice had only the command palette
+                            (AOS-R002-003). It bills the selected receivable, so it
+                            sits with the receivable controls.
+                        -->
+                        <Button x:Name="RecordInvoiceButton" Content="Record invoice"
+                                Click="OnRecordInvoiceClick" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Spacing="4">

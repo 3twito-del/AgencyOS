@@ -1,0 +1,30 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ChangeRepresentationScopeDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Change what is represented"
+    PrimaryButtonText="Save"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="10" MinWidth="420">
+        <TextBlock x:Name="CurrentText" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="Wrap" />
+
+        <ComboBox x:Name="ActionBox" Header="What is changing" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnActionChanged">
+            <ComboBoxItem Content="Begin representing an area" Tag="Add" />
+            <ComboBoxItem Content="Stop representing an area" Tag="End" />
+        </ComboBox>
+
+        <ComboBox x:Name="AreaBox" Header="Area" HorizontalAlignment="Stretch"
+                  SelectionChanged="OnAreaChanged" />
+
+        <TextBlock x:Name="AreaHint" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75"
+                   TextWrapping="Wrap" />
+
+        <DatePicker x:Name="OccurredPicker" Header="Took effect" HorizontalAlignment="Stretch" />
+
+        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.75" TextWrapping="Wrap"
+                   Text="Ending an area keeps it in the record with the date it ended. It is not deleted, because it was true until then." />
+    </StackPanel>
+</ContentDialog>

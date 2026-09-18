@@ -5,7 +5,7 @@
     Title="Record a response"
     PrimaryButtonText="Record"
     CloseButtonText="Cancel"
-    DefaultButton="Close">
+    DefaultButton="Primary">
 
     <ScrollViewer MaxHeight="560">
         <StackPanel Spacing="10" MinWidth="480">

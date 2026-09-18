@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Globalization;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.Legal;
 using Microsoft.UI.Xaml;
@@ -38,15 +40,23 @@ public sealed partial class CreateContractDialog : ContentDialog
 
     /// <param name="api">Used to read the chosen deal's accepted offer.</param>
     /// <param name="deals">The negotiations this organization is running.</param>
-    public CreateContractDialog(IAgencyOsApi api, IReadOnlyList<DealSummaryResponse> deals)
+    public CreateContractDialog(
+        IAgencyOsApi api,
+        IReadOnlyList<DealSummaryResponse> deals,
+        IReadOnlyList<OrganizationMemberResponse> members)
     {
         ArgumentNullException.ThrowIfNull(api);
         ArgumentNullException.ThrowIfNull(deals);
+        ArgumentNullException.ThrowIfNull(members);
 
         InitializeComponent();
 
         _api = api;
         DealBox.ItemsSource = EntityChoice.ForDeals(deals);
+
+        // Preselect whoever is signed in, proved by the directory's own IsSelf
+        // rather than guessed; they can still choose somebody else.
+        OwnerPicker(members);
     }
 
     /// <summary>The negotiation the operator chose, or null while none is chosen.</summary>
@@ -61,7 +71,7 @@ public sealed partial class CreateContractDialog : ContentDialog
             _acceptedOfferId,
             TitleBox.Text.Trim(),
             SelectedTag(KindBox) ?? "LongForm",
-            Guid.Parse(OwnerIdBox.Text.Trim()),
+            Chosen(OwnerIdBox),
             Empty(ReferenceBox.Text),
             Empty(SummaryBox.Text),
             Empty(AnalysisBox.Text),
@@ -123,7 +133,9 @@ public sealed partial class CreateContractDialog : ContentDialog
         {
             OfferBar.Severity = InfoBarSeverity.Error;
             OfferBar.Title = "That deal could not be read";
-            OfferBar.Message = failure.Message;
+            // The server's own explanation, not the title of the problem
+            // (AOS-R002-024).
+            OfferBar.Message = failure.Detail ?? failure.Message;
             OfferBar.IsOpen = true;
         }
         finally
@@ -143,7 +155,7 @@ public sealed partial class CreateContractDialog : ContentDialog
         IsPrimaryButtonEnabled =
             ChosenDeal() is not null
             && _acceptedOfferId != Guid.Empty
-            && Guid.TryParse(OwnerIdBox.Text?.Trim(), out _)
+            && Chosen(OwnerIdBox) != Guid.Empty
             && !string.IsNullOrWhiteSpace(TitleBox.Text);
     }
 
@@ -151,4 +163,28 @@ public sealed partial class CreateContractDialog : ContentDialog
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static string? SelectedTag(ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag as string;
+    /// <summary>
+    /// Offers the organization's people, with whoever is signed in preselected.
+    /// </summary>
+    /// <remarks>
+    /// <c>AOS-R001-006</c>. The directory says which member is the caller through
+    /// <c>IsSelf</c>, so the default is proved rather than assumed — and it is only
+    /// a default: every other member stays selectable.
+    /// </remarks>
+    private void OwnerPicker(IReadOnlyList<OrganizationMemberResponse> members)
+    {
+        IReadOnlyList<EntityChoice> choices = EntityChoice.ForMembers(members);
+
+        OwnerIdBox.ItemsSource = choices;
+
+        if (members.FirstOrDefault(x => x.IsSelf) is { } self)
+        {
+            OwnerIdBox.SelectedItem = choices.FirstOrDefault(x => x.Id == self.UserId);
+        }
+    }
+
+    /// <summary>The member chosen in a picker, or empty while none is.</summary>
+    private static Guid Chosen(ComboBox box) =>
+        (box.SelectedItem as EntityChoice)?.Id ?? Guid.Empty;
+
 }

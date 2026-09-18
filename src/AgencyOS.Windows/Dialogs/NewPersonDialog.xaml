@@ -8,11 +8,21 @@
     DefaultButton="Primary">
 
     <StackPanel Spacing="8" Width="380">
-        <TextBox x:Name="FirstNameBox" Header="First name" />
-        <TextBox x:Name="LastNameBox" Header="Last name" />
-        <TextBox x:Name="TitleBox" Header="Title" PlaceholderText="Literary Agent" />
-        <TextBox x:Name="EmailBox" Header="Email" />
-        <TextBox x:Name="PhoneBox" Header="Phone" />
-        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+        <!--
+            A refused create is shown here and the dialog stays open, so the entry
+            can be corrected and retried without retyping it (AOS-R002-010). When
+            the refusal is about one field, that field points at this bar
+            (AOS-R002-011).
+        -->
+        <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" IsClosable="False"
+                 Title="Could not create the person" />
+
+        <TextBox x:Name="FirstNameBox" Header="First name" TextChanged="OnEntryChanged" />
+        <TextBox x:Name="LastNameBox" Header="Last name"  TextChanged="OnEntryChanged" />
+        <TextBox x:Name="TitleBox" Header="Title" PlaceholderText="Literary Agent"  TextChanged="OnEntryChanged" />
+        <TextBox x:Name="EmailBox" Header="Email"  TextChanged="OnEntryChanged" />
+        <TextBox x:Name="PhoneBox" Header="Phone"  TextChanged="OnEntryChanged" />
+        <TextBox x:Name="NotesBox" Header="Notes" AcceptsReturn="True" Height="70" TextWrapping="Wrap"
+                 TextChanged="OnEntryChanged" />
     </StackPanel>
 </ContentDialog>

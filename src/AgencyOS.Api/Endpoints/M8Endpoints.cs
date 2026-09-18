@@ -5,6 +5,7 @@ using AgencyOS.Application.Legal;
 using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Domain.Authorization;
+using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Legal;
@@ -1029,9 +1030,16 @@ internal static class M8Endpoints
             term.Notes,
             ParsePrivilege(term.Privilege)))];
 
+    /// <remarks>
+    /// A caller who omits the object is refused as a caller, not as a bug
+    /// (<c>AOS-R002-025</c>).
+    /// </remarks>
     private static DealTermValue ParseValue(TermValueRequest value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        if (value is null)
+        {
+            throw new DomainException("Value is required.");
+        }
 
         return new DealTermValue(
             EndpointParsing.ParseEnum<TermValueKind>(value.Kind, nameof(value.Kind)),

@@ -5,7 +5,7 @@
     Title="Put somebody on the radar"
     PrimaryButtonText="Add"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="520">

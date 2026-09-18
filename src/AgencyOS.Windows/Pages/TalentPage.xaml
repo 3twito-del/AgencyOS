@@ -125,14 +125,18 @@
                     Style="{StaticResource CaptionTextBlockStyle}" />
             </StackPanel>
 
-            <InfoBar
-                Grid.Row="1"
-                x:Name="DetailEmpty"
-                Severity="Informational"
-                IsOpen="True"
-                IsClosable="False"
-                Title="Select somebody"
-                Message="Choose a talent profile to see how the agency represents them." />
+            <StackPanel Grid.Row="1" Spacing="6">
+                <InfoBar
+                    x:Name="DetailEmpty"
+                    Severity="Informational"
+                    IsOpen="True"
+                    IsClosable="False"
+                    Title="Select somebody"
+                    Message="Choose a talent profile to see how the agency represents them." />
+
+                <!-- Titled by whatever was refused: a command is not a load (AOS-R002-012). -->
+                <InfoBar x:Name="CommandError" Severity="Error" IsOpen="False" IsClosable="True" />
+            </StackPanel>
 
             <muxc:TabView
                 Grid.Row="2"
@@ -177,7 +181,17 @@
 
                             <TextBlock x:Name="RepresentationSummary" TextWrapping="Wrap" />
 
-                            <TextBlock Text="Scopes" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Scopes"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                                           VerticalAlignment="Center" />
+                                <Button Grid.Column="1" x:Name="ChangeScopeButton" Content="Change scopes"
+                                        Click="OnChangeScopeClick" IsEnabled="False" />
+                            </Grid>
                             <ListView x:Name="ScopeList"
                                       AutomationProperties.Name="Representation scopes" SelectionMode="None" MaxHeight="220">
                                 <ListView.ItemTemplate>
@@ -202,8 +216,17 @@
                 </muxc:TabViewItem>
 
                 <muxc:TabViewItem Header="Team" IsClosable="False">
-                    <ListView x:Name="TeamList"
-                              AutomationProperties.Name="Teams" SelectionMode="None" Padding="12">
+                  <Grid Padding="12" RowSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Button Grid.Row="0" x:Name="ChangeTeamButton" Content="Change team"
+                            Click="OnChangeTeamClick" HorizontalAlignment="Left" IsEnabled="False" />
+
+                    <ListView Grid.Row="1" x:Name="TeamList"
+                              AutomationProperties.Name="Teams" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
@@ -221,6 +244,7 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
+                  </Grid>
                 </muxc:TabViewItem>
 
                 <muxc:TabViewItem Header="Credits" IsClosable="False">

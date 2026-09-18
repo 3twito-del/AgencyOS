@@ -24,7 +24,12 @@
             <ComboBoxItem Content="Email" Tag="Email" />
         </ComboBox>
 
-        <DatePicker x:Name="OccurredPicker" Header="When" />
+        <!--
+            Date and time, because this field is an instant and the operator has to
+            be able to see and set the whole of it (AOS-R002-026).
+        -->
+        <DatePicker x:Name="OccurredPicker" Header="When — date" />
+        <TimePicker x:Name="OccurredTimePicker" Header="When — time" ClockIdentifier="24HourClock" />
 
         <ComboBox x:Name="KindBox" Header="Pitch" HorizontalAlignment="Stretch">
             <ComboBoxItem Content="Formal" Tag="Formal" />

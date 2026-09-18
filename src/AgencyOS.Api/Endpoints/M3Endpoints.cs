@@ -10,6 +10,7 @@ using AgencyOS.Contracts.SavedViews;
 using AgencyOS.Contracts.Search;
 using AgencyOS.Contracts.Sync;
 using AgencyOS.Domain.Authorization;
+using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Organizations;
 using AgencyOS.Domain.SavedViews;
 
@@ -316,9 +317,16 @@ internal static class M3Endpoints
         return parsed;
     }
 
+    /// <remarks>
+    /// A caller who omits the object is refused as a caller, not as a bug
+    /// (<c>AOS-R002-025</c>).
+    /// </remarks>
     private static SavedViewDefinition ToDefinition(SavedViewDefinitionModel model)
     {
-        ArgumentNullException.ThrowIfNull(model);
+        if (model is null)
+        {
+            throw new DomainException("Definition is required.");
+        }
 
         SavedViewFiltersModel filters = model.Filters ?? new SavedViewFiltersModel();
 

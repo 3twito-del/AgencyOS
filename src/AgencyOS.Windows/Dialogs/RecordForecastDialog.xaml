@@ -5,7 +5,7 @@
     Title="State a new probability"
     PrimaryButtonText="Record"
     CloseButtonText="Cancel"
-    DefaultButton="Close">
+    DefaultButton="Primary">
 
     <StackPanel Spacing="10" MinWidth="500">
         <TextBlock x:Name="StatementText" TextWrapping="Wrap"

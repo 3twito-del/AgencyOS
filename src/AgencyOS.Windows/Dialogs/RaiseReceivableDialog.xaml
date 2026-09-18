@@ -5,7 +5,7 @@
     Title="Raise receivable"
     PrimaryButtonText="Raise"
     CloseButtonText="Cancel"
-    DefaultButton="Close"
+    DefaultButton="Primary"
     IsPrimaryButtonEnabled="False">
 
     <ScrollViewer MaxHeight="520">

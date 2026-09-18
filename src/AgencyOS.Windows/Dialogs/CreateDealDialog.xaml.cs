@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.Opportunities;
 using Microsoft.UI.Xaml;
@@ -32,15 +34,21 @@ public sealed partial class CreateDealDialog : ContentDialog
     /// </remarks>
     public CreateDealDialog(
         IAgencyOsApi api,
-        IReadOnlyList<OpportunitySummaryResponse> opportunities)
+        IReadOnlyList<OpportunitySummaryResponse> opportunities,
+        IReadOnlyList<OrganizationMemberResponse> members)
     {
         ArgumentNullException.ThrowIfNull(api);
         ArgumentNullException.ThrowIfNull(opportunities);
+        ArgumentNullException.ThrowIfNull(members);
 
         InitializeComponent();
 
         _api = api;
         OpportunityBox.ItemsSource = EntityChoice.ForOpportunities(opportunities);
+
+        // Preselect whoever is signed in, proved by the directory's own IsSelf
+        // rather than guessed; they can still choose somebody else.
+        OwnerPicker(members);
     }
 
     /// <summary>The pursuit the operator chose, or null while none is chosen.</summary>
@@ -55,7 +63,7 @@ public sealed partial class CreateDealDialog : ContentDialog
             ChosenTarget()?.Id ?? Guid.Empty,
             NameBox.Text.Trim(),
             SelectedTag(KindBox) ?? "Other",
-            Guid.Parse(OwnerIdBox.Text.Trim()),
+            Chosen(OwnerIdBox),
             OpenedOn: null,
             Empty(ReferenceBox.Text),
             Empty(SummaryBox.Text),
@@ -113,9 +121,33 @@ public sealed partial class CreateDealDialog : ContentDialog
             !string.IsNullOrWhiteSpace(NameBox.Text)
             && ChosenOpportunity() is not null
             && ChosenTarget() is not null
-            && Guid.TryParse(OwnerIdBox.Text.Trim(), out _);
+            && Chosen(OwnerIdBox) != Guid.Empty;
 
     private static string? Empty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static string? SelectedTag(ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag as string;
+    /// <summary>
+    /// Offers the organization's people, with whoever is signed in preselected.
+    /// </summary>
+    /// <remarks>
+    /// <c>AOS-R001-006</c>. The directory says which member is the caller through
+    /// <c>IsSelf</c>, so the default is proved rather than assumed — and it is only
+    /// a default: every other member stays selectable.
+    /// </remarks>
+    private void OwnerPicker(IReadOnlyList<OrganizationMemberResponse> members)
+    {
+        IReadOnlyList<EntityChoice> choices = EntityChoice.ForMembers(members);
+
+        OwnerIdBox.ItemsSource = choices;
+
+        if (members.FirstOrDefault(x => x.IsSelf) is { } self)
+        {
+            OwnerIdBox.SelectedItem = choices.FirstOrDefault(x => x.Id == self.UserId);
+        }
+    }
+
+    /// <summary>The member chosen in a picker, or empty while none is.</summary>
+    private static Guid Chosen(ComboBox box) =>
+        (box.SelectedItem as EntityChoice)?.Id ?? Guid.Empty;
+
 }
