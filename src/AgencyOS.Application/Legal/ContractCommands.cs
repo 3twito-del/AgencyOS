@@ -161,6 +161,7 @@ public sealed record RecordContractVersionResult(ContractVersionId VersionId, in
 public sealed class ContractHandler
 {
     private readonly IContractRepository _contracts;
+    private readonly IContractVersionRepository _versions;
     private readonly IDealRepository _deals;
     private readonly IOfferRepository _offers;
     private readonly IMembershipRepository _memberships;
@@ -171,6 +172,7 @@ public sealed class ContractHandler
 
     public ContractHandler(
         IContractRepository contracts,
+        IContractVersionRepository versions,
         IDealRepository deals,
         IOfferRepository offers,
         IMembershipRepository memberships,
@@ -180,6 +182,7 @@ public sealed class ContractHandler
         IUnitOfWork unitOfWork)
     {
         _contracts = contracts;
+        _versions = versions;
         _deals = deals;
         _offers = offers;
         _memberships = memberships;
@@ -457,6 +460,26 @@ public sealed class ContractHandler
 
         Contract contract = await RequireAsync(
             command.OrganizationId, command.ContractId, cancellationToken).ConfigureAwait(false);
+
+        // A signature records that somebody signed paper, and the last required one
+        // derives execution. A contract with no recorded version has no paper, so a
+        // signature against it would assert a document that does not exist — and the
+        // contract it executes can never accept a version afterwards, which strands
+        // the instrument with signatures and nothing signed.
+        //
+        // Checked before the aggregate is touched, so a refusal leaves no state
+        // behind. Signatures carry no version of their own in this model, so the
+        // check is that the paper exists, not which sheet was signed.
+        IReadOnlyList<ContractVersion> versions = await _versions
+            .ListForContractAsync(command.OrganizationId, contract.Id, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (versions.Count == 0)
+        {
+            throw new DomainException(
+                "This contract has no recorded version to sign. Record the contract "
+                + "version before recording signatures.");
+        }
 
         contract.RecordSignature(
             command.ContractPartyId,

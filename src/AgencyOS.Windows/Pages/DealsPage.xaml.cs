@@ -119,7 +119,13 @@ public sealed partial class DealsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        _list.Status = SelectedTag(StatusBox);
+        // Three cases, not two. An empty tag is the default and means live work;
+        // "all" means the operator asked for everything including the closed ones;
+        // anything else is one status they picked, which is sent on its own.
+        string? selected = SelectedTag(StatusBox);
+
+        _list.OpenOnly = string.IsNullOrEmpty(selected);
+        _list.Status = string.Equals(selected, "all", StringComparison.Ordinal) ? null : selected;
         _list.Kind = SelectedTag(KindBox);
         _list.AwaitingResponse = AwaitingBox.IsChecked == true;
         _list.TermsAgreedOnly = TermsAgreedBox.IsChecked == true;

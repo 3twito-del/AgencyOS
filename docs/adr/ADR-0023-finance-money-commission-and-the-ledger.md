@@ -60,6 +60,12 @@ handlers do not round.
 
 ### 3. Only an operative contract creates a collectible amount
 
+> **Superseded by ADR-0040 (2026-09-19).** The definition of *operative* below —
+> "executed, **or** carrying a recorded effective date" — let a draft nobody had
+> signed carry a collectible amount as soon as somebody typed a date on it, which
+> the operational-alpha evaluation demonstrated. Operative now means **executed**.
+> The rest of this ADR stands, and so does the principle immediately below.
+
 A `MonetaryObligation` may be recorded only against a contract that is
 **operative**: executed, or carrying a recorded effective date, and not abandoned
 or superseded.

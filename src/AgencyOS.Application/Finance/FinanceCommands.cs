@@ -768,9 +768,20 @@ internal static class FinanceSupport
     /// Loads a contract and refuses one that is not legally operative.
     /// </summary>
     /// <remarks>
-    /// Operative means executed, or with a recorded effective date, and not
-    /// abandoned or superseded. Derived from M8's own columns rather than stored, so
-    /// there is no flag beside the dates to disagree with them (ADR-0022, ADR-0023).
+    /// <para>
+    /// Operative means <strong>executed</strong>. Derived from M8's own status rather
+    /// than stored, so there is no flag beside it to disagree with (ADR-0022,
+    /// ADR-0023, ADR-0040).
+    /// </para>
+    /// <para>
+    /// An effective date used to be sufficient on its own, which meant a draft
+    /// nobody had signed could carry a collectible amount as soon as somebody typed
+    /// a date on it. An effective date answers <em>from when do the terms apply</em>;
+    /// it does not answer <em>is there operative paper</em>. The two are still
+    /// separate — a contract may be effective before, after or regardless of when it
+    /// was signed, and that is untouched — but only execution makes money
+    /// collectible (ADR-0040).
+    /// </para>
     /// </remarks>
     internal static async Task<Contract> RequireOperativeContractAsync(
         IContractRepository contracts,
@@ -790,12 +801,13 @@ internal static class FinanceSupport
                 + "nothing is collectible under it.");
         }
 
-        if (contract.ExecutedOn is null && contract.EffectiveOn is null)
+        if (contract.Status != ContractStatus.Executed)
         {
             throw new DomainException(
-                "This contract has neither been executed nor given an effective date, so it is "
-                + "not yet operative. Agreed commercial terms are not a collectible legal amount; "
-                + "record the execution or the effective date first.");
+                "This contract is not executed, so it is not yet operative. Agreed "
+                + "commercial terms are not a collectible legal amount, and an effective "
+                + "date alone does not make them one; record the signatures that execute "
+                + "it first.");
         }
 
         return contract;

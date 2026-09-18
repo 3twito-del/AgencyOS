@@ -22,8 +22,13 @@
             <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
                 <ComboBox x:Name="StatusBox"
                           AutomationProperties.Name="Status" MinWidth="140" SelectionChanged="OnFilterChanged">
-                    <ComboBoxItem Content="Negotiating" Tag="Negotiating" IsSelected="True" />
-                    <ComboBoxItem Content="Any status" Tag="" />
+                    <!-- Open work is the default: everything still being worked,
+                         which is Draft, Negotiating and Terms agreed. A deal that
+                         reached Terms agreed used to fall out of this workspace
+                         because the default was Negotiating alone. -->
+                    <ComboBoxItem Content="Open work" Tag="" IsSelected="True" />
+                    <ComboBoxItem Content="Any status" Tag="all" />
+                    <ComboBoxItem Content="Negotiating" Tag="Negotiating" />
                     <ComboBoxItem Content="Draft" Tag="Draft" />
                     <ComboBoxItem Content="Terms agreed" Tag="TermsAgreed" />
                     <ComboBoxItem Content="No deal" Tag="NoDeal" />

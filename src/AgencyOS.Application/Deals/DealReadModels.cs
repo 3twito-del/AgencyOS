@@ -291,6 +291,9 @@ public sealed record DealCommandCenterModel(
 /// <param name="OpenedAfter">Opened on or after this date.</param>
 /// <param name="OpenedBefore">Opened on or before this date.</param>
 /// <param name="Search">Substring match on name, reference and summary.</param>
+/// <param name="OpenOnly">
+/// Only negotiations that are still live work — <see cref="Deal.LiveStatuses"/>.
+/// </param>
 public sealed record DealFilter(
     DealStatus? Status = null,
     DealKind? Kind = null,
@@ -305,7 +308,8 @@ public sealed record DealFilter(
     bool TermsAgreedOnly = false,
     DateOnly? OpenedAfter = null,
     DateOnly? OpenedBefore = null,
-    string? Search = null);
+    string? Search = null,
+    bool OpenOnly = false);
 
 /// <summary>
 /// Read-side projections for the deal model.

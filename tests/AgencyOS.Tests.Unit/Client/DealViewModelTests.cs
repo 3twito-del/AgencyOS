@@ -26,9 +26,15 @@ public sealed class DealListViewModelTests
         Assert.False(viewModel.HasError);
     }
 
-    /// <summary>The list opens on what is being negotiated, not on everything closed.</summary>
+    /// <summary>The list opens on live work, not on everything closed.</summary>
+    /// <remarks>
+    /// It used to open on <c>Negotiating</c> alone, which hid a negotiation that
+    /// had reached <c>TermsAgreed</c> — agreed and waiting to be papered — from the
+    /// workspace named after it. It now asks the server for the live set, and the
+    /// closed ones still stay out (ADR-0040 pass, Defect D).
+    /// </remarks>
     [Fact]
-    public async Task TheList_DefaultsToActiveNegotiations()
+    public async Task TheList_DefaultsToLiveWork()
     {
         FakeAgencyOsApi api = new();
 
@@ -36,7 +42,8 @@ public sealed class DealListViewModelTests
 
         await viewModel.LoadAsync();
 
-        Assert.Equal("Negotiating", api.LastDealFilter.Status);
+        Assert.Null(api.LastDealFilter.Status);
+        Assert.True(api.LastDealFilter.OpenOnly);
     }
 
     [Fact]
@@ -55,7 +62,10 @@ public sealed class DealListViewModelTests
 
         await viewModel.LoadAsync();
 
-        Assert.Equal(("TermsAgreed", "Writing", true, true, "undertow"), api.LastDealFilter);
+        // openOnly is false here because the caller chose a status: an explicit
+        // choice is sent alone rather than narrowed again by the live set.
+        Assert.Equal(
+            ("TermsAgreed", "Writing", true, true, "undertow", false), api.LastDealFilter);
     }
 
     [Fact]

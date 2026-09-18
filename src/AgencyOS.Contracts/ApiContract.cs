@@ -102,13 +102,22 @@ public static class ApiContract
     /// server decides as it always did.
     /// </para>
     /// <para>
+    /// Version 15 adds <c>openOnly</c> to the negotiation list: one optional query
+    /// parameter meaning the statuses that are still work, from
+    /// <c>Deal.LiveStatuses</c> rather than a second list beside it. The Deals
+    /// workspace asked for <c>Negotiating</c> alone, so a negotiation that reached
+    /// <c>TermsAgreed</c> — agreed, waiting to be papered — disappeared from the
+    /// workspace named after it. A caller that omits the parameter gets exactly
+    /// what it got from contract 14.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 14;
+    public const int Current = 15;
 
     /// <summary>
     /// The lowest contract version this build still serves.

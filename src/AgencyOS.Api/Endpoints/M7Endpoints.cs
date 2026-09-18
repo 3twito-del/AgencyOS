@@ -61,6 +61,7 @@ internal static class M7Endpoints
                 DateOnly? openedAfter,
                 DateOnly? openedBefore,
                 string? search,
+                bool? openOnly,
                 int? limit,
                 CancellationToken cancellationToken) =>
             {
@@ -78,7 +79,8 @@ internal static class M7Endpoints
                     termsAgreed ?? false,
                     openedAfter,
                     openedBefore,
-                    string.IsNullOrWhiteSpace(search) ? null : search.Trim());
+                    string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                    openOnly ?? false);
 
                 IReadOnlyList<DealSummaryModel> deals = await queries
                     .ListDealsAsync(new OrganizationId(organizationId), filter, limit, cancellationToken)

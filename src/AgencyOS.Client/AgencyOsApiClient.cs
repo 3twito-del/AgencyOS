@@ -618,6 +618,7 @@ public partial interface IAgencyOsApi
     /// <param name="hasOpenOffer">Only negotiations with an offer awaiting an answer.</param>
     /// <param name="termsAgreed">Only negotiations whose commercial terms are settled.</param>
     /// <param name="search">Substring match on name, reference and summary.</param>
+    /// <param name="openOnly">Only negotiations that are still live work.</param>
     /// <param name="cancellationToken">Cancellation.</param>
     Task<IReadOnlyList<DealSummaryResponse>> ListDealsAsync(
         string? status = null,
@@ -626,6 +627,7 @@ public partial interface IAgencyOsApi
         bool hasOpenOffer = false,
         bool termsAgreed = false,
         string? search = null,
+        bool openOnly = false,
         CancellationToken cancellationToken = default);
 
     Task<DealDetailResponse> GetDealAsync(
@@ -2555,9 +2557,15 @@ public sealed partial class AgencyOsApiClient : IAgencyOsApi
         bool hasOpenOffer = false,
         bool termsAgreed = false,
         string? search = null,
+        bool openOnly = false,
         CancellationToken cancellationToken = default)
     {
         List<string> query = [];
+
+        if (openOnly)
+        {
+            query.Add("openOnly=true");
+        }
 
         if (!string.IsNullOrWhiteSpace(status))
         {

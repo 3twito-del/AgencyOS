@@ -18,11 +18,12 @@ public sealed class DealListViewModel : ViewModelBase
     private readonly IAgencyOsApi _api;
 
     private bool _loaded;
-    private string? _status = "Negotiating";
+    private string? _status;
     private string? _kind;
     private bool _awaitingResponse;
     private bool _termsAgreedOnly;
     private string _search = string.Empty;
+    private bool _openOnly = true;
 
     public DealListViewModel(IAgencyOsApi api)
     {
@@ -32,7 +33,9 @@ public sealed class DealListViewModel : ViewModelBase
 
     public ObservableCollection<DealSummaryResponse> Deals { get; } = [];
 
-    /// <summary>Restrict to one status. Defaults to what is being worked.</summary>
+    /// <summary>
+    /// Restrict to one status. Absent by default, which shows live work.
+    /// </summary>
     public string? Status
     {
         get => _status;
@@ -89,9 +92,29 @@ public sealed class DealListViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Whether the list shows live work when no status is chosen.
+    /// </summary>
+    /// <remarks>
+    /// The default Deals workspace asks the server for live negotiations rather
+    /// than for one status. It used to ask for <c>Negotiating</c>, so a deal that
+    /// reached <c>TermsAgreed</c> — agreed and waiting to be papered — vanished from
+    /// the workspace named after it.
+    /// </remarks>
+    public bool OpenOnly
+    {
+        get => _openOnly;
+        set => Set(ref _openOnly, value);
+    }
+
     public Task LoadAsync(CancellationToken cancellationToken = default) =>
         RunAsync(async token =>
         {
+            // Either a status the operator chose, or live work. Never both: asking
+            // for one status and for live work at the same time would answer a
+            // question nobody asked, and an explicit choice is an explicit choice.
+            bool openOnly = OpenOnly && string.IsNullOrWhiteSpace(Status);
+
             IReadOnlyList<DealSummaryResponse> deals = await _api
                 .ListDealsAsync(
                     Status,
@@ -100,6 +123,7 @@ public sealed class DealListViewModel : ViewModelBase
                     AwaitingResponse,
                     TermsAgreedOnly,
                     string.IsNullOrWhiteSpace(Search) ? null : Search.Trim(),
+                    openOnly,
                     token)
                 .ConfigureAwait(true);
 

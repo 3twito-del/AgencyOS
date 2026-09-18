@@ -840,12 +840,19 @@ public sealed partial class IntelligenceQueries
                             .FirstOrDefault()))
                 .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false)
+            // The company branch selects the name alone and builds the record after
+            // the round trip. Projecting `new RadarPerson(default, ...)` put a
+            // constant of the converted PersonId type inside the projection, which
+            // EF Core cannot translate, and every company relationship answered 500
+            // while the person branch was fine.
             : await _context.Companies
                 .AsNoTracking()
                 .Where(x => x.OrganizationId == organizationId && x.Id == company!.Value)
-                .Select(x => new RadarPerson(default, x.Name, null, null))
+                .Select(x => x.Name)
                 .FirstOrDefaultAsync(cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(false) is { } companyName
+                    ? new RadarPerson(default, companyName, null, null)
+                    : null;
 
         if (party is null)
         {

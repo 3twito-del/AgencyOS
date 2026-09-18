@@ -1642,7 +1642,8 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
     public string? DealStrategy { get; set; }
 
     /// <summary>The filter the last deal list call actually sent.</summary>
-    public (string? Status, string? Kind, bool Awaiting, bool Agreed, string? Search) LastDealFilter
+    public (string? Status, string? Kind, bool Awaiting, bool Agreed, string? Search,
+        bool OpenOnly) LastDealFilter
     { get; private set; }
 
     public DealCommandCenterResponse DealCommandCenter { get; set; } =
@@ -1661,11 +1662,12 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         bool hasOpenOffer = false,
         bool termsAgreed = false,
         string? search = null,
+        bool openOnly = false,
         CancellationToken cancellationToken = default)
     {
         Throw();
 
-        LastDealFilter = (status, kind, hasOpenOffer, termsAgreed, search);
+        LastDealFilter = (status, kind, hasOpenOffer, termsAgreed, search, openOnly);
 
         IEnumerable<DealSummaryResponse> matches = Deals;
 
@@ -1687,6 +1689,13 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         if (termsAgreed)
         {
             matches = matches.Where(x => x.Status == "TermsAgreed");
+        }
+
+        // The live set, as the server reads it from Deal.LiveStatuses.
+        if (openOnly)
+        {
+            matches = matches.Where(x =>
+                x.Status is "Draft" or "Negotiating" or "TermsAgreed");
         }
 
         return Task.FromResult<IReadOnlyList<DealSummaryResponse>>([.. matches]);

@@ -1,9 +1,13 @@
 using System.Globalization;
 using AgencyOS.Application.Deals;
+using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Opportunities;
 using AgencyOS.Domain.Organizations;
+using AgencyOS.Domain.People;
+using AgencyOS.Domain.Projects;
+using AgencyOS.Domain.Talent;
 using AgencyOS.Domain.Tasks;
 using Microsoft.EntityFrameworkCore;
 
@@ -386,6 +390,17 @@ internal sealed class DealQueries : IDealQueries
             query = query.Where(x => x.Status == status);
         }
 
+        // Live work, from the domain's own set rather than a list repeated here: a
+        // second copy of "which statuses are still work" is a second thing to be
+        // wrong. Applied in SQL, before the limit, so terminal rows cannot consume
+        // the page and push live ones off the end.
+        if (filter.OpenOnly)
+        {
+            DealStatus[] live = [.. Deal.LiveStatuses];
+
+            query = query.Where(x => live.Contains(x.Status));
+        }
+
         if (filter.Kind is { } kind)
         {
             query = query.Where(x => x.Kind == kind);
@@ -426,39 +441,56 @@ internal sealed class DealQueries : IDealQueries
                 || (x.Summary != null && EF.Functions.ILike(x.Summary, $"%{search}%")));
         }
 
-        // The counterparty lives on the M6 target, so these narrow through it
-        // rather than through a column this table does not carry.
+        // The counterparty lives on the M6 target and the subject on the M6
+        // opportunity, so these four narrow through those tables rather than
+        // through columns this one does not carry.
+        //
+        // Each is written as `<related ids>.Contains(<this row's foreign key>)`,
+        // which PostgreSQL runs as a single `IN (subquery)`. The earlier form was a
+        // correlated `Any()` that compared two converted strongly-typed identifiers
+        // and unwrapped a nullable one through `.Value.Value`; EF Core could not
+        // translate it and every one of the four answered 500. Comparing a converted
+        // property against a converted *value* of the same type translates, and
+        // comparing the keys in one direction only keeps the whole thing in SQL —
+        // nothing is materialized to filter it in memory.
         if (filter.CounterpartyCompanyId is { } company)
         {
+            CompanyId? companyId = new CompanyId(company);
+
             query = query.Where(x => _context.OpportunityTargets
-                .Any(t => t.Id == x.OpportunityTargetId
-                    && t.CompanyId != null
-                    && t.CompanyId.Value.Value == company));
+                .Where(t => t.CompanyId == companyId)
+                .Select(t => t.Id)
+                .Contains(x.OpportunityTargetId));
         }
 
         if (filter.CounterpartyPersonId is { } person)
         {
+            PersonId? personId = new PersonId(person);
+
             query = query.Where(x => _context.OpportunityTargets
-                .Any(t => t.Id == x.OpportunityTargetId
-                    && t.PersonId != null
-                    && t.PersonId.Value.Value == person));
+                .Where(t => t.PersonId == personId)
+                .Select(t => t.Id)
+                .Contains(x.OpportunityTargetId));
         }
 
-        // The subject lives on the M6 opportunity, for the same reason.
         if (filter.TalentProfileId is { } talent)
         {
+            TalentProfileId? talentProfileId = new TalentProfileId(talent);
+
             query = query.Where(x => _context.OpportunitySubjects
-                .Any(s => s.OpportunityId == x.OpportunityId
-                    && s.TalentProfileId != null
-                    && s.TalentProfileId.Value.Value == talent));
+                .Where(s => s.TalentProfileId == talentProfileId)
+                .Select(s => s.OpportunityId)
+                .Contains(x.OpportunityId));
         }
 
         if (filter.ProjectId is { } project)
         {
+            ProjectId? projectId = new ProjectId(project);
+
             query = query.Where(x => _context.OpportunitySubjects
-                .Any(s => s.OpportunityId == x.OpportunityId
-                    && s.ProjectId != null
-                    && s.ProjectId.Value.Value == project));
+                .Where(s => s.ProjectId == projectId)
+                .Select(s => s.OpportunityId)
+                .Contains(x.OpportunityId));
         }
 
         return query;
