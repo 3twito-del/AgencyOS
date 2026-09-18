@@ -401,3 +401,79 @@ repository is outstanding.
 - **GitHub Actions billing.** Until the spending limit or payment is settled, no
   workflow job can start. Re-dispatching Nightly on `ada2310` afterwards is the
   only step left in this wave.
+
+---
+
+## Closure pass — 2026-09-18
+
+A verification-only pass against executable tip `ada2310`. **No product, API,
+Reviewer, test or contract file was changed**, and the executable tip did not
+move.
+
+### Repository state
+
+| Check | Result |
+| --- | --- |
+| `ada2310` carries the complete executable repair | yes — converter, registration, schema transformer, tests |
+| `6c7466f` is documentation only | yes — zero non-`docs/` files differ from `ada2310` |
+| Working tree | clean; local and `origin/repair-wave-001` identical |
+| Processes | none running: no client, no harness, no API, no database |
+| Harness launch | still minimal-environment; no dump in `artifacts/` or `docs/` |
+
+### Semantic scope of the global converter
+
+The full inventory is
+[`REPAIR-003A2-DATETIMEOFFSET-INVENTORY.md`](REPAIR-003A2-DATETIMEOFFSET-INVENTORY.md).
+Built from the published contract and cross-checked against the source: **24
+request-side `DateTimeOffset` properties across 20 request records, and the two
+lists match exactly.**
+
+```
+GLOBAL CONVERTER SCOPE = SEMANTICALLY VALID
+```
+
+All 24 are `INSTANT`. None is `CALENDAR_DATE`, `LOCAL_WALL_TIME`,
+`ZONED_DATE_TIME` or `UNKNOWN`. The one that needed real scrutiny —
+`CreatePredictionRequest.resolvesBy`, which shares its suffix with the
+calendar-date `responseExpectedBy` and is filtered by `DateOnly` query
+parameters — is settled by the domain's own words: *"The moment by which the
+event must happen for the answer to be Yes"*, evaluated as `now > ResolvesBy`.
+
+`ResponseExpectedBy` remains `DateOnly` in the contract, `DateOnly` in the domain
+and `date` in PostgreSQL. The converter never sees it.
+
+### Contract restoration still holds
+
+| Check | Result |
+| --- | --- |
+| OpenAPI regenerated | **byte-identical**, sha256 `942d0e74…` |
+| Paths / schemas | **263 / 187** |
+| `sentAt`, `occurredAt`, `dueAt` | `["null","string"]`, `format: date-time` |
+| `RecordInteractionRequest.occurredAt` (non-nullable) | `"string"`, `format: date-time` |
+| `responseExpectedBy` | `["null","string"]`, **`format: date`** |
+| API contract | **14** |
+
+### Nightly
+
+One dispatch, against the exact commit rather than the branch: a lightweight tag
+`nightly-ada2310` points at `ada2310`, and the run's head SHA is
+`ada2310becb904a360decdb52eb295b3c47949cf`.
+
+| Attempt | Run | Result |
+| --- | --- | --- |
+| 1–3 (previous pass) | `35292656188`, `35293184426`, `35293480720` | refused before execution |
+| 4 (this pass, exact SHA) | **`35302792147`** | **refused before execution** |
+
+```
+NIGHTLY_BLOCKED_EXTERNAL_ACCOUNT_STATE
+```
+
+> The job was not started because recent account payments have failed or your
+> spending limit needs to be increased.
+
+Both jobs reported zero steps. This is an account condition at GitHub, not a
+repository or product failure, and no green Nightly on an earlier commit is
+offered in its place.
+
+**Repair Wave 003A.2 therefore remains formally unclosed.** Everything else the
+closure gate asks for is satisfied.
