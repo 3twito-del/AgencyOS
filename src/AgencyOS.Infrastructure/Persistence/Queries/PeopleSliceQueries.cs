@@ -510,13 +510,9 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
     /// this organization, and a screen that showed an identifier instead of a name
     /// would be answering "who owns this" with a number.
     /// </remarks>
-    private async Task<IReadOnlyDictionary<Guid, string>> AssigneeNamesAsync(
+    private Task<IReadOnlyDictionary<Guid, string>> AssigneeNamesAsync(
         CancellationToken cancellationToken) =>
-        await _context.Users
-            .AsNoTracking()
-            .Select(x => new { x.Id, x.DisplayName })
-            .ToDictionaryAsync(x => x.Id.Value, x => x.DisplayName, cancellationToken)
-            .ConfigureAwait(false);
+        PeopleSliceProjection.AssigneeNamesAsync(_context, cancellationToken);
 
     // --------------------------------------------------------------- naming
 

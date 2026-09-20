@@ -93,47 +93,8 @@
                         Click="OnCompleteClick" />
                 </Grid>
                 <ListView x:Name="RecentList"
-                          AutomationProperties.Name="Recent interactions" SelectionMode="None">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Padding="4,3" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
-                                <TextBlock Text="{Binding Summary}" TextTrimming="CharacterEllipsis" />
-                                <TextBlock
-                                    Style="{StaticResource CaptionTextBlockStyle}"
-                                    Opacity="0.6"
-                                    Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
-
-                                <!--
-                                    The longer account somebody wrote. It arrived on
-                                    this screen from the first release and was never
-                                    rendered, so whatever an operator wrote beyond the
-                                    one-line summary - a payment condition, what was a
-                                    fact and what was a judgement - existed in the
-                                    system and reached nobody.
-
-                                    Collapsed, so the list stays scannable, and folded
-                                    away entirely when there is nothing to read. An
-                                    Expander is focusable and operable from the
-                                    keyboard, which a trimmed TextBlock is not.
-                                -->
-                                <Expander
-                                    Margin="0,4,0,0"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Stretch"
-                                    AutomationProperties.Name="Detailed notes"
-                                    Visibility="{Binding DetailedNotes, Converter={StaticResource PresentVisibility}}">
-                                    <Expander.Header>
-                                        <TextBlock Text="Detailed notes"
-                                                   Style="{StaticResource CaptionTextBlockStyle}" />
-                                    </Expander.Header>
-                                    <TextBlock Text="{Binding DetailedNotes}"
-                                               TextWrapping="Wrap"
-                                               IsTextSelectionEnabled="True" />
-                                </Expander>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                          AutomationProperties.Name="Recent interactions" SelectionMode="None"
+                          ItemTemplate="{StaticResource InteractionTemplate}" />
             </StackPanel>
         </Grid>
     </Grid>

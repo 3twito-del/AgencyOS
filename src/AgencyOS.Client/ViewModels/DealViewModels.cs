@@ -234,7 +234,7 @@ public sealed class DealDetailViewModel : ViewModelBase
     public NextAction? NextAction =>
         NextActionFrom.Of(
             Tasks.Select(x => new NextActionFrom.Candidate(
-                x.Title, x.State, x.DueAt, x.AssigneeDisplayName)),
+                x.Title, x.State, x.DueAt, x.AssigneeDisplayName, x.AssigneeUserId)),
             DateTimeOffset.UtcNow);
 
     /// <summary>

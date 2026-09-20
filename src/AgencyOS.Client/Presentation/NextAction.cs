@@ -6,8 +6,14 @@ namespace AgencyOS.Client.Presentation;
 /// <param name="IsOverdue">Whether that date has passed.</param>
 /// <param name="OtherOpenCount">How many other open actions there are.</param>
 /// <param name="Assignee">
-/// Who is accountable, or null when nobody is. A surface says "Unassigned" rather
-/// than staying silent, because unowned work is a fact worth stating.
+/// Who is accountable, by name, when the surface was told the name. Null means the
+/// name is not in hand — which is <em>not</em> the same as nobody being accountable.
+/// Read it with <paramref name="IsAssigned"/> and never on its own.
+/// </param>
+/// <param name="IsAssigned">
+/// Whether somebody is accountable at all. This is the authoritative half: it comes
+/// from the assignment itself rather than from whether a name was resolved, so a
+/// surface can say "Unassigned" only when this is false.
 /// </param>
 /// <param name="IsTied">
 /// Whether another open action is equally eligible — the same due date, or both
@@ -20,7 +26,8 @@ public sealed record NextAction(
     bool IsOverdue,
     int OtherOpenCount,
     bool IsTied,
-    string? Assignee = null);
+    string? Assignee = null,
+    bool IsAssigned = false);
 
 /// <summary>
 /// Picks the action a surface should offer, from tasks that already exist.
@@ -52,12 +59,19 @@ public static class NextActionFrom
     /// <param name="Title">What needs doing.</param>
     /// <param name="State">The task's state; only open ones count.</param>
     /// <param name="DueAt">When it is due, if anybody said.</param>
-    /// <param name="Assignee">Who is accountable for it, when anybody is.</param>
+    /// <param name="Assignee">Their name, when the read that produced this resolved it.</param>
+    /// <param name="AssigneeId">
+    /// Who is accountable. Carried separately from the name because a projection can
+    /// return the assignment without resolving who it belongs to, and a surface that
+    /// sees only a missing name cannot tell that from nobody being accountable. It is
+    /// never rendered; it decides which sentence is true.
+    /// </param>
     public readonly record struct Candidate(
         string? Title,
         string? State,
         DateTimeOffset? DueAt,
-        string? Assignee = null);
+        string? Assignee = null,
+        Guid? AssigneeId = null);
 
     /// <summary>The next action, or nothing when there is none.</summary>
     /// <param name="tasks">Every task the surface holds, open or not.</param>
@@ -94,6 +108,7 @@ public static class NextActionFrom
             first.DueAt is { } due && due < asOf,
             open.Count - 1,
             tied,
-            string.IsNullOrWhiteSpace(first.Assignee) ? null : first.Assignee);
+            string.IsNullOrWhiteSpace(first.Assignee) ? null : first.Assignee,
+            first.AssigneeId is not null);
     }
 }

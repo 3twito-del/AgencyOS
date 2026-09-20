@@ -141,6 +141,13 @@ public sealed class DealPaperTruthTests
     }
 
     /// <summary>The next action says who owns it.</summary>
+    /// <remarks>
+    /// Three branches, not two. "Unassigned" is a claim about ownership, so the
+    /// renderer must reach it from <c>IsAssigned</c>, which is authoritative, and not
+    /// from a missing name — which is how build 80 reported assigned work as
+    /// unowned. <c>OwnershipSurfaceTruthTests</c> mirrors this clause to assert the
+    /// sentences it produces; this keeps the mirror honest by pinning the real one.
+    /// </remarks>
     [Fact]
     public void TheNextActionNamesAnOwnerOrSaysThereIsNone()
     {
@@ -148,18 +155,60 @@ public sealed class DealPaperTruthTests
             RepositoryRoot, "src", "AgencyOS.Windows", "Presentation", "NextActionBanner.cs"));
 
         Assert.Contains("Unassigned", banner, StringComparison.Ordinal);
-        Assert.Contains("next.Assignee", banner, StringComparison.Ordinal);
+        Assert.Contains("IsAssigned: true", banner, StringComparison.Ordinal);
+        Assert.Contains("Assigned, name unavailable", banner, StringComparison.Ordinal);
+
+        // The falsehood: deciding ownership from the name alone.
+        Assert.DoesNotContain(
+            "next.Assignee is { } who ? $\" {who}.\" : \" Unassigned.\"",
+            banner,
+            StringComparison.Ordinal);
+    }
+
+    /// <summary>Detailed notes reach the person's own surface, not only the desk.</summary>
+    /// <remarks>
+    /// The build-80 retest could read a call's summary on the person and never learn
+    /// what the call was about: the only template rendering detailed notes was the
+    /// org-wide Command Center. One shared template now serves both, so the two
+    /// cannot drift apart about what a contact shows.
+    /// </remarks>
+    [Fact]
+    public void RecentContactIsOnThePersonSurface()
+    {
+        string shared = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "App.xaml"));
+
+        Assert.Contains("x:Key=\"InteractionTemplate\"", shared, StringComparison.Ordinal);
+        Assert.Contains("DetailedNotes", shared, StringComparison.Ordinal);
+
+        string talent = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml"));
+
+        Assert.Contains("InteractionTemplate", talent, StringComparison.Ordinal);
+
+        string code = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml.cs"));
+
+        Assert.Contains("InteractionList.ItemsSource", code, StringComparison.Ordinal);
     }
 
     /// <summary>Detailed notes are reachable from the interaction surface.</summary>
     [Fact]
     public void DetailedNotesAreReachable()
     {
-        string markup = File.ReadAllText(Path.Combine(
+        // The template moved into App.xaml when the person's own surface began
+        // rendering contact too. What matters is unchanged: notes disclose behind an
+        // expander, and every surface showing an interaction uses the same one.
+        string shared = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "App.xaml"));
+
+        Assert.Contains("DetailedNotes", shared, StringComparison.Ordinal);
+        Assert.Contains("<Expander", shared, StringComparison.Ordinal);
+
+        string desk = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "CommandCenterPage.xaml"));
 
-        Assert.Contains("DetailedNotes", markup, StringComparison.Ordinal);
-        Assert.Contains("<Expander", markup, StringComparison.Ordinal);
+        Assert.Contains("InteractionTemplate", desk, StringComparison.Ordinal);
     }
 
     /// <summary>The project attachments list is bound to something.</summary>

@@ -493,6 +493,14 @@ internal sealed class RepresentationQueries : IRepresentationQueries
 
         PartyNameLookup names = await LoadPartyNamesAsync(organizationId, cancellationToken).ConfigureAwait(false);
 
+        // Resolved here because this overview is what the client's next-action banner
+        // reads. Without it the tasks come back carrying an assignee id and no name,
+        // and a surface that sees only the missing name reports assigned work as
+        // unassigned - the build-80 defect.
+        IReadOnlyDictionary<Guid, string> assignees =
+            await PeopleSliceProjection.AssigneeNamesAsync(_context, cancellationToken)
+                .ConfigureAwait(false);
+
         List<TaskItem> tasks = await _context.Tasks
             .AsNoTracking()
             .Where(x => x.OrganizationId == organizationId
@@ -527,7 +535,7 @@ internal sealed class RepresentationQueries : IRepresentationQueries
         return new ClientOverviewModel(
             talent,
             representation,
-            [.. tasks.Select(t => PeopleSliceProjection.ToModel(t, names))],
+            [.. tasks.Select(t => PeopleSliceProjection.ToModel(t, names, assignees))],
             [.. interactions.Select(i => PeopleSliceProjection.ToModel(i, names))],
             credits,
             materials,

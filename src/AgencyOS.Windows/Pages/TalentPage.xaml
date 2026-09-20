@@ -177,6 +177,28 @@
 
                             <TextBlock Text="Base market" Style="{StaticResource BodyStrongTextBlockStyle}" />
                             <TextBlock x:Name="MarketText" Opacity="0.85" />
+
+                            <!--
+                                Recent contact, on the tab an operator lands on.
+
+                                The overview already carried these interactions and
+                                showed none of them, so the only place in the product
+                                that rendered a caller's detailed notes was the
+                                org-wide Command Center. Somebody handed a name had no
+                                route to them at all. The rows are the shared
+                                interaction template, so the notes disclose here the
+                                same way they disclose there.
+                            -->
+                            <TextBlock Text="Recent contact" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="InteractionList"
+                                      AutomationProperties.Name="Recent contact"
+                                      SelectionMode="None"
+                                      ItemTemplate="{StaticResource InteractionTemplate}" />
+                            <TextBlock x:Name="InteractionEmpty"
+                                       Text="No contact has been recorded."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Opacity="0.7"
+                                       Visibility="Collapsed" />
                         </StackPanel>
                     </ScrollViewer>
                 </muxc:TabViewItem>

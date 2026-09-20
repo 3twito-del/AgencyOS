@@ -435,12 +435,17 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
 
         TaskList.ItemsSource = overview.OpenTasks;
 
+        InteractionList.ItemsSource = overview.RecentInteractions;
+        InteractionEmpty.Visibility = overview.RecentInteractions.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
         NextActionBanner.Apply(
             NextActionBar,
             NextActionFrom.Of(
                 overview.OpenTasks.Select(
                     x => new NextActionFrom.Candidate(
-                        x.Title, x.State, x.DueAt, x.AssigneeDisplayName)),
+                        x.Title, x.State, x.DueAt, x.AssigneeDisplayName, x.AssigneeUserId)),
                 DateTimeOffset.UtcNow));
     }
     /// <summary>Runs a command and shows the server's reason if it refuses.</summary>

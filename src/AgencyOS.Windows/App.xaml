@@ -98,6 +98,46 @@
                 </Grid>
             </DataTemplate>
 
+            <!--
+                One recorded contact, with the longer account behind a disclosure.
+
+                Shared rather than written per page. The Command Center rendered the
+                detailed notes and the person's own surfaces did not, so an operator
+                handed a name could read the summary of a call and never learn what
+                the call was about. One template means the two surfaces cannot drift
+                apart again about what a contact shows.
+            -->
+            <DataTemplate x:Key="InteractionTemplate">
+                <StackPanel Padding="4,3" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                    <TextBlock Text="{Binding Summary}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Opacity="0.6"
+                        Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
+
+                    <!--
+                        Collapsed, so the list stays scannable, and folded away
+                        entirely when there is nothing to read. An Expander is
+                        focusable and operable from the keyboard, which a trimmed
+                        TextBlock is not.
+                    -->
+                    <Expander
+                        Margin="0,4,0,0"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        AutomationProperties.Name="Detailed notes"
+                        Visibility="{Binding DetailedNotes, Converter={StaticResource PresentVisibility}}">
+                        <Expander.Header>
+                            <TextBlock Text="Detailed notes"
+                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                        </Expander.Header>
+                        <TextBlock Text="{Binding DetailedNotes}"
+                                   TextWrapping="Wrap"
+                                   IsTextSelectionEnabled="True" />
+                    </Expander>
+                </StackPanel>
+            </DataTemplate>
+
             <DataTemplate x:Key="TimelineEntryTemplate">
                 <Grid Padding="4,4" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
                     <Grid.ColumnDefinitions>

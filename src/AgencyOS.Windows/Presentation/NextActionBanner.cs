@@ -40,15 +40,29 @@ internal static class NextActionBanner
     }
 
     /// <summary>
-    /// Who is accountable, said either way.
+    /// Who is accountable: named, or said to be unnamed, or said to be nobody.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// "Unassigned" is printed rather than omitted. The blind-handoff retest of
     /// build 79 could see what had to happen and not who had to do it, and silence
     /// there reads as "somebody has this" when often nobody does.
+    /// </para>
+    /// <para>
+    /// Three states, not two, because the third is what went wrong. The retest of
+    /// build 80 read "Unassigned" off a task that was assigned: one read path
+    /// returned the assignment without resolving the name, and a renderer that knew
+    /// only the name could not tell that from nobody being accountable. It is a
+    /// claim about ownership, so it is made from <see cref="NextAction.IsAssigned"/>,
+    /// which is authoritative, and never from a missing name.
+    /// </para>
     /// </remarks>
-    private static string Who(NextAction next) =>
-        next.Assignee is { } who ? $" {who}." : " Unassigned.";
+    private static string Who(NextAction next) => next switch
+    {
+        { Assignee: { } who } => $" {who}.",
+        { IsAssigned: true } => " Assigned, name unavailable.",
+        _ => " Unassigned.",
+    };
 
     /// <summary>
     /// When it is due, or that nobody said.

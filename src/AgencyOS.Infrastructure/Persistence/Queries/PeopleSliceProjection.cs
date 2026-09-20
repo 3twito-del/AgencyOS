@@ -4,6 +4,7 @@ using AgencyOS.Domain.Interactions;
 using AgencyOS.Domain.People;
 using AgencyOS.Domain.Relationships;
 using AgencyOS.Domain.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace AgencyOS.Infrastructure.Persistence.Queries;
 
@@ -19,6 +20,25 @@ namespace AgencyOS.Infrastructure.Persistence.Queries;
 /// </remarks>
 internal static class PeopleSliceProjection
 {
+    /// <summary>
+    /// Names the members a task can be assigned to.
+    /// </summary>
+    /// <remarks>
+    /// Lives beside the mapper that consumes it because the two must agree. A second
+    /// copy is exactly how the build-80 defect happened: one query resolved these
+    /// names and another, in a different module, did not, so the same task read as
+    /// assigned on one surface and unassigned on another. Every caller of the
+    /// three-argument <c>ToModel</c> gets its dictionary from here.
+    /// </remarks>
+    internal static async Task<IReadOnlyDictionary<Guid, string>> AssigneeNamesAsync(
+        AgencyOsDbContext context,
+        CancellationToken cancellationToken) =>
+        await context.Users
+            .AsNoTracking()
+            .Select(x => new { x.Id, x.DisplayName })
+            .ToDictionaryAsync(x => x.Id.Value, x => x.DisplayName, cancellationToken)
+            .ConfigureAwait(false);
+
     internal static PersonSummaryModel ToSummary(Person person, Dictionary<Guid, string> companyNames)
     {
         Guid? companyId = person.PrimaryCompanyId?.Value;
