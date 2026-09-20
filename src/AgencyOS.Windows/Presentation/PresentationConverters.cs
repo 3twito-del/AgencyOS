@@ -98,3 +98,45 @@ public sealed partial class IsoDateConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException("A rendered date is not converted back.");
 }
+
+/// <summary>Who is accountable for a task row, or nothing when it cannot say.</summary>
+/// <remarks>
+/// Bound to the row itself rather than a field, because whether a projection may
+/// speak about ownership depends on which fields it declares, not on their values.
+/// The decision lives in <see cref="TaskLine"/>, where a test reaches it without a
+/// window.
+/// </remarks>
+public sealed partial class TaskWhoConverter : IValueConverter
+{
+    /// <inheritdoc />
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        TaskLine.Who(value) ?? string.Empty;
+
+    /// <inheritdoc />
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException("A task's owner is not converted back into a row.");
+}
+
+/// <summary>When a task row is due, or that nobody set a date.</summary>
+public sealed partial class TaskWhenConverter : IValueConverter
+{
+    /// <inheritdoc />
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        TaskLine.When(value);
+
+    /// <inheritdoc />
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException("A due date is not converted back into a row.");
+}
+
+/// <summary>What a task row concerns, labelled so it cannot read as who owns it.</summary>
+public sealed partial class TaskAboutConverter : IValueConverter
+{
+    /// <inheritdoc />
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        TaskLine.About(value) ?? string.Empty;
+
+    /// <inheritdoc />
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException("A task's subject is not converted back into a row.");
+}

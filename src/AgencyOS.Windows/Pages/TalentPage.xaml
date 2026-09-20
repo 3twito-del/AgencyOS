@@ -404,7 +404,13 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Title}" TextWrapping="Wrap" />
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Converter={StaticResource TaskWho}}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding Converter={StaticResource TaskWhen}}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
                                     <TextBlock Grid.Column="1" Text="{Binding Priority, Converter={StaticResource DisplayLabel}}" Opacity="0.6"
                                                VerticalAlignment="Center"
                                                Style="{StaticResource CaptionTextBlockStyle}" />

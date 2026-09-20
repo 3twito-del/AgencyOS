@@ -121,6 +121,22 @@ public static class RowLabel
             }
         }
 
+        // A task row says who owns it and when it is due, because those are the
+        // questions asked of it. Nothing else on the row carries them: the owner is
+        // not in any of the vocabularies above, and a screen reader that announced
+        // only "title, open, high" left a blind operator unable to tell an assigned
+        // task from an unowned one - which is what a sighted operator could not do
+        // either, before the rows themselves were repaired.
+        if (TaskLine.IsTask(row))
+        {
+            if (TaskLine.Who(row) is { } who)
+            {
+                parts.Add(who);
+            }
+
+            parts.Add(TaskLine.When(row));
+        }
+
         return Shorten(string.Join(", ", parts));
     }
 

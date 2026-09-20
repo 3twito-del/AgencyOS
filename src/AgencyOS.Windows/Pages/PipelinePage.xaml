@@ -219,6 +219,10 @@
                                     <TextBlock Text="{Binding Title}" />
                                     <TextBlock Text="{Binding Priority, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
+                                    <TextBlock Text="{Binding Converter={StaticResource TaskWho}}" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                    <TextBlock Text="{Binding Converter={StaticResource TaskWhen}}" Opacity="0.7"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>

@@ -29,6 +29,17 @@
             <presentation:IsoDateConverter x:Key="IsoDate" />
 
             <!--
+                TaskWho, TaskWhen and TaskAbout bind the whole row rather than a
+                field: whether a task projection may speak about ownership depends
+                on which fields it declares, not on their values. Six surfaces list
+                tasks and five decided separately what a row should say, so the
+                wording is decided once in TaskLine.
+            -->
+            <presentation:TaskWhoConverter x:Key="TaskWho" />
+            <presentation:TaskWhenConverter x:Key="TaskWhen" />
+            <presentation:TaskAboutConverter x:Key="TaskAbout" />
+
+            <!--
                 Dense list rows. A professional workstation shows more rows, not
                 bigger ones: docs/12_WINDOWS_NATIVE.md asks for dense tables over
                 consumer card layouts.
@@ -42,10 +53,28 @@
 
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+
+                        <!--
+                            The subject was here as a bare name, in the position a
+                            byline occupies, and a blind operator read it as who was
+                            accountable. It is genuinely useful on a list that spans
+                            clients - it is how you tell rows apart - so it stays,
+                            labelled, and the owner is now beside it. Two identities
+                            on one row cannot be confused for each other the way one
+                            unlabelled identity could.
+                        -->
                         <TextBlock
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Opacity="0.6"
-                            Text="{Binding Subject.Name}" />
+                            Text="{Binding Converter={StaticResource TaskAbout}}" />
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Opacity="0.6"
+                            Text="{Binding Converter={StaticResource TaskWho}}" />
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Opacity="0.6"
+                            Text="{Binding Converter={StaticResource TaskWhen}}" />
                     </StackPanel>
 
                     <TextBlock
