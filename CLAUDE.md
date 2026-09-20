@@ -16,6 +16,7 @@ This is not a demo, not a generic SaaS, and not a disposable prototype. The owne
 8. **Extreme capability is allowed; uncontrolled complexity is not.**
 9. **No technology is added solely for novelty.**
 10. **No irreversible migration without backup, verification, and rollback/recovery strategy.**
+11. **A surface may state that something does not exist, is not owned, is not permitted or is not applicable only when the projection it reads is authoritative for that question.**
 
 ## 2. Architecture baseline
 
@@ -82,6 +83,20 @@ Do not assume these remain current forever. `config/version-policy.yaml` defines
 - Every destructive or privileged operation must be audited.
 - Prefer expand -> migrate -> verify -> contract database evolution.
 
+### Operator-context coherence
+
+These apply only where a surface asserts existence, ownership, permission, applicability, completeness, an authoritative zero, or the state of a related domain. Ordinary optional descriptive fields need none of it; do not wrap every nullable field.
+
+- Absence must stay distinguishable from not loaded, unknown, unavailable, permission-restricted and not applicable, all the way to the renderer. No read model, DTO, view model or presentation type may discard what tells them apart.
+- Do not derive an operator-visible statement from a null display field, an empty partial collection, an unrelated aggregate's status, absence from a projection, a related resource that failed to load, or a permission the caller lacks.
+- An operator-facing projection used to make a negative or absence assertion must establish whether it is authoritative for it, and carry only the states that surface actually needs - present, absent, unknown or not loaded, unavailable or not authorized, not applicable. Do not require states the domain cannot produce.
+- Prefer silence or unknown wording to a false negative. "Unassigned" is a claim about ownership: use it only where the projection establishes that nobody is assigned, and say "assignment unavailable" or omit the line where it cannot. Use existing AgencyOS wording rather than inventing generic phrasing.
+- When a human relationship is semantically central to a resource, discovery by that human's name should be consistent with sibling operator surfaces. Asymmetry must be intentional and explainable, not accidental.
+
+The rule exists because blind-handoff testing repeatedly found the product asserting what it had not established: a task shown as unassigned because its display name was unresolved while its assignment id was present; a deal inferring that no contract existed from its own status; reconciliation withheld because visible term rows were read as proof of permission, conflating no terms with no access; and surfaces reading as empty because data was never loaded or bound rather than because the domain held none.
+
+This is a coherence contract, not a composition service. Existing domain aggregates remain canonical. It does not authorise a Case or Matter entity, a combined operator DTO, a backend-for-frontend, GraphQL, a new persistence or distributed read layer, broad DTO rewrites, replacing nulls wholesale, global search infrastructure, or a UI redesign.
+
 ## 6. Claude behavior
 
 Before implementing a milestone:
@@ -115,7 +130,10 @@ A feature is done only when:
 - Windows UI supports the intended workflow;
 - tests cover invariants and integration;
 - telemetry exists for consequential failure paths;
+- operator-visible truth holds across the whole surface, not only the control that changed;
 - documentation reflects the implemented behavior.
+
+A screen must not carry mutually incompatible statements about the same domain truth. Validate that at the surface level, preferring read-model contract tests for authority and presence, then whole-surface consistency tests, then paired API/UI assertions. Accessibility correctness is not sufficient on its own: a false statement can be rendered and announced perfectly.
 
 
 ## 8. VS Code / Claude Code project workflow
