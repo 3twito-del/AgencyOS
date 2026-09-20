@@ -43,6 +43,9 @@ public static class AuditAction
     public const string TaskCompleted = "task.completed";
     public const string TaskReopened = "task.reopened";
 
+    /// <summary>Somebody was made accountable for a task, or the assignment was cleared.</summary>
+    public const string TaskAssigned = "task.assigned";
+
     // ---- Saved views (M3) ----
     //
     // A saved view holds no business fact, but it is stored user data and

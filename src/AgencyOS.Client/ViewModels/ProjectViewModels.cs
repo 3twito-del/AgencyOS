@@ -141,6 +141,15 @@ public sealed class ProjectDetailViewModel : ViewModelBase
 
     public ObservableCollection<ProjectHistoryEntryResponse> History { get; } = [];
 
+    /// <summary>Who is on this project, across every role.</summary>
+    /// <remarks>
+    /// The attachments already arrive nested inside each role, and the Attachments
+    /// tab was bound to nothing at all — a named tab that could never show anything,
+    /// while the project page stayed unable to say who was on the project. Flattened
+    /// here rather than fetched, because the data was already in hand.
+    /// </remarks>
+    public ObservableCollection<AttachmentResponse> Attachments { get; } = [];
+
     public override bool IsEmpty => _loaded && Project is null;
 
     /// <summary>Roles nothing currently holds. What the project still needs.</summary>
@@ -182,6 +191,12 @@ public sealed class ProjectDetailViewModel : ViewModelBase
             Project = detail;
 
             Replace(Roles, detail.Roles);
+            Replace(
+                Attachments,
+                [.. detail.Roles
+                    .SelectMany(role => role.Attachments)
+                    .OrderByDescending(x => x.HoldsTheRole)
+                    .ThenBy(x => x.DisplayName, StringComparer.CurrentCultureIgnoreCase)]);
             Replace(Companies, detail.Companies);
             Replace(SourceProperties, detail.SourceProperties);
             Replace(Materials, detail.Materials);

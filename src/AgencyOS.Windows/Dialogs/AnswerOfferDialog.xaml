@@ -24,8 +24,10 @@
             <!--
                 Acceptance is the most consequential act in the milestone, and the
                 warning says exactly what it does and does not mean. It records
-                that commercial terms are agreed; no contract is drafted, signed or
-                executed, and AgencyOS does not track that yet (ADR-0021).
+                that commercial terms are agreed, and that accepting is not itself
+                the drafting or signing of a contract (ADR-0021). The message says
+                only that; it does not claim AgencyOS cannot track contracts, which
+                stopped being true when M8 shipped them.
             -->
             <InfoBar x:Name="AcceptanceBar" Severity="Warning" IsOpen="False" IsClosable="False"
                      Title="This records Terms Agreed, not a signed contract"

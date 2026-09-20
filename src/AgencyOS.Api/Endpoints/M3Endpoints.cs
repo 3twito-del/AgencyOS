@@ -623,5 +623,7 @@ internal static class M3Endpoints
         model.SourceInteractionId,
         model.CreatedAt,
         model.CompletedAt,
-        model.Version);
+        model.Version,
+        model.AssigneeUserId,
+        model.AssigneeDisplayName);
 }

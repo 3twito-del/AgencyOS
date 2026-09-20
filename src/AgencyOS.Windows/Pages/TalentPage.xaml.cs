@@ -418,12 +418,12 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
         if (overview.Representation is { } representation)
         {
             string ends = representation.EndsOn is { } end
-                ? string.Create(CultureInfo.InvariantCulture, $" until {end:d}")
+                ? string.Create(CultureInfo.InvariantCulture, $" until {end:yyyy-MM-dd}")
                 : string.Empty;
 
             RepresentationSummary.Text = string.Create(
                 CultureInfo.InvariantCulture,
-                $"{representation.Status} since {representation.StartsOn:d}{ends}. Territory: {representation.Territory ?? "not recorded"}.");
+                $"{representation.Status} since {representation.StartsOn:yyyy-MM-dd}{ends}. Territory: {representation.Territory ?? "not recorded"}.");
 
             ScopeList.ItemsSource = representation.Scopes.Where(x => x.EndsOn is null).ToArray();
         }
@@ -439,7 +439,8 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
             NextActionBar,
             NextActionFrom.Of(
                 overview.OpenTasks.Select(
-                    x => new NextActionFrom.Candidate(x.Title, x.State, x.DueAt)),
+                    x => new NextActionFrom.Candidate(
+                        x.Title, x.State, x.DueAt, x.AssigneeDisplayName)),
                 DateTimeOffset.UtcNow));
     }
     /// <summary>Runs a command and shows the server's reason if it refuses.</summary>

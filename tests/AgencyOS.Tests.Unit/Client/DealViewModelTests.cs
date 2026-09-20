@@ -280,7 +280,13 @@ public sealed class DealDetailViewModelTests
         await viewModel.LoadAsync(id);
 
         Assert.Contains("terms agreed", viewModel.Standing, StringComparison.Ordinal);
-        Assert.Contains("no contract recorded", viewModel.Standing, StringComparison.Ordinal);
+
+        // It used to append "no contract recorded" here, inferred from deal status
+        // alone. On a negotiation whose contract was executed the page then asserted
+        // both at once, twenty pixels apart, and a blind operator had to go to the
+        // Contracts workspace to find out which half to believe. Contract truth has
+        // one source on this page now, and this line is not it.
+        Assert.DoesNotContain("contract", viewModel.Standing, StringComparison.OrdinalIgnoreCase);
 
         foreach (string forbidden in new[] { "signed", "executed", "closed won", "paid" })
         {

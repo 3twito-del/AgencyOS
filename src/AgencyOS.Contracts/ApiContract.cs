@@ -122,13 +122,25 @@ public static class ApiContract
     /// what it got from contract 15.
     /// </para>
     /// <para>
+    /// Version 17 lets a task say who is accountable for it. The field has been on
+    /// the entity and in the database since M2, and deal and contract follow-ups
+    /// already set it — it simply never reached the contract, so a blind operator
+    /// asking who owned an overdue action found no such field and concluded the
+    /// model had no such idea. Tasks now carry an assignee and their name, a task
+    /// may be created assigned, and an assignment can be changed or cleared, which
+    /// is a real state: work is sometimes genuinely unowned and saying so is more
+    /// honest than leaving the last person's name on it. An assignee must be an
+    /// active member of the same organization. Nothing about existing tasks changes
+    /// and no migration is required.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 16;
+    public const int Current = 17;
 
     /// <summary>
     /// The lowest contract version this build still serves.

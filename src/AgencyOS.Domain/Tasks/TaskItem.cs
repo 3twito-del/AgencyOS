@@ -175,6 +175,36 @@ public sealed class TaskItem
         };
     }
 
+    /// <summary>
+    /// Makes somebody accountable for the task, or nobody.
+    /// </summary>
+    /// <remarks>
+    /// Assignment is accountability and is deliberately separate from
+    /// <see cref="CreatedBy"/>, which is provenance, and from
+    /// <see cref="Subject"/>, which is who the task is about. Clearing it is a real
+    /// state — work can genuinely be unowned, and saying so is more honest than
+    /// leaving the last assignee's name on something they have handed back.
+    /// Whether the assignee is a member of this organization is the handler's
+    /// question, because the entity cannot see the membership table.
+    /// </remarks>
+    public void AssignTo(UserId? assignee, DateTimeOffset now)
+    {
+        if (State == TaskState.Completed)
+        {
+            throw new DomainException(
+                "This task is completed, so it cannot be assigned to anybody.");
+        }
+
+        if (AssignedTo == assignee)
+        {
+            return;
+        }
+
+        AssignedTo = assignee;
+        UpdatedAt = now;
+        Version++;
+    }
+
     /// <summary>Marks the task done, recording who and when.</summary>
     public void Complete(UserId completedBy, DateTimeOffset now)
     {

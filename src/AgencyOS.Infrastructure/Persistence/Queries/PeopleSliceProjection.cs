@@ -59,7 +59,19 @@ internal static class PeopleSliceProjection
         relationship.Notes,
         relationship.Version);
 
-    internal static TaskModel ToModel(TaskItem task, PartyNameLookup names) => new(
+    /// <summary>A task as a reader sees it, including who is accountable for it.</summary>
+    /// <remarks>
+    /// <c>AssignedTo</c> has been on the entity and in the database since M2, and
+    /// deal and contract follow-ups already set it — it simply never reached the
+    /// read model, so a blind operator asking "who owns the overdue thing" found no
+    /// field and reasonably concluded the model had no such idea. The subject is who
+    /// the task is <em>about</em>; the assignee is who must do it, and they are not
+    /// the same question.
+    /// </remarks>
+    internal static TaskModel ToModel(
+        TaskItem task,
+        PartyNameLookup names,
+        IReadOnlyDictionary<Guid, string>? users = null) => new(
         task.Id.Value,
         task.Title,
         task.State.ToString(),
@@ -69,7 +81,12 @@ internal static class PeopleSliceProjection
         task.SourceInteractionId?.Value,
         task.CreatedAt,
         task.CompletedAt,
-        task.Version);
+        task.Version,
+        task.AssignedTo?.Value,
+        task.AssignedTo is { } assignee && users is not null
+            && users.TryGetValue(assignee.Value, out string? who)
+                ? who
+                : null);
 
     internal static InteractionModel ToModel(Interaction interaction, PartyNameLookup names) => new(
         interaction.Id.Value,

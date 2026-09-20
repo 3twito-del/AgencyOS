@@ -124,7 +124,9 @@ public sealed record TaskModel(
     Guid? SourceInteractionId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? CompletedAt,
-    int Version);
+    int Version,
+    Guid? AssigneeUserId = null,
+    string? AssigneeDisplayName = null);
 
 /// <param name="Id">Interaction identifier.</param>
 /// <param name="Type">Kind of contact.</param>

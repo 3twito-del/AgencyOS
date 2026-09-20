@@ -7,6 +7,7 @@ using AgencyOS.Application.Relationships;
 using AgencyOS.Application.Tasks;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Domain.Authorization;
+using AgencyOS.Domain.Identity;
 using AgencyOS.Domain.Companies;
 using AgencyOS.Domain.Interactions;
 using AgencyOS.Domain.Organizations;
@@ -413,7 +414,8 @@ internal static class PeopleSliceEndpoints
                         EndpointParsing.ParseEnumOrDefault(request.Priority, nameof(request.Priority), TaskPriority.Normal),
                         request.DueAt,
                         EndpointParsing.ToEndpointOrNull(request.Subject, nameof(request.Subject)),
-                        request.Notes),
+                        request.Notes,
+                        request.AssigneeUserId is { } assignee ? new UserId(assignee) : null),
                     cancellationToken).ConfigureAwait(false);
 
                 return Results.Created(
@@ -422,6 +424,31 @@ internal static class PeopleSliceEndpoints
             })
             .RequireAuthorization(PermissionPolicy.Name(Permission.TasksWrite))
             .WithName("CreateTask");
+
+        tenant.MapPost("/tasks/{taskId:guid}/assignee", async (
+                Guid organizationId,
+                Guid taskId,
+                AssignTaskRequest request,
+                AssignTaskHandler handler,
+                CancellationToken cancellationToken) =>
+            {
+                ArgumentNullException.ThrowIfNull(request);
+
+                // A null assignee clears the assignment rather than failing. Work
+                // that nobody owns is a real state, and saying so is better than
+                // leaving somebody's name on something they handed back.
+                await handler.HandleAsync(
+                    new AssignTaskCommand(
+                        new OrganizationId(organizationId),
+                        new TaskItemId(taskId),
+                        request.AssigneeUserId is { } assignee ? new UserId(assignee) : null,
+                        request.ExpectedVersion),
+                    cancellationToken).ConfigureAwait(false);
+
+                return Results.NoContent();
+            })
+            .RequireAuthorization(PermissionPolicy.Name(Permission.TasksWrite))
+            .WithName("AssignTask");
 
         tenant.MapPost("/tasks/{taskId:guid}/complete", async (
                 Guid organizationId,
@@ -581,7 +608,9 @@ internal static class PeopleSliceEndpoints
         model.SourceInteractionId,
         model.CreatedAt,
         model.CompletedAt,
-        model.Version);
+        model.Version,
+        model.AssigneeUserId,
+        model.AssigneeDisplayName);
 
     private static InteractionResponse Map(InteractionModel model) => new(
         model.Id,

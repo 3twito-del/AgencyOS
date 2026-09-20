@@ -110,6 +110,11 @@ public sealed record RelationshipResponse(
 /// <param name="CreatedAt">Creation instant, UTC.</param>
 /// <param name="CompletedAt">Completion instant, UTC. Always set when completed.</param>
 /// <param name="Version">Optimistic concurrency token. Send it back as ExpectedVersion to change this record.</param>
+/// <param name="AssigneeUserId">
+/// The member accountable for doing it, or absent when nobody has been made
+/// accountable. Distinct from <c>Subject</c>, which is who the task is about.
+/// </param>
+/// <param name="AssigneeDisplayName">Their name, for saying who rather than which id.</param>
 public sealed record TaskResponse(
     Guid Id,
     string Title,
@@ -120,7 +125,9 @@ public sealed record TaskResponse(
     Guid? SourceInteractionId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? CompletedAt,
-    int Version);
+    int Version,
+    Guid? AssigneeUserId = null,
+    string? AssigneeDisplayName = null);
 
 /// <param name="Id">Interaction identifier.</param>
 /// <param name="Type">Kind of contact.</param>

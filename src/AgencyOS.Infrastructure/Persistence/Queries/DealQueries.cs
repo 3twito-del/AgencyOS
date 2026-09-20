@@ -809,6 +809,7 @@ internal sealed class DealQueries : IDealQueries
                     task.State,
                     task.Priority,
                     task.DueAt,
+                    task.AssignedTo,
                 })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -868,7 +869,11 @@ internal sealed class DealQueries : IDealQueries
                     x.State.ToString(),
                     x.Priority.ToString(),
                     x.DueAt,
-                    x.OfferId)))],
+                    x.OfferId,
+                    x.AssignedTo?.Value,
+                    x.AssignedTo is { } who && users.TryGetValue(who.Value, out string? name)
+                        ? name
+                        : null)))],
             people,
             companies,
             users,

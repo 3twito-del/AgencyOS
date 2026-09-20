@@ -867,7 +867,9 @@ internal static class M4Endpoints
         model.SourceInteractionId,
         model.CreatedAt,
         model.CompletedAt,
-        model.Version);
+        model.Version,
+        model.AssigneeUserId,
+        model.AssigneeDisplayName);
 
     private static InteractionResponse MapInteraction(InteractionModel model) => new(
         model.Id,

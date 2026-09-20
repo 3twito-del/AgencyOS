@@ -47,6 +47,7 @@ public sealed partial class ProjectsPage : Page, IPaletteCommandTarget
 
             ProjectList.ItemsSource = _list.Projects;
             RoleList.ItemsSource = _detail.Roles;
+            AttachmentList.ItemsSource = _detail.Attachments;
             CompanyList.ItemsSource = _detail.Companies;
             SourceList.ItemsSource = _detail.SourceProperties;
             MaterialList.ItemsSource = _detail.Materials;

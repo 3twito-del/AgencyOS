@@ -159,7 +159,9 @@ public sealed record DealTaskModel(
     string State,
     string Priority,
     DateTimeOffset? DueAt,
-    OfferId? OfferId);
+    OfferId? OfferId,
+    Guid? AssigneeUserId = null,
+    string? AssigneeDisplayName = null);
 
 /// <summary>One entry in a negotiation's curated timeline.</summary>
 /// <remarks>

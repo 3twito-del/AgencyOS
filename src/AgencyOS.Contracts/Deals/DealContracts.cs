@@ -331,13 +331,17 @@ public sealed record DealSummaryResponse(
 /// <param name="Priority">How urgently it wants attention.</param>
 /// <param name="DueAt">When it is due.</param>
 /// <param name="OfferId">The offer it concerns, when it concerns one.</param>
+/// <param name="AssigneeUserId">The member accountable for it, when one is.</param>
+/// <param name="AssigneeDisplayName">Their name.</param>
 public sealed record DealTaskResponse(
     Guid Id,
     string Title,
     string State,
     string Priority,
     DateTimeOffset? DueAt,
-    Guid? OfferId);
+    Guid? OfferId,
+    Guid? AssigneeUserId = null,
+    string? AssigneeDisplayName = null);
 
 /// <param name="Deal">Headline fields.</param>
 /// <param name="Summary">Factual description.</param>

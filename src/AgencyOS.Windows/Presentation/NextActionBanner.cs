@@ -36,8 +36,19 @@ internal static class NextActionBanner
 
         bar.Title = next.IsOverdue ? "Next action, overdue" : "Next action";
         bar.Severity = next.IsOverdue ? InfoBarSeverity.Warning : InfoBarSeverity.Informational;
-        bar.Message = next.Title + "." + When(next) + Others(next);
+        bar.Message = next.Title + "." + Who(next) + When(next) + Others(next);
     }
+
+    /// <summary>
+    /// Who is accountable, said either way.
+    /// </summary>
+    /// <remarks>
+    /// "Unassigned" is printed rather than omitted. The blind-handoff retest of
+    /// build 79 could see what had to happen and not who had to do it, and silence
+    /// there reads as "somebody has this" when often nobody does.
+    /// </remarks>
+    private static string Who(NextAction next) =>
+        next.Assignee is { } who ? $" {who}." : " Unassigned.";
 
     /// <summary>
     /// When it is due, or that nobody said.

@@ -5,6 +5,10 @@ namespace AgencyOS.Client.Presentation;
 /// <param name="DueAt">When, if anybody said.</param>
 /// <param name="IsOverdue">Whether that date has passed.</param>
 /// <param name="OtherOpenCount">How many other open actions there are.</param>
+/// <param name="Assignee">
+/// Who is accountable, or null when nobody is. A surface says "Unassigned" rather
+/// than staying silent, because unowned work is a fact worth stating.
+/// </param>
 /// <param name="IsTied">
 /// Whether another open action is equally eligible — the same due date, or both
 /// undated. When it is, the surface says there are several rather than implying
@@ -15,7 +19,8 @@ public sealed record NextAction(
     DateTimeOffset? DueAt,
     bool IsOverdue,
     int OtherOpenCount,
-    bool IsTied);
+    bool IsTied,
+    string? Assignee = null);
 
 /// <summary>
 /// Picks the action a surface should offer, from tasks that already exist.
@@ -47,7 +52,12 @@ public static class NextActionFrom
     /// <param name="Title">What needs doing.</param>
     /// <param name="State">The task's state; only open ones count.</param>
     /// <param name="DueAt">When it is due, if anybody said.</param>
-    public readonly record struct Candidate(string? Title, string? State, DateTimeOffset? DueAt);
+    /// <param name="Assignee">Who is accountable for it, when anybody is.</param>
+    public readonly record struct Candidate(
+        string? Title,
+        string? State,
+        DateTimeOffset? DueAt,
+        string? Assignee = null);
 
     /// <summary>The next action, or nothing when there is none.</summary>
     /// <param name="tasks">Every task the surface holds, open or not.</param>
@@ -83,6 +93,7 @@ public static class NextActionFrom
             first.DueAt,
             first.DueAt is { } due && due < asOf,
             open.Count - 1,
-            tied);
+            tied,
+            string.IsNullOrWhiteSpace(first.Assignee) ? null : first.Assignee);
     }
 }

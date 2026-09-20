@@ -417,6 +417,8 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
             .ConfigureAwait(false);
 
         PartyNameLookup names = await LoadPartyNamesAsync(organizationId, cancellationToken).ConfigureAwait(false);
+        IReadOnlyDictionary<Guid, string> assignees =
+            await AssigneeNamesAsync(cancellationToken).ConfigureAwait(false);
 
         DateTimeOffset horizon = now.Add(DueSoonHorizon);
 
@@ -425,14 +427,14 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
         [
             .. openTasks.Where(t => t.DueAt is { } due && due < now)
                 .OrderBy(t => t.DueAt)
-                .Select(t => ToModel(t, names)),
+                .Select(t => ToModel(t, names, assignees)),
         ];
 
         List<TaskModel> dueSoon =
         [
             .. openTasks.Where(t => t.DueAt is { } due && due >= now && due <= horizon)
                 .OrderBy(t => t.DueAt)
-                .Select(t => ToModel(t, names)),
+                .Select(t => ToModel(t, names, assignees)),
         ];
 
         List<TaskModel> unscheduled =
@@ -440,7 +442,7 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
             .. openTasks.Where(t => t.DueAt is null)
                 .OrderByDescending(t => t.Priority)
                 .ThenByDescending(t => t.CreatedAt)
-                .Select(t => ToModel(t, names)),
+                .Select(t => ToModel(t, names, assignees)),
         ];
 
         List<Interaction> recent = await _context.Interactions
@@ -496,9 +498,25 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
             .ConfigureAwait(false);
 
         PartyNameLookup names = await LoadPartyNamesAsync(organizationId, cancellationToken).ConfigureAwait(false);
+        IReadOnlyDictionary<Guid, string> assignees =
+            await AssigneeNamesAsync(cancellationToken).ConfigureAwait(false);
 
-        return [.. tasks.Select(t => ToModel(t, names))];
+        return [.. tasks.Select(t => ToModel(t, names, assignees))];
     }
+
+    /// <summary>Internal display names, for saying who is accountable.</summary>
+    /// <remarks>
+    /// Loaded once per query rather than per task. A task's assignee is a user in
+    /// this organization, and a screen that showed an identifier instead of a name
+    /// would be answering "who owns this" with a number.
+    /// </remarks>
+    private async Task<IReadOnlyDictionary<Guid, string>> AssigneeNamesAsync(
+        CancellationToken cancellationToken) =>
+        await _context.Users
+            .AsNoTracking()
+            .Select(x => new { x.Id, x.DisplayName })
+            .ToDictionaryAsync(x => x.Id.Value, x => x.DisplayName, cancellationToken)
+            .ConfigureAwait(false);
 
     // --------------------------------------------------------------- naming
 

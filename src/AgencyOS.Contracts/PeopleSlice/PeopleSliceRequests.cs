@@ -160,9 +160,24 @@ public sealed record TaskTransitionRequest(int ExpectedVersion);
 /// <param name="Priority">Low, Normal, High or Urgent.</param>
 /// <param name="Subject">Party the task concerns.</param>
 /// <param name="Notes">Free-text context.</param>
+/// <param name="AssigneeUserId">
+/// The member who should do it. Omitted means the caller, which is what this
+/// endpoint has always done.
+/// </param>
 public sealed record CreateTaskRequest(
     string Title,
     DateTimeOffset? DueAt = null,
     string? Priority = null,
     PartyRefRequest? Subject = null,
-    string? Notes = null);
+    string? Notes = null,
+    Guid? AssigneeUserId = null);
+
+/// <summary>
+/// Makes a member accountable for a task, or clears the assignment.
+/// </summary>
+/// <param name="AssigneeUserId">
+/// The member to make accountable. Null clears it, which says plainly that nobody
+/// currently owns the work.
+/// </param>
+/// <param name="ExpectedVersion">The version the caller observed.</param>
+public sealed record AssignTaskRequest(int ExpectedVersion, Guid? AssigneeUserId = null);

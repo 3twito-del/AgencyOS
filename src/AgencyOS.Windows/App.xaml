@@ -25,6 +25,8 @@
             -->
             <presentation:RowLabelConverter x:Key="RowLabel" />
             <presentation:DisplayLabelConverter x:Key="DisplayLabel" />
+            <presentation:PresentVisibilityConverter x:Key="PresentVisibility" />
+            <presentation:IsoDateConverter x:Key="IsoDate" />
 
             <!--
                 Dense list rows. A professional workstation shows more rows, not

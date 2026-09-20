@@ -233,7 +233,8 @@ public sealed class DealDetailViewModel : ViewModelBase
     /// <summary>The open task to do next, when this negotiation has one.</summary>
     public NextAction? NextAction =>
         NextActionFrom.Of(
-            Tasks.Select(x => new NextActionFrom.Candidate(x.Title, x.State, x.DueAt)),
+            Tasks.Select(x => new NextActionFrom.Candidate(
+                x.Title, x.State, x.DueAt, x.AssigneeDisplayName)),
             DateTimeOffset.UtcNow);
 
     /// <summary>
@@ -256,9 +257,15 @@ public sealed class DealDetailViewModel : ViewModelBase
                 CultureInfo.InvariantCulture,
                 $"{detail.Deal.OfferCount} offer(s)");
 
+            // The deal's own state, and nothing about paper. This line used to
+            // append "no contract recorded" to Terms agreed, inferred from deal
+            // status alone — so on a negotiation whose contract was executed the
+            // page asserted both at once, about twenty pixels apart. Contract truth
+            // has exactly one source on this page now, and it is ContractStanding,
+            // which asks the server instead of guessing.
             string state = detail.Deal.Status switch
             {
-                "TermsAgreed" => "terms agreed, no contract recorded",
+                "TermsAgreed" => "terms agreed",
                 "Negotiating" when detail.Deal.HasOpenOffer => "awaiting an answer",
                 "Negotiating" => "in negotiation",
                 "NoDeal" => "closed without agreement",

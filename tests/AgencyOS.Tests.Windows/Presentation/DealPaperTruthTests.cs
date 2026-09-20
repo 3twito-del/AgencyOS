@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
@@ -103,6 +104,88 @@ public sealed class DealPaperTruthTests
 
         Assert.Contains("NextActionBanner.Apply", talent, StringComparison.Ordinal);
         Assert.Contains("NextActionBanner.Apply", File.ReadAllText(CodePath), StringComparison.Ordinal);
+    }
+
+
+    /// <summary>The deal's own state wording never mentions a contract.</summary>
+    /// <remarks>
+    /// The build-79 blind handoff found this line asserting "no contract recorded"
+    /// from deal status alone while the panel beside it said the contract was
+    /// executed. Contract truth has one source on this page; this pins that the
+    /// deal's line is not a second one.
+    /// </remarks>
+    [Fact]
+    public void TheDealStateWordingSaysNothingAboutPaper()
+    {
+        string viewModel = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Client", "ViewModels", "DealViewModels.cs"));
+
+        int standing = viewModel.IndexOf("public string Standing", StringComparison.Ordinal);
+
+        Assert.True(standing > 0, "The Standing property was not found.");
+
+        int end = viewModel.IndexOf("public Task LoadAsync", standing, StringComparison.Ordinal);
+        string body = viewModel[standing..(end > standing ? end : viewModel.Length)];
+
+        // Comments explain why the wording changed and naturally quote the sentence
+        // that was removed. The invariant is about what an operator reads, so the
+        // explanation is stripped before asserting on the code.
+        string rendered = string.Join(
+            Environment.NewLine,
+            body.ReplaceLineEndings("\n")
+                .Split('\n')
+                .Select(line => line.TrimStart())
+                .Where(line => !line.StartsWith("//", StringComparison.Ordinal)));
+
+        Assert.DoesNotContain("contract", rendered, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>The next action says who owns it.</summary>
+    [Fact]
+    public void TheNextActionNamesAnOwnerOrSaysThereIsNone()
+    {
+        string banner = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "Presentation", "NextActionBanner.cs"));
+
+        Assert.Contains("Unassigned", banner, StringComparison.Ordinal);
+        Assert.Contains("next.Assignee", banner, StringComparison.Ordinal);
+    }
+
+    /// <summary>Detailed notes are reachable from the interaction surface.</summary>
+    [Fact]
+    public void DetailedNotesAreReachable()
+    {
+        string markup = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "CommandCenterPage.xaml"));
+
+        Assert.Contains("DetailedNotes", markup, StringComparison.Ordinal);
+        Assert.Contains("<Expander", markup, StringComparison.Ordinal);
+    }
+
+    /// <summary>The project attachments list is bound to something.</summary>
+    [Fact]
+    public void TheAttachmentsTabHasASource()
+    {
+        string code = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "ProjectsPage.xaml.cs"));
+
+        Assert.Contains("AttachmentList.ItemsSource", code, StringComparison.Ordinal);
+    }
+
+    /// <summary>Representation dates are written one way on that surface.</summary>
+    [Fact]
+    public void RepresentationDatesUseOneFormat()
+    {
+        string code = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml.cs"));
+
+        Assert.DoesNotContain("StartsOn:d}", code, StringComparison.Ordinal);
+        Assert.Contains("StartsOn:yyyy-MM-dd}", code, StringComparison.Ordinal);
+
+        string markup = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml"));
+
+        Assert.DoesNotContain("Text=\"{Binding StartsOn}\"", markup, StringComparison.Ordinal);
     }
 
     private static XElement Bar(string name)

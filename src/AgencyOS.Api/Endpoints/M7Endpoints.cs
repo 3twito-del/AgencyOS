@@ -741,7 +741,15 @@ internal static class M7Endpoints
             term.Notes);
 
     private static DealTaskResponse Map(DealTaskModel task) =>
-        new(task.Id, task.Title, task.State, task.Priority, task.DueAt, task.OfferId?.Value);
+        new(
+            task.Id,
+            task.Title,
+            task.State,
+            task.Priority,
+            task.DueAt,
+            task.OfferId?.Value,
+            task.AssigneeUserId,
+            task.AssigneeDisplayName);
 
     private static DealHistoryEntryResponse Map(DealHistoryEntryModel entry) =>
         new(

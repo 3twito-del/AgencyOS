@@ -266,6 +266,7 @@ builder.Services.AddScoped<EndRelationshipHandler>();
 builder.Services.AddScoped<RecordInteractionHandler>();
 builder.Services.AddScoped<CreateTaskHandler>();
 builder.Services.AddScoped<CompleteTaskHandler>();
+builder.Services.AddScoped<AssignTaskHandler>();
 builder.Services.AddScoped<ReopenTaskHandler>();
 
 // Search, saved views and synchronization (M3). Each service applies its own
