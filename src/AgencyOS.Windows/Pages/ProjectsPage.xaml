@@ -54,7 +54,7 @@
                     <ComboBoxItem Content="Missing a producer" Tag="Producer" />
                 </ComboBox>
 
-                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Title" MinWidth="190"
+                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Title or a person" MinWidth="190"
                                 QuerySubmitted="OnSearchSubmitted" />
             </StackPanel>
 

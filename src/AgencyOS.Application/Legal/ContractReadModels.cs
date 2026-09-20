@@ -476,6 +476,12 @@ public sealed record DealsWithoutContractModel(
 /// Nothing economic, for the reason the deal filters give: a filter is a question
 /// somebody else may run from a saved view.
 /// </remarks>
+/// <param name="Search">
+/// Substring match on title and reference, and on the names of the contract's
+/// parties — the people and companies who signed it, including a party recorded
+/// only by an external name. Widened in contract 16 so that a human name reaches
+/// the paper.
+/// </param>
 public sealed record ContractFilter(
     ContractStatus? Status = null,
     ContractKind? Kind = null,

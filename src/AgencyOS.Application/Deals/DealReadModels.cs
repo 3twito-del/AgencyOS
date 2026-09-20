@@ -290,7 +290,12 @@ public sealed record DealCommandCenterModel(
 /// <param name="TermsAgreedOnly">Only negotiations whose terms are settled.</param>
 /// <param name="OpenedAfter">Opened on or after this date.</param>
 /// <param name="OpenedBefore">Opened on or before this date.</param>
-/// <param name="Search">Substring match on name, reference and summary.</param>
+/// <param name="Search">
+/// Substring match on name, reference and summary, and on the names of the people
+/// and companies the negotiation is with or about — the counterparty on its target,
+/// and the represented client on its pursuit. Widened in contract 16 so that a human
+/// name is a way into the work.
+/// </param>
 /// <param name="OpenOnly">
 /// Only negotiations that are still live work — <see cref="Deal.LiveStatuses"/>.
 /// </param>

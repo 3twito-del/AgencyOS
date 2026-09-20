@@ -263,7 +263,10 @@ public sealed record ProjectCommandCenterModel(
 /// attachment to a directing role currently holds it, whether or not such a role
 /// row exists at all.
 /// </param>
-/// <param name="Search">Free text over title and working title.</param>
+/// <param name="Search">
+/// Free text over title and working title, and over the names of the people
+/// currently attached to the project. Widened in contract 16.
+/// </param>
 public sealed record ProjectFilter(
     ProjectStatus? Status = null,
     DevelopmentStage? Stage = null,

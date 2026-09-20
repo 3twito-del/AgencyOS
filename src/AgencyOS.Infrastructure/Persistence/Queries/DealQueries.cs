@@ -433,12 +433,49 @@ internal sealed class DealQueries : IDealQueries
 
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            string search = filter.Search.Trim();
+            string pattern = $"%{filter.Search.Trim()}%";
+
+            // A human name is a way in. The blind-handoff retest started from a
+            // client's name and found nothing here, because search read only the
+            // negotiation's own text — so the case was findable only by somebody who
+            // already knew what it was called. These reach the two relationships the
+            // domain genuinely has: the client the pursuit is about, and the party on
+            // the other side of it.
+            //
+            // Composed as subqueries of identifiers rather than nested Any(), so the
+            // whole thing is one statement of IN lists and the limit still applies to
+            // a filtered set.
+            IQueryable<PersonId> named = _context.People
+                .Where(p => EF.Functions.ILike(p.DisplayName, pattern))
+                .Select(p => p.Id);
+
+            IQueryable<PersonId?> namedOrNull = _context.People
+                .Where(p => EF.Functions.ILike(p.DisplayName, pattern))
+                .Select(p => (PersonId?)p.Id);
+
+            IQueryable<CompanyId?> namedCompanies = _context.Companies
+                .Where(c => EF.Functions.ILike(c.Name, pattern))
+                .Select(c => (CompanyId?)c.Id);
+
+            IQueryable<TalentProfileId?> namedProfiles = _context.TalentProfiles
+                .Where(t => named.Contains(t.PersonId))
+                .Select(t => (TalentProfileId?)t.Id);
+
+            IQueryable<OpportunityTargetId> counterparties = _context.OpportunityTargets
+                .Where(t => namedCompanies.Contains(t.CompanyId)
+                    || namedOrNull.Contains(t.PersonId))
+                .Select(t => t.Id);
+
+            IQueryable<OpportunityId> aboutThem = _context.OpportunitySubjects
+                .Where(s => namedProfiles.Contains(s.TalentProfileId))
+                .Select(s => s.OpportunityId);
 
             query = query.Where(x =>
-                EF.Functions.ILike(x.Name, $"%{search}%")
-                || (x.Reference != null && EF.Functions.ILike(x.Reference, $"%{search}%"))
-                || (x.Summary != null && EF.Functions.ILike(x.Summary, $"%{search}%")));
+                EF.Functions.ILike(x.Name, pattern)
+                || (x.Reference != null && EF.Functions.ILike(x.Reference, pattern))
+                || (x.Summary != null && EF.Functions.ILike(x.Summary, pattern))
+                || counterparties.Contains(x.OpportunityTargetId)
+                || aboutThem.Contains(x.OpportunityId));
         }
 
         // The counterparty lives on the M6 target and the subject on the M6

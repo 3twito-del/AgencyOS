@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Legal;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -219,6 +221,22 @@ public sealed class DealDetailViewModel : ViewModelBase
     public bool AcceptsOffers => Deal?.Deal.Status is "Draft" or "Negotiating";
 
     /// <summary>
+    /// What this page may truthfully say about the negotiation's paper.
+    /// </summary>
+    /// <remarks>
+    /// Set from the contracts the server reports for this deal, because the deal
+    /// read model carries none. Until build 79 the page asserted there was no
+    /// contract whatever the truth was.
+    /// </remarks>
+    public ContractStanding ContractStanding { get; private set; } = ContractStanding.Silent;
+
+    /// <summary>The open task to do next, when this negotiation has one.</summary>
+    public NextAction? NextAction =>
+        NextActionFrom.Of(
+            Tasks.Select(x => new NextActionFrom.Candidate(x.Title, x.State, x.DueAt)),
+            DateTimeOffset.UtcNow);
+
+    /// <summary>
     /// A plain sentence about where the negotiation stands.
     /// </summary>
     /// <remarks>
@@ -266,6 +284,16 @@ public sealed class DealDetailViewModel : ViewModelBase
             Replace(Offers, [.. detail.Offers.OrderByDescending(x => x.Sequence)]);
             Replace(Tasks, detail.OpenTasks);
 
+            // The deal read model carries no contract, so the page has to ask.
+            // Before this it did not ask and said there was none, which stopped
+            // being true when M8 shipped contracts.
+            IReadOnlyList<ContractSummaryResponse> papers = await _api
+                .ListContractsAsync(dealId: dealId, cancellationToken: token)
+                .ConfigureAwait(true);
+
+            ContractStanding = ContractStandingFor.Of(
+                detail.Deal.Status, [.. papers.Select(x => x.Status)]);
+
             IReadOnlyList<DealHistoryEntryResponse> history = await _api
                 .GetDealHistoryAsync(dealId, token)
                 .ConfigureAwait(true);
@@ -282,6 +310,8 @@ public sealed class DealDetailViewModel : ViewModelBase
             OnPropertyChanged(nameof(PreviousOffer));
             OnPropertyChanged(nameof(AcceptsOffers));
             OnPropertyChanged(nameof(Standing));
+            OnPropertyChanged(nameof(ContractStanding));
+            OnPropertyChanged(nameof(NextAction));
         }, cancellationToken);
 
     private static void Replace<T>(ObservableCollection<T> target, IReadOnlyList<T> source)

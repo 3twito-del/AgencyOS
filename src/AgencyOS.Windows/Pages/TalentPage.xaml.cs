@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Organizations;
 using AgencyOS.Contracts.Representation;
 using AgencyOS.Windows.Dialogs;
+using AgencyOS.Windows.Presentation;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -432,6 +434,13 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
         }
 
         TaskList.ItemsSource = overview.OpenTasks;
+
+        NextActionBanner.Apply(
+            NextActionBar,
+            NextActionFrom.Of(
+                overview.OpenTasks.Select(
+                    x => new NextActionFrom.Candidate(x.Title, x.State, x.DueAt)),
+                DateTimeOffset.UtcNow));
     }
     /// <summary>Runs a command and shows the server's reason if it refuses.</summary>
     /// <remarks>

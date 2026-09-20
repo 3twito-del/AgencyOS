@@ -111,13 +111,24 @@ public static class ApiContract
     /// what it got from contract 14.
     /// </para>
     /// <para>
+    /// Version 16 widens what the negotiation, contract and project lists search.
+    /// Each read only its own text, so a human name found nothing and a case was
+    /// discoverable only by somebody who already knew what it was called - the one
+    /// question a blind operator handoff could not get past. Search now also reaches
+    /// the names of the people and companies each record genuinely relates to: a
+    /// negotiation's counterparty and the client its pursuit is about, a contract's
+    /// parties, and the people currently attached to a project. No relationship is
+    /// invented to make this work, and a caller that searched a title still gets
+    /// what it got from contract 15.
+    /// </para>
+    /// <para>
     /// Every step so far is additive, so the supported range stays open at 1. The
     /// concurrency guarantee does not depend on the contract version: the version
     /// token is a required field on guarded mutations, so a client that omits it
     /// gets a 400 rather than a silent overwrite, whatever contract it claims.
     /// </para>
     /// </remarks>
-    public const int Current = 15;
+    public const int Current = 16;
 
     /// <summary>
     /// The lowest contract version this build still serves.

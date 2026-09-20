@@ -136,6 +136,15 @@
 
                 <!-- Titled by whatever was refused: a command is not a load (AOS-R002-012). -->
                 <InfoBar x:Name="CommandError" Severity="Error" IsOpen="False" IsClosable="True" />
+
+                <!--
+                    The open task about this client, said as the thing to do next.
+                    The tasks tab already listed it; nothing said it was next, which
+                    is the question a blind handoff could not answer.
+                -->
+                <InfoBar x:Name="NextActionBar" Severity="Informational" IsOpen="False" IsClosable="False"
+                         Title="Next action"
+                         AutomationProperties.Name="Next action" />
             </StackPanel>
 
             <muxc:TabView

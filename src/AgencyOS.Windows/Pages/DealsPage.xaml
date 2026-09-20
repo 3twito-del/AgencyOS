@@ -57,7 +57,7 @@
                     <CheckBox x:Name="TermsAgreedBox" Content="Terms agreed" Click="OnFilterChanged" />
                 </StackPanel>
 
-                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Name, reference or summary"
+                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Name, reference, summary or a person"
                                 QuerySubmitted="OnSearchSubmitted" />
                 <ProgressBar x:Name="ListBusy"
                              AutomationProperties.Name="List progress" IsIndeterminate="True" Visibility="Collapsed" />
@@ -112,13 +112,22 @@
                            Style="{StaticResource CaptionTextBlockStyle}" />
 
                 <!--
-                    Terms agreed is a commercial fact and nothing more. The wording
-                    here never says signed, executed or closed, because M7 has no
-                    way to know whether any contract exists (ADR-0021).
+                    What the paper is doing, asked of the server rather than assumed.
+                    This used to be a fixed sentence saying no contract existed and
+                    that AgencyOS did not track one - true when M7 shipped, false from
+                    the moment M8 added contracts, and rendered green either way. The
+                    title, message and severity now come from ContractStanding.
                 -->
-                <InfoBar x:Name="TermsAgreedBar" Severity="Success" IsOpen="False" IsClosable="False"
-                         Title="Commercial terms agreed"
-                         Message="This records that the parties agreed terms. No contract has been drafted, signed or executed, and AgencyOS does not track that yet." />
+                <InfoBar x:Name="ContractStandingBar" IsOpen="False" IsClosable="False" />
+
+                <!--
+                    The open task to do next. The task already existed; no surface
+                    said it was the next thing, which is the one question the blind
+                    handoff could not answer.
+                -->
+                <InfoBar x:Name="NextActionBar" Severity="Informational" IsOpen="False" IsClosable="False"
+                         Title="Next action"
+                         AutomationProperties.Name="Next action" />
 
                 <TextBlock x:Name="StrategyText" TextWrapping="Wrap" Opacity="0.85"
                            Visibility="Collapsed" />

@@ -55,7 +55,7 @@
                               Click="OnFilterChanged" />
                 </StackPanel>
 
-                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Title or reference"
+                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Title, reference or a party"
                                 QuerySubmitted="OnSearchSubmitted" />
                 <ProgressBar x:Name="ListBusy"
                              AutomationProperties.Name="List progress" IsIndeterminate="True" Visibility="Collapsed" />

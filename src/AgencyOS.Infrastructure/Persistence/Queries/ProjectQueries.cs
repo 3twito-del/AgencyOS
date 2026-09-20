@@ -70,9 +70,22 @@ internal sealed class ProjectQueries : IProjectQueries
         {
             string pattern = $"%{filter.Search.Trim()}%";
 
+            // Who is currently on it, by name. The attachment is the relationship the
+            // project model actually carries to a person; "currently holding" matches
+            // the AttachedPersonId filter beside this one rather than inventing a
+            // second meaning of attached.
+            IQueryable<ProjectId> carryingThem = _context.Attachments
+                .Where(a =>
+                    (a.Status == AttachmentStatus.Attached
+                        || a.Status == AttachmentStatus.Conditional)
+                    && _context.People.Any(p =>
+                        p.Id == a.PersonId && EF.Functions.ILike(p.DisplayName, pattern)))
+                .Select(a => a.ProjectId);
+
             query = query.Where(x =>
                 EF.Functions.ILike(x.Title, pattern)
-                || (x.WorkingTitle != null && EF.Functions.ILike(x.WorkingTitle, pattern)));
+                || (x.WorkingTitle != null && EF.Functions.ILike(x.WorkingTitle, pattern))
+                || carryingThem.Contains(x.Id));
         }
 
         if (filter.AttachedPersonId is { } attached)

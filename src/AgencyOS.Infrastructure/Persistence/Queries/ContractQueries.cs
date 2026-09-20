@@ -825,11 +825,26 @@ internal sealed class ContractQueries : IContractQueries
 
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            string search = filter.Search.Trim();
+            string pattern = $"%{filter.Search.Trim()}%";
+
+            // The parties are the relationship a contract genuinely has to people and
+            // companies, so a human name reaches the paper they signed. Before this,
+            // searching a client's name here returned nothing and the instrument was
+            // findable only by its title.
+            IQueryable<ContractId> signedByName = _context.ContractParties
+                .Where(party =>
+                    _context.People.Any(p =>
+                        p.Id == party.PersonId && EF.Functions.ILike(p.DisplayName, pattern))
+                    || _context.Companies.Any(c =>
+                        c.Id == party.CompanyId && EF.Functions.ILike(c.Name, pattern))
+                    || (party.ExternalName != null
+                        && EF.Functions.ILike(party.ExternalName, pattern)))
+                .Select(party => party.ContractId);
 
             query = query.Where(x =>
-                EF.Functions.ILike(x.Title, $"%{search}%")
-                || (x.Reference != null && EF.Functions.ILike(x.Reference, $"%{search}%")));
+                EF.Functions.ILike(x.Title, pattern)
+                || (x.Reference != null && EF.Functions.ILike(x.Reference, pattern))
+                || signedByName.Contains(x.Id));
         }
 
         // Party filters narrow through the party table rather than through a column

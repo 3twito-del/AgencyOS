@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using AgencyOS.Client;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Windows.Dialogs;
+using AgencyOS.Windows.Presentation;
 using AgencyOS.Contracts.Organizations;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -24,10 +26,13 @@ namespace AgencyOS.Windows.Pages;
 /// an answer and what lapses this week.
 /// </para>
 /// <para>
-/// Nothing on this screen transmits an offer, and nothing on it claims a contract
-/// exists. Terms agreed is shown as a commercial fact with an explicit note that
-/// no contract has been drafted or signed, because a screen that blurred the two
-/// would be a lie somebody acts on (ADR-0021).
+/// Nothing on this screen transmits an offer. Terms agreed stays a commercial fact
+/// and never implies paper, because a screen that blurred the two would be a lie
+/// somebody acts on (ADR-0021) — but the screen now <em>asks</em> what paper exists
+/// rather than assuming none. It used to assert that no contract had been drafted
+/// or signed and that AgencyOS did not track one, which was true under M7 and false
+/// from the moment M8 shipped contracts. <see cref="ContractStanding"/> holds that
+/// decision; this page only renders it.
 /// </para>
 /// </remarks>
 public sealed partial class DealsPage : Page, IPaletteCommandTarget
@@ -398,14 +403,16 @@ public sealed partial class DealsPage : Page, IPaletteCommandTarget
             DetailTitle.Text = "Select a deal";
             DetailStanding.Text = string.Empty;
             StrategyText.Visibility = Visibility.Collapsed;
-            TermsAgreedBar.IsOpen = false;
+            ContractStandingBar.IsOpen = false;
+            NextActionBar.IsOpen = false;
             return;
         }
 
         DetailTitle.Text = deal.Deal.Name;
         DetailStanding.Text = _detail.Standing;
 
-        TermsAgreedBar.IsOpen = deal.Deal.Status == "TermsAgreed";
+        ShowStanding(_detail.ContractStanding);
+        ShowNextAction(_detail.NextAction);
 
         // Nothing is shown when the strategy is absent, and absent is
         // indistinguishable from empty by design.
@@ -414,6 +421,29 @@ public sealed partial class DealsPage : Page, IPaletteCommandTarget
 
         RenderTerms();
     }
+
+    /// <summary>Says what the paper is doing, in the words the view model chose.</summary>
+    private void ShowStanding(ContractStanding standing)
+    {
+        ContractStandingBar.IsOpen = standing.Show;
+
+        if (!standing.Show)
+        {
+            return;
+        }
+
+        ContractStandingBar.Title = standing.Title;
+        ContractStandingBar.Message = standing.Message;
+        ContractStandingBar.Severity = standing.Severity switch
+        {
+            StandingSeverity.Success => InfoBarSeverity.Success,
+            StandingSeverity.Warning => InfoBarSeverity.Warning,
+            _ => InfoBarSeverity.Informational,
+        };
+    }
+
+    /// <summary>Offers the open task to do next, if there is one.</summary>
+    private void ShowNextAction(NextAction? next) => NextActionBanner.Apply(NextActionBar, next);
 
     private void RenderTerms()
     {
