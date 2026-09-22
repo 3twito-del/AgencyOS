@@ -46,6 +46,15 @@ public static class RowLabel
     /// <summary>How long a row may speak before it stops being scannable.</summary>
     private const int MaximumLength = 160;
 
+    /// <summary>
+    /// The least of a title worth keeping when the roles have taken the rest.
+    /// </summary>
+    /// <remarks>
+    /// Below this a truncated title is an ellipsis with a syllable in front of
+    /// it, which tells an operator less than leaving it out does.
+    /// </remarks>
+    private const int MinimumHeadline = 12;
+
     /// <summary>Properties that carry the row's headline, best first.</summary>
     private static readonly string[] Headline =
     [
@@ -181,17 +190,18 @@ public static class RowLabel
     {
         string tail = string.Join(", ", essential);
 
-        if (tail.Length >= MaximumLength)
+        // Two for the separator that joins the two halves.
+        int budget = MaximumLength - tail.Length - 2;
+
+        // Where the roles nearly fill the budget on their own there is no room
+        // for a title worth reading. The row drops it rather than emit a phrase
+        // that begins with a comma or overruns the bound it exists to keep.
+        if (budget < MinimumHeadline)
         {
             return Shorten(tail);
         }
 
-        string head = string.Join(", ", parts);
-
-        // Two for the separator that joins the two halves.
-        int budget = MaximumLength - tail.Length - 2;
-
-        return string.Concat(Shorten(head, budget), ", ", tail);
+        return string.Concat(Shorten(string.Join(", ", parts), budget), ", ", tail);
     }
 
     private static string? FirstValue(object row, Type type, string[] names)

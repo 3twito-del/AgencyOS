@@ -239,6 +239,32 @@ public sealed class SemanticRoleTests
                 .Length <= 160);
     }
 
+    /// <summary>
+    /// Long names do not push the row past its bound or strand a separator.
+    /// </summary>
+    /// <remarks>
+    /// Where the roles nearly fill the budget on their own there is no room left
+    /// for a title, and the row has to drop it rather than emit a phrase that
+    /// begins with a comma or overruns the limit it exists to keep.
+    /// </remarks>
+    [Theory]
+    [InlineData(40, 40)]
+    [InlineData(62, 61)]
+    [InlineData(70, 70)]
+    [InlineData(200, 200)]
+    public void RolesTooLongForTheBudgetStillProduceAWellFormedRow(int subject, int assignee)
+    {
+        string row = RowLabel.For(Task(
+            subject: new string('s', subject),
+            assignee: Member,
+            assigneeName: new string('a', assignee),
+            due: Due));
+
+        Assert.True(row.Length <= 160, $"{row.Length} characters: {row}");
+        Assert.False(row.StartsWith(",", StringComparison.Ordinal), row);
+        Assert.DoesNotContain(", ,", row, StringComparison.Ordinal);
+    }
+
     // ----------------------------------------------------------- target roles
 
     /// <summary>
