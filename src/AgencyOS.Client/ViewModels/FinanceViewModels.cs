@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Contracts.Finance;
 
 namespace AgencyOS.Client.ViewModels;
@@ -80,7 +81,7 @@ public static class MoneyFormatting
 /// outstanding - rather than a status chip. A finance desk asks "how much of this
 /// is left", and a chip saying "Partially paid" answers a different question.
 /// </remarks>
-public sealed class ReceivableListViewModel : ViewModelBase
+public sealed class ReceivableListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -150,6 +151,9 @@ public sealed class ReceivableListViewModel : ViewModelBase
 
     public override bool IsEmpty => _loaded && Receivables.Count == 0;
 
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
+
     /// <summary>How many listed rows are past a resolvable due date.</summary>
     public int Overdue => Receivables.Count(x => x.IsOverdue);
 
@@ -216,7 +220,7 @@ public sealed class ReceivableListViewModel : ViewModelBase
 /// transport, so a button offering to send one would be describing something the
 /// build cannot do (ADR-0023).
 /// </remarks>
-public sealed class InvoiceListViewModel : ViewModelBase
+public sealed class InvoiceListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -260,6 +264,9 @@ public sealed class InvoiceListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Invoices.Count == 0;
+
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     public int Issued =>
         Invoices.Count(x => string.Equals(x.Status, "Issued", StringComparison.Ordinal));
@@ -324,7 +331,7 @@ public sealed class InvoiceListViewModel : ViewModelBase
 /// receivable is the finance desk's real work queue, and a list that showed only
 /// the amount received would hide it.
 /// </remarks>
-public sealed class PaymentListViewModel : ViewModelBase
+public sealed class PaymentListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -375,6 +382,9 @@ public sealed class PaymentListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Payments.Count == 0;
+
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>How many listed payments still have money nobody has explained.</summary>
     public int WithUnappliedCash => Payments.Count(x => x.Unapplied.Amount > 0m);
@@ -703,7 +713,7 @@ public sealed class RecordPaymentViewModel : ViewModelBase
 /// hundred of a million has collected forty, and a screen that showed only the
 /// first number would be reporting revenue that has not arrived (ADR-0023).
 /// </remarks>
-public sealed class CommissionListViewModel : ViewModelBase
+public sealed class CommissionListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -750,6 +760,9 @@ public sealed class CommissionListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Commissions.Count == 0;
+
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>What has been earned, per currency.</summary>
     public IReadOnlyList<CurrencyTotalResponse> CollectedByCurrency =>
@@ -818,7 +831,7 @@ public sealed class CommissionListViewModel : ViewModelBase
 /// them from posted lines. Nothing here is a stored total, so nothing here can
 /// disagree with the entries beneath it (ADR-0023).
 /// </remarks>
-public sealed class LedgerViewModel : ViewModelBase
+public sealed class LedgerViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -858,6 +871,9 @@ public sealed class LedgerViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Entries.Count == 0;
+
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>
     /// Whether every listed entry balances.

@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Finance;
 using AgencyOS.Contracts.Legal;
@@ -696,11 +697,17 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
             return;
         }
 
-        SummaryText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_receivables.Receivables.Count} receivable(s), {_receivables.Overdue} overdue. "
-                + $"Outstanding: {_receivables.OutstandingSummary}. "
-                + $"Unapplied: {_payments.UnappliedSummary}.");
+        // Two populations, so both have to have arrived. An outstanding balance
+        // built from loaded receivables and failed payments is as wrong as one
+        // built from neither.
+        SummaryText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_receivables.Receivables.Count} receivable(s), {_receivables.Overdue} overdue. "
+                    + $"Outstanding: {_receivables.OutstandingSummary}. "
+                    + $"Unapplied: {_payments.UnappliedSummary}."),
+            _receivables,
+            _payments);
     }
 
     private void RenderReceivables()
@@ -710,14 +717,19 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
             return;
         }
 
-        ReceivableEmpty.IsOpen = _receivables.IsEmpty;
+        // The notice asserts an absence, so it waits on the same authority the
+        // total does: a book that loaded empty and then failed to refresh is
+        // still empty and no longer known.
+        ReceivableEmpty.IsOpen = SummaryAuthority.Knows(_receivables) && _receivables.IsEmpty;
         ShowErrorFrom(_receivables.ErrorMessage);
 
-        ReceivableSummary.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_receivables.Receivables.Count} row(s); {_receivables.Overdue} overdue, "
-                + $"{_receivables.ClientMoney} held for clients. "
-                + $"Outstanding by currency: {_receivables.OutstandingSummary}.");
+        ReceivableSummary.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_receivables.Receivables.Count} row(s); {_receivables.Overdue} overdue, "
+                    + $"{_receivables.ClientMoney} held for clients. "
+                    + $"Outstanding by currency: {_receivables.OutstandingSummary}."),
+            _receivables);
 
         RenderSummary();
     }
@@ -731,10 +743,12 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
 
         ShowErrorFrom(_invoices.ErrorMessage);
 
-        InvoiceSummary.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_invoices.Invoices.Count} invoice(s); {_invoices.Issued} issued, "
-                + $"{_invoices.Overdue} past due. Outstanding: {_invoices.OutstandingSummary}.");
+        InvoiceSummary.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_invoices.Invoices.Count} invoice(s); {_invoices.Issued} issued, "
+                    + $"{_invoices.Overdue} past due. Outstanding: {_invoices.OutstandingSummary}."),
+            _invoices);
     }
 
     private void RenderPayments()
@@ -748,10 +762,12 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
 
         UnappliedBar.IsOpen = _payments.WithUnappliedCash > 0;
 
-        PaymentSummary.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_payments.Payments.Count} payment(s); {_payments.WithUnappliedCash} with unapplied cash, "
-                + $"{_payments.Reversed} reversed. Unapplied: {_payments.UnappliedSummary}.");
+        PaymentSummary.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_payments.Payments.Count} payment(s); {_payments.WithUnappliedCash} with unapplied cash, "
+                    + $"{_payments.Reversed} reversed. Unapplied: {_payments.UnappliedSummary}."),
+            _payments);
 
         RenderSummary();
     }
@@ -765,11 +781,13 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
 
         ShowErrorFrom(_commissions.ErrorMessage);
 
-        CommissionSummary.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_commissions.Commissions.Count} entitlement(s); {_commissions.RulesInForce} rule(s) in force. "
-                + $"Collected: {_commissions.CollectedSummary}. "
-                + $"Not yet collected: {_commissions.OutstandingSummary}.");
+        CommissionSummary.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_commissions.Commissions.Count} entitlement(s); {_commissions.RulesInForce} rule(s) in force. "
+                    + $"Collected: {_commissions.CollectedSummary}. "
+                    + $"Not yet collected: {_commissions.OutstandingSummary}."),
+            _commissions);
     }
 
     private void RenderLedger()
@@ -781,11 +799,13 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
 
         ShowErrorFrom(_ledger.ErrorMessage);
 
-        LedgerSummary.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_ledger.Entries.Count} entr(ies) across {_ledger.Currencies.Count} currenc(ies); "
-                + $"{_ledger.ManualEntries} written by hand, {_ledger.Reversed} reversed. "
-                + $"{(_ledger.AllBalanced ? "All balanced." : "One or more does not balance.")}");
+        LedgerSummary.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_ledger.Entries.Count} entr(ies) across {_ledger.Currencies.Count} currenc(ies); "
+                    + $"{_ledger.ManualEntries} written by hand, {_ledger.Reversed} reversed. "
+                    + $"{(_ledger.AllBalanced ? "All balanced." : "One or more does not balance.")}"),
+            _ledger);
     }
 
     private void RenderReconciliation()
