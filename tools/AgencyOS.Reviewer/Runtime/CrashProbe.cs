@@ -447,6 +447,15 @@ internal sealed class CrashProbe
             case "set":
                 return Set(step["set:".Length..]);
 
+            // Every name inside a container, for lists a reader can reach and a
+            // harness cannot select. Reality Closure could not verify the term
+            // rows live for exactly this reason: both term lists are
+            // SelectionMode="None", and read: reports an announced name through
+            // the selection pattern. The names are what a screen reader is given,
+            // so this asks for them directly.
+            case "names":
+                return Names(parts[1]);
+
             // Where focus is, without moving it. A refusal that the operator has to
             // go looking for is most of what AOS-R002-010 was about.
             case "focused":
@@ -649,6 +658,42 @@ internal sealed class CrashProbe
     /// <c>AOS-R001-013</c> and <c>AOS-R002-021</c> were measured with: whether
     /// the element is offscreen, and its rectangle.
     /// </remarks>
+    /// <summary>What every row inside a container announces.</summary>
+    /// <remarks>
+    /// Names only, deduplicated and in tree order. A list whose rows all announce
+    /// the same words shows one entry here, which is the defect
+    /// <c>10-ACCESSIBILITY-PARITY.md</c> recorded for document versions and
+    /// representation scopes.
+    /// </remarks>
+    private string Names(string automationId)
+    {
+        _app.Refresh();
+
+        UiaNode? container = _app.Snapshot().Flatten()
+            .FirstOrDefault(x => string.Equals(x.AutomationId, automationId, StringComparison.Ordinal));
+
+        if (container is null)
+        {
+            return "no control with automation id '" + automationId + "'";
+        }
+
+        List<string> names = [];
+
+        foreach (UiaNode node in container.Flatten())
+        {
+            if (node.Name is { Length: > 0 } name
+                && !string.Equals(name, container.Name, StringComparison.Ordinal)
+                && !names.Contains(name, StringComparer.Ordinal))
+            {
+                names.Add(name);
+            }
+        }
+
+        return names.Count == 0
+            ? "'" + automationId + "' contains nothing that announces a name"
+            : "announces=[" + string.Join(" § ", names) + "]";
+    }
+
     private string See(string name)
     {
         _app.Refresh();

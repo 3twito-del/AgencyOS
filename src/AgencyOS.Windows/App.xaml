@@ -29,6 +29,14 @@
             <presentation:IsoDateConverter x:Key="IsoDate" />
 
             <!--
+                Money carries its currency. Every Finance row bound the bare
+                decimal out of MoneyResponse and dropped Currency, so a screen
+                holding two currencies showed rows nothing could tell apart
+                (F-11). This is the same MoneyFormatting the summaries use.
+            -->
+            <presentation:MoneyConverter x:Key="Money" />
+
+            <!--
                 TaskWho, TaskWhen and TaskAbout bind the whole row rather than a
                 field: whether a task projection may speak about ownership depends
                 on which fields it declares, not on their values. Six surfaces list

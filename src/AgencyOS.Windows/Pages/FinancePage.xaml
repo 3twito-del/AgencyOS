@@ -126,13 +126,13 @@
                                     -->
                                     <TextBlock Grid.Column="1" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding OriginalAmount.Amount}" />
+                                               Text="{Binding OriginalAmount, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="2" HorizontalAlignment="Right"
                                                VerticalAlignment="Center" Opacity="0.7"
-                                               Text="{Binding Allocated.Amount}" />
+                                               Text="{Binding Allocated, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="3" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Outstanding.Amount}" />
+                                               Text="{Binding Outstanding, Converter={StaticResource Money}}" />
                                     <StackPanel Grid.Column="4" HorizontalAlignment="Right"
                                                 VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
@@ -213,10 +213,10 @@
                                     </StackPanel>
                                     <TextBlock Grid.Column="1" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Total.Amount}" />
+                                               Text="{Binding Total, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="2" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Outstanding.Amount}" />
+                                               Text="{Binding Outstanding, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="3" HorizontalAlignment="Right"
                                                VerticalAlignment="Center" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}"
@@ -290,13 +290,13 @@
                                     </StackPanel>
                                     <TextBlock Grid.Column="1" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Amount.Amount}" />
+                                               Text="{Binding Amount, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="2" HorizontalAlignment="Right"
                                                VerticalAlignment="Center" Opacity="0.7"
-                                               Text="{Binding Allocated.Amount}" />
+                                               Text="{Binding Allocated, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="3" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Unapplied.Amount}" />
+                                               Text="{Binding Unapplied, Converter={StaticResource Money}}" />
                                     <StackPanel Grid.Column="4" HorizontalAlignment="Right"
                                                 VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
@@ -361,13 +361,13 @@
                                     </StackPanel>
                                     <TextBlock Grid.Column="1" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Entitled.Amount}" />
+                                               Text="{Binding Entitled, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="2" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Collected.Amount}" />
+                                               Text="{Binding Collected, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="3" HorizontalAlignment="Right"
                                                VerticalAlignment="Center" Opacity="0.7"
-                                               Text="{Binding Outstanding.Amount}" />
+                                               Text="{Binding Outstanding, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="4" HorizontalAlignment="Right"
                                                VerticalAlignment="Center" Opacity="0.6"
                                                Style="{StaticResource CaptionTextBlockStyle}"
@@ -487,10 +487,10 @@
                                     </StackPanel>
                                     <TextBlock Grid.Column="1" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Debits.Amount}" />
+                                               Text="{Binding Debits, Converter={StaticResource Money}}" />
                                     <TextBlock Grid.Column="2" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Credits.Amount}" />
+                                               Text="{Binding Credits, Converter={StaticResource Money}}" />
                                     <StackPanel Grid.Column="3" HorizontalAlignment="Right"
                                                 VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
@@ -563,7 +563,7 @@
                                                Style="{StaticResource CaptionTextBlockStyle}" />
                                     <TextBlock Grid.Column="2" HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Amount.Amount}" />
+                                               Text="{Binding Amount, Converter={StaticResource Money}}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>

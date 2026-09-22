@@ -61,6 +61,12 @@ public static class RowLabel
         "DisplayName", "Name", "Title", "Question", "Statement", "Proposition",
         "Claim", "Subject", "SubjectDisplayName", "Label", "MailboxAddress",
         "Address", "Summary", "Description", "Reference", "Code",
+
+        // Last, and only where nothing above exists. Three shipped lists had no
+        // headline property at all and announced their own type name, so every
+        // row in them read identically: document versions, representation scopes
+        // and the ledger's account rows (F-08).
+        "DisplayFileName", "Area", "Action", "Memo",
     ];
 
     /// <summary>Properties that say what kind of thing the row is, or where it stands.</summary>
@@ -68,6 +74,35 @@ public static class RowLabel
     [
         "Status", "Stage", "State", "Kind", "Type", "Direction", "Outcome",
         "Severity", "Discipline", "Role", "Priority",
+    ];
+
+    /// <summary>
+    /// The row's business value, where the server has already written one.
+    /// </summary>
+    /// <remarks>
+    /// A term row shows <c>Fee | 185,000.00 USD</c> and announced <c>Fee</c>.
+    /// Both offer and contract terms carry <c>DisplayValue</c> — the value
+    /// formatted once, on the server, by whatever rule the term's kind demands —
+    /// and the visible column binds exactly that field. Announcing the same field
+    /// gives the two channels one answer by construction rather than by a second
+    /// formatter that could disagree (F-02).
+    /// </remarks>
+    private static readonly string[] Stated = ["DisplayValue"];
+
+    /// <summary>
+    /// Money the row carries, in the order an operator reads the columns.
+    /// </summary>
+    /// <remarks>
+    /// Curated rather than discovered, so the order a row speaks in is decided
+    /// here and not by reflection's property ordering. Anything typed as money
+    /// that is not named here is still announced, after these, so a new figure
+    /// cannot go silent.
+    /// </remarks>
+    private static readonly string[] Monetary =
+    [
+        "Amount", "Total", "Entitled", "OriginalAmount",
+        "Debits", "Credits", "Balance",
+        "Allocated", "Collected", "Adjusted", "Unapplied", "Outstanding",
     ];
 
     /// <summary>A third field, when the row's own name is not enough to tell rows apart.</summary>
@@ -122,6 +157,14 @@ public static class RowLabel
         {
             parts.Add(context);
         }
+
+        // How much. Every quantitative row in the product announced what it was
+        // and what state it was in, and never the figure - so a screen-reader
+        // operator could scan the agreed terms of a negotiation and hear "Fee",
+        // "Term", "Territory" without a single number, and scan receivables
+        // without an amount. For a sighted operator the number is column one
+        // (F-02).
+        parts.AddRange(Values(row, type));
 
         foreach (string qualifier in Qualifiers)
         {
@@ -202,6 +245,84 @@ public static class RowLabel
         }
 
         return string.Concat(Shorten(string.Join(", ", parts), budget), ", ", tail);
+    }
+
+    /// <summary>
+    /// What the row is worth, said the way the row shows it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Two shapes. A term carries <c>DisplayValue</c>, already formatted by the
+    /// server for that term's kind, and the visible column binds the same field —
+    /// so money, percentages, dates and counts all arrive correct without this
+    /// formatter knowing anything about them.
+    /// </para>
+    /// <para>
+    /// Money is typed, so it is found by its type rather than by its name and
+    /// cannot be confused with an unrelated decimal. Each figure keeps the label
+    /// of the field it came from, because a row announcing three bare sums tells
+    /// an operator how much of something without saying of what. The first one
+    /// speaks bare where the field is simply the row's own <c>Amount</c>.
+    /// </para>
+    /// </remarks>
+    private static IEnumerable<string> Values(object row, Type type)
+    {
+        if (FirstValue(row, type, Stated) is { } written)
+        {
+            yield return written;
+
+            // A term states its value once. Anything else on it is not a figure.
+            yield break;
+        }
+
+        foreach (PropertyInfo property in Monetary
+            .Select(name => type.GetProperty(name, BindingFlags.Public | BindingFlags.Instance))
+            .Concat(Readable(type))
+            .Where(x => x is not null && IsMoney(x.PropertyType))
+            .Distinct()
+            .Cast<PropertyInfo>())
+        {
+            if (Read(row, property) is not { } money)
+            {
+                // An absent amount stays absent. A contingent bonus nobody can
+                // value yet is not worth zero, and saying so would put a figure
+                // in the operator's head that nobody recorded.
+                continue;
+            }
+
+            if (MoneyText(money) is not { } text)
+            {
+                continue;
+            }
+
+            yield return string.Equals(property.Name, "Amount", StringComparison.Ordinal)
+                ? text
+                : text + " " + DisplayLabel.For(property.Name).ToLowerInvariant();
+        }
+    }
+
+    /// <summary>Whether a property holds money rather than a bare number.</summary>
+    /// <remarks>
+    /// By shape, not by name. <c>MoneyResponse</c> is the only pair of an amount
+    /// and the currency it is denominated in, and matching on it means an
+    /// unrelated decimal called <c>Amount</c> can never be read out as a sum.
+    /// </remarks>
+    private static bool IsMoney(Type type) =>
+        type.Name.Equals("MoneyResponse", StringComparison.Ordinal);
+
+    /// <summary>An amount with its currency, or nothing where either is missing.</summary>
+    private static string? MoneyText(object money)
+    {
+        Type type = money.GetType();
+
+        if (type.GetProperty("Amount")?.GetValue(money) is not decimal amount
+            || type.GetProperty("Currency")?.GetValue(money) is not string currency
+            || string.IsNullOrWhiteSpace(currency))
+        {
+            return null;
+        }
+
+        return string.Create(CultureInfo.CurrentCulture, $"{amount:N2} {currency}");
     }
 
     private static string? FirstValue(object row, Type type, string[] names)

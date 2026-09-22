@@ -2,6 +2,8 @@ using System.Globalization;
 using Microsoft.UI.Xaml;
 using System;
 using AgencyOS.Client.Presentation;
+using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.Finance;
 using Microsoft.UI.Xaml.Data;
 
 namespace AgencyOS.Windows.Presentation;
@@ -159,4 +161,39 @@ public sealed partial class TargetContactConverter : IValueConverter
     /// <inheritdoc />
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException("A target's contact is not converted back into a row.");
+}
+
+/// <summary>
+/// Money, with the currency it is denominated in.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Every Finance row bound <c>Something.Amount</c> — the raw decimal out of
+/// <c>MoneyResponse</c>, discarding <c>Currency</c>. Reality Closure recorded the
+/// result live: a receivable row reading <c>240000.0000 | 90000.0000 |
+/// 150000.0000</c> two lines beneath a summary reading
+/// <c>Outstanding: 140,000.00 GBP   1,255,000.00 USD</c>. On a screen holding two
+/// currencies there was nothing in the row to say which one it was in (F-11).
+/// </para>
+/// <para>
+/// The product already states the rule itself, in <c>RecordOfferDialog</c>:
+/// <em>"Money always carries its currency; nothing here accepts a bare number."</em>
+/// The dialogs obeyed it and the rows did not.
+/// </para>
+/// <para>
+/// This binds the whole <c>MoneyResponse</c> and formats it through the same
+/// <c>MoneyFormatting.Format</c> the summaries have always used, so a row and the
+/// total above it cannot disagree about what a figure means. An absent amount
+/// stays absent: it formats to nothing rather than to a zero nobody recorded.
+/// </para>
+/// </remarks>
+public sealed partial class MoneyConverter : IValueConverter
+{
+    /// <inheritdoc />
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        MoneyFormatting.Format(value as MoneyResponse);
+
+    /// <inheritdoc />
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException("A formatted amount is not parsed back into money.");
 }
