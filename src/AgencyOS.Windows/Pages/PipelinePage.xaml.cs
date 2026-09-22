@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
@@ -440,14 +441,19 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget
         }
 
         ListBusy.Visibility = _list.IsLoading ? Visibility.Visible : Visibility.Collapsed;
-        ListEmpty.IsOpen = _list.IsEmpty;
+        // The notice asserts an absence, so it waits on the same authority the
+        // count does: a list that loaded empty and then failed to refresh is
+        // still empty and no longer known.
+        ListEmpty.IsOpen = SummaryAuthority.Knows(_list) && _list.IsEmpty;
 
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
 
-        SummaryText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_list.Opportunities.Count} pursuit(s); {_list.Overdue} overdue, {_list.Waiting} awaiting a reply.");
+        SummaryText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_list.Opportunities.Count} pursuit(s); {_list.Overdue} overdue, {_list.Waiting} awaiting a reply."),
+            _list);
     }
 
     private void RenderDetail()

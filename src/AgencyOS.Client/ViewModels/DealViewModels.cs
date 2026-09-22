@@ -15,7 +15,7 @@ namespace AgencyOS.Client.ViewModels;
 /// actually has - who owes whom an answer, what lapses this week - are ones a
 /// board has nowhere to put.
 /// </remarks>
-public sealed class DealListViewModel : ViewModelBase
+public sealed class DealListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -71,6 +71,9 @@ public sealed class DealListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Deals.Count == 0;
+
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>How many listed negotiations have an offer on the table.</summary>
     public int Awaiting => Deals.Count(x => x.HasOpenOffer);

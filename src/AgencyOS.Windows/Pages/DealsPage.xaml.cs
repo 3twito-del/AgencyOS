@@ -368,15 +368,18 @@ public sealed partial class DealsPage : Page, IPaletteCommandTarget
         }
 
         ListBusy.Visibility = _list.IsLoading ? Visibility.Visible : Visibility.Collapsed;
-        ListEmpty.IsOpen = _list.IsEmpty;
+        // See PipelinePage: an absence notice needs the same authority a count does.
+        ListEmpty.IsOpen = SummaryAuthority.Knows(_list) && _list.IsEmpty;
 
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
 
-        SummaryText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_list.Deals.Count} deal(s); {_list.Awaiting} awaiting an answer, "
-                + $"{_list.TermsAgreed} with terms agreed, {_list.ExpiringSoon} lapsing within a week.");
+        SummaryText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_list.Deals.Count} deal(s); {_list.Awaiting} awaiting an answer, "
+                    + $"{_list.TermsAgreed} with terms agreed, {_list.ExpiringSoon} lapsing within a week."),
+            _list);
     }
 
     private void RenderDetail()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using AgencyOS.Client;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Deals;
@@ -452,16 +453,19 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         }
 
         ListBusy.Visibility = _list.IsLoading ? Visibility.Visible : Visibility.Collapsed;
-        ListEmpty.IsOpen = _list.IsEmpty;
+        // See PipelinePage: an absence notice needs the same authority a count does.
+        ListEmpty.IsOpen = SummaryAuthority.Knows(_list) && _list.IsEmpty;
 
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
 
-        SummaryText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_list.Contracts.Count} contract(s); {_list.Unsigned} awaiting signature, "
-                + $"{_list.Effective} in force, {_list.WithDifferences} differing from agreed terms, "
-                + $"{_list.DueThisWeek} with a date within a week.");
+        SummaryText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_list.Contracts.Count} contract(s); {_list.Unsigned} awaiting signature, "
+                    + $"{_list.Effective} in force, {_list.WithDifferences} differing from agreed terms, "
+                    + $"{_list.DueThisWeek} with a date within a week."),
+            _list);
     }
 
     private void RenderDetail()

@@ -70,9 +70,55 @@ public sealed class FinanceSurfaceTests
             StringComparison.Ordinal);
     }
 
-    private static string Page() =>
+    /// <summary>Every page whose operational counts were gated, and the control.</summary>
+    public static TheoryData<string, string> OperationalCounts => new()
+    {
+        { "PipelinePage.xaml.cs", "SummaryText" },
+        { "ContractsPage.xaml.cs", "SummaryText" },
+        { "DealsPage.xaml.cs", "SummaryText" },
+    };
+
+    /// <summary>
+    /// Every deadline count asks whether its slate is known.
+    /// </summary>
+    /// <remarks>
+    /// The HIGH instances of F-01: a failed load said "0 overdue" and an operator
+    /// stopped looking for late work. What they are allowed to say is asserted in
+    /// <c>OperationalAuthorityTests</c>, against the real view models.
+    /// </remarks>
+    [Theory]
+    [MemberData(nameof(OperationalCounts))]
+    public void EveryDeadlineCountAsksWhetherItsSlateIsKnown(string page, string control)
+    {
+        string source = Read(page);
+
+        Assert.Contains(control + ".Text = SummaryAuthority.Of(", source, StringComparison.Ordinal);
+        Assert.DoesNotContain(control + ".Text = string.Create(", source, StringComparison.Ordinal);
+        Assert.Contains("ListEmpty.IsOpen = SummaryAuthority.Knows(", source, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The desk does not claim quiet before it has read.
+    /// </summary>
+    /// <remarks>
+    /// A boolean rather than a total, so it uses the shared authority test with its
+    /// own wording rather than <c>Of</c>'s "Totals unavailable."
+    /// </remarks>
+    [Fact]
+    public void TheDeskClaimsQuietOnlyWhenItHasRead()
+    {
+        string source = Read("CommunicationsPage.xaml.cs");
+
+        Assert.Contains("!SummaryAuthority.Knows(_desk)", source, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "SummaryText.Text = _desk.NeedsAttention", source, StringComparison.Ordinal);
+    }
+
+    private static string Read(string page) =>
         File.ReadAllText(Path.Combine(
-            RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "FinancePage.xaml.cs"));
+            RepositoryRoot, "src", "AgencyOS.Windows", "Pages", page));
+
+    private static string Page() => Read("FinancePage.xaml.cs");
 
     private static string RepositoryRoot { get; } = Find();
 

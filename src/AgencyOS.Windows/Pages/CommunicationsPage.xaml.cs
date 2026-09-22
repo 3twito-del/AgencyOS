@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Documents;
 using AgencyOS.Windows.Dialogs;
@@ -858,8 +859,13 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
         AttentionBar.IsOpen = _desk.UnknownOutcomeCount > 0;
         AttentionBar.Message = OutboundFormatting.UnknownOutcomeExplanation;
 
-        SummaryText.Text = _desk.NeedsAttention
-            ? "Something needs a person. See the Desk tab."
-            : "Nothing needs attention.";
+        // Not a total, so it does not use SummaryAuthority.Of: the unavailable
+        // wording has to match the claim, and "Totals unavailable." would be
+        // answering a question nobody asked. The authority test is the same one.
+        SummaryText.Text = !SummaryAuthority.Knows(_desk)
+            ? "Whether anything needs attention is unavailable."
+            : _desk.NeedsAttention
+                ? "Something needs a person. See the Desk tab."
+                : "Nothing needs attention.";
     }
 }

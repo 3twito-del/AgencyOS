@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AgencyOS.Contracts.Opportunities;
+using AgencyOS.Client.Presentation;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -12,7 +13,7 @@ namespace AgencyOS.Client.ViewModels;
 /// else, and the questions an agent actually has - what is overdue, what has had no
 /// reply - are answered by columns a board has nowhere to put.
 /// </remarks>
-public sealed class OpportunityListViewModel : ViewModelBase
+public sealed class OpportunityListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -57,6 +58,9 @@ public sealed class OpportunityListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Opportunities.Count == 0;
+
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>How many listed pursuits have a reply overdue.</summary>
     public int Waiting => Opportunities.Count(x => x.AwaitingResponseCount > 0);

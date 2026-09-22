@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AgencyOS.Contracts.Legal;
+using AgencyOS.Client.Presentation;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -13,7 +14,7 @@ namespace AgencyOS.Client.ViewModels;
 /// who still has to sign, what differs from what was agreed, what is due this week
 /// - are ones a board has nowhere to put.
 /// </remarks>
-public sealed class ContractListViewModel : ViewModelBase
+public sealed class ContractListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -80,6 +81,9 @@ public sealed class ContractListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Contracts.Count == 0;
+
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>How many listed instruments still need a signature.</summary>
     public int Unsigned => Contracts.Count(x => x.OutstandingSignatureCount > 0);

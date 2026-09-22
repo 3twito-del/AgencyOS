@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using AgencyOS.Contracts.Documents;
+using AgencyOS.Client.Presentation;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -846,7 +847,7 @@ public sealed class OutboundListViewModel : ViewModelBase
 /// records communications; deciding which of them matters is a judgment, and this
 /// build does not make judgments (ADR-0026).
 /// </remarks>
-public sealed class CommunicationCommandCenterViewModel : ViewModelBase
+public sealed class CommunicationCommandCenterViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -869,6 +870,9 @@ public sealed class CommunicationCommandCenterViewModel : ViewModelBase
         && UnknownOutcomes.Count == 0
         && FailedSends.Count == 0
         && AccountsNeedingAttention.Count == 0;
+
+    /// <summary>Whether the desk has been read. This view model keeps the projection itself rather than a flag, so holding one is what having loaded means.</summary>
+    public bool HasLoaded => _center is not null;
 
     public int UnknownOutcomeCount => _center?.UnknownOutcomeCount ?? 0;
 
