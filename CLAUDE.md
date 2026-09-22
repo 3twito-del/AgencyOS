@@ -17,6 +17,7 @@ This is not a demo, not a generic SaaS, and not a disposable prototype. The owne
 9. **No technology is added solely for novelty.**
 10. **No irreversible migration without backup, verification, and rollback/recovery strategy.**
 11. **A surface may state that something does not exist, is not owned, is not permitted or is not applicable only when the projection it reads is authoritative for that question.**
+12. **Where more than one domain role could apply to an identity a surface shows, which role it plays must be explicit — in what is seen and in what is announced.**
 
 ## 2. Architecture baseline
 
@@ -97,6 +98,20 @@ The rule exists because blind-handoff testing repeatedly found the product asser
 
 This is a coherence contract, not a composition service. Existing domain aggregates remain canonical. It does not authorise a Case or Matter entity, a combined operator DTO, a backend-for-frontend, GraphQL, a new persistence or distributed read layer, broad DTO rewrites, replacing nulls wholesale, global search infrastructure, or a UI redesign.
 
+### Semantic role attribution
+
+A separate concern from the rule above, and not a special case of it. That one governs whether a surface is entitled to assert absence. This one governs whether a value that is entirely true is shown as the thing it actually is. Every value can be correct and the surface still mislead.
+
+It applies where **an identity is displayed, more than one domain role could reasonably apply, and the role cannot be determined from the semantics alone**. Roles that get confused for each other: subject or what the work is about, assignee or owner, creator or who recorded it, counterparty, contact, representative or agent, and the internal person responsible.
+
+- Make the role explicit where it is ambiguous. Position, ordering, typography, proximity and visual convention do not count as saying it - a bare name in the place a byline goes will be read as accountability.
+- No value may be positioned, labelled or announced in a way that communicates a different domain role from the one it holds.
+- **Role labels must survive into the accessible representation.** A row that shows "About X" and an owner must announce both distinctions, not merely both names. Announcing the raw values is not sufficient, and the visible and accessible channels must not disagree about what a name means. How that is done is the implementation's business; nothing here prescribes a particular renderer.
+
+Keep it narrow, or it becomes label noise. It does **not** require a prefix on every identity, a label in every cell, every role on every row, a creator on every task, an owner on every resource, or any template redesign. Where only one role is possible in context, say nothing further.
+
+It exists because the same confusion has now appeared on unrelated surfaces: a task's subject rendered as a bare name beneath the title and read by an operator as who was accountable, until it was labelled "About"; a target row showing a contact's name with nothing saying whether that person is the counterparty, the internal owner or the talent; and a task row that labels its subject visibly while announcing only the owner and the due date, so the seen and the spoken rows disagree about what the row contains.
+
 ## 6. Claude behavior
 
 Before implementing a milestone:
@@ -131,9 +146,12 @@ A feature is done only when:
 - tests cover invariants and integration;
 - telemetry exists for consequential failure paths;
 - operator-visible truth holds across the whole surface, not only the control that changed;
+- each identity a surface shows is attributable to a role, seen and announced alike;
 - documentation reflects the implemented behavior.
 
 A screen must not carry mutually incompatible statements about the same domain truth. Validate that at the surface level, preferring read-model contract tests for authority and presence, then whole-surface consistency tests, then paired API/UI assertions. Accessibility correctness is not sufficient on its own: a false statement can be rendered and announced perfectly.
+
+Validate roles, not strings. A test that both names appear somewhere in a row proves nothing about which is the subject and which the owner; it should be able to say that the subject is X and the assignee is Y, in the visible row and in the announced one, and to fail when they swap. Assert meaning rather than screen coordinates.
 
 
 ## 8. VS Code / Claude Code project workflow
