@@ -222,6 +222,14 @@ public static class AgencyOsCommands
             "Represent",
             CommandActionKind.Invoke,
             Workspace: "talent"),
+        // Active is what makes somebody a client, so this is how one stops being
+        // one. Shipped in M4, reachable from nowhere until wave 5.
+        new(
+            "representation.status.change",
+            "Change representation status",
+            "Represent",
+            CommandActionKind.Invoke,
+            Workspace: "talent"),
         new(
             "representation.scope.change",
             "Change what is represented",
@@ -409,6 +417,21 @@ public static class AgencyOsCommands
             CommandActionKind.Invoke,
             Workspace: "contracts",
             Gesture: CommandGesture.ControlShift(CommandKey.G)),
+        // Reality Closure wave 5. M8 delivered recording what became of an option
+        // and of an obligation, against objects no supported workflow could
+        // create. These are the other half.
+        new(
+            "option.record",
+            "Record contract option",
+            "Contracts",
+            CommandActionKind.Invoke,
+            Workspace: "contracts"),
+        new(
+            "obligation.record",
+            "Record contract obligation",
+            "Contracts",
+            CommandActionKind.Invoke,
+            Workspace: "contracts"),
         new(
             "option.resolve",
             "Record option outcome",

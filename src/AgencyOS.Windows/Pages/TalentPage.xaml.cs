@@ -80,6 +80,10 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
                 _ = AddMaterialAsync();
                 break;
 
+            case "representation.status.change":
+                _ = ChangeStatusAsync();
+                break;
+
             case "representation.scope.change":
                 _ = ChangeScopeAsync();
                 break;
@@ -221,6 +225,60 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
             Refused(
                 dialog.IsBeginning ? "Could not begin representing that" : "Could not end that scope",
                 failure);
+
+            return;
+        }
+
+        await OpenAsync(personId).ConfigureAwait(true);
+    }
+
+    private void OnChangeStatusClick(object sender, RoutedEventArgs e) => _ = ChangeStatusAsync();
+
+    /// <summary>
+    /// Pauses, ends or resumes representing somebody.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Reality Closure wave 5. M4 shipped a representation status lifecycle and a
+    /// published transition table, and this tab has shown the status since; nothing
+    /// could change it. Converting a prospect produces an Active representation, so
+    /// signing a client worked — ending one did not, which left the product able to
+    /// acquire clients and unable to lose them.
+    /// </para>
+    /// <para>
+    /// The dialog offers the statuses and the server decides which this
+    /// representation can reach. A refusal keeps the page as it was, because the
+    /// change did not happen.
+    /// </para>
+    /// </remarks>
+    private async Task ChangeStatusAsync()
+    {
+        if (_selectedPersonId is not { } personId
+            || AppServices.Api is not { } api
+            || _overview?.Overview?.Representation is not { } representation)
+        {
+            return;
+        }
+
+        TransitionRepresentationDialog dialog =
+            new(_overview.DisplayName, representation) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        try
+        {
+            CommandError.IsOpen = false;
+
+            await api.TransitionRepresentationAsync(
+                    representation.Id, dialog.ToRequest(representation.Version))
+                .ConfigureAwait(true);
+        }
+        catch (AgencyOS.Client.AgencyOsApiException failure)
+        {
+            Refused("Could not change the representation status", failure);
 
             return;
         }
@@ -414,6 +472,13 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
         // Nothing to change scopes or a team on until there is a relationship.
         ChangeScopeButton.IsEnabled = overview.Representation is not null;
         ChangeTeamButton.IsEnabled = overview.Representation is not null;
+
+        // Terminated and Expired are terminal: the domain publishes an empty set of
+        // transitions out of both, so offering the control would promise something
+        // the server can only refuse. Signing somebody again creates a new
+        // representation rather than reopening this one.
+        ChangeStatusButton.IsEnabled = overview.Representation is { } live
+            && live.Status is not ("Terminated" or "Expired");
 
         if (overview.Representation is { } representation)
         {

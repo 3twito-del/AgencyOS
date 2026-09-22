@@ -210,7 +210,26 @@
                                      IsClosable="False" Title="Not represented"
                                      Message="The agency has no representation relationship with this person." />
 
-                            <TextBlock x:Name="RepresentationSummary" TextWrapping="Wrap" />
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" x:Name="RepresentationSummary"
+                                           TextWrapping="Wrap" VerticalAlignment="Center" />
+
+                                <!--
+                                    Beside the status it changes. Active is what
+                                    makes somebody a client, so this is where a
+                                    relationship is paused, ended or resumed - and
+                                    the page has shown the status since M4 without
+                                    offering any way to change it.
+                                -->
+                                <Button Grid.Column="1" x:Name="ChangeStatusButton"
+                                        Content="Change status" Click="OnChangeStatusClick"
+                                        IsEnabled="False" />
+                            </Grid>
 
                             <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>

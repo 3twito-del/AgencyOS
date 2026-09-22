@@ -108,6 +108,14 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
                 _ = ResolveObligationAsync();
                 break;
 
+            case "option.record":
+                _ = RecordOptionAsync();
+                break;
+
+            case "obligation.record":
+                _ = RecordObligationAsync();
+                break;
+
             case "contract.effective-date.record":
                 _ = RecordEffectiveDateAsync();
                 break;
@@ -235,6 +243,11 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
     private void OnRecordSignatureClick(object sender, RoutedEventArgs e) => _ = RecordSignatureAsync();
 
     private void OnRecordNoticeClick(object sender, RoutedEventArgs e) => _ = RecordNoticeAsync();
+
+    private void OnRecordOptionClick(object sender, RoutedEventArgs e) => _ = RecordOptionAsync();
+
+    private void OnRecordObligationClick(object sender, RoutedEventArgs e) =>
+        _ = RecordObligationAsync();
 
     private void OnResolveOptionClick(object sender, RoutedEventArgs e) => _ = ResolveOptionAsync();
 
@@ -836,6 +849,82 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         await _detail.LoadAsync(contract.Contract.Id).ConfigureAwait(true);
     }
 
+    /// <summary>
+    /// Records an option the contract grants.
+    /// </summary>
+    /// <remarks>
+    /// The other half of an option's life. M8 delivered recording what became of
+    /// one and delivered no way to record that it existed, so the resolve control
+    /// stood over a list nothing could fill.
+    /// </remarks>
+    private async Task RecordOptionAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        if (_detail.LatestVersion is not { } version)
+        {
+            DetailError("Record a version before recording what it grants.");
+            return;
+        }
+
+        RecordContractOptionDialog dialog =
+            new(contract.Contract.Title, version, _detail.Parties) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.RecordContractOptionAsync(
+                    contract.Contract.Id, dialog.ToRequest(), Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await _detail.LoadAsync(contract.Contract.Id).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Records a promise the contract contains.
+    /// </summary>
+    /// <remarks>
+    /// The non-monetary obligation, which is a different aggregate from the money
+    /// owed further down the same tab: one is satisfied, waived or breached, the
+    /// other is billed.
+    /// </remarks>
+    private async Task RecordObligationAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        if (_detail.LatestVersion is not { } version)
+        {
+            DetailError("Record a version before recording what it obliges anybody to do.");
+            return;
+        }
+
+        RecordObligationDialog dialog =
+            new(contract.Contract.Title, version, _detail.Parties) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.RecordObligationAsync(
+                    contract.Contract.Id, dialog.ToRequest(), Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await _detail.LoadAsync(contract.Contract.Id).ConfigureAwait(true);
+        }
+    }
+
     private async Task ResolveOptionAsync()
     {
         if (AppServices.Api is not { } api
@@ -1013,6 +1102,13 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         // the draft matched when it did not.
         ReconcileButton.IsEnabled = loaded && _detail.HasTerms && _detail.LatestVersion is not null;
 
+        // Both are read out of a version, so both need one. Whether the version
+        // still accepts them is the server's answer, not this gate's.
+        RecordOptionButton.IsEnabled = loaded && _detail.LatestVersion is not null
+            && _detail.Parties.Count >= 1;
+        RecordObligationButton.IsEnabled = loaded && _detail.LatestVersion is not null
+            && _detail.Parties.Count >= 2;
+
         // Money owed is recorded against a drafting version, so it needs one.
         MoneyObligationButton.IsEnabled = loaded && _detail.LatestVersion is not null
             && _detail.Parties.Count >= 2;
@@ -1058,15 +1154,25 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
             $"{_detail.Parties.Count} part(ies); "
                 + $"{_detail.OutstandingSignatories.Count} required signature(s) outstanding.");
 
-        OptionsCaption.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_detail.Options.Count} option(s) recorded.");
+        // A disabled control with no reason is a dead end, so the caption carries
+        // what is missing when recording is not yet possible.
+        OptionsCaption.Text = _detail.LatestVersion is null
+            ? "Record a version before recording what it grants."
+            : _detail.Parties.Count < 1
+                ? "An option is held by a party on this contract."
+                : string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"{_detail.Options.Count} option(s) recorded.");
 
         // Past due and breached are counted separately, because they are separate
         // facts: one is a date, the other is a determination somebody made.
-        ObligationsCaption.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_detail.Obligations.Count} obligation(s); {_detail.PastDue.Count} past due.");
+        ObligationsCaption.Text = _detail.LatestVersion is null
+            ? "Record a version before recording what it obliges anybody to do."
+            : _detail.Parties.Count < 2
+                ? "An obligation runs between two parties on this contract."
+                : string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"{_detail.Obligations.Count} obligation(s); {_detail.PastDue.Count} past due.");
 
         RenderTerms();
     }

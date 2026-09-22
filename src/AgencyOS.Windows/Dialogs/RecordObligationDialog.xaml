@@ -1,0 +1,104 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordObligationDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record obligation"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="560">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       TextWrapping="Wrap" />
+            <TextBlock x:Name="VersionText" Opacity="0.75" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <!--
+                What the paper obliges somebody to do, as distinct from what it
+                obliges somebody to pay. Money owed is a separate aggregate on its
+                own tab; this is delivery, services, notice, insurance and the rest
+                (ADR-0022).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Read out of the contract, not decided here"
+                     Message="This records a promise the instrument already contains. Nothing here creates the obligation in law, and nothing satisfies, waives or breaches it — those are recorded later, by somebody who knows what happened." />
+
+            <ComboBox x:Name="KindBox" Header="What kind of promise"
+                      AutomationProperties.Name="What kind of promise"
+                      HorizontalAlignment="Stretch" SelectionChanged="OnFieldChanged">
+                <ComboBoxItem Content="Delivery" Tag="Delivery" IsSelected="True" />
+                <ComboBoxItem Content="Services" Tag="Services" />
+                <ComboBoxItem Content="Payment" Tag="Payment" />
+                <ComboBoxItem Content="Notice" Tag="Notice" />
+                <ComboBoxItem Content="Approval" Tag="Approval" />
+                <ComboBoxItem Content="Insurance" Tag="Insurance" />
+                <ComboBoxItem Content="Credit" Tag="Credit" />
+                <ComboBoxItem Content="Restraint" Tag="Restraint" />
+                <ComboBoxItem Content="Option exercise" Tag="OptionExercise" />
+                <ComboBoxItem Content="Availability" Tag="Availability" />
+                <ComboBoxItem Content="Something else" Tag="Other" />
+            </ComboBox>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="ObligorBox" Grid.Column="0" Header="Who must do it"
+                          AutomationProperties.Name="Who must do it"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnFieldChanged" />
+                <ComboBox x:Name="ObligeeBox" Grid.Column="1" Header="Who it is owed to"
+                          AutomationProperties.Name="Who it is owed to"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnFieldChanged" />
+            </Grid>
+
+            <TextBox x:Name="DescriptionBox" Header="What has to happen"
+                     AutomationProperties.Name="What has to happen"
+                     PlaceholderText="In the contract's own terms"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="60"
+                     TextChanged="OnTextChanged" />
+
+            <!--
+                The M8 deadline shape, reused unchanged. "The contract does not say"
+                is a supported answer and produces an obligation with no date rather
+                than one silently due today.
+            -->
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="200" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="DueKindBox" Grid.Column="0" Header="When it falls due"
+                          AutomationProperties.Name="When it falls due"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnDueKindChanged">
+                    <ComboBoxItem Content="On a stated date" Tag="Absolute" IsSelected="True" />
+                    <ComboBoxItem Content="Measured from an event" Tag="Relative" />
+                    <ComboBoxItem Content="The contract does not say plainly" Tag="Unstructured" />
+                </ComboBox>
+                <CalendarDatePicker x:Name="DuePicker" Grid.Column="1" Header="Due date"
+                                    AutomationProperties.Name="Due date"
+                                    PlaceholderText="Pick a date" DateChanged="OnDueDateChanged" />
+            </Grid>
+
+            <TextBox x:Name="DueWordingBox" Header="What the contract says about timing"
+                     AutomationProperties.Name="What the contract says about timing"
+                     PlaceholderText="Quoted, not interpreted"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="54"
+                     Visibility="Collapsed" TextChanged="OnTextChanged" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="ClauseBox" Grid.Column="0" Header="Clause"
+                         AutomationProperties.Name="Clause"
+                         PlaceholderText="Optional, e.g. 7.2(b)" />
+                <TextBox x:Name="NotesBox" Grid.Column="1" Header="Notes"
+                         AutomationProperties.Name="Notes" PlaceholderText="Optional" />
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

@@ -1,0 +1,41 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.TransitionRepresentationDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Change representation status"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="520">
+        <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+        <TextBlock x:Name="CurrentText" Opacity="0.75" TextWrapping="Wrap"
+                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+        <!--
+            Ending a representation is not deleting it. The relationship keeps its
+            start date, its scopes and its team as they stood, and the change is
+            recorded as an event so a later "a former client we are courting again"
+            reads as an ordinary path rather than a contradiction (ADR-0017).
+        -->
+        <InfoBar x:Name="ConsequenceBar" Severity="Warning" IsOpen="True" IsClosable="False"
+                 Title="This changes who the agency represents" />
+
+        <ComboBox x:Name="StatusBox" Header="New status"
+                  AutomationProperties.Name="New status"
+                  HorizontalAlignment="Stretch" SelectionChanged="OnStatusChanged" />
+
+        <CalendarDatePicker x:Name="OccurredPicker" Header="When it took effect"
+                            AutomationProperties.Name="When it took effect"
+                            PlaceholderText="Pick the date" HorizontalAlignment="Stretch"
+                            DateChanged="OnDateChanged" />
+
+        <TextBox x:Name="ReasonBox" Header="Reason"
+                 AutomationProperties.Name="Reason"
+                 PlaceholderText="What happened, for the history"
+                 TextWrapping="Wrap" AcceptsReturn="True" Height="70"
+                 TextChanged="OnTextChanged" />
+    </StackPanel>
+</ContentDialog>

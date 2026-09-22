@@ -1,0 +1,103 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordContractOptionDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record option"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="10" MinWidth="560">
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       TextWrapping="Wrap" />
+            <TextBlock x:Name="VersionText" Opacity="0.75" TextWrapping="Wrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+
+            <!--
+                An option is a right one party holds against the other, with a
+                deadline. Nothing lapses on its own: an option past its date stays
+                available until somebody records that it lapsed (ADR-0022).
+            -->
+            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                     Title="Nothing exercises or lapses on its own"
+                     Message="This records that the contract grants the option. AgencyOS never exercises one and never expires one from a clock — both are recorded by a person, afterwards." />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="KindBox" Grid.Column="0" Header="What kind of option"
+                          AutomationProperties.Name="What kind of option"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnFieldChanged">
+                    <ComboBoxItem Content="Employment" Tag="Employment" IsSelected="True" />
+                    <ComboBoxItem Content="Renewal" Tag="Renewal" />
+                    <ComboBoxItem Content="Sequel" Tag="Sequel" />
+                    <ComboBoxItem Content="Extension" Tag="Extension" />
+                    <ComboBoxItem Content="Purchase" Tag="Purchase" />
+                    <ComboBoxItem Content="Rights" Tag="Rights" />
+                    <ComboBoxItem Content="Something else" Tag="Other" />
+                </ComboBox>
+                <ComboBox x:Name="HolderBox" Grid.Column="1" Header="Who holds it"
+                          AutomationProperties.Name="Who holds it"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnFieldChanged" />
+            </Grid>
+
+            <TextBox x:Name="SubjectBox" Header="What the option is over"
+                     AutomationProperties.Name="What the option is over"
+                     PlaceholderText="In the contract's own terms"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="54"
+                     TextChanged="OnTextChanged" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="200" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="DeadlineKindBox" Grid.Column="0" Header="When it must be exercised by"
+                          AutomationProperties.Name="When it must be exercised by"
+                          HorizontalAlignment="Stretch" SelectionChanged="OnDeadlineKindChanged">
+                    <ComboBoxItem Content="On a stated date" Tag="Absolute" IsSelected="True" />
+                    <ComboBoxItem Content="Measured from an event" Tag="Relative" />
+                    <ComboBoxItem Content="The contract does not say plainly" Tag="Unstructured" />
+                </ComboBox>
+                <CalendarDatePicker x:Name="DeadlinePicker" Grid.Column="1" Header="Deadline"
+                                    AutomationProperties.Name="Deadline"
+                                    PlaceholderText="Pick a date" DateChanged="OnDeadlineDateChanged" />
+            </Grid>
+
+            <TextBox x:Name="DeadlineWordingBox" Header="What the contract says about timing"
+                     AutomationProperties.Name="What the contract says about timing"
+                     PlaceholderText="Quoted, not interpreted"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="54"
+                     Visibility="Collapsed" TextChanged="OnTextChanged" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <CalendarDatePicker x:Name="WindowPicker" Grid.Column="0" Header="Window opens"
+                                    AutomationProperties.Name="Window opens"
+                                    PlaceholderText="Optional" />
+                <TextBox x:Name="ExerciseBox" Grid.Column="1" Header="How it is exercised"
+                         AutomationProperties.Name="How it is exercised"
+                         PlaceholderText="Optional, e.g. written notice to the studio" />
+            </Grid>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="ClauseBox" Grid.Column="0" Header="Clause"
+                         AutomationProperties.Name="Clause"
+                         PlaceholderText="Optional, e.g. 4.1" />
+                <TextBox x:Name="NotesBox" Grid.Column="1" Header="Notes"
+                         AutomationProperties.Name="Notes" PlaceholderText="Optional" />
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

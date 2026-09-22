@@ -399,6 +399,13 @@
                     <ScrollViewer>
                         <StackPanel Spacing="8" Padding="4">
                             <StackPanel Orientation="Horizontal" Spacing="8">
+                                <!--
+                                    The option itself, before anything becomes of
+                                    it. Recording an outcome was delivered in M8
+                                    against options no workflow could create.
+                                -->
+                                <Button x:Name="RecordOptionButton" Content="Record option"
+                                        Click="OnRecordOptionClick" IsEnabled="False" />
                                 <Button x:Name="ResolveOptionButton" Content="Record outcome"
                                         Click="OnResolveOptionClick" IsEnabled="False" />
                                 <TextBlock x:Name="OptionsCaption" Opacity="0.7"
@@ -445,6 +452,13 @@
                                 different facts, and the wording never merges them.
                             -->
                             <StackPanel Orientation="Horizontal" Spacing="8">
+                                <!--
+                                    What the contract obliges somebody to do, as
+                                    distinct from what it obliges them to pay. The
+                                    money is a different aggregate, further down.
+                                -->
+                                <Button x:Name="RecordObligationButton" Content="Record obligation"
+                                        Click="OnRecordObligationClick" IsEnabled="False" />
                                 <Button x:Name="ResolveObligationButton" Content="Record outcome"
                                         Click="OnResolveObligationClick" IsEnabled="False" />
                                 <TextBlock x:Name="ObligationsCaption" Opacity="0.7"
