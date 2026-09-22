@@ -167,6 +167,17 @@
                         <CheckBox x:Name="InvoiceOverdueBox" Content="Overdue"
                                   Click="OnInvoiceFilterChanged" />
                         <Button Content="Apply" Click="OnInvoiceFilterChanged" />
+
+                        <!--
+                            The two acts an invoice has after it is recorded. Issue
+                            says it went out, void withdraws one that did; neither
+                            produces or sends a document, and neither removes a row
+                            (ADR-0023).
+                        -->
+                        <Button x:Name="IssueInvoiceButton" Content="Issue" IsEnabled="False"
+                                Click="OnIssueInvoiceClick" />
+                        <Button x:Name="VoidInvoiceButton" Content="Void" IsEnabled="False"
+                                Click="OnVoidInvoiceClick" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Spacing="4">
@@ -184,7 +195,8 @@
                     </StackPanel>
 
                     <ListView Grid.Row="2" x:Name="InvoiceList"
-                              AutomationProperties.Name="Invoices" SelectionMode="Single">
+                              AutomationProperties.Name="Invoices" SelectionMode="Single"
+                              SelectionChanged="OnInvoiceSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
@@ -239,6 +251,15 @@
                                 Click="OnAllocateClick" />
                         <Button x:Name="ReversePaymentButton" Content="Reverse" IsEnabled="False"
                                 Click="OnReversePaymentClick" />
+
+                        <!--
+                            A different act from reversing the payment, and named
+                            differently for that reason. Reversing a payment says
+                            the money never arrived; reversing an allocation says it
+                            arrived and answered the wrong receivable.
+                        -->
+                        <Button x:Name="ReverseAllocationButton" Content="Reverse allocation"
+                                IsEnabled="False" Click="OnReverseAllocationClick" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Spacing="4">
@@ -498,6 +519,16 @@
                                 IsEnabled="False" Click="OnRecordAdjustmentClick" />
                         <Button x:Name="WriteOffButton" Content="Write off" IsEnabled="False"
                                 Click="OnWriteOffClick" />
+
+                        <!--
+                            Beside write-off because it is its sibling and reads
+                            from the same selection, and named apart from it because
+                            they mean opposite things: written off is a debt the
+                            agency gave up collecting, cancelled is one that should
+                            never have been raised (ADR-0023).
+                        -->
+                        <Button x:Name="CancelReceivableButton" Content="Cancel receivable"
+                                IsEnabled="False" Click="OnCancelReceivableClick" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Spacing="6">

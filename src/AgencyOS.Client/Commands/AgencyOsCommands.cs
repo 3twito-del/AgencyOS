@@ -421,6 +421,35 @@ public static class AgencyOsCommands
             "Contracts",
             CommandActionKind.Invoke,
             Workspace: "contracts"),
+
+        // Reality Closure wave 4. Each of these already had a domain operation, an
+        // endpoint and a client method, and no route an operator could take. They
+        // are buttons on the contract first; the palette is the accelerator, not
+        // the discovery mechanism (AOS-R002-003).
+        new(
+            "contract.effective-date.record",
+            "Record contract effective date",
+            "Contracts",
+            CommandActionKind.Invoke,
+            Workspace: "contracts"),
+        new(
+            "obligation.quantify",
+            "Quantify obligation",
+            "Contracts",
+            CommandActionKind.Invoke,
+            Workspace: "contracts"),
+        new(
+            "obligation.release",
+            "Release obligation",
+            "Contracts",
+            CommandActionKind.Invoke,
+            Workspace: "contracts"),
+        new(
+            "commission.calculate",
+            "Calculate commission on an obligation",
+            "Contracts",
+            CommandActionKind.Invoke,
+            Workspace: "contracts"),
         new(
             "notice.record",
             "Record notice given or received",
@@ -484,6 +513,34 @@ public static class AgencyOsCommands
         new(
             "receivable.write-off",
             "Write off receivable",
+            "Finance",
+            CommandActionKind.Invoke,
+            Workspace: "finance"),
+
+        // Reality Closure wave 4, the finance half. Cancel is not write-off and
+        // reversing an allocation is not reversing a payment; each carries the
+        // domain's own verb so the palette cannot make two acts look like one.
+        new(
+            "receivable.cancel",
+            "Cancel receivable",
+            "Finance",
+            CommandActionKind.Invoke,
+            Workspace: "finance"),
+        new(
+            "invoice.issue",
+            "Issue invoice",
+            "Finance",
+            CommandActionKind.Invoke,
+            Workspace: "finance"),
+        new(
+            "invoice.void",
+            "Void invoice",
+            "Finance",
+            CommandActionKind.Invoke,
+            Workspace: "finance"),
+        new(
+            "allocation.reverse",
+            "Reverse payment allocation",
             "Finance",
             CommandActionKind.Invoke,
             Workspace: "finance"),

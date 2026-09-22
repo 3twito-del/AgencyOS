@@ -1,0 +1,40 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.ReverseAllocationDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Reverse allocation"
+    PrimaryButtonText="Reverse"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="500">
+        <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+
+        <!--
+            The payment is untouched. What is undone is the decision about which
+            receivable it answered, which is a different fact from the money
+            arriving and is corrected without disturbing it (ADR-0023).
+        -->
+        <InfoBar Severity="Warning" IsOpen="True" IsClosable="False"
+                 Title="This is a financial act"
+                 Message="The payment stays exactly as recorded and nothing is deleted. The allocation is marked reversed, the money it carried returns to unapplied, and the receivable it answered goes back to outstanding." />
+
+        <!--
+            Which allocation, chosen from the payment's own. A payment can answer
+            several receivables, and reversing the wrong one moves money between
+            two contracts.
+        -->
+        <ComboBox x:Name="AllocationBox" Header="Which allocation"
+                  AutomationProperties.Name="Which allocation"
+                  HorizontalAlignment="Stretch" DisplayMemberPath="Label"
+                  SelectionChanged="OnAllocationChanged" />
+
+        <TextBox x:Name="ReasonBox" Header="Reason"
+                 AutomationProperties.Name="Reason"
+                 PlaceholderText="Why this allocation was wrong"
+                 TextWrapping="Wrap" AcceptsReturn="True" Height="80"
+                 TextChanged="OnReasonChanged" />
+    </StackPanel>
+</ContentDialog>

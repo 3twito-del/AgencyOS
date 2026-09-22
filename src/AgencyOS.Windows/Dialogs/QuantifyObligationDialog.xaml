@@ -1,0 +1,47 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.QuantifyObligationDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Quantify"
+    PrimaryButtonText="Quantify"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="480">
+        <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+        <TextBlock x:Name="ObligationText" Opacity="0.75" TextWrapping="Wrap"
+                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+        <!--
+            One direction only. An obligation goes from having no figure to having
+            one, and never back: a number somebody relied on does not become
+            unknown again, and correcting a figure a receivable was raised from is
+            an adjustment rather than an edit (ADR-0023).
+        -->
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="Once, not repeatedly"
+                 Message="This puts a figure on an obligation that was recorded without one. It cannot be used to change a figure that is already there." />
+
+        <Grid ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="120" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="AmountBox" Grid.Column="0" Header="Amount"
+                     AutomationProperties.Name="Amount"
+                     PlaceholderText="What it turned out to be"
+                     TextChanged="OnTextChanged" />
+            <TextBox x:Name="CurrencyBox" Grid.Column="1" Header="Currency"
+                     AutomationProperties.Name="Currency"
+                     PlaceholderText="USD" MaxLength="3" TextChanged="OnTextChanged" />
+        </Grid>
+
+        <TextBox x:Name="ReasonBox" Header="How it was worked out"
+                 AutomationProperties.Name="How it was worked out"
+                 PlaceholderText="Optional, and kept with the obligation"
+                 TextWrapping="Wrap" AcceptsReturn="True" Height="70" />
+    </StackPanel>
+</ContentDialog>

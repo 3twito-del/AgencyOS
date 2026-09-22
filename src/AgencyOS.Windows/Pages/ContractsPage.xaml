@@ -118,6 +118,16 @@
                 <TextBlock x:Name="DatesText" Opacity="0.75" TextWrapping="Wrap"
                            Style="{StaticResource CaptionTextBlockStyle}" />
 
+                <!--
+                    Beside the sentence it changes, not in the command bar. The
+                    moment this becomes relevant is the moment somebody reads "no
+                    effective date recorded" - and putting it here keeps it next to
+                    the execution date it is not, which is the distinction the whole
+                    line exists to hold open.
+                -->
+                <Button x:Name="EffectiveDateButton" Content="Record effective date"
+                        IsEnabled="False" Click="OnRecordEffectiveDateClick" />
+
                 <InfoBar x:Name="ReconciliationBar" Severity="Informational" IsOpen="False"
                          IsClosable="False" Title="Draft against agreed terms" />
 
@@ -486,10 +496,36 @@
                                         Click="OnRecordMoneyObligationClick" IsEnabled="False" />
                                 <Button x:Name="RaiseReceivableButton" Content="Raise receivable"
                                         Click="OnRaiseReceivableClick" IsEnabled="False" />
+
+                                <!--
+                                    The rest of an obligation's life, in the place
+                                    the obligation is. Each verb is the domain's
+                                    own: Quantify puts a figure on one recorded
+                                    without a figure, Release records that it will
+                                    not fall due after all, and neither deletes
+                                    anything (ADR-0023).
+                                -->
+                                <Button x:Name="QuantifyButton" Content="Quantify"
+                                        Click="OnQuantifyObligationClick" IsEnabled="False" />
+                                <Button x:Name="ReleaseButton" Content="Release"
+                                        Click="OnReleaseObligationClick" IsEnabled="False" />
+                                <Button x:Name="CommissionButton" Content="Calculate commission"
+                                        Click="OnCalculateCommissionClick" IsEnabled="False" />
+
                                 <TextBlock x:Name="MoneyCaption" Opacity="0.7"
                                            VerticalAlignment="Center"
                                            Style="{StaticResource CaptionTextBlockStyle}" />
                             </StackPanel>
+
+                            <!--
+                                Where an obligation-level act reports what it did.
+                                Commission is the one whose result lives on another
+                                workspace, so the figure and its home are both said
+                                here rather than leaving the operator to go looking
+                                for evidence the act worked.
+                            -->
+                            <InfoBar x:Name="MoneyOutcomeBar" Severity="Success" IsOpen="False"
+                                     IsClosable="True" Title="Recorded" />
 
                             <ListView x:Name="MoneyObligationList"
                                       AutomationProperties.Name="Money owed" SelectionMode="Single"

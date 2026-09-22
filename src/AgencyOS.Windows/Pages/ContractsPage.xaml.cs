@@ -9,6 +9,7 @@ using AgencyOS.Contracts.Finance;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Contracts.Representation;
 using AgencyOS.Windows.Dialogs;
 using AgencyOS.Contracts.Organizations;
 using Microsoft.UI.Xaml;
@@ -107,6 +108,22 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
                 _ = ResolveObligationAsync();
                 break;
 
+            case "contract.effective-date.record":
+                _ = RecordEffectiveDateAsync();
+                break;
+
+            case "obligation.quantify":
+                _ = QuantifyObligationAsync();
+                break;
+
+            case "obligation.release":
+                _ = ReleaseObligationAsync();
+                break;
+
+            case "commission.calculate":
+                _ = CalculateCommissionAsync();
+                break;
+
             case "go.contracts.awaiting":
                 Narrow(awaiting: true, effective: false, differences: false);
                 break;
@@ -182,9 +199,38 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
     private void OnRaiseReceivableClick(object sender, RoutedEventArgs e) =>
         _ = RaiseReceivableAsync();
 
-    private void OnMoneyObligationSelected(object sender, SelectionChangedEventArgs e) =>
-        RaiseReceivableButton.IsEnabled =
-            MoneyObligationList.SelectedItem is MonetaryObligationResponse;
+    private void OnQuantifyObligationClick(object sender, RoutedEventArgs e) =>
+        _ = QuantifyObligationAsync();
+
+    private void OnReleaseObligationClick(object sender, RoutedEventArgs e) =>
+        _ = ReleaseObligationAsync();
+
+    private void OnCalculateCommissionClick(object sender, RoutedEventArgs e) =>
+        _ = CalculateCommissionAsync();
+
+    private void OnRecordEffectiveDateClick(object sender, RoutedEventArgs e) =>
+        _ = RecordEffectiveDateAsync();
+
+    /// <summary>
+    /// What may be done to the obligation that is selected.
+    /// </summary>
+    /// <remarks>
+    /// Each mirrors one explicit guard the server states, and no more. Quantify
+    /// refuses an obligation that already carries a figure; release refuses one
+    /// already released or cancelled; commission needs a figure to take a share of.
+    /// Whether the rest holds is the server's answer, arriving as a refusal the
+    /// page shows rather than a rule the client keeps a second copy of.
+    /// </remarks>
+    private void OnMoneyObligationSelected(object sender, SelectionChangedEventArgs e)
+    {
+        MonetaryObligationResponse? owed =
+            MoneyObligationList.SelectedItem as MonetaryObligationResponse;
+
+        RaiseReceivableButton.IsEnabled = owed is not null;
+        QuantifyButton.IsEnabled = owed is { IsQuantified: false, Status: "Expected" };
+        ReleaseButton.IsEnabled = owed is { Status: "Expected" or "Raised" };
+        CommissionButton.IsEnabled = owed is { IsQuantified: true };
+    }
 
     private void OnRecordSignatureClick(object sender, RoutedEventArgs e) => _ = RecordSignatureAsync();
 
@@ -483,12 +529,249 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
 
         IReadOnlyList<MonetaryObligationResponse> owed = [];
 
-        await Guarded(async () =>
+        await Reading(async () =>
                 owed = await api.ListMonetaryObligationsAsync(contractId).ConfigureAwait(true))
             .ConfigureAwait(true);
 
         MoneyObligationList.ItemsSource = owed;
+
         RaiseReceivableButton.IsEnabled = false;
+        QuantifyButton.IsEnabled = false;
+        ReleaseButton.IsEnabled = false;
+        CommissionButton.IsEnabled = false;
+    }
+
+    /// <summary>
+    /// Puts a figure on an obligation recorded without one.
+    /// </summary>
+    /// <remarks>
+    /// The other half of the four honest answers. An obligation can be recorded as
+    /// contingent or genuinely unknown rather than as a false zero, which leaves
+    /// the moment the answer arrives - and until now that moment had no route.
+    /// </remarks>
+    private async Task QuantifyObligationAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        if (MoneyObligationList.SelectedItem is not MonetaryObligationResponse obligation)
+        {
+            DetailError("Choose what is owed first.");
+            return;
+        }
+
+        QuantifyObligationDialog dialog = new(obligation) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.QuantifyObligationAsync(
+                    obligation.Id,
+                    dialog.ToRequest(obligation.Version),
+                    Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await LoadMoneyAsync(contract.Contract.Id).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Records that an obligation will not fall due after all.
+    /// </summary>
+    /// <remarks>
+    /// Released, never deleted. A contingent payment whose condition did not occur
+    /// and one the parties agreed to waive are different facts, and the reason is
+    /// what tells them apart three years later - so the server demands one.
+    /// </remarks>
+    private async Task ReleaseObligationAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        if (MoneyObligationList.SelectedItem is not MonetaryObligationResponse obligation)
+        {
+            DetailError("Choose what is owed first.");
+            return;
+        }
+
+        FinanceReasonDialog dialog = new(
+            "Release obligation",
+            obligation.Description ?? obligation.Category,
+            "The obligation stays on the contract, marked released, with the reason on the record. Nothing is deleted, and no receivable can be raised from it afterwards.",
+            "Release")
+        {
+            XamlRoot = XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.ReleaseObligationAsync(
+                    obligation.Id,
+                    new ReleaseObligationRequest(dialog.Reason, obligation.Version),
+                    Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await LoadMoneyAsync(contract.Contract.Id).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Works out what the agency is entitled to from an obligation.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Entitlement, not revenue: what this produces is what the agency may charge
+    /// against the whole obligation, and what it has actually earned depends on
+    /// what arrives. The two are kept apart everywhere downstream (ADR-0023).
+    /// </para>
+    /// <para>
+    /// The entitlement lives on the Finance workspace, so the outcome says both the
+    /// figure and where it went. An act whose only evidence is on another screen
+    /// leaves the operator with nothing to check.
+    /// </para>
+    /// </remarks>
+    private async Task CalculateCommissionAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        if (MoneyObligationList.SelectedItem is not MonetaryObligationResponse obligation)
+        {
+            DetailError("Choose what is owed first.");
+            return;
+        }
+
+        IReadOnlyList<TalentSummaryResponse> clients = [];
+
+        await Guarded(async () =>
+                clients = await api.ListTalentAsync(clientsOnly: true).ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        if (clients.Count == 0)
+        {
+            DetailNotice(
+                "No clients on file",
+                "Commission is worked out for a represented client, and this organization has none recorded yet.");
+            return;
+        }
+
+        CalculateCommissionDialog dialog = new(obligation, clients) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        // Looked up, never typed. A commission hangs off the relationship it arises
+        // under, and pasting an identifier is how a rate gets attached to the wrong
+        // one.
+        Guid representationId =
+            await RepresentationLookup.ForClientAsync(dialog.SelectedClientPersonId)
+                .ConfigureAwait(true);
+
+        if (representationId == Guid.Empty)
+        {
+            DetailNotice(
+                "No representation on file",
+                "That client has no representation recorded, so there is nothing for a commission entitlement to arise under.");
+            return;
+        }
+
+        Guid entitlement = Guid.Empty;
+
+        await Guarded(async () =>
+                entitlement = (await api.CalculateCommissionAsync(
+                        obligation.Id,
+                        dialog.ToRequest(representationId),
+                        Guid.NewGuid().ToString("N"))
+                    .ConfigureAwait(true)).CommissionEntitlementId)
+            .ConfigureAwait(true);
+
+        if (entitlement == Guid.Empty)
+        {
+            return;
+        }
+
+        await ReportCommissionAsync(entitlement).ConfigureAwait(true);
+        await LoadMoneyAsync(contract.Contract.Id).ConfigureAwait(true);
+    }
+
+    /// <summary>Says what was worked out, and where the operator will find it.</summary>
+    private async Task ReportCommissionAsync(Guid commissionId)
+    {
+        if (AppServices.Api is not { } api)
+        {
+            return;
+        }
+
+        string figure = "The entitlement was recorded";
+
+        await Reading(async () =>
+            {
+                CommissionEntitlementResponse commission =
+                    await api.GetCommissionAsync(commissionId).ConfigureAwait(true);
+
+                figure = string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"{MoneyFormatting.Format(commission.Entitled)} entitled for "
+                        + $"{commission.ClientDisplayName}");
+            })
+            .ConfigureAwait(true);
+
+        MoneyOutcomeBar.Title = "Commission calculated";
+        MoneyOutcomeBar.Message =
+            $"{figure}. It appears under Finance, on the Commissions tab, where what has "
+                + "actually been collected against it is shown separately.";
+        MoneyOutcomeBar.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Records when the contract takes effect.
+    /// </summary>
+    /// <remarks>
+    /// The one date AgencyOS will not infer. Execution is derived from signatures;
+    /// effectiveness is derived from nothing, because a contract signed in March
+    /// and in force from January is ordinary. Recording this changes no status, and
+    /// the dialog says so (ADR-0022).
+    /// </remarks>
+    private async Task RecordEffectiveDateAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        RecordEffectiveDateDialog dialog = new(contract.Contract) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.RecordContractEffectiveDateAsync(
+                    contract.Contract.Id,
+                    dialog.ToRequest(contract.Contract.Version),
+                    Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await _detail.LoadAsync(contract.Contract.Id).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }
     }
 
     private async Task RecordSignatureAsync()
@@ -610,13 +893,46 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         _ = LoadAsync();
     }
 
-    /// <summary>Runs a call and shows the server's own explanation if it refuses.</summary>
-    private async Task Guarded(Func<Task> action)
+    /// <summary>
+    /// Runs a call and shows the server's own explanation if it refuses.
+    /// </summary>
+    /// <returns>
+    /// Whether the call went through, so a caller can decline to refresh after a
+    /// refusal. Reality Closure wave 4 found that it had to: a refused act was
+    /// followed by a reload, the reload cleared the bar on its way in, and the
+    /// explanation the operator needed was gone before they could read it. An act
+    /// that did not happen has nothing new to show either way.
+    /// </returns>
+    private async Task<bool> Guarded(Func<Task> action)
     {
         try
         {
             DetailBar.IsOpen = false;
 
+            await action().ConfigureAwait(true);
+
+            return true;
+        }
+        catch (AgencyOsApiException failure)
+        {
+            DetailError(failure.Detail ?? failure.Message);
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Reads without disturbing what the surface is currently saying.
+    /// </summary>
+    /// <remarks>
+    /// A refresh is not an act. Clearing the message area on the way into one
+    /// erases whatever the last act said, including a refusal, which is the one
+    /// message an operator most needs to keep.
+    /// </remarks>
+    private async Task Reading(Func<Task> action)
+    {
+        try
+        {
             await action().ConfigureAwait(true);
         }
         catch (AgencyOsApiException failure)
@@ -684,6 +1000,13 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
             is "Draft" or "UnderReview";
         SignatureButton.IsEnabled = loaded && _detail.OutstandingSignatories.Count > 0;
         NoticeButton.IsEnabled = loaded && _detail.Parties.Count >= 2;
+
+        // The only state the server names as unable to take effect. Notably not
+        // gated on execution: a contract can be in force from a date before it was
+        // signed, and requiring execution here would invent a rule the domain does
+        // not hold.
+        EffectiveDateButton.IsEnabled =
+            loaded && _detail.Contract?.Contract.Status != "Abandoned";
 
         // Offered only when the caller can see the terms. The server refuses a
         // reconciliation without them, and a diff with the rows removed would say

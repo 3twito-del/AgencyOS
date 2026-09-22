@@ -1,0 +1,34 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.RecordEffectiveDateDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Record effective date"
+    PrimaryButtonText="Record"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <StackPanel Spacing="10" MinWidth="460">
+        <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                   TextWrapping="Wrap" />
+
+        <!--
+            What the contract already says about execution, quoted rather than
+            reinterpreted. The operator is about to record the other date, and the
+            two are independent facts: an agreement effective from January and
+            executed in March is ordinary (ADR-0022).
+        -->
+        <TextBlock x:Name="ExecutionText" Opacity="0.75" TextWrapping="Wrap"
+                   Style="{StaticResource CaptionTextBlockStyle}" />
+
+        <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                 Title="Effective is not executed"
+                 Message="This records when the agreement takes effect. It does not sign it, execute it or change its status, and a contract that is not executed does not become executed by taking effect." />
+
+        <CalendarDatePicker x:Name="EffectivePicker" Header="In force from"
+                            AutomationProperties.Name="In force from"
+                            PlaceholderText="Pick the date the contract takes effect"
+                            HorizontalAlignment="Stretch"
+                            DateChanged="OnDateChanged" />
+    </StackPanel>
+</ContentDialog>

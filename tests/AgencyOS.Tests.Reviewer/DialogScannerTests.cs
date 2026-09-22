@@ -110,21 +110,20 @@ public sealed class DialogScannerTests
                 .Order(StringComparer.Ordinal),
         ];
 
-        // Two, not four. Reality Closure wave 3 gave RecordMonetaryObligationDialog
-        // and RaiseReceivableDialog the openers they never had: receivables are
-        // raised from an obligation and payments allocate against receivables, so
-        // the delivered finance tail had nothing to attach to without them.
+        // One, not two. Reality Closure wave 4 gave CalculateCommissionDialog the
+        // opener it never had, on the obligation its own constructor asks for.
         //
-        // The two that remain are deliberate. CalculateCommissionDialog is not a
-        // step in that chain - commission is worked out from money already
-        // received - and AddIntelligenceSubjectDialog belongs to a linking flow
-        // whose other routes exist. Neither is claimed as operator-delivered.
-        Assert.Equal(
-            [
-                "AddIntelligenceSubjectDialog",
-                "CalculateCommissionDialog",
-            ],
-            dead);
+        // Worth recording rather than quietly editing: this assertion had named
+        // that dialog as expected-orphaned since AOS-R001-017, and the comment
+        // above it argued the case. The dialog was finished, styled and
+        // unreachable for four builds while a passing test held the fact. A pin
+        // that records a gap is not the same as a plan to close it, and the
+        // distance between the two is most of what Reality Closure was measuring.
+        //
+        // AddIntelligenceSubjectDialog remains, and is not claimed as
+        // operator-delivered: it belongs to a linking flow whose other routes
+        // exist, and no wave has adjudicated it.
+        Assert.Equal(["AddIntelligenceSubjectDialog"], dead);
     }
 
     /// <summary>

@@ -156,6 +156,22 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
                 _ = WriteOffAsync();
                 break;
 
+            case "receivable.cancel":
+                _ = CancelReceivableAsync();
+                break;
+
+            case "invoice.issue":
+                _ = IssueInvoiceAsync();
+                break;
+
+            case "invoice.void":
+                _ = VoidInvoiceAsync();
+                break;
+
+            case "allocation.reverse":
+                _ = ReverseAllocationAsync();
+                break;
+
             case "receivable.reconcile":
                 _ = ReconcileAsync();
                 break;
@@ -305,6 +321,13 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
         // it.
         WriteOffButton.IsEnabled =
             ReceivableList.SelectedItem is ReceivableResponse { Outstanding.Amount: > 0m };
+
+        // Cancellation is for a receivable that should never have been raised, and
+        // the server refuses one that money has been applied to - reverse the
+        // allocations or write off what remains. Offering it against a receivable
+        // already paid into would be an invitation to a refusal.
+        CancelReceivableButton.IsEnabled = ReceivableList.SelectedItem
+            is ReceivableResponse { Allocated.Amount: 0m, Status: "Open" or "PartiallyPaid" };
     }
 
     private void OnPaymentSelected(object sender, SelectionChangedEventArgs e)
@@ -313,6 +336,26 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
 
         AllocateButton.IsEnabled = payment is { Unapplied.Amount: > 0m, Status: "Recorded" };
         ReversePaymentButton.IsEnabled = payment is { Status: "Recorded" };
+
+        // Only where there is an allocation still standing to reverse.
+        ReverseAllocationButton.IsEnabled =
+            payment is { Status: "Recorded" } && payment.Allocations.Any(x => x.IsApplied);
+    }
+
+    /// <summary>
+    /// What may be done to the invoice that is selected.
+    /// </summary>
+    /// <remarks>
+    /// Issue applies to a draft; void applies to anything not already void, draft
+    /// included, because an invoice withdrawn before it went out is still a record
+    /// worth keeping. Both mirror a guard the server states rather than adding one.
+    /// </remarks>
+    private void OnInvoiceSelected(object sender, SelectionChangedEventArgs e)
+    {
+        InvoiceResponse? invoice = InvoiceList.SelectedItem as InvoiceResponse;
+
+        IssueInvoiceButton.IsEnabled = invoice is { Status: "Draft" };
+        VoidInvoiceButton.IsEnabled = invoice is not null && invoice.Status != "Void";
     }
 
     private void OnJournalSelected(object sender, SelectionChangedEventArgs e) =>
@@ -331,6 +374,16 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
         _ = RecordAdjustmentAsync();
 
     private void OnWriteOffClick(object sender, RoutedEventArgs e) => _ = WriteOffAsync();
+
+    private void OnCancelReceivableClick(object sender, RoutedEventArgs e) =>
+        _ = CancelReceivableAsync();
+
+    private void OnIssueInvoiceClick(object sender, RoutedEventArgs e) => _ = IssueInvoiceAsync();
+
+    private void OnVoidInvoiceClick(object sender, RoutedEventArgs e) => _ = VoidInvoiceAsync();
+
+    private void OnReverseAllocationClick(object sender, RoutedEventArgs e) =>
+        _ = ReverseAllocationAsync();
 
     private void OnReconcileClick(object sender, RoutedEventArgs e) => _ = ReconcileAsync();
 
@@ -560,6 +613,159 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
         await LoadAsync().ConfigureAwait(true);
     }
 
+    /// <summary>
+    /// Withdraws a receivable that should never have been raised.
+    /// </summary>
+    /// <remarks>
+    /// Not a write-off and not a deletion. Writing off says the agency expected the
+    /// money and gave up collecting it, which posts a loss; cancelling says the
+    /// claim was wrong, which posts nothing. Offering one verb for both would put a
+    /// bad debt in the accounts for a clerical error (ADR-0023).
+    /// </remarks>
+    private async Task CancelReceivableAsync()
+    {
+        if (AppServices.Api is not { } api
+            || ReceivableList.SelectedItem is not ReceivableResponse receivable)
+        {
+            ShowError("Select a receivable first.");
+            return;
+        }
+
+        FinanceReasonDialog dialog = new(
+            "Cancel receivable",
+            string.Create(
+                CultureInfo.InvariantCulture,
+                $"{receivable.ContractTitle} - {MoneyFormatting.Format(receivable.OriginalAmount)} from {receivable.PayerDisplayName}"),
+            "The receivable stays on the books, marked cancelled, with the reason on the record. Nothing is deleted and no loss is posted: this says the claim was wrong, not that the money was never collected.",
+            "Cancel receivable")
+        {
+            XamlRoot = XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.CancelReceivableAsync(
+                    receivable.Id,
+                    new CancelReceivableRequest(dialog.Reason, receivable.Version),
+                    Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await LoadAsync().ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Records that an invoice was issued.
+    /// </summary>
+    /// <remarks>
+    /// The act, not the document. AgencyOS produces no PDF and sends no mail, and
+    /// issuing records that somebody did - exactly as a submission records that
+    /// material went out. It also freezes the lines, which is why it is a separate
+    /// step from recording the invoice at all (ADR-0023).
+    /// </remarks>
+    private async Task IssueInvoiceAsync()
+    {
+        if (AppServices.Api is not { } api
+            || InvoiceList.SelectedItem is not InvoiceResponse invoice)
+        {
+            ShowError("Select an invoice first.");
+            return;
+        }
+
+        IssueInvoiceDialog dialog =
+            new(invoice, DateOnly.FromDateTime(DateTime.UtcNow)) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.IssueInvoiceAsync(
+                    invoice.Id, dialog.ToRequest(invoice.Version), Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await LoadAsync().ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Withdraws an invoice, keeping the record.
+    /// </summary>
+    /// <remarks>
+    /// An invoice that went to a debtor exists in the world. Removing the row would
+    /// leave their books and the agency's disagreeing with no way to find out why,
+    /// so it is marked void with its reason and stays readable.
+    /// </remarks>
+    private async Task VoidInvoiceAsync()
+    {
+        if (AppServices.Api is not { } api
+            || InvoiceList.SelectedItem is not InvoiceResponse invoice)
+        {
+            ShowError("Select an invoice first.");
+            return;
+        }
+
+        FinanceReasonDialog dialog = new(
+            "Void invoice",
+            string.Create(
+                CultureInfo.InvariantCulture,
+                $"{invoice.Reference ?? invoice.ContractTitle} - {MoneyFormatting.Format(invoice.Total)} to {invoice.DebtorDisplayName}"),
+            "The invoice stays on the record, marked void, with the reason beside it. Nothing is deleted, and the receivables it billed remain exactly as they were.",
+            "Void")
+        {
+            XamlRoot = XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.VoidInvoiceAsync(
+                    invoice.Id,
+                    new VoidInvoiceRequest(dialog.Reason, invoice.Version),
+                    Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await LoadAsync().ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Undoes the decision that a payment answered a particular receivable.
+    /// </summary>
+    /// <remarks>
+    /// The payment is untouched: what the agency observed on the day is still what
+    /// it says it observed. Only the application is undone, its money returns to
+    /// unapplied and the receivable goes back to outstanding.
+    /// </remarks>
+    private async Task ReverseAllocationAsync()
+    {
+        if (AppServices.Api is not { } api
+            || PaymentList.SelectedItem is not PaymentResponse payment)
+        {
+            ShowError("Select a payment first.");
+            return;
+        }
+
+        ReverseAllocationDialog dialog = new(payment) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (await Guarded(() => api.ReverseAllocationAsync(
+                    payment.Id, dialog.ToRequest(payment.Version), Guid.NewGuid().ToString("N")))
+                .ConfigureAwait(true))
+        {
+            await LoadAsync().ConfigureAwait(true);
+        }
+    }
+
     private async Task ReconcileAsync()
     {
         if (_reconciliation is null
@@ -597,8 +803,9 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
         // The representation is looked up rather than typed. A commission rule
         // hangs off the relationship it arises under, and asking somebody to paste
         // an identifier would be an invitation to attach a rate to the wrong one.
-        Guid representationId = await ResolveRepresentationAsync(dialog.SelectedClientPersonId)
-            .ConfigureAwait(true);
+        Guid representationId =
+            await RepresentationLookup.ForClientAsync(dialog.SelectedClientPersonId)
+                .ConfigureAwait(true);
 
         if (representationId == Guid.Empty)
         {
@@ -665,27 +872,6 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
             .ConfigureAwait(true);
 
         await LoadLedgerAsync().ConfigureAwait(true);
-    }
-
-    /// <summary>Finds the representation a client is currently under.</summary>
-    private static async Task<Guid> ResolveRepresentationAsync(Guid personId)
-    {
-        if (AppServices.Api is not { } api || personId == Guid.Empty)
-        {
-            return Guid.Empty;
-        }
-
-        try
-        {
-            ClientOverviewResponse overview =
-                await api.GetClientOverviewAsync(personId).ConfigureAwait(true);
-
-            return overview.Representation?.Id ?? Guid.Empty;
-        }
-        catch (AgencyOsApiException)
-        {
-            return Guid.Empty;
-        }
     }
 
     // --------------------------------------------------------------- render
@@ -883,17 +1069,27 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
         }
     }
 
-    private async Task Guarded(Func<Task> action)
+    /// <returns>
+    /// Whether the call went through, so a caller can decline to refresh after a
+    /// refusal. Reality Closure wave 4 found that it had to: a refused act was
+    /// followed by a reload, and the reload cleared the bar on its way in, so the
+    /// explanation was gone before anybody could read it.
+    /// </returns>
+    private async Task<bool> Guarded(Func<Task> action)
     {
         try
         {
             ErrorBar.IsOpen = false;
 
             await action().ConfigureAwait(true);
+
+            return true;
         }
         catch (AgencyOsApiException failure)
         {
             ShowError(failure.Detail ?? failure.Message);
+
+            return false;
         }
     }
 

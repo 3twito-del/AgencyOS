@@ -115,10 +115,19 @@ public sealed class DispatchedRefusalTests
         || Regex.IsMatch(body, @"await\s+_api\s*\n\s*\.[A-Za-z]+Async\(");
 
     /// <summary>Whether a body answers a refusal itself.</summary>
+    /// <summary>
+    /// Whether a refusal from this body would reach somebody.
+    /// </summary>
+    /// <remarks>
+    /// <c>Reading</c> joined <c>Guarded</c> in Reality Closure wave 4. They catch
+    /// the same refusal and show the same sentence; they differ only in whether
+    /// they clear the message area first, which an act does and a refresh must not.
+    /// </remarks>
     private static bool Handles(string body) =>
         body.Contains("catch (AgencyOsApiException", StringComparison.Ordinal)
         || body.Contains("catch (AgencyOS.Client.AgencyOsApiException", StringComparison.Ordinal)
-        || body.Contains("Guarded(", StringComparison.Ordinal);
+        || body.Contains("Guarded(", StringComparison.Ordinal)
+        || body.Contains("Reading(", StringComparison.Ordinal);
 
     /// <summary>The body of a method, by brace matching.</summary>
     private static string Body(string text, string name)
