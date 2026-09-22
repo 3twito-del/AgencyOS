@@ -58,22 +58,38 @@ public sealed class TaskSurfaceSemanticsTests
     }
 
     /// <summary>
-    /// No task row renders a bare identity.
+    /// No task row binds an identity straight out of the record.
     /// </summary>
     /// <remarks>
-    /// The Command Center bound <c>Subject.Name</c> directly, unlabelled, in the
-    /// position a byline occupies. A blind operator read it as the owner. The
-    /// subject is useful and stays — through <c>TaskAbout</c>, which labels it.
+    /// <para>
+    /// This proves one narrow thing and its name now says so: that no template
+    /// reaches past the shared wording to a name field. The Command Center bound
+    /// <c>Subject.Name</c> directly, unlabelled, in the position a byline
+    /// occupies, and a blind operator read it as the owner.
+    /// </para>
+    /// <para>
+    /// <strong>It is not evidence that the rows attribute their identities.</strong>
+    /// It cannot be: an absent string says nothing about what the present ones
+    /// mean, and this test passed throughout build 82 while four surfaces rendered
+    /// a bare assignee and the announced row dropped the subject entirely. What a
+    /// row means is asserted against the wording itself, in
+    /// <c>SemanticRoleTests</c>, where a subject and an assignee can be exchanged
+    /// and the description has to change with them.
+    /// </para>
     /// </remarks>
     [Fact]
-    public void NoTaskRowShowsAnUnlabelledIdentity()
+    public void NoTaskRowBindsANameFieldDirectly()
     {
         foreach ((string file, _) in Surfaces.Select(x => ((string)x[0], (string)x[1])))
         {
-            Assert.DoesNotContain(
-                "Binding Subject.Name",
-                Markup(file),
-                StringComparison.Ordinal);
+            string markup = Markup(file);
+
+            foreach (string bare in (string[])
+                     ["Binding Subject.Name", "Binding AssigneeDisplayName",
+                      "Binding AssignedToDisplayName", "Binding ContactDisplayName"])
+            {
+                Assert.DoesNotContain(bare, markup, StringComparison.Ordinal);
+            }
         }
     }
 

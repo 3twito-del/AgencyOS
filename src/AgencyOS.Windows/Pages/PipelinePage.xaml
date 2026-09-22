@@ -135,7 +135,15 @@
 
                                             <StackPanel Grid.Column="0">
                                                 <TextBlock Text="{Binding DisplayName}" />
-                                                <TextBlock Text="{Binding ContactDisplayName}"
+
+                                                <!--
+                                                    The contact was here as a bare name. A target
+                                                    carries three identities - the party approached,
+                                                    the individual dealt with there, and the internal
+                                                    member responsible - and nothing said which this
+                                                    one was.
+                                                -->
+                                                <TextBlock Text="{Binding Converter={StaticResource TargetContact}}"
                                                            Opacity="0.7"
                                                            Style="{StaticResource CaptionTextBlockStyle}" />
                                             </StackPanel>

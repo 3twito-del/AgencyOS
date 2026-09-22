@@ -56,10 +56,15 @@ internal static class NextActionBanner
     /// claim about ownership, so it is made from <see cref="NextAction.IsAssigned"/>,
     /// which is authoritative, and never from a missing name.
     /// </para>
+    /// <para>
+    /// The named branch says "Assigned to", matching the task rows on the same two
+    /// pages. It printed the name alone until build 83, which left this banner
+    /// stating a bare identity directly above rows that attribute theirs.
+    /// </para>
     /// </remarks>
     private static string Who(NextAction next) => next switch
     {
-        { Assignee: { } who } => $" {who}.",
+        { Assignee: { } who } => $" Assigned to {who}.",
         { IsAssigned: true } => " Assigned, name unavailable.",
         _ => " Unassigned.",
     };

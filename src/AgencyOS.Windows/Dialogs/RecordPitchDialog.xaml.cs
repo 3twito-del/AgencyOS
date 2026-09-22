@@ -46,7 +46,9 @@ public sealed partial class RecordPitchDialog : ContentDialog
 
         _target = target;
 
-        TargetText.Text = target.ContactDisplayName is { Length: > 0 } contact
+        // Named with its role, as the target row and the picker now are: the dash
+        // said the two values were related and nothing said how.
+        TargetText.Text = TargetLine.Contact(target) is { } contact
             ? $"{target.DisplayName} - {contact}"
             : target.DisplayName;
 

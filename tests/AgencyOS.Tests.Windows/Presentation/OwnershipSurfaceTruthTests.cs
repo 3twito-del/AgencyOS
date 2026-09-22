@@ -91,6 +91,22 @@ public sealed class OwnershipSurfaceTruthTests
         Assert.DoesNotContain(Member.ToString(), sentence, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// The named branch says what the name is doing there.
+    /// </summary>
+    /// <remarks>
+    /// This banner sits on the same two pages as the task rows. While it printed a
+    /// bare name it stated an identity with no role directly above rows that give
+    /// theirs one, which is the disagreement the attribution rule forbids within a
+    /// single surface.
+    /// </remarks>
+    [Fact]
+    public void ANamedOwnerIsAttributedAndNotLeftBare()
+    {
+        Assert.Contains(
+            "Assigned to Review member", Message("Review member", Member), StringComparison.Ordinal);
+    }
+
     /// <summary>Genuinely unowned work is still reported as such.</summary>
     [Fact]
     public void UnownedWorkIsStillCalledUnassigned()
@@ -116,7 +132,7 @@ public sealed class OwnershipSurfaceTruthTests
 
         string who = next switch
         {
-            { Assignee: { } named } => $" {named}.",
+            { Assignee: { } named } => $" Assigned to {named}.",
             { IsAssigned: true } => " Assigned, name unavailable.",
             _ => " Unassigned.",
         };

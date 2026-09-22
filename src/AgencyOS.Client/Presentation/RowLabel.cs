@@ -101,7 +101,15 @@ public static class RowLabel
         // rather than inventing a name or falling back to ToString().
         parts.Add(headline ?? DisplayLabel.For(FriendlyTypeName(type)));
 
-        if (FirstValue(row, type, Context) is { } context && !Same(context, headline))
+        // A target row carries two people - the counterparty contact and the
+        // internal member - and this announced the second while the screen showed
+        // the first, with neither channel saying which role it meant. Asking
+        // TargetLine keeps the two channels reading one answer, and says the role.
+        string? context = TargetLine.IsTarget(row)
+            ? TargetLine.Who(row)
+            : FirstValue(row, type, Context);
+
+        if (context is not null && !Same(context, headline))
         {
             parts.Add(context);
         }
@@ -121,23 +129,69 @@ public static class RowLabel
             }
         }
 
-        // A task row says who owns it and when it is due, because those are the
-        // questions asked of it. Nothing else on the row carries them: the owner is
-        // not in any of the vocabularies above, and a screen reader that announced
-        // only "title, open, high" left a blind operator unable to tell an assigned
-        // task from an unowned one - which is what a sighted operator could not do
-        // either, before the rows themselves were repaired.
+        // A task row says what it is about, who is accountable and when it is due,
+        // because those are the questions asked of it. Nothing else on the row
+        // carries them: the assignee is not in any of the vocabularies above, and a
+        // screen reader that announced only "title, open, high" left a blind
+        // operator unable to tell an assigned task from an unowned one - which is
+        // what a sighted operator could not do either, before the rows themselves
+        // were repaired. The subject joined them in build 83: the Command Center
+        // showed "About X" and announced nothing of it, so the seen and the spoken
+        // row disagreed about what the row contained.
         if (TaskLine.IsTask(row))
         {
-            if (TaskLine.Who(row) is { } who)
+            List<string> essential = [];
+
+            if (TaskLine.About(row) is { } about)
             {
-                parts.Add(who);
+                essential.Add(about);
             }
 
-            parts.Add(TaskLine.When(row));
+            if (TaskLine.Who(row) is { } who)
+            {
+                essential.Add(who);
+            }
+
+            essential.Add(TaskLine.When(row));
+
+            return TaskRow(parts, essential);
         }
 
         return Shorten(string.Join(", ", parts));
+    }
+
+    /// <summary>
+    /// A task row, with the operator's questions answered before the budget runs out.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// These three were appended last and so were cut first. A blind operator
+    /// measured the result on build 82: "the longer the task, the less an assistive
+    /// user is told about it" - a title long enough to reach the limit took the
+    /// owner and the due date with it, leaving the one row shape whose whole
+    /// purpose is to say who and when saying neither.
+    /// </para>
+    /// <para>
+    /// So the title yields instead. It is the part an operator can still recognise
+    /// truncated, and the row keeps its bound: only if the roles alone exceed the
+    /// budget - which needs improbably long names - does the total shorten.
+    /// </para>
+    /// </remarks>
+    private static string TaskRow(List<string> parts, List<string> essential)
+    {
+        string tail = string.Join(", ", essential);
+
+        if (tail.Length >= MaximumLength)
+        {
+            return Shorten(tail);
+        }
+
+        string head = string.Join(", ", parts);
+
+        // Two for the separator that joins the two halves.
+        int budget = MaximumLength - tail.Length - 2;
+
+        return string.Concat(Shorten(head, budget), ", ", tail);
     }
 
     private static string? FirstValue(object row, Type type, string[] names)
@@ -262,17 +316,28 @@ public static class RowLabel
         return name;
     }
 
-    private static string Shorten(string value)
+    private static string Shorten(string value) => Shorten(value, MaximumLength);
+
+    private static string Shorten(string value, int limit)
     {
         string clean = value.Trim();
 
-        if (clean.Length <= MaximumLength)
+        if (limit < 2)
+        {
+            return string.Empty;
+        }
+
+        if (clean.Length <= limit)
         {
             return clean;
         }
 
-        int cut = clean.LastIndexOf(' ', MaximumLength - 1);
+        int cut = clean.LastIndexOf(' ', limit - 1);
 
-        return string.Concat(clean.AsSpan(0, cut > 40 ? cut : MaximumLength - 1), "…");
+        // A word boundary is preferred, but only where enough of the text survives
+        // to be worth reading; otherwise the cut is taken where the budget falls.
+        int keep = cut > limit / 4 ? cut : limit - 1;
+
+        return string.Concat(clean.AsSpan(0, keep), "…");
     }
 }

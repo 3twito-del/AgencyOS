@@ -27,6 +27,16 @@ namespace AgencyOS.Client.Presentation;
 /// </remarks>
 public static class TaskLine
 {
+    /// <summary>
+    /// How this product says that a named member is accountable for a task.
+    /// </summary>
+    /// <remarks>
+    /// The same family as "Unassigned" and "Assigned, name unavailable", which the
+    /// client already writes, so the three ownership states read as one vocabulary
+    /// rather than three. Not "Owner", which is a different domain role here.
+    /// </remarks>
+    private const string Role = "Assigned to ";
+
     /// <summary>Names a projection uses for the assignee's display name.</summary>
     private static readonly string[] AssigneeNames =
         ["AssigneeDisplayName", "AssignedToDisplayName"];
@@ -39,11 +49,23 @@ public static class TaskLine
     /// Who is accountable, or null when this row cannot answer.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Three projections — contract, opportunity and finance tasks — carry no
     /// assignment at all. They are not authoritative for ownership, so they say
     /// nothing rather than "Unassigned", which would be a claim they cannot
     /// support. A row that carries the identifier may say it: an identifier that
     /// is present and null is authoritative that nobody is accountable.
+    /// </para>
+    /// <para>
+    /// <strong>The name is returned with its role, not bare.</strong> Build 82
+    /// labelled the subject "About …" and left the assignee as a bare name beside
+    /// it, which is the asymmetry the blind operator reported: the row proved a
+    /// name could be labelled and then declined to label the other one. "Assigned
+    /// to" is the product's own vocabulary for this — it is the family the two
+    /// states below already belong to — and it is deliberately not "Owner", which
+    /// in AgencyOS means the member responsible for a deal, target or opportunity
+    /// rather than the member doing this piece of work.
+    /// </para>
     /// </remarks>
     public static string? Who(object? row)
     {
@@ -58,7 +80,7 @@ public static class TaskLine
 
         if (!string.IsNullOrWhiteSpace(name))
         {
-            return name;
+            return Role + name.Trim();
         }
 
         // No name. Whether that means nobody, or only that this read did not

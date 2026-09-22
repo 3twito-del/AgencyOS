@@ -36,10 +36,39 @@ public sealed class TaskLineTests
 
     // ------------------------------------------------------------------- who
 
-    /// <summary>A resolved name is the answer.</summary>
+    /// <summary>
+    /// A resolved name is the answer, and it arrives attributed.
+    /// </summary>
+    /// <remarks>
+    /// The name alone was the build-82 asymmetry: the subject said "About …" and
+    /// the assignee beside it said only a name, so the row proved a name could be
+    /// labelled and then left the other one to convention.
+    /// </remarks>
     [Fact]
-    public void AnAssignedTaskNamesTheMember() =>
-        Assert.Equal("Review member", TaskLine.Who(Task(Member, "Review member")));
+    public void AnAssignedTaskNamesTheMemberAndTheRole()
+    {
+        string? who = TaskLine.Who(Task(Member, "Review member"));
+
+        Assert.Equal("Assigned to Review member", who);
+    }
+
+    /// <summary>
+    /// The role word is the task vocabulary, not the deal one.
+    /// </summary>
+    /// <remarks>
+    /// "Owner" is taken in AgencyOS: it is the member responsible for a deal,
+    /// target or opportunity. Reusing it for the member doing one task would put
+    /// two different domain roles behind one word, which is the confusion the rule
+    /// exists to prevent rather than a tidier label.
+    /// </remarks>
+    [Fact]
+    public void TheAssigneeIsNotCalledAnOwner()
+    {
+        string? who = TaskLine.Who(Task(Member, "Review member"));
+
+        Assert.DoesNotContain("Owner", who!, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("Assigned to ", who, StringComparison.Ordinal);
+    }
 
     /// <summary>An identifier that is present and null is authoritative.</summary>
     [Fact]
@@ -99,7 +128,7 @@ public sealed class TaskLineTests
     [Fact]
     public void ANameWithoutAnIdentifierCanNameButNotDeny()
     {
-        Assert.Equal("Review member", TaskLine.Who(new ResearchLike("Review member")));
+        Assert.Equal("Assigned to Review member", TaskLine.Who(new ResearchLike("Review member")));
         Assert.Null(TaskLine.Who(new ResearchLike(null)));
     }
 
@@ -113,7 +142,7 @@ public sealed class TaskLineTests
         DealTaskResponse nobody =
             new(Guid.NewGuid(), "Chase the redline", "Open", "High", Due, null);
 
-        Assert.Equal("Review member", TaskLine.Who(assigned));
+        Assert.Equal("Assigned to Review member", TaskLine.Who(assigned));
         Assert.Equal("Unassigned", TaskLine.Who(nobody));
     }
 

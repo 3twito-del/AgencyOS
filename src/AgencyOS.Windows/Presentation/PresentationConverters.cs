@@ -140,3 +140,23 @@ public sealed partial class TaskAboutConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException("A task's subject is not converted back into a row.");
 }
+
+/// <summary>
+/// The counterparty individual on a target row, labelled as one.
+/// </summary>
+/// <remarks>
+/// Bound to the row rather than to <c>ContactDisplayName</c>, so that the visible
+/// caption and the announced row read the same answer out of
+/// <see cref="TargetLine"/> and cannot drift into naming different people, which
+/// is what they did before build 83.
+/// </remarks>
+public sealed partial class TargetContactConverter : IValueConverter
+{
+    /// <inheritdoc />
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        TargetLine.Contact(value) ?? string.Empty;
+
+    /// <inheritdoc />
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException("A target's contact is not converted back into a row.");
+}

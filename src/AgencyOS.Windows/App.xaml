@@ -40,6 +40,14 @@
             <presentation:TaskAboutConverter x:Key="TaskAbout" />
 
             <!--
+                TargetContact does the same for a pipeline target, which carries
+                two people: the individual dealt with at the counterparty, and the
+                internal member responsible. The row showed the first and announced
+                the second, so the two channels named different people.
+            -->
+            <presentation:TargetContactConverter x:Key="TargetContact" />
+
+            <!--
                 Dense list rows. A professional workstation shows more rows, not
                 bigger ones: docs/12_WINDOWS_NATIVE.md asks for dense tables over
                 consumer card layouts.

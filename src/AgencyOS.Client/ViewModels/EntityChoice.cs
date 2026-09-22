@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Contracts.Deals;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Finance;
@@ -229,8 +230,11 @@ public sealed record EntityChoice(Guid Id, string Label)
     {
         ArgumentNullException.ThrowIfNull(targets);
 
+        // The contact carries its role here too: the label already holds the
+        // company and the stage, so a third bare value left the operator to guess
+        // whether the name was the counterparty's or ours.
         return [.. targets.Select(x => new EntityChoice(
-            x.Id, Join(x.DisplayName, x.Stage, x.ContactDisplayName)))];
+            x.Id, Join(x.DisplayName, x.Stage, TargetLine.Contact(x))))];
     }
 
     /// <summary>Deals, told apart by who is on the other side.</summary>
