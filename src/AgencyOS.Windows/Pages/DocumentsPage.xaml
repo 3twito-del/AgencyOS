@@ -291,7 +291,7 @@
 
                                     <StackPanel Grid.Column="1">
                                         <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
-                                        <TextBlock Text="{Binding ActorDisplayName}" Opacity="0.6"
+                                        <TextBlock Text="{Binding Converter={StaticResource Party}, ConverterParameter=ActorDisplayName}" Opacity="0.6"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                     </StackPanel>
                                 </Grid>

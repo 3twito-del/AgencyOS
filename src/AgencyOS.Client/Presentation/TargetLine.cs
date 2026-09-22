@@ -21,8 +21,8 @@ namespace AgencyOS.Client.Presentation;
 /// announced <c>OwnerDisplayName</c> in the same position instead. A sighted
 /// operator was told about the counterparty's casting director and a screen-reader
 /// operator about an internal colleague, with nothing in either channel saying
-/// which was which. That is why the wording lives here and both channels read it
-/// from one place.
+/// which was which. That is why the wording lives in one place and both channels
+/// read it from there.
 /// </para>
 /// <para>
 /// <strong>Why "Contact:" and not "Contact".</strong> The bare-prefix form that
@@ -33,6 +33,13 @@ namespace AgencyOS.Client.Presentation;
 /// imperative.
 /// </para>
 /// <para>
+/// <strong>The words themselves now live in <see cref="PartyLine"/>.</strong> The
+/// same two roles appear on receivables, invoices, obligations, mailboxes and
+/// deals, and a second copy of "Owner: " here would be the drift this type was
+/// written to prevent. What stays here is the part that is specific to a target:
+/// which of its identities the row should name.
+/// </para>
+/// <para>
 /// Rows are found by property name, as <see cref="TaskLine"/> and
 /// <see cref="RowLabel"/> already do, so the read model and the response record
 /// are both served without either being renamed.
@@ -40,12 +47,6 @@ namespace AgencyOS.Client.Presentation;
 /// </remarks>
 public static class TargetLine
 {
-    /// <summary>The product's own words for these roles, from the dialogs that set them.</summary>
-    private const string ContactRole = "Contact: ";
-
-    /// <inheritdoc cref="ContactRole" />
-    private const string OwnerRole = "Owner: ";
-
     /// <summary>
     /// The counterparty individual dealt with, or null when the row has none.
     /// </summary>
@@ -54,17 +55,8 @@ public static class TargetLine
     /// approached is who you are dealing with — so this says nothing there rather
     /// than inventing a role the row does not hold.
     /// </remarks>
-    public static string? Contact(object? row)
-    {
-        if (row is null)
-        {
-            return null;
-        }
-
-        string? name = Value(row, row.GetType(), "ContactDisplayName");
-
-        return string.IsNullOrWhiteSpace(name) ? null : ContactRole + name.Trim();
-    }
+    public static string? Contact(object? row) =>
+        PartyLine.For(row, "ContactDisplayName");
 
     /// <summary>
     /// The internal member responsible, or null when the row has none.
@@ -73,17 +65,8 @@ public static class TargetLine
     /// Labelled for the same reason the contact is. This row is the one place the
     /// two can be confused, because it is the only one that carries both.
     /// </remarks>
-    public static string? Owner(object? row)
-    {
-        if (row is null)
-        {
-            return null;
-        }
-
-        string? name = Value(row, row.GetType(), "OwnerDisplayName");
-
-        return string.IsNullOrWhiteSpace(name) ? null : OwnerRole + name.Trim();
-    }
+    public static string? Owner(object? row) =>
+        PartyLine.For(row, "OwnerDisplayName");
 
     /// <summary>
     /// The one person this row should name, with the role they play.
@@ -99,9 +82,4 @@ public static class TargetLine
         row is not null
         && row.GetType().GetProperty(
             "ContactDisplayName", BindingFlags.Public | BindingFlags.Instance) is not null;
-
-    private static string? Value(object row, Type type, string name) =>
-        type.GetProperty(name, BindingFlags.Public | BindingFlags.Instance) is { } property
-            ? property.GetValue(row) as string
-            : null;
 }

@@ -80,7 +80,7 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="{Binding Title}" />
-                                <TextBlock Text="{Binding CounterpartyDisplayName}" Opacity="0.7"
+                                <TextBlock Text="{Binding Converter={StaticResource Party}, ConverterParameter=CounterpartyDisplayName}" Opacity="0.7"
                                            Style="{StaticResource CaptionTextBlockStyle}" />
                             </StackPanel>
 
@@ -480,7 +480,7 @@
                                             <StackPanel Grid.Column="0">
                                                 <TextBlock Text="{Binding Description}"
                                                            TextWrapping="Wrap" />
-                                                <TextBlock Text="{Binding ObligorDisplayName}"
+                                                <TextBlock Text="{Binding Converter={StaticResource Party}, ConverterParameter=ObligorDisplayName}"
                                                            Opacity="0.6"
                                                            Style="{StaticResource CaptionTextBlockStyle}" />
                                             </StackPanel>

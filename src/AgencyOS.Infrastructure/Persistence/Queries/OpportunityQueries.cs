@@ -865,9 +865,20 @@ internal sealed class OpportunityQueries : IOpportunityQueries
                 {
                     (string display, string? detail) = subject.Kind switch
                     {
+                        // The kind of record this subject points at, as every other
+                        // branch here states its own. It said "Client", which is not
+                        // a kind but a representation state - and one this query has
+                        // never read: it joins TalentProfiles for the name and never
+                        // touches Representations. So a person with a talent profile
+                        // and no representation, or with a terminated one, was called
+                        // a client on Pipeline while Talent said "Not represented"
+                        // (F-03). TalentProfile states the rule this broke: being a
+                        // client is a consequence of holding an active representation,
+                        // derived and never stored, because a second source of truth
+                        // drifts the moment somebody terminates without clearing it.
                         OpportunitySubjectKind.TalentProfile =>
                             (talent.TryGetValue(subject.TargetId, out string? t) ? t : "(unknown)",
-                                (string?)"Client"),
+                                (string?)"Talent"),
 
                         OpportunitySubjectKind.Project =>
                             (projects.TryGetValue(subject.TargetId, out string? p) ? p : "(unknown)",

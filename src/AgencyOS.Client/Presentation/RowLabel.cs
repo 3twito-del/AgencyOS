@@ -67,6 +67,12 @@ public static class RowLabel
         // row in them read identically: document versions, representation scopes
         // and the ledger's account rows (F-08).
         "DisplayFileName", "Area", "Action", "Memo",
+
+        // Also last. A radar row shows the person it is about as its headline
+        // and carries no other name property, so the announcement led with the
+        // type name and then named the CompanyName in the context slot: the seen
+        // row headed by a person and the spoken row by a company (F-09).
+        "PersonDisplayName",
     ];
 
     /// <summary>Properties that say what kind of thing the row is, or where it stands.</summary>
@@ -108,8 +114,8 @@ public static class RowLabel
     /// <summary>A third field, when the row's own name is not enough to tell rows apart.</summary>
     private static readonly string[] Context =
     [
-        "CounterpartyDisplayName", "PrimaryCompanyName", "CompanyName",
-        "OwnerDisplayName", "OpportunityName", "ProjectTitle", "Publisher",
+        "PrimaryCompanyName", "CompanyName",
+        "OpportunityName", "ProjectTitle", "Publisher",
     ];
 
     /// <summary>Writes the phrase a row should announce.</summary>
@@ -148,10 +154,12 @@ public static class RowLabel
         // A target row carries two people - the counterparty contact and the
         // internal member - and this announced the second while the screen showed
         // the first, with neither channel saying which role it meant. Asking
-        // TargetLine keeps the two channels reading one answer, and says the role.
-        string? context = TargetLine.IsTarget(row)
-            ? TargetLine.Who(row)
-            : FirstValue(row, type, Context);
+        // PartyLine keeps the two channels reading one answer, and says the role.
+        // The same slot holds the payer on a receivable, the debtor on an invoice,
+        // the obligor on an obligation, the counterparty on a deal and whoever
+        // acted on a history row, and it held every one of them as a bare name
+        // or not at all (F-04, F-09, F-10).
+        string? context = PartyLine.Who(row, headline) ?? FirstValue(row, type, Context);
 
         if (context is not null && !Same(context, headline))
         {

@@ -55,7 +55,7 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Spacing="1">
                                 <TextBlock Text="{Binding DisplayName}" />
-                                <TextBlock Text="{Binding OwnerDisplayName}" Opacity="0.6"
+                                <TextBlock Text="{Binding Converter={StaticResource Party}, ConverterParameter=OwnerDisplayName}" Opacity="0.6"
                                            Style="{StaticResource CaptionTextBlockStyle}" />
                             </StackPanel>
                             <TextBlock Grid.Column="1" Text="{Binding Stage, Converter={StaticResource DisplayLabel}}" VerticalAlignment="Center"

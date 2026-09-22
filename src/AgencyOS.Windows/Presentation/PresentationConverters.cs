@@ -197,3 +197,33 @@ public sealed partial class MoneyConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException("A formatted amount is not parsed back into money.");
 }
+
+/// <summary>
+/// A person named on a row, with the role they play in it.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Bound to the row and told which field to read, rather than bound to the field
+/// itself, because a value converter given only a string cannot know what that
+/// string is to the record — and the role is the part that was missing. The
+/// markup names the field; <see cref="PartyLine"/> owns the words, and
+/// <see cref="RowLabel"/> reads the same ones, so the caption an operator sees
+/// and the phrase a screen reader announces cannot disagree about what a name
+/// means.
+/// </para>
+/// <para>
+/// Empty rather than the bare name when the field is not one of the roles
+/// <see cref="PartyLine"/> knows. A caption that silently fell back to an
+/// unlabelled name would look repaired and be exactly the defect.
+/// </para>
+/// </remarks>
+public sealed partial class PartyConverter : IValueConverter
+{
+    /// <inheritdoc />
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        PartyLine.For(value, parameter as string) ?? string.Empty;
+
+    /// <inheritdoc />
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException("An attributed name is not converted back into a row.");
+}

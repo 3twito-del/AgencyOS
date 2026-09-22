@@ -186,7 +186,7 @@
                                                 </StackPanel>
 
                                                 <TextBlock Grid.Column="2"
-                                                           Text="{Binding PersonDisplayName}"
+                                                           Text="{Binding Converter={StaticResource Party}, ConverterParameter=PersonDisplayName}"
                                                            Opacity="0.8"
                                                            Style="{StaticResource CaptionTextBlockStyle}" />
                                             </Grid>
@@ -363,7 +363,7 @@
 
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="{Binding MailboxAddress}" />
-                                        <TextBlock Text="{Binding OwnerDisplayName}" Opacity="0.6"
+                                        <TextBlock Text="{Binding Converter={StaticResource Party}, ConverterParameter=OwnerDisplayName}" Opacity="0.6"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
                                     </StackPanel>
 

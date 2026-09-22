@@ -56,6 +56,15 @@
             <presentation:TargetContactConverter x:Key="TargetContact" />
 
             <!--
+                Party binds the row and is told which field to read, because a
+                converter handed only a string cannot know what that string is to
+                the record. The role words live in PartyLine, which RowLabel reads
+                too, so a caption and its announcement cannot name different roles
+                (F-04, F-09, F-10).
+            -->
+            <presentation:PartyConverter x:Key="Party" />
+
+            <!--
                 Dense list rows. A professional workstation shows more rows, not
                 bigger ones: docs/12_WINDOWS_NATIVE.md asks for dense tables over
                 consumer card layouts.
