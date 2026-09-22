@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="AgencyOS.Windows.Pages.ContractsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -147,6 +147,10 @@
                                   Click="OnRecordVersionClick" IsEnabled="False" />
                     <AppBarButton x:Name="ReconcileButton" Label="Reconcile"
                                   Click="OnReconcileClick" IsEnabled="False" />
+                    <AppBarButton x:Name="PartyButton" Label="Add party"
+                                  Click="OnAddPartyClick" IsEnabled="False" />
+                    <AppBarButton x:Name="ApproveButton" Label="Approve for signature"
+                                  Click="OnApproveForSignatureClick" IsEnabled="False" />
                     <AppBarButton x:Name="SignatureButton" Label="Record signature"
                                   Click="OnRecordSignatureClick" IsEnabled="False" />
                     <AppBarButton x:Name="NoticeButton" Label="Record notice"
@@ -453,6 +457,55 @@
                                                 <TextBlock Text="{Binding Description}"
                                                            TextWrapping="Wrap" />
                                                 <TextBlock Text="{Binding ObligorDisplayName}"
+                                                           Opacity="0.6"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding DueOn}" Opacity="0.7"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                                <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.5"
+                                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <!--
+                                Money the contract obliges somebody to pay, kept
+                                apart from the obligations above because they are
+                                a different aggregate with a different outcome:
+                                one is resolved, the other is billed.
+                            -->
+                            <TextBlock Text="Money owed under this contract"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="MoneyObligationButton" Content="Record money owed"
+                                        Click="OnRecordMoneyObligationClick" IsEnabled="False" />
+                                <Button x:Name="RaiseReceivableButton" Content="Raise receivable"
+                                        Click="OnRaiseReceivableClick" IsEnabled="False" />
+                                <TextBlock x:Name="MoneyCaption" Opacity="0.7"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource CaptionTextBlockStyle}" />
+                            </StackPanel>
+
+                            <ListView x:Name="MoneyObligationList"
+                                      AutomationProperties.Name="Money owed" SelectionMode="Single"
+                                      SelectionChanged="OnMoneyObligationSelected">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding Description}"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding Category, Converter={StaticResource DisplayLabel}}"
                                                            Opacity="0.6"
                                                            Style="{StaticResource CaptionTextBlockStyle}" />
                                             </StackPanel>

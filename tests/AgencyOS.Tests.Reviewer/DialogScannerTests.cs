@@ -110,12 +110,19 @@ public sealed class DialogScannerTests
                 .Order(StringComparer.Ordinal),
         ];
 
+        // Two, not four. Reality Closure wave 3 gave RecordMonetaryObligationDialog
+        // and RaiseReceivableDialog the openers they never had: receivables are
+        // raised from an obligation and payments allocate against receivables, so
+        // the delivered finance tail had nothing to attach to without them.
+        //
+        // The two that remain are deliberate. CalculateCommissionDialog is not a
+        // step in that chain - commission is worked out from money already
+        // received - and AddIntelligenceSubjectDialog belongs to a linking flow
+        // whose other routes exist. Neither is claimed as operator-delivered.
         Assert.Equal(
             [
                 "AddIntelligenceSubjectDialog",
                 "CalculateCommissionDialog",
-                "RaiseReceivableDialog",
-                "RecordMonetaryObligationDialog",
             ],
             dead);
     }

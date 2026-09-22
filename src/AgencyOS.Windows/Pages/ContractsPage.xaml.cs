@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.Finance;
 using AgencyOS.Contracts.Legal;
 using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Windows.Dialogs;
 using AgencyOS.Contracts.Organizations;
 using Microsoft.UI.Xaml;
@@ -148,6 +150,10 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         }
 
         _ = _detail.LoadAsync(selected.Id);
+
+        // The money a contract obliges is a separate projection from its detail,
+        // so selecting a contract has to ask for it too.
+        _ = LoadMoneyAsync(selected.Id);
     }
 
     private void OnVersionSelected(object sender, SelectionChangedEventArgs e) => RenderTerms();
@@ -164,6 +170,21 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
     private void OnRecordVersionClick(object sender, RoutedEventArgs e) => _ = RecordVersionAsync();
 
     private void OnReconcileClick(object sender, RoutedEventArgs e) => _ = ReconcileAsync();
+
+    private void OnAddPartyClick(object sender, RoutedEventArgs e) => _ = AddPartyAsync();
+
+    private void OnApproveForSignatureClick(object sender, RoutedEventArgs e) =>
+        _ = ApproveForSignatureAsync();
+
+    private void OnRecordMoneyObligationClick(object sender, RoutedEventArgs e) =>
+        _ = RecordMoneyObligationAsync();
+
+    private void OnRaiseReceivableClick(object sender, RoutedEventArgs e) =>
+        _ = RaiseReceivableAsync();
+
+    private void OnMoneyObligationSelected(object sender, SelectionChangedEventArgs e) =>
+        RaiseReceivableButton.IsEnabled =
+            MoneyObligationList.SelectedItem is MonetaryObligationResponse;
 
     private void OnRecordSignatureClick(object sender, RoutedEventArgs e) => _ = RecordSignatureAsync();
 
@@ -292,6 +313,182 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         await _reconciliation.LoadAsync(contract.Contract.Id, version.Id).ConfigureAwait(true);
 
         SelectTab("Reconciliation");
+    }
+
+    /// <summary>
+    /// Puts a party on the contract.
+    /// </summary>
+    /// <remarks>
+    /// The head of the legal chain. Signatures are recorded against parties, so
+    /// without this the signature command has nobody to offer and the contract can
+    /// never be executed — the gap Reality Closure recorded as F-13.
+    /// </remarks>
+    private async Task AddPartyAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        IReadOnlyList<PersonSummaryResponse> people = [];
+        IReadOnlyList<CompanySummaryResponse> companies = [];
+
+        await Guarded(async () =>
+                people = await api.ListPeopleAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        await Guarded(async () =>
+                companies = await api.ListCompaniesAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        AddContractPartyDialog dialog = new(
+            contract.Contract.Title,
+            EntityChoice.ForPeople(people),
+            EntityChoice.ForCompanies(companies))
+        {
+            XamlRoot = XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        await Guarded(() => api.AddContractPartyAsync(
+                contract.Contract.Id,
+                dialog.ToRequest(contract.Contract.Version),
+                Guid.NewGuid().ToString("N")))
+            .ConfigureAwait(true);
+
+        await _detail.LoadAsync(contract.Contract.Id).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Clears the contract for signature.
+    /// </summary>
+    /// <remarks>
+    /// The second half of the same break. A signature is refused outside
+    /// <c>ApprovedForExecution</c>, so adding parties alone still left the chain
+    /// unreachable. The transition itself is the domain's; this asks for it.
+    /// </remarks>
+    private async Task ApproveForSignatureAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        ContentDialog confirm = new()
+        {
+            Title = "Approve for signature",
+            Content = "The contract is cleared for signing. Drafting versions can still "
+                + "be recorded, and AgencyOS neither sends the paper nor collects a "
+                + "signature - it records that one happened.",
+            PrimaryButtonText = "Approve",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot,
+        };
+
+        if (await confirm.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        await Guarded(() => api.ChangeContractStatusAsync(
+                contract.Contract.Id,
+                new ChangeContractStatusRequest("ApprovedForSignature", contract.Contract.Version),
+                Guid.NewGuid().ToString("N")))
+            .ConfigureAwait(true);
+
+        await _detail.LoadAsync(contract.Contract.Id).ConfigureAwait(true);
+        await LoadAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Records what the paper obliges somebody to pay.
+    /// </summary>
+    /// <remarks>
+    /// The head of the money chain. Receivables are raised from an obligation and
+    /// payments are allocated against receivables, so the whole delivered finance
+    /// tail had nothing to attach to without this.
+    /// </remarks>
+    private async Task RecordMoneyObligationAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        if (_detail.LatestVersion is not { } version)
+        {
+            DetailError("Record a version before recording what it obliges anybody to pay.");
+            return;
+        }
+
+        RecordMonetaryObligationDialog dialog =
+            new(contract.Contract.Title, version.Id, _detail.Parties) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        await Guarded(() => api.RecordMonetaryObligationAsync(
+                contract.Contract.Id, dialog.ToRequest(), Guid.NewGuid().ToString("N")))
+            .ConfigureAwait(true);
+
+        await LoadMoneyAsync(contract.Contract.Id).ConfigureAwait(true);
+    }
+
+    /// <summary>Turns an obligation into something the agency can collect.</summary>
+    private async Task RaiseReceivableAsync()
+    {
+        if (AppServices.Api is not { } api || _detail?.Contract is not { } contract)
+        {
+            DetailError("Select a contract first.");
+            return;
+        }
+
+        if (MoneyObligationList.SelectedItem is not MonetaryObligationResponse obligation)
+        {
+            DetailError("Choose what is owed first.");
+            return;
+        }
+
+        RaiseReceivableDialog dialog = new(obligation) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        await Guarded(() => api.RaiseReceivableAsync(
+                obligation.Id, dialog.ToRequest(), Guid.NewGuid().ToString("N")))
+            .ConfigureAwait(true);
+
+        await LoadMoneyAsync(contract.Contract.Id).ConfigureAwait(true);
+    }
+
+    /// <summary>What this contract obliges anybody to pay, as the server holds it.</summary>
+    private async Task LoadMoneyAsync(Guid contractId)
+    {
+        if (AppServices.Api is not { } api)
+        {
+            return;
+        }
+
+        IReadOnlyList<MonetaryObligationResponse> owed = [];
+
+        await Guarded(async () =>
+                owed = await api.ListMonetaryObligationsAsync(contractId).ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        MoneyObligationList.ItemsSource = owed;
+        RaiseReceivableButton.IsEnabled = false;
     }
 
     private async Task RecordSignatureAsync()
@@ -478,6 +675,13 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         bool loaded = _detail.Contract is not null;
 
         VersionButton.IsEnabled = loaded && _detail.AcceptsNewVersions;
+        // A party may be added while the contract still accepts them. Approval is
+        // offered where the domain allows it, and the domain remains the authority:
+        // these gates only keep the operator from starting something certain to be
+        // refused, they do not decide whether it is legal.
+        PartyButton.IsEnabled = loaded && _detail.AcceptsNewVersions;
+        ApproveButton.IsEnabled = loaded && _detail.Contract?.Contract.Status
+            is "Draft" or "UnderReview";
         SignatureButton.IsEnabled = loaded && _detail.OutstandingSignatories.Count > 0;
         NoticeButton.IsEnabled = loaded && _detail.Parties.Count >= 2;
 
@@ -485,6 +689,15 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         // reconciliation without them, and a diff with the rows removed would say
         // the draft matched when it did not.
         ReconcileButton.IsEnabled = loaded && _detail.HasTerms && _detail.LatestVersion is not null;
+
+        // Money owed is recorded against a drafting version, so it needs one.
+        MoneyObligationButton.IsEnabled = loaded && _detail.LatestVersion is not null
+            && _detail.Parties.Count >= 2;
+        MoneyCaption.Text = _detail.LatestVersion is null
+            ? "Record a version before recording what it obliges anybody to pay."
+            : _detail.Parties.Count < 2
+                ? "Money owed is between two parties on this contract."
+                : string.Empty;
 
         if (_detail.Contract is not { } contract)
         {

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.AddContractPartyDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add a party"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False">
+
+    <ScrollViewer>
+        <StackPanel Spacing="12" MinWidth="420">
+
+            <TextBlock x:Name="HeadlineText" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       TextWrapping="Wrap" />
+
+            <!--
+                A party is somebody the contract binds. Who they are can be a
+                person on record, a company on record, or a name the paper uses
+                that AgencyOS does not hold - the domain accepts all three and
+                refuses more than one, so the choice is exclusive here too.
+            -->
+            <ComboBox x:Name="RoleBox" Header="Role" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="Party role"
+                      SelectionChanged="OnChanged">
+                <ComboBoxItem Content="Artist" Tag="Artist" />
+                <ComboBoxItem Content="Producer" Tag="Producer" />
+                <ComboBoxItem Content="Studio" Tag="Studio" />
+                <ComboBoxItem Content="Network" Tag="Network" />
+                <ComboBoxItem Content="Streamer" Tag="Streamer" />
+                <ComboBoxItem Content="Employer" Tag="Employer" />
+                <ComboBoxItem Content="Lender" Tag="Lender" />
+                <ComboBoxItem Content="Loan-out" Tag="LoanOut" />
+                <ComboBoxItem Content="Licensor" Tag="Licensor" />
+                <ComboBoxItem Content="Licensee" Tag="Licensee" />
+                <ComboBoxItem Content="Guarantor" Tag="Guarantor" />
+                <ComboBoxItem Content="Agency" Tag="Agency" />
+                <ComboBoxItem Content="Other" Tag="Other" />
+            </ComboBox>
+
+            <ComboBox x:Name="KindBox" Header="Who" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="Kind of party"
+                      SelectionChanged="OnKindChanged">
+                <ComboBoxItem Content="A person on record" Tag="Person" />
+                <ComboBoxItem Content="A company on record" Tag="Company" />
+                <ComboBoxItem Content="A name the paper uses" Tag="External" />
+            </ComboBox>
+
+            <ComboBox x:Name="PersonBox" Header="Person" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="Person"
+                      DisplayMemberPath="Label" Visibility="Collapsed"
+                      SelectionChanged="OnChanged" />
+
+            <ComboBox x:Name="CompanyBox" Header="Company" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="Company"
+                      DisplayMemberPath="Label" Visibility="Collapsed"
+                      SelectionChanged="OnChanged" />
+
+            <TextBox x:Name="ExternalBox" Header="Name on the paper"
+                     AutomationProperties.Name="Name on the paper"
+                     Visibility="Collapsed" TextChanged="OnChanged" />
+
+            <TextBox x:Name="ProvenanceBox" Header="Where that name comes from"
+                     AutomationProperties.Name="Where that name comes from"
+                     PlaceholderText="Optional. The clause or page it was read from."
+                     Visibility="Collapsed" />
+
+            <CheckBox x:Name="SignatoryBox" Content="This party has to sign" IsChecked="True"
+                      AutomationProperties.Name="This party has to sign" />
+
+            <TextBlock
+                Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" TextWrapping="Wrap"
+                Text="A contract cannot be executed until every party that has to sign has signed. AgencyOS records that somebody signed; it performs no electronic signature." />
+
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>
