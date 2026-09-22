@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Ai;
 using AgencyOS.Windows.Dialogs;
@@ -437,9 +438,11 @@ public sealed partial class AiPage : Page, IPaletteCommandTarget
             Error(_runs.ErrorMessage ?? string.Empty);
         }
 
-        SummaryText.Text = string.Create(
-            CultureInfo.CurrentCulture,
-            $"{_runs.Runs.Count} of your runs   {_runs.Active.Count} still going");
+        SummaryText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.CurrentCulture,
+                $"{_runs.Runs.Count} of your runs   {_runs.Active.Count} still going"),
+            _runs);
     }
 
     private void RenderApprovals()

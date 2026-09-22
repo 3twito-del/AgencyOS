@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AgencyOS.Contracts.Projects;
+using AgencyOS.Client.Presentation;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -12,7 +13,7 @@ namespace AgencyOS.Client.ViewModels;
 /// from development to production is the same project, and separate screens would
 /// make it look like a different record each time it moved.
 /// </remarks>
-public sealed class ProjectListViewModel : ViewModelBase
+public sealed class ProjectListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -70,6 +71,8 @@ public sealed class ProjectListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Projects.Count == 0;
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>How many of the listed projects still have an unfilled role.</summary>
     public int WithOpenRoles => Projects.Count(x => x.OpenRoleCount > 0);

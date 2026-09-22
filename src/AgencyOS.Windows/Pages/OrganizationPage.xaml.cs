@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Contracts;
 using AgencyOS.Contracts.Organizations;
 using AgencyOS.Windows.Dialogs;
@@ -91,6 +92,13 @@ public sealed partial class OrganizationPage : Page
         }
         catch (AgencyOsApiException failure)
         {
+            // The rows that arrived last time stay on screen - they were true when
+            // they arrived and throwing them away helps nobody - but the count
+            // stops claiming to describe the membership, because this load did not
+            // find out what it is. Only the list load clears it; a refused action
+            // says nothing about who the members are.
+            SummaryText.Text = SummaryAuthority.Unavailable;
+
             Refuse(failure);
         }
     }

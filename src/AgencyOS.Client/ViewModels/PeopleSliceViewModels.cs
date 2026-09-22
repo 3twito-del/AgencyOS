@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using AgencyOS.Contracts.PeopleSlice;
+using AgencyOS.Client.Presentation;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -146,7 +147,7 @@ public sealed class CompanyListViewModel : ViewModelBase
 /// Backed entirely by the server's Command Center query. Nothing here is computed
 /// on the client, so what the user sees is what the domain says.
 /// </remarks>
-public sealed class CommandCenterViewModel : ViewModelBase
+public sealed class CommandCenterViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
     private CommandCenterResponse? _view;
@@ -161,10 +162,23 @@ public sealed class CommandCenterViewModel : ViewModelBase
 
     public ObservableCollection<InteractionResponse> RecentInteractions { get; } = [];
 
+    /// <summary>
+    /// Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.
+    /// </summary>
+    /// <remarks>
+    /// The projection itself is the discriminator. Until it arrives the three
+    /// counts below have no answer, and <c>?? 0</c> used to supply one - a headline
+    /// reading <c>0 open tasks</c> over a workspace that had failed to load.
+    /// </remarks>
+    public bool HasLoaded => _view is not null;
+
+    /// <summary>Open tasks across the tenant. Meaningful only when <see cref="HasLoaded"/>.</summary>
     public int OpenTaskCount => _view?.OpenTaskCount ?? 0;
 
+    /// <summary>People on file. Meaningful only when <see cref="HasLoaded"/>.</summary>
     public int PeopleCount => _view?.PeopleCount ?? 0;
 
+    /// <summary>Companies on file. Meaningful only when <see cref="HasLoaded"/>.</summary>
     public int CompanyCount => _view?.CompanyCount ?? 0;
 
     public override bool IsEmpty =>

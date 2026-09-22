@@ -430,11 +430,13 @@ public sealed partial class TalentPage : Page, IPaletteCommandTarget
         ListBusy.Visibility = _list.IsLoading ? Visibility.Visible : Visibility.Collapsed;
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
-        ListEmpty.IsOpen = _list.IsEmpty;
+        ListEmpty.IsOpen = SummaryAuthority.Knows(_list) && _list.IsEmpty;
 
-        CountText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_list.Talent.Count} shown · {_list.ClientCount} client(s)");
+        CountText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_list.Talent.Count} shown · {_list.ClientCount} client(s)"),
+            _list);
     }
 
     /// <summary>Reflects the selected client's working surface.</summary>

@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace AgencyOS.Client.Presentation;
 
 /// <summary>
@@ -124,5 +126,63 @@ public static class SummaryAuthority
         }
 
         return total();
+    }
+
+    /// <summary>
+    /// What a headline slot shows when it has no figure.
+    /// </summary>
+    /// <remarks>
+    /// A dash, because the Command Center's numbers live in a fixed slot above a
+    /// one-word caption and <see cref="Unavailable"/> does not fit where <c>46</c>
+    /// was. The glyph is the product's existing way of writing "no value here", and
+    /// it reads as absence rather than as zero.
+    /// </remarks>
+    public const string NoFigure = "—";
+
+    /// <summary>
+    /// A headline number, or a dash where there is no answer yet.
+    /// </summary>
+    /// <param name="figure">Read only when the population is authoritative.</param>
+    /// <param name="population">The population the figure counts.</param>
+    public static string Figure(Func<int> figure, IAuthoritativePopulation population)
+    {
+        ArgumentNullException.ThrowIfNull(figure);
+
+        return Knows(population)
+            ? figure().ToString(CultureInfo.CurrentCulture)
+            : NoFigure;
+    }
+
+    /// <summary>
+    /// What a headline announces, which is never the bare glyph.
+    /// </summary>
+    /// <remarks>
+    /// A screen reader given <see cref="NoFigure"/> reads a punctuation mark or
+    /// nothing at all, so the seen and the spoken channels would disagree about
+    /// whether the product knows the answer. This says it in words, and keeps
+    /// loading apart from unavailable because they are different answers.
+    /// </remarks>
+    /// <param name="caption">What is being counted, in the words beneath the slot.</param>
+    /// <param name="figure">Read only when the population is authoritative.</param>
+    /// <param name="population">The population the figure counts.</param>
+    public static string Spoken(
+        string caption,
+        Func<int> figure,
+        IAuthoritativePopulation population)
+    {
+        ArgumentNullException.ThrowIfNull(figure);
+        ArgumentNullException.ThrowIfNull(population);
+
+        if (population.HasError || (!population.HasLoaded && !population.IsLoading))
+        {
+            return caption + " unavailable";
+        }
+
+        if (population.IsLoading)
+        {
+            return caption + " still loading";
+        }
+
+        return string.Create(CultureInfo.CurrentCulture, $"{figure()} {caption}");
     }
 }

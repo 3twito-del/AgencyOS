@@ -219,7 +219,7 @@ public sealed class MailboxListViewModel : ViewModelBase
 /// for is the question Outlook cannot answer: which of these bear on a deal, and
 /// which are still unattached to anything (ADR-0026).
 /// </remarks>
-public sealed class MessageListViewModel : ViewModelBase
+public sealed class MessageListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -297,6 +297,9 @@ public sealed class MessageListViewModel : ViewModelBase
         "Searches subjects and participants. Message bodies are not searched in this build.";
 
     public override bool IsEmpty => _loaded && Messages.Count == 0;
+
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>How many listed messages are attached to nothing.</summary>
     public int Unlinked => Messages.Count(x => x.LinkCount == 0);
@@ -782,7 +785,7 @@ public sealed class ComposeMessageViewModel : ViewModelBase
 /// about whether to try again, and an unknown outcome needs somebody to go and
 /// look at a mailbox (ADR-0028).
 /// </remarks>
-public sealed class OutboundListViewModel : ViewModelBase
+public sealed class OutboundListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -804,6 +807,8 @@ public sealed class OutboundListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Dispatches.Count == 0;
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>Dispatches whose outcome nobody knows. Never counted as failures.</summary>
     public int UnknownOutcomes => Dispatches.Count(x => x.State == "UnknownOutcome");

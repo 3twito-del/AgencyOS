@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AgencyOS.Contracts.Documents;
+using AgencyOS.Client.Presentation;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -102,7 +103,7 @@ public static class DocumentFormatting
 /// telling the operator they were gone.
 /// </para>
 /// </remarks>
-public sealed class DocumentListViewModel : ViewModelBase
+public sealed class DocumentListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -193,6 +194,8 @@ public sealed class DocumentListViewModel : ViewModelBase
         "Searches titles and references. File contents are not searched in this build.";
 
     public override bool IsEmpty => _loaded && Documents.Count == 0;
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>How many listed documents AgencyOS holds bytes for.</summary>
     public int WithContent => Documents.Count(x => x.HoldsContent);

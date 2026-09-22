@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AgencyOS.Contracts.Representation;
+using AgencyOS.Client.Presentation;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -13,7 +14,7 @@ namespace AgencyOS.Client.ViewModels;
 /// screens would make a former client look like a different person from the one
 /// the agency signed.
 /// </remarks>
-public sealed class TalentListViewModel : ViewModelBase
+public sealed class TalentListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -72,6 +73,8 @@ public sealed class TalentListViewModel : ViewModelBase
     }
 
     public override bool IsEmpty => _loaded && Talent.Count == 0;
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     /// <summary>How many of the listed people are currently clients.</summary>
     public int ClientCount => Talent.Count(x => x.IsClient);

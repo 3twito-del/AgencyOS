@@ -761,17 +761,19 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        MessageEmpty.IsOpen = _messages.IsEmpty;
+        MessageEmpty.IsOpen = SummaryAuthority.Knows(_messages) && _messages.IsEmpty;
 
         if (_messages.HasError)
         {
             Error(_messages.ErrorMessage ?? string.Empty);
         }
 
-        MessageSummary.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_messages.Messages.Count} messages   {_messages.Unlinked} unfiled   "
-            + $"{_messages.WithAttachments} with attachments");
+        MessageSummary.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_messages.Messages.Count} messages   {_messages.Unlinked} unfiled   "
+                + $"{_messages.WithAttachments} with attachments"),
+            _messages);
     }
 
     private void RenderMessageDetail()
@@ -828,7 +830,7 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        OutboundEmpty.IsOpen = _outbound.IsEmpty;
+        OutboundEmpty.IsOpen = SummaryAuthority.Knows(_outbound) && _outbound.IsEmpty;
 
         if (_outbound.HasError)
         {
@@ -836,10 +838,12 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
         }
 
         // Counted apart, always. An unknown outcome is not a failure.
-        OutboundSummary.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_outbound.Dispatches.Count} dispatches   {_outbound.Sent} sent   "
-            + $"{_outbound.UnknownOutcomes} with an unknown outcome   {_outbound.Failed} failed");
+        OutboundSummary.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_outbound.Dispatches.Count} dispatches   {_outbound.Sent} sent   "
+                + $"{_outbound.UnknownOutcomes} with an unknown outcome   {_outbound.Failed} failed"),
+            _outbound);
     }
 
     private void RenderDesk()
@@ -849,14 +853,21 @@ public sealed partial class CommunicationsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        DeskSummary.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_desk.UnknownOutcomeCount} unknown outcomes   {_desk.FailedSendCount} failed sends   "
-            + $"{_desk.DisconnectedAccountCount} mailboxes needing attention");
+        // Wave 2 gated the sentence below and left these three counts ungated, so
+        // the same panel could say "Whether anything needs attention is
+        // unavailable" directly beneath "0 unknown outcomes   0 failed sends".
+        // Both halves answer the same question and both need the same authority.
+        DeskSummary.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_desk.UnknownOutcomeCount} unknown outcomes   {_desk.FailedSendCount} failed sends   "
+                + $"{_desk.DisconnectedAccountCount} mailboxes needing attention"),
+            _desk);
 
-        DeskClear.IsOpen = !_desk.NeedsAttention;
+        // An all-clear is a business claim, so it waits for the same authority.
+        DeskClear.IsOpen = SummaryAuthority.Knows(_desk) && !_desk.NeedsAttention;
 
-        AttentionBar.IsOpen = _desk.UnknownOutcomeCount > 0;
+        AttentionBar.IsOpen = SummaryAuthority.Knows(_desk) && _desk.UnknownOutcomeCount > 0;
         AttentionBar.Message = OutboundFormatting.UnknownOutcomeExplanation;
 
         // Not a total, so it does not use SummaryAuthority.Of: the unavailable

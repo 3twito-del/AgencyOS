@@ -3,6 +3,8 @@ using System.Globalization;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.PeopleSlice;
 using Microsoft.UI.Xaml;
+using AgencyOS.Client.Presentation;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
@@ -104,8 +106,30 @@ public sealed partial class CommandCenterPage : Page, IPaletteCommandTarget
 
         EmptyBar.IsOpen = _viewModel.IsEmpty;
 
-        OpenTasksText.Text = _viewModel.OpenTaskCount.ToString(CultureInfo.CurrentCulture);
-        PeopleCountText.Text = _viewModel.PeopleCount.ToString(CultureInfo.CurrentCulture);
-        CompanyCountText.Text = _viewModel.CompanyCount.ToString(CultureInfo.CurrentCulture);
+        // The three headline numbers come from one projection and are tenant-wide,
+        // which the lists below deliberately are not - those are the overdue, the
+        // due-soon and the unscheduled windows. Until the projection arrives the
+        // counts had no answer and the view model supplied one anyway, so a
+        // workspace that failed to load announced 0 open tasks, 0 people and 0
+        // companies in a confident headline. A dash is what the slot shows now.
+        Headline(OpenTasksText, "open tasks", () => _viewModel.OpenTaskCount);
+        Headline(PeopleCountText, "people", () => _viewModel.PeopleCount);
+        Headline(CompanyCountText, "companies", () => _viewModel.CompanyCount);
+    }
+
+    /// <summary>
+    /// Writes one headline slot, and what it announces.
+    /// </summary>
+    /// <remarks>
+    /// The spoken form is not the glyph. A reader given an em dash hears
+    /// punctuation or silence, and the seen and the spoken channels would then
+    /// disagree about whether the product knows the answer.
+    /// </remarks>
+    private void Headline(TextBlock slot, string caption, Func<int> figure)
+    {
+        slot.Text = SummaryAuthority.Figure(figure, _viewModel!);
+
+        AutomationProperties.SetName(
+            slot, SummaryAuthority.Spoken(caption, figure, _viewModel!));
     }
 }

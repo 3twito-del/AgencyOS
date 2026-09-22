@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AgencyOS.Contracts.Ai;
+using AgencyOS.Client.Presentation;
 
 namespace AgencyOS.Client.ViewModels;
 
@@ -369,7 +370,7 @@ public sealed class AgentRunViewModel : ViewModelBase
 /// person, a deal or a confidence, and no permission in AgencyOS grants reading
 /// another person's questions (§52).
 /// </remarks>
-public sealed class AgentRunListViewModel : ViewModelBase
+public sealed class AgentRunListViewModel : ViewModelBase, IAuthoritativePopulation
 {
     private readonly IAgencyOsApi _api;
 
@@ -413,6 +414,8 @@ public sealed class AgentRunListViewModel : ViewModelBase
         [.. Runs.Where(x => AiFormatting.IsActive(x.Status))];
 
     public override bool IsEmpty => _loaded && Runs.Count == 0;
+    /// <summary>Whether a load has ever completed. See <see cref="IAuthoritativePopulation"/>.</summary>
+    public bool HasLoaded => _loaded;
 
     public Task LoadAsync(CancellationToken cancellationToken = default) =>
         RunAsync(

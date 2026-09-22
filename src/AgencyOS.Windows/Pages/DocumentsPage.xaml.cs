@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using AgencyOS.Client;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.Documents;
 using AgencyOS.Windows.Dialogs;
@@ -403,9 +404,11 @@ public sealed partial class DocumentsPage : Page, IPaletteCommandTarget
             return;
         }
 
-        SummaryText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_list.Unfiled} of {_list.Documents.Count} loaded documents are linked to nothing.");
+        SummaryText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_list.Unfiled} of {_list.Documents.Count} loaded documents are linked to nothing."),
+            _list);
     }
 
     private async Task Guarded(Func<Task> action)
@@ -450,12 +453,17 @@ public sealed partial class DocumentsPage : Page, IPaletteCommandTarget
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
 
-        ListEmpty.IsOpen = _list.IsEmpty;
+        // The notice needs the same authority the count does: after a successful
+        // empty load and then a failure, IsEmpty is still true and the notice would
+        // open beside the error bar.
+        ListEmpty.IsOpen = SummaryAuthority.Knows(_list) && _list.IsEmpty;
 
-        SummaryText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_list.Documents.Count} documents   {_list.WithContent} with the file held   "
-            + $"{_list.Sensitive} privileged or restricted   {_list.Unfiled} unfiled");
+        SummaryText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_list.Documents.Count} documents   {_list.WithContent} with the file held   "
+                + $"{_list.Sensitive} privileged or restricted   {_list.Unfiled} unfiled"),
+            _list);
     }
 
     private void RenderDetail()

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using AgencyOS.Client;
+using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Projects;
@@ -352,14 +353,16 @@ public sealed partial class ProjectsPage : Page, IPaletteCommandTarget
         }
 
         ListBusy.Visibility = _list.IsLoading ? Visibility.Visible : Visibility.Collapsed;
-        ListEmpty.IsOpen = _list.IsEmpty;
+        ListEmpty.IsOpen = SummaryAuthority.Knows(_list) && _list.IsEmpty;
 
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
 
-        SummaryText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{_list.Projects.Count} project(s); {_list.WithOpenRoles} with a role still to fill.");
+        SummaryText.Text = SummaryAuthority.Of(
+            () => string.Create(
+                CultureInfo.InvariantCulture,
+                $"{_list.Projects.Count} project(s); {_list.WithOpenRoles} with a role still to fill."),
+            _list);
     }
 
     private void RenderDetail()
