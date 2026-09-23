@@ -86,7 +86,7 @@ public sealed class OpportunityListViewModel : ViewModelBase, IAuthoritativePopu
                     ownerUserId: null,
                     AwaitingResponse,
                     string.IsNullOrWhiteSpace(Search) ? null : Search.Trim(),
-                    token)
+                    cancellationToken: token)
                 .ConfigureAwait(true);
 
             Opportunities.Clear();

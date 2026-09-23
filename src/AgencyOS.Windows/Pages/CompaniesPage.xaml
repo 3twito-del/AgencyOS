@@ -81,13 +81,43 @@
             <Grid Grid.Row="4" RowSpacing="6">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Timeline" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <!--
+                    What the agency believes about them. The intelligence
+                    workspace could always say which company a thesis was about;
+                    the company could not say what was claimed, and there was no
+                    way back.
+                -->
+                <TextBlock Grid.Row="0" Text="Intelligence" Style="{StaticResource BodyStrongTextBlockStyle}" />
 
                 <ListView
                     Grid.Row="1"
+                    x:Name="CompanyIntelligenceList"
+                    AutomationProperties.Name="Intelligence about this company"
+                    MaxHeight="150"
+                    SelectionMode="None"
+                    IsItemClickEnabled="True"
+                    ItemClick="OnIntelligenceInvoked">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <TextBlock Text="{Binding Title}" TextWrapping="Wrap" MaxLines="2" />
+                                <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}">
+                                    <Run Text="{Binding Kind}" /><Run Text=" - " /><Run Text="{Binding Status}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <TextBlock Grid.Row="2" Text="Timeline" Style="{StaticResource BodyStrongTextBlockStyle}" />
+
+                <ListView
+                    Grid.Row="3"
                     x:Name="TimelineList"
                           AutomationProperties.Name="Timeline"
                     SelectionMode="None"

@@ -131,6 +131,65 @@ internal sealed class FinanceQueries : IFinanceQueries
         return ToModel(obligation, context, billed);
     }
 
+    // ----------------------------------------------------- search by who owes
+
+    /// <summary>People whose name matches, as a subquery of identifiers.</summary>
+    /// <remarks>
+    /// <para>
+    /// Composed as a subquery rather than a nested <c>Any()</c>, the shape
+    /// <c>DealQueries</c> and <c>OpportunityQueries</c> both use, so a search stays
+    /// one statement of IN lists and the row limit still applies to an
+    /// already-filtered set.
+    /// </para>
+    /// <para>
+    /// The identifier is read with <c>EF.Property</c> rather than through
+    /// <c>PersonId.Value</c>, because the receivable stores a bare <c>Guid</c>
+    /// while <c>Person.Id</c> is a value-converted struct, and unwrapping that
+    /// struct inside a query does not translate.
+    /// </para>
+    /// </remarks>
+    private IQueryable<Guid> NamedPeople(OrganizationId organizationId, string pattern) =>
+        _context.People
+            .Where(p => p.OrganizationId == organizationId
+                && EF.Functions.ILike(p.DisplayName, pattern))
+            .Select(p => EF.Property<Guid>(p, "Id"));
+
+    /// <summary>
+    /// Contract parties whose name matches, however that party is identified.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A party is a company, a person, or a name recorded on the party itself
+    /// where neither exists in the directory. All three are how the product names
+    /// that party elsewhere - <c>PartyName</c> resolves them in exactly this
+    /// order - so all three are what an operator would type.
+    /// </para>
+    /// <para>
+    /// <c>ExternalName</c> is included because it is the party's recorded
+    /// identity, not prose about them, and <c>ContractQueries</c> already searches
+    /// it. Nothing here reaches into notes.
+    /// </para>
+    /// </remarks>
+    private IQueryable<Guid> NamedParties(OrganizationId organizationId, string pattern)
+    {
+        IQueryable<Domain.Companies.CompanyId?> companies = _context.Companies
+            .Where(c => c.OrganizationId == organizationId
+                && EF.Functions.ILike(c.Name, pattern))
+            .Select(c => (Domain.Companies.CompanyId?)c.Id);
+
+        IQueryable<Domain.People.PersonId?> people = _context.People
+            .Where(p => p.OrganizationId == organizationId
+                && EF.Functions.ILike(p.DisplayName, pattern))
+            .Select(p => (Domain.People.PersonId?)p.Id);
+
+        return _context.ContractParties
+            .Where(x => x.OrganizationId == organizationId
+                && (companies.Contains(x.CompanyId)
+                    || people.Contains(x.PersonId)
+                    || (x.ExternalName != null && EF.Functions.ILike(x.ExternalName, pattern))))
+            .Select(x => x.Id);
+    }
+
     // ------------------------------------------------------------ receivables
 
     public async Task<IReadOnlyList<ReceivableModel>> ListReceivablesAsync(
@@ -182,10 +241,19 @@ internal sealed class FinanceQueries : IFinanceQueries
 
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            string search = filter.Search.Trim();
+            string pattern = $"%{filter.Search.Trim()}%";
+
+            // An operator asking what somebody owes knows their name, not a
+            // reference number, and this matched a reference only (F-06). Both
+            // relationships are recorded on the row: the client the money is
+            // earned for, and the party who has to pay it.
+            IQueryable<Guid> namedClients = NamedPeople(organizationId, pattern);
+            IQueryable<Guid> namedPayers = NamedParties(organizationId, pattern);
 
             query = query.Where(x =>
-                x.Reference != null && EF.Functions.ILike(x.Reference, $"%{search}%"));
+                (x.Reference != null && EF.Functions.ILike(x.Reference, pattern))
+                || (x.ClientPersonId != null && namedClients.Contains(x.ClientPersonId.Value))
+                || namedPayers.Contains(x.PayerPartyId));
         }
 
         List<Receivable> receivables = await query
@@ -294,10 +362,15 @@ internal sealed class FinanceQueries : IFinanceQueries
 
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            string search = filter.Search.Trim();
+            string pattern = $"%{filter.Search.Trim()}%";
+
+            // The debtor is the one identity an invoice carries, and the row
+            // already shows their name. Searching for it found nothing (F-06).
+            IQueryable<Guid> namedDebtors = NamedParties(organizationId, pattern);
 
             query = query.Where(x =>
-                x.Reference != null && EF.Functions.ILike(x.Reference, $"%{search}%"));
+                (x.Reference != null && EF.Functions.ILike(x.Reference, pattern))
+                || namedDebtors.Contains(x.DebtorPartyId));
         }
 
         List<Invoice> invoices = await query

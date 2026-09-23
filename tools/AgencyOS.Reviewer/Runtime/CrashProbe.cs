@@ -473,6 +473,19 @@ internal sealed class CrashProbe
             case "pick":
                 return SelectRow(parts[1], 0, parts[2]);
 
+            // Activating a row, for lists whose rows are a way out of the page
+            // rather than a thing to select. Reality Closure wave 9 made a
+            // project's commercial work, an entity's intelligence and the
+            // intelligence desk's overdue research invokable; those rows carry
+            // the Invoke pattern and no selection pattern, which is what tells a
+            // screen reader they do something. row: cannot reach them, and
+            // changing a correct control to suit the harness is the thing this
+            // programme keeps refusing to do.
+            case "invoke":
+                return InvokeRow(
+                    parts[1],
+                    parts.Length > 2 ? int.Parse(parts[2], CultureInfo.InvariantCulture) : 0);
+
             default:
                 return "unknown step";
         }
@@ -537,12 +550,28 @@ internal sealed class CrashProbe
             return "no control with automation id '" + automationId + "'";
         }
 
+        // A composed control is named on its outer element and typed into an inner
+        // one: an AutoSuggestBox cannot take focus itself, so asking it to was an
+        // InvalidOperationException and the search box stayed empty. The operator
+        // clicks the thing with the name on it, so the harness targets that too
+        // and lands where the caret would.
+        if (!element.Current.IsKeyboardFocusable && Editable(element) is { } inner)
+        {
+            element = inner;
+        }
+
         element.SetFocus();
         Thread.Sleep(300);
 
         return "focused '" + automationId + "'; focus is on "
             + (_app.FocusedNode()?.Describe() ?? "nothing");
     }
+
+    /// <summary>The editable part of a composed control, when it has one.</summary>
+    private static AutomationElement? Editable(AutomationElement element) =>
+        element.FindFirst(
+            TreeScope.Descendants,
+            new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit));
 
     /// <summary>
     /// Replaces what a control holds, as <c>id=value</c>.
@@ -572,8 +601,16 @@ internal sealed class CrashProbe
             return "no control with automation id '" + automationId + "'";
         }
 
+        // The same composition problem as focus: the name is on the outer control
+        // and the text lives in an inner one.
         if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out object? pattern)
-            || pattern is not ValuePattern editable)
+            && Editable(element) is { } inner)
+        {
+            element = inner;
+            element.TryGetCurrentPattern(ValuePattern.Pattern, out pattern);
+        }
+
+        if (pattern is not ValuePattern editable)
         {
             return "'" + automationId + "' holds no value";
         }
@@ -859,6 +896,69 @@ internal sealed class CrashProbe
     /// By name as well as by position, because the fixture's lists are ordered by
     /// when a record last changed, and a probe that writes moves its own rows.
     /// </remarks>
+    /// <summary>
+    /// Activates a row, for lists whose rows are invoked rather than selected.
+    /// </summary>
+    /// <remarks>
+    /// The Invoke pattern is the accessibility claim that a row does something,
+    /// so asking for it is also a check that the claim is there: a row wired
+    /// through selection alone fails here, and says so.
+    /// </remarks>
+    private string InvokeRow(string listId, int index)
+    {
+        if (Rows(listId, index) is not { } found)
+        {
+            return _rowFailure;
+        }
+
+        if (!found.TryGetCurrentPattern(InvokePattern.Pattern, out object? pattern)
+            || pattern is not InvokePattern invoke)
+        {
+            return "row " + index.ToString(CultureInfo.InvariantCulture) + " of '" + listId
+                + "' exposes no invoke pattern";
+        }
+
+        invoke.Invoke();
+
+        return "invoked row " + index.ToString(CultureInfo.InvariantCulture) + " of '" + listId
+            + "': '" + found.Current.Name + "'";
+    }
+
+    /// <summary>Why the last row lookup found nothing.</summary>
+    private string _rowFailure = string.Empty;
+
+    /// <summary>One row of a named list, or null with <see cref="_rowFailure"/> set.</summary>
+    private AutomationElement? Rows(string listId, int index)
+    {
+        AutomationElement? list = _app.Find(listId);
+
+        if (list is null)
+        {
+            _rowFailure = "no list with automation id '" + listId + "'";
+
+            return null;
+        }
+
+        AutomationElement[] rows =
+        [
+            .. list.FindAll(
+                TreeScope.Descendants,
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem))
+                .Cast<AutomationElement>(),
+        ];
+
+        if (rows.Length <= index)
+        {
+            _rowFailure = "'" + listId + "' has "
+                + rows.Length.ToString(CultureInfo.InvariantCulture) + " row(s); row "
+                + index.ToString(CultureInfo.InvariantCulture) + " does not exist";
+
+            return null;
+        }
+
+        return rows[index];
+    }
+
     private string SelectRow(string listId, int index, string? prefix)
     {
         AutomationElement? list = _app.Find(listId);

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using AgencyOS.Client;
 using AgencyOS.Client.Presentation;
 using AgencyOS.Client.ViewModels;
+using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Legal;
+using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.PeopleSlice;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Windows.Dialogs;
@@ -54,10 +57,49 @@ public sealed partial class ProjectsPage : Page, IPaletteCommandTarget
             MaterialList.ItemsSource = _detail.Materials;
             PackageList.ItemsSource = _detail.Packages;
             HistoryList.ItemsSource = _detail.History;
+            PursuitList.ItemsSource = _detail.Pursuits;
+            ProjectDealList.ItemsSource = _detail.Deals;
+            ProjectContractList.ItemsSource = _detail.Contracts;
         }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e) => _ = LoadAsync();
+
+    // The return path a project had none of. Each row names a record another
+    // workspace owns, so the row opens that workspace on that record rather than
+    // trying to render somebody else's detail here (F-17).
+
+    private void OnPursuitInvoked(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is OpportunitySummaryResponse pursuit)
+        {
+            Open("pipeline", pursuit.Id);
+        }
+    }
+
+    private void OnDealInvoked(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is DealSummaryResponse deal)
+        {
+            Open("deals", deal.Id);
+        }
+    }
+
+    private void OnContractInvoked(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is ContractSummaryResponse contract)
+        {
+            Open("contracts", contract.Id);
+        }
+    }
+
+    private static void Open(string workspace, Guid record)
+    {
+        if (App.Window is MainWindow window)
+        {
+            window.Reveal(workspace, record);
+        }
+    }
 
     public void Execute(string commandId)
     {

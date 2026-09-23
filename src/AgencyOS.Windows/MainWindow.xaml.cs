@@ -106,6 +106,22 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    /// <summary>Opens a workspace on one record rather than on its list.</summary>
+    /// <remarks>
+    /// The page is navigated to first, exactly as the palette does it, so there is
+    /// one navigation state and the pane agrees with the page. The record is then
+    /// handed to whatever is showing, which resolves it against its own data.
+    /// </remarks>
+    internal void Reveal(string workspace, Guid record, string? kind = null)
+    {
+        SelectWorkspace(workspace);
+
+        if (ContentFrame.Content is IRecordTarget target)
+        {
+            target.Reveal(record, kind);
+        }
+    }
+
     /// <summary>
     /// Selects a workspace by tag, never by position.
     /// </summary>
@@ -602,6 +618,47 @@ public sealed partial class MainWindow : Window
 
         SyncText.Text = _sync.StatusLine;
     }
+}
+
+
+/// <summary>A page that can open itself on one record rather than on its list.</summary>
+/// <remarks>
+/// <para>
+/// The return path a project had none of. A project listed its roles, companies,
+/// materials and packages and said nothing about the pursuit, deal or contract
+/// that its commercial life consists of, so an operator standing on it had to
+/// remember a name and run a fresh search on another workspace to get anywhere
+/// (F-17).
+/// </para>
+/// <para>
+/// Deliberately the smallest thing that answers it: a workspace and an
+/// identifier, resolved by the page that owns that record. No navigation
+/// architecture, no shared graph, no record passed between pages - the
+/// destination fetches its own truth, as it already did.
+/// </para>
+/// </remarks>
+public interface IRecordTarget
+{
+    /// <summary>
+    /// Selects the record, once whatever it is listed in has loaded.
+    /// </summary>
+    /// <remarks>
+    /// A page may be asked before its list arrives, because navigation is
+    /// immediate and loading is not. Implementations remember the request and
+    /// honour it when the rows land, rather than dropping it.
+    /// </remarks>
+    void Reveal(Guid record);
+
+    /// <summary>
+    /// The same, where the caller also knows what kind of record it is.
+    /// </summary>
+    /// <remarks>
+    /// One workspace holds several kinds of record on several tabs — a thesis, a
+    /// signal and a research case are not interchangeable — and the surface
+    /// sending the operator there already knows which it means. Pages that hold
+    /// one kind ignore it, which is what the default does.
+    /// </remarks>
+    void Reveal(Guid record, string? kind) => Reveal(record);
 }
 
 /// <summary>A page that can carry out palette commands aimed at its own context.</summary>

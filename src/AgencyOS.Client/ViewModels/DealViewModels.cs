@@ -129,7 +129,7 @@ public sealed class DealListViewModel : ViewModelBase, IAuthoritativePopulation
                     TermsAgreedOnly,
                     string.IsNullOrWhiteSpace(Search) ? null : Search.Trim(),
                     openOnly,
-                    token)
+                    cancellationToken: token)
                 .ConfigureAwait(true);
 
             Deals.Clear();

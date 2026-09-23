@@ -25,6 +25,14 @@ public sealed partial class PeoplePage : Page, IPaletteCommandTarget
     private readonly PeopleListViewModel? _list;
     private readonly PersonDetailViewModel? _detail;
 
+    /// <summary>What the agency believes about the person being read.</summary>
+    /// <remarks>
+    /// The other half of a relationship the product only recorded in one
+    /// direction: intelligence names its subjects, and the subjects could not
+    /// name their intelligence.
+    /// </remarks>
+    private readonly EntityIntelligenceViewModel? _intelligence;
+
     public PeoplePage()
     {
         InitializeComponent();
@@ -37,8 +45,19 @@ public sealed partial class PeoplePage : Page, IPaletteCommandTarget
             _list.PropertyChanged += (_, _) => RenderList();
             _detail.PropertyChanged += (_, _) => RenderDetail();
 
+            _intelligence = new EntityIntelligenceViewModel(api);
+
             PeopleList.ItemsSource = _list.People;
             TimelineList.ItemsSource = _detail.Timeline;
+            PersonIntelligenceList.ItemsSource = _intelligence.Items;
+        }
+    }
+
+    private void OnIntelligenceInvoked(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is EntityIntelligenceRow row && App.Window is MainWindow window)
+        {
+            window.Reveal("intelligence", row.Id, row.Kind);
         }
     }
 
@@ -126,6 +145,14 @@ public sealed partial class PeoplePage : Page, IPaletteCommandTarget
 
         await _detail.LoadAsync(personId).ConfigureAwait(true);
         RenderDetail();
+
+        if (_intelligence is not null)
+        {
+            // A person is a Person subject. They may also hold a talent profile,
+            // which is a different subject with its own intelligence, and reading
+            // one as the other would put claims about a career under a name.
+            await _intelligence.LoadAsync("Person", personId).ConfigureAwait(true);
+        }
     }
 
     private void RenderDetail()

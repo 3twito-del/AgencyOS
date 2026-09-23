@@ -122,7 +122,7 @@ public sealed class ContractListViewModel : ViewModelBase, IAuthoritativePopulat
                     EffectiveOnly,
                     DifferencesOnly,
                     string.IsNullOrWhiteSpace(Search) ? null : Search.Trim(),
-                    token)
+                    cancellationToken: token)
                 .ConfigureAwait(true);
 
             Contracts.Clear();

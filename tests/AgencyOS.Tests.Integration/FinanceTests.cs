@@ -1186,6 +1186,108 @@ public sealed class FinanceTests
 
     // ------------------------------------------------------------- fixtures
 
+    // ------------------------------------------------- finding what is owed
+
+    /// <summary>
+    /// A receivable is found by the client it earns for and by the party that
+    /// owes it.
+    /// </summary>
+    /// <remarks>
+    /// F-06. These matched a reference string and nothing else, so an operator
+    /// asked what somebody owed had to already know a reference number - while the
+    /// row in front of them showed the payer's name. Both identities are recorded
+    /// on the receivable: <c>ClientPersonId</c> and <c>PayerPartyId</c>.
+    /// </remarks>
+    [Theory]
+    [InlineData("Sallow")]
+    [InlineData("Northgate")]
+    public async Task AReceivableIsFoundByTheHumanItConcerns(string clue)
+    {
+        Fixture f = await SetUpAsync($"f06-recv-{clue}");
+
+        Guid receivableId = await RaiseReceivableAsync(f, await RecordObligationAsync(f, 250_000m));
+
+        ReceivableResponse[] found = await GetAsync<ReceivableResponse[]>(
+            f.Client, $"{f.Root}/receivables?search={clue}");
+
+        Assert.Equal(receivableId, Assert.Single(found).Id);
+    }
+
+    /// <summary>
+    /// A name with no relationship to the receivable does not find it.
+    /// </summary>
+    /// <remarks>
+    /// The assertion that makes the one above mean something. This person exists
+    /// in the same tenant, is neither the client nor the payer, and must not
+    /// surface the money.
+    /// </remarks>
+    [Fact]
+    public async Task AReceivableIsNotFoundByAnUnrelatedHuman()
+    {
+        Fixture f = await SetUpAsync("f06-recv-stranger");
+
+        await RaiseReceivableAsync(f, await RecordObligationAsync(f, 250_000m));
+
+        await CreatedAsync<PersonDetailResponse>(f.Client.PostAsJsonAsync(
+            $"{f.Root}/people", new CreatePersonRequest("Thessaly Vane")));
+
+        Assert.Empty(await GetAsync<ReceivableResponse[]>(
+            f.Client, $"{f.Root}/receivables?search=Thessaly"));
+    }
+
+    /// <summary>A reference still finds what it always found.</summary>
+    [Fact]
+    public async Task AReceivableIsStillFoundByItsReference()
+    {
+        Fixture f = await SetUpAsync("f06-recv-ref");
+
+        Guid receivableId = await RaiseReceivableAsync(f, await RecordObligationAsync(f, 250_000m));
+
+        ReceivableResponse receivable = await ReceivableAsync(f, receivableId);
+
+        ReceivableResponse[] found = await GetAsync<ReceivableResponse[]>(
+            f.Client, $"{f.Root}/receivables?search={receivable.Reference}");
+
+        Assert.Equal(receivableId, Assert.Single(found).Id);
+    }
+
+    /// <summary>
+    /// An invoice is found by the party it bills.
+    /// </summary>
+    /// <remarks>
+    /// The debtor is the one identity an invoice carries, and the row already
+    /// showed their name while searching for it found nothing.
+    /// </remarks>
+    [Fact]
+    public async Task AnInvoiceIsFoundByItsDebtor()
+    {
+        Fixture f = await SetUpAsync("f06-inv");
+
+        Guid receivableId = await RaiseReceivableAsync(f, await RecordObligationAsync(f, 250_000m));
+
+        RecordInvoiceResponse invoice = await PostAsync<RecordInvoiceResponse>(
+            f,
+            $"contracts/{f.ContractId}/invoices",
+            new RecordInvoiceRequest(
+                f.StudioPartyId,
+                "USD",
+                [new InvoiceLineRequest(receivableId, Money(250_000m), "Guaranteed compensation")],
+                Reference: "AG-2027-009"));
+
+        InvoiceResponse[] found = await GetAsync<InvoiceResponse[]>(
+            f.Client, $"{f.Root}/invoices?search=Northgate");
+
+        Assert.Equal(invoice.InvoiceId, Assert.Single(found).Id);
+
+        Assert.Empty(await GetAsync<InvoiceResponse[]>(
+            f.Client, $"{f.Root}/invoices?search=Thessaly"));
+
+        InvoiceResponse[] byReference = await GetAsync<InvoiceResponse[]>(
+            f.Client, $"{f.Root}/invoices?search=AG-2027-009");
+
+        Assert.Equal(invoice.InvoiceId, Assert.Single(byReference).Id);
+    }
+
     private sealed record Fixture(
         SeededActor Actor,
         HttpClient Client,

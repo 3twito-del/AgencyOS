@@ -248,6 +248,73 @@
                     </ListView>
                 </TabViewItem>
 
+                <!--
+                    What the project became. It listed its roles, companies,
+                    materials and packages and said nothing about the pursuit,
+                    deal or contract they exist for, so an operator had to
+                    remember a name and search another workspace (F-17). Rows are
+                    invokable, so the answer is one keystroke rather than a
+                    second search.
+                -->
+                <TabViewItem Header="Commercial" IsClosable="False">
+                    <ScrollViewer>
+                        <StackPanel Spacing="10" Padding="4,8">
+                            <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Text="Select a row to open it in its own workspace." />
+
+                            <TextBlock Text="Pursuits" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="PursuitList" AutomationProperties.Name="Pursuits"
+                                      SelectionMode="None" IsItemClickEnabled="True"
+                                      ItemClick="OnPursuitInvoked" MaxHeight="190">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                            <TextBlock Text="{Binding Name}" />
+                                            <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock Text="Deals" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="ProjectDealList" AutomationProperties.Name="Deals"
+                                      SelectionMode="None" IsItemClickEnabled="True"
+                                      ItemClick="OnDealInvoked" MaxHeight="190">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                            <TextBlock Text="{Binding Name}" />
+                                            <TextBlock Text="{Binding Converter={StaticResource Party}, ConverterParameter=CounterpartyDisplayName}"
+                                                       Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" />
+                                            <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock Text="Contracts" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <ListView x:Name="ProjectContractList" AutomationProperties.Name="Contracts"
+                                      SelectionMode="None" IsItemClickEnabled="True"
+                                      ItemClick="OnContractInvoked" MaxHeight="190">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                            <TextBlock Text="{Binding Title}" />
+                                            <TextBlock Text="{Binding Converter={StaticResource Party}, ConverterParameter=CounterpartyDisplayName}"
+                                                       Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" />
+                                            <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
                 <TabViewItem Header="Activity" IsClosable="False">
                     <ListView x:Name="HistoryList"
                               AutomationProperties.Name="History" SelectionMode="None" Padding="4">

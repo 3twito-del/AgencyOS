@@ -42,7 +42,7 @@ namespace AgencyOS.Windows.Pages;
 /// revocation can take back (§51).
 /// </para>
 /// </remarks>
-public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
+public sealed partial class IntelligencePage : Page, IPaletteCommandTarget, IRecordTarget
 {
     private readonly IAgencyOsApi? _api;
 
@@ -242,6 +242,137 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
     private void OnTabChanged(object sender, SelectionChangedEventArgs e) =>
         _ = LoadCurrentAsync();
 
+
+    /// <summary>
+    /// Opens the case the desk is reporting overdue work on.
+    /// </summary>
+    /// <remarks>
+    /// The desk said research had overdue work and gave no way to reach it, so an
+    /// operator could see that something needed doing and still had to already
+    /// know which case it was - blind testing found the tasks only after
+    /// selecting the right one (J10). The task itself is not duplicated here; the
+    /// row simply leads to the case that owns it.
+    /// </remarks>
+    private void OnOverdueResearchInvoked(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is not ResearchCaseResponse overdue)
+        {
+            return;
+        }
+
+        // The same route an entity's intelligence row takes, from inside the
+        // workspace rather than from outside it.
+        Reveal(overdue.Id, "Research");
+    }
+
+    private static void Choose(ComboBox box, string tag)
+    {
+        foreach (object item in box.Items)
+        {
+            if (item is ComboBoxItem { Tag: string candidate }
+                && string.Equals(candidate, tag, StringComparison.Ordinal))
+            {
+                box.SelectedItem = item;
+
+                return;
+            }
+        }
+    }
+
+    /// <summary>Where the Research tab sits, as <see cref="LoadCurrentAsync"/> counts.</summary>
+    private const int ResearchTabIndex = 7;
+
+    /// <summary>The record another workspace asked this page to open on.</summary>
+    private (Guid Id, string? Kind)? _reveal;
+
+    /// <inheritdoc />
+    public void Reveal(Guid record) => Reveal(record, null);
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// <para>
+    /// The return path a person or a company had none of. Intelligence records
+    /// carry their subjects and render them, so the workspace could always say
+    /// who a thesis was about; the entity could not say what was believed about
+    /// it, and there was no way back.
+    /// </para>
+    /// <para>
+    /// The kind picks the tab, because a thesis, a signal and a research case are
+    /// different claims kept deliberately apart. Without one there is nothing
+    /// sensible to do, so the page stays where it is rather than guessing.
+    /// </para>
+    /// </remarks>
+    public void Reveal(Guid record, string? kind)
+    {
+        if (TabFor(kind) is not { } tab)
+        {
+            return;
+        }
+
+        _reveal = (record, kind);
+
+        // An operator arriving from an entity is asking for one record, and these
+        // lists default to the live ones.
+        switch (kind)
+        {
+            case "Thesis":
+                Choose(ThesisStatusBox, string.Empty);
+                break;
+
+            case "Research":
+                Choose(ResearchStatusBox, string.Empty);
+                ResearchSearchBox.Text = string.Empty;
+                break;
+
+            default:
+                break;
+        }
+
+        Tabs.SelectedIndex = tab;
+    }
+
+    /// <summary>Which tab owns a kind of record, or nothing for an unknown one.</summary>
+    private static int? TabFor(string? kind) => kind switch
+    {
+        "Signal" => 1,
+        "Thesis" => 3,
+        "Research" => ResearchTabIndex,
+        _ => null,
+    };
+
+    /// <summary>Selects the requested record, once its row exists.</summary>
+    private void SelectRevealed()
+    {
+        if (_reveal is not { } wanted)
+        {
+            return;
+        }
+
+        switch (wanted.Kind)
+        {
+            case "Signal" when _signals?.Signals.FirstOrDefault(x => x.Id == wanted.Id) is { } signal:
+                _reveal = null;
+                SignalList.SelectedItem = signal;
+                SignalList.ScrollIntoView(signal);
+                break;
+
+            case "Thesis" when _theses?.Theses.FirstOrDefault(x => x.Id == wanted.Id) is { } thesis:
+                _reveal = null;
+                ThesisList.SelectedItem = thesis;
+                ThesisList.ScrollIntoView(thesis);
+                break;
+
+            case "Research" when _research?.Cases.FirstOrDefault(x => x.Id == wanted.Id) is { } found:
+                _reveal = null;
+                ResearchList.SelectedItem = found;
+                ResearchList.ScrollIntoView(found);
+                break;
+
+            default:
+                break;
+        }
+    }
+
     // -------------------------------------------------------------- render
 
     private void RenderDesk()
@@ -282,6 +413,10 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
         Show(SignalBusy, _signals.IsLoading);
         SignalEmpty.IsOpen = _signals.IsEmpty;
         ShowError(_signals.ErrorMessage);
+
+        SelectRevealed();
+
+        SelectRevealed();
     }
 
     private void RenderSignalDetail()
@@ -346,6 +481,8 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
         Show(ThesisBusy, _theses.IsLoading);
         ThesisEmpty.IsOpen = _theses.IsEmpty;
         ShowError(_theses.ErrorMessage);
+
+        SelectRevealed();
     }
 
     private void RenderThesisDetail()
@@ -483,6 +620,8 @@ public sealed partial class IntelligencePage : Page, IPaletteCommandTarget
         Show(ResearchBusy, _research.IsLoading);
         ResearchEmpty.IsOpen = _research.IsEmpty;
         ShowError(_research.ErrorMessage);
+
+        SelectRevealed();
     }
 
     private void RenderResearchDetail()

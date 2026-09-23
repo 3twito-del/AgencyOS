@@ -1292,6 +1292,7 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         Guid? ownerUserId = null,
         bool awaitingResponse = false,
         string? search = null,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default)
     {
         Throw();
@@ -1663,6 +1664,7 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         bool termsAgreed = false,
         string? search = null,
         bool openOnly = false,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default)
     {
         Throw();
@@ -2147,6 +2149,7 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         bool effectiveOnly = false,
         bool hasUnresolvedReconciliation = false,
         string? search = null,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default)
     {
         Throw();

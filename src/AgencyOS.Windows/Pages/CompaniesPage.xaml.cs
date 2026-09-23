@@ -27,6 +27,25 @@ public sealed partial class CompaniesPage : Page, IPaletteCommandTarget
             _list = new CompanyListViewModel(api);
             _list.PropertyChanged += (_, _) => RenderList();
             CompanyList.ItemsSource = _list.Companies;
+
+            _intelligence = new EntityIntelligenceViewModel(api);
+            CompanyIntelligenceList.ItemsSource = _intelligence.Items;
+        }
+    }
+
+    /// <summary>What the agency believes about the company being read.</summary>
+    /// <remarks>
+    /// The other half of a relationship the product only recorded in one
+    /// direction: intelligence names its subjects, and the subjects could not
+    /// name their intelligence.
+    /// </remarks>
+    private readonly EntityIntelligenceViewModel? _intelligence;
+
+    private void OnIntelligenceInvoked(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is EntityIntelligenceRow row && App.Window is MainWindow window)
+        {
+            window.Reveal("intelligence", row.Id, row.Kind);
         }
     }
 
@@ -117,6 +136,11 @@ public sealed partial class CompaniesPage : Page, IPaletteCommandTarget
             DetailEmpty.IsOpen = false;
 
             TimelineList.ItemsSource = await api.GetCompanyTimelineAsync(companyId).ConfigureAwait(true);
+
+            if (_intelligence is not null)
+            {
+                await _intelligence.LoadAsync("Company", companyId).ConfigureAwait(true);
+            }
         }
         catch (AgencyOsApiException ex)
         {

@@ -131,6 +131,7 @@
                                        Style="{StaticResource BodyStrongTextBlockStyle}" />
                             <ListView x:Name="OverdueResearchList"
                                       AutomationProperties.Name="Research with overdue work" MaxHeight="160"
+                                      IsItemClickEnabled="True" ItemClick="OnOverdueResearchInvoked"
                                       SelectionMode="Single" DisplayMemberPath="Question" />
                         </StackPanel>
                     </StackPanel>

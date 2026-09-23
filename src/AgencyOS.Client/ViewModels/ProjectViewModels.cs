@@ -1,5 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using AgencyOS.Contracts.Deals;
+using AgencyOS.Contracts.Legal;
+using AgencyOS.Contracts.Opportunities;
 using AgencyOS.Contracts.Projects;
 using AgencyOS.Client.Presentation;
 
@@ -153,6 +156,30 @@ public sealed class ProjectDetailViewModel : ViewModelBase
     /// </remarks>
     public ObservableCollection<AttachmentResponse> Attachments { get; } = [];
 
+    /// <summary>The pursuits that carry this project as their subject.</summary>
+    /// <remarks>
+    /// <para>
+    /// A project listed its roles, companies, materials and packages and said
+    /// nothing about the commercial work they exist for, so an operator standing
+    /// on it had to remember a name and search another workspace to get anywhere.
+    /// Phase III called it a destination that points nowhere (F-17).
+    /// </para>
+    /// <para>
+    /// The relationships were already stored and the endpoints already accepted
+    /// the filter. Nothing asked. These read the shipped lists through their own
+    /// published <c>projectId</c> parameter rather than enriching the project
+    /// read model, so no published shape changes and the destination stays the
+    /// authority on its own rows.
+    /// </para>
+    /// </remarks>
+    public ObservableCollection<OpportunitySummaryResponse> Pursuits { get; } = [];
+
+    /// <inheritdoc cref="Pursuits" />
+    public ObservableCollection<DealSummaryResponse> Deals { get; } = [];
+
+    /// <inheritdoc cref="Pursuits" />
+    public ObservableCollection<ContractSummaryResponse> Contracts { get; } = [];
+
     public override bool IsEmpty => _loaded && Project is null;
 
     /// <summary>Roles nothing currently holds. What the project still needs.</summary>
@@ -210,6 +237,27 @@ public sealed class ProjectDetailViewModel : ViewModelBase
                 .ConfigureAwait(true);
 
             Replace(History, history);
+
+            // Unfiltered on purpose. A project's commercial history includes the
+            // pursuits that closed and the contracts that have run out, and an
+            // operator asking what became of it is asking about those too.
+            Replace(
+                Pursuits,
+                await _api
+                    .ListOpportunitiesAsync(projectId: projectId, cancellationToken: token)
+                    .ConfigureAwait(true));
+
+            Replace(
+                Deals,
+                await _api
+                    .ListDealsAsync(projectId: projectId, cancellationToken: token)
+                    .ConfigureAwait(true));
+
+            Replace(
+                Contracts,
+                await _api
+                    .ListContractsAsync(projectId: projectId, cancellationToken: token)
+                    .ConfigureAwait(true));
 
             _loaded = true;
 

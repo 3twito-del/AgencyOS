@@ -533,12 +533,18 @@ public partial interface IAgencyOsApi
     /// <param name="awaitingResponse">Only pursuits with a reply overdue.</param>
     /// <param name="search">Substring match on name and description.</param>
     /// <param name="cancellationToken">Cancellation.</param>
+    /// <param name="projectId">
+    /// Pursuits carrying this project as a subject. The relationship is already
+    /// stored and the endpoint already accepts the filter; nothing ever asked for
+    /// it, which is why a project was a destination that pointed nowhere (F-17).
+    /// </param>
     Task<IReadOnlyList<OpportunitySummaryResponse>> ListOpportunitiesAsync(
         string? status = null,
         string? kind = null,
         Guid? ownerUserId = null,
         bool awaitingResponse = false,
         string? search = null,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default);
 
     Task<OpportunityDetailResponse> GetOpportunityAsync(
@@ -628,6 +634,7 @@ public partial interface IAgencyOsApi
         bool termsAgreed = false,
         string? search = null,
         bool openOnly = false,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default);
 
     Task<DealDetailResponse> GetDealAsync(
@@ -729,6 +736,7 @@ public partial interface IAgencyOsApi
         bool effectiveOnly = false,
         bool hasUnresolvedReconciliation = false,
         string? search = null,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default);
 
     Task<ContractDetailResponse> GetContractAsync(
@@ -2358,9 +2366,15 @@ public sealed partial class AgencyOsApiClient : IAgencyOsApi
         Guid? ownerUserId = null,
         bool awaitingResponse = false,
         string? search = null,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default)
     {
         List<string> query = [];
+
+        if (projectId is { } project)
+        {
+            query.Add($"projectId={project}");
+        }
 
         if (!string.IsNullOrWhiteSpace(status))
         {
@@ -2558,9 +2572,15 @@ public sealed partial class AgencyOsApiClient : IAgencyOsApi
         bool termsAgreed = false,
         string? search = null,
         bool openOnly = false,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default)
     {
         List<string> query = [];
+
+        if (projectId is { } project)
+        {
+            query.Add($"projectId={project}");
+        }
 
         if (openOnly)
         {
@@ -2747,9 +2767,15 @@ public sealed partial class AgencyOsApiClient : IAgencyOsApi
         bool effectiveOnly = false,
         bool hasUnresolvedReconciliation = false,
         string? search = null,
+        Guid? projectId = null,
         CancellationToken cancellationToken = default)
     {
         List<string> query = [];
+
+        if (projectId is { } project)
+        {
+            query.Add($"projectId={project}");
+        }
 
         if (!string.IsNullOrWhiteSpace(status))
         {

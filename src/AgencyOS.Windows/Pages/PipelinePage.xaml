@@ -45,7 +45,7 @@
             </StackPanel>
 
             <StackPanel Grid.Row="2" Spacing="6">
-                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Name or description"
+                <AutoSuggestBox x:Name="SearchBox" PlaceholderText="Name, or a person or company it concerns"
                                 QuerySubmitted="OnSearchSubmitted" />
                 <ProgressBar x:Name="ListBusy"
                              AutomationProperties.Name="List progress" IsIndeterminate="True" Visibility="Collapsed" />

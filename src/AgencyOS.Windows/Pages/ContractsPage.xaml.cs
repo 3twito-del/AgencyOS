@@ -35,7 +35,7 @@ namespace AgencyOS.Windows.Pages;
 /// more carry a standing note saying what AgencyOS actually did.
 /// </para>
 /// </remarks>
-public sealed partial class ContractsPage : Page, IPaletteCommandTarget
+public sealed partial class ContractsPage : Page, IPaletteCommandTarget, IRecordTarget
 {
     private readonly ContractListViewModel? _list;
     private readonly ContractDetailViewModel? _detail;
@@ -160,6 +160,68 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget
         await _list.LoadAsync().ConfigureAwait(true);
 
         Render();
+        SelectRevealed();
+    }
+
+    /// <summary>The record another workspace asked this page to open on.</summary>
+    private Guid? _reveal;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The filters are widened first, because an operator arriving from a project
+    /// is asking for one contract and not for whatever this page was last
+    /// filtered to.
+    /// </remarks>
+    public void Reveal(Guid record)
+    {
+        _reveal = record;
+
+        Choose(StatusBox, string.Empty);
+        Choose(KindBox, string.Empty);
+        AwaitingBox.IsChecked = false;
+        EffectiveBox.IsChecked = false;
+        DifferencesBox.IsChecked = false;
+        SearchBox.Text = string.Empty;
+
+        _ = LoadAsync();
+    }
+
+    /// <summary>Selects the requested record, once its row exists.</summary>
+    private void SelectRevealed()
+    {
+        if (_reveal is not { } wanted || _list is null)
+        {
+            return;
+        }
+
+        if (_list.Contracts.FirstOrDefault(x => x.Id == wanted) is not { } row)
+        {
+            ListError.Message =
+                "That contract is not in the rows loaded here. Search for it by title.";
+            ListError.IsOpen = true;
+            _reveal = null;
+
+            return;
+        }
+
+        _reveal = null;
+
+        ContractList.SelectedItem = row;
+        ContractList.ScrollIntoView(row);
+    }
+
+    private static void Choose(ComboBox box, string tag)
+    {
+        foreach (object item in box.Items)
+        {
+            if (item is ComboBoxItem { Tag: string candidate }
+                && string.Equals(candidate, tag, StringComparison.Ordinal))
+            {
+                box.SelectedItem = item;
+
+                return;
+            }
+        }
     }
 
     private void OnFilterChanged(object sender, RoutedEventArgs e) => _ = LoadAsync();

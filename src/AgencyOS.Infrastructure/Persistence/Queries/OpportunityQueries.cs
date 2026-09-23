@@ -67,11 +67,50 @@ internal sealed class OpportunityQueries : IOpportunityQueries
         {
             string pattern = $"%{filter.Search.Trim()}%";
 
+            // The people and companies this pursuit actually concerns. An
+            // opportunity exists to place a human, and it was the one commercial
+            // surface that could not be found by that human's name while the deal
+            // it becomes and the contract that follows both could - through joins
+            // DealQueries already writes for exactly this purpose (F-06).
+            //
+            // Composed as subqueries of identifiers rather than nested Any(), the
+            // shape DealQueries uses, so this stays one statement of IN lists and
+            // the limit still applies to an already-filtered set.
+            IQueryable<Domain.People.PersonId?> named = _context.People
+                .Where(p => p.OrganizationId == organizationId
+                    && EF.Functions.ILike(p.DisplayName, pattern))
+                .Select(p => (Domain.People.PersonId?)p.Id);
+
+            IQueryable<Domain.Companies.CompanyId?> namedCompanies = _context.Companies
+                .Where(c => c.OrganizationId == organizationId
+                    && EF.Functions.ILike(c.Name, pattern))
+                .Select(c => (Domain.Companies.CompanyId?)c.Id);
+
+            IQueryable<Domain.Talent.TalentProfileId?> namedProfiles = _context.TalentProfiles
+                .Where(t => t.OrganizationId == organizationId
+                    && named.Contains(t.PersonId))
+                .Select(t => (Domain.Talent.TalentProfileId?)t.Id);
+
+            // Who the pursuit is about.
+            IQueryable<OpportunityId> aboutThem = _context.OpportunitySubjects
+                .Where(s => namedProfiles.Contains(s.TalentProfileId))
+                .Select(s => s.OpportunityId);
+
+            // Who it is being taken to: the company approached, a person
+            // approached directly, or the individual dealt with at a company.
+            IQueryable<OpportunityId> approaching = _context.OpportunityTargets
+                .Where(t => namedCompanies.Contains(t.CompanyId)
+                    || named.Contains(t.PersonId)
+                    || named.Contains(t.ContactPersonId))
+                .Select(t => t.OpportunityId);
+
             // Deliberately not strategy_notes. A caller without the grant must not
             // be able to confirm what a note says by searching for a phrase.
             query = query.Where(x =>
                 EF.Functions.ILike(x.Name, pattern)
-                || (x.Description != null && EF.Functions.ILike(x.Description, pattern)));
+                || (x.Description != null && EF.Functions.ILike(x.Description, pattern))
+                || aboutThem.Contains(x.Id)
+                || approaching.Contains(x.Id));
         }
 
         query = ApplySubjectFilters(query, organizationId, filter);
