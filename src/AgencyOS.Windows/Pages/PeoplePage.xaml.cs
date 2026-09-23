@@ -146,12 +146,27 @@ public sealed partial class PeoplePage : Page, IPaletteCommandTarget
         await _detail.LoadAsync(personId).ConfigureAwait(true);
         RenderDetail();
 
-        if (_intelligence is not null)
+        if (_intelligence is null)
         {
-            // A person is a Person subject. They may also hold a talent profile,
-            // which is a different subject with its own intelligence, and reading
-            // one as the other would put claims about a career under a name.
-            await _intelligence.LoadAsync("Person", personId).ConfigureAwait(true);
+            return;
+        }
+
+        // A person is a Person subject. They may also hold a talent profile,
+        // which is a different subject with its own intelligence, and reading
+        // one as the other would put claims about a career under a name.
+        await _intelligence.LoadAsync("Person", personId).ConfigureAwait(true);
+
+        // An empty list under a heading reading "Intelligence" says nobody has
+        // recorded anything about them. A load that failed must not be allowed
+        // to say it (F-01).
+        if (_intelligence.ErrorMessage is { Length: > 0 } failure)
+        {
+            // Whatever is in the list belongs to whoever was read last, and it
+            // is not this person.
+            _intelligence.Clear();
+
+            DetailError.Message = failure;
+            DetailError.IsOpen = true;
         }
     }
 

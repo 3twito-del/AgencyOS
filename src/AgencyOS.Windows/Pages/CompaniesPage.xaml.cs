@@ -140,6 +140,19 @@ public sealed partial class CompaniesPage : Page, IPaletteCommandTarget
             if (_intelligence is not null)
             {
                 await _intelligence.LoadAsync("Company", companyId).ConfigureAwait(true);
+
+                // An empty list under a heading reading "Intelligence" says
+                // nobody has recorded anything about them. A load that failed
+                // must not be allowed to say it (F-01).
+                if (_intelligence.ErrorMessage is { Length: > 0 } failure)
+                {
+                    // Whatever is in the list belongs to whoever was read
+                    // last, and it is not this company.
+                    _intelligence.Clear();
+
+                    DetailError.Message = failure;
+                    DetailError.IsOpen = true;
+                }
             }
         }
         catch (AgencyOsApiException ex)
