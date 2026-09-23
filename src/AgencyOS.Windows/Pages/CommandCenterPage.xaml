@@ -22,7 +22,15 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
                 <StackPanel>
                     <TextBlock x:Name="OpenTasksText" Style="{StaticResource SubtitleTextBlockStyle}" />
-                    <TextBlock Text="open tasks" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" />
+
+                    <!--
+                        "in total" because the lists below are windows onto this
+                        number and not a rendering of it. Without those two words
+                        the headline and the rows read as one population, and an
+                        operator who scanned the rows believed they had seen the
+                        work (F-05).
+                    -->
+                    <TextBlock Text="open tasks in total" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" />
                 </StackPanel>
                 <StackPanel>
                     <TextBlock x:Name="PeopleCountText" Style="{StaticResource SubtitleTextBlockStyle}" />
@@ -55,6 +63,21 @@
                 IsClosable="False"
                 Title="Nothing needs attention"
                 Message="No open tasks and no recorded interactions yet." />
+
+            <!--
+                What the three lists beneath this are, and where the rest of the
+                open tasks went. The headline counts every open task in the
+                agency; the lists are the overdue, the due-soon and the undated
+                windows, and an open task due further ahead than the horizon sits
+                in none of them. Nothing said so, so 46 above 22 rows read as a
+                contradiction or as a complete picture, and the build-82 blind
+                operator took it for the latter (F-05).
+            -->
+            <StackPanel Spacing="2">
+                <TextBlock Text="Needing attention" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <TextBlock x:Name="ScopeText" Opacity="0.7" TextWrapping="Wrap"
+                           Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
         </StackPanel>
 
         <!-- Dense operational lists -->

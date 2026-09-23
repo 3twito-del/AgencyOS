@@ -422,7 +422,16 @@ internal sealed class PeopleSliceQueries : IPeopleSliceQueries
 
         DateTimeOffset horizon = now.Add(DueSoonHorizon);
 
-        // Three disjoint buckets, so a task appears exactly once and the counts add up.
+        // Three disjoint buckets, so a task appears in at most one of them.
+        //
+        // They are deliberately not exhaustive, and the count above is not their
+        // sum: an open task due further ahead than the horizon belongs to none of
+        // these and is still counted in OpenTaskCount. That is intended - these
+        // are the windows an operator acts on today - but this comment used to
+        // say "the counts add up", which is how the Command Center came to show a
+        // tenant-wide headline above three partial lists with nothing saying they
+        // were partial (F-05). The populations are unchanged; what was repaired
+        // is what the screen says about them.
         List<TaskModel> overdue =
         [
             .. openTasks.Where(t => t.DueAt is { } due && due < now)

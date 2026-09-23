@@ -97,7 +97,7 @@ public sealed class AuthoritySurfaceTests
     /// product knows the answer.
     /// </remarks>
     [Theory]
-    [InlineData("OpenTasksText", "open tasks")]
+    [InlineData("OpenTasksText", "open tasks in total")]
     [InlineData("PeopleCountText", "people")]
     [InlineData("CompanyCountText", "companies")]
     public void EveryHeadlineShowsAFigureOnlyWhenItHasOne(string slot, string caption)

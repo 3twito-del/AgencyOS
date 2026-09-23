@@ -112,9 +112,46 @@ public sealed partial class CommandCenterPage : Page, IPaletteCommandTarget
         // counts had no answer and the view model supplied one anyway, so a
         // workspace that failed to load announced 0 open tasks, 0 people and 0
         // companies in a confident headline. A dash is what the slot shows now.
-        Headline(OpenTasksText, "open tasks", () => _viewModel.OpenTaskCount);
+        Headline(OpenTasksText, "open tasks in total", () => _viewModel.OpenTaskCount);
         Headline(PeopleCountText, "people", () => _viewModel.PeopleCount);
         Headline(CompanyCountText, "companies", () => _viewModel.CompanyCount);
+
+        RenderScope();
+    }
+
+    /// <summary>What the three lists cover, and where the rest of the work is.</summary>
+    /// <remarks>
+    /// <para>
+    /// The numbers were never wrong. The headline counts every open task in the
+    /// agency and the lists are three windows onto it - overdue, due inside the
+    /// horizon, and undated - which are disjoint but deliberately not exhaustive:
+    /// an open task due further ahead than the horizon belongs to none of them.
+    /// Nothing on the screen said so, so a headline of 46 above 22 rows read
+    /// either as a contradiction or as a complete picture, and a blind operator
+    /// took it for the second (F-05).
+    /// </para>
+    /// <para>
+    /// The remainder is arithmetic over figures this page already holds, not a
+    /// new projection and not a new query. It is stated only where the projection
+    /// arrived: a count nobody has is not zero, and "every open task is here" is
+    /// a claim about completeness that an unloaded page has not established
+    /// (wave 6).
+    /// </para>
+    /// </remarks>
+    private void RenderScope()
+    {
+        string scope = WindowScope.For(
+            () => _viewModel!.OpenTaskCount,
+            () => _viewModel!.Overdue.Count
+                + _viewModel.DueSoon.Count
+                + _viewModel.Unscheduled.Count,
+            _viewModel!);
+
+        ScopeText.Text = scope;
+
+        // The spoken page must not be able to imply completeness the seen one
+        // does not, so both read the same sentence.
+        AutomationProperties.SetName(ScopeText, scope);
     }
 
     /// <summary>
