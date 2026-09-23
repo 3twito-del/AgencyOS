@@ -122,6 +122,30 @@ public sealed class DiscoverabilitySurfaceTests
     }
 
     /// <summary>
+    /// A receivable can reach the contract it was raised under.
+    /// </summary>
+    /// <remarks>
+    /// The obligations half of this pair was wired in wave 4, so a contract shows
+    /// the money it obliges. This is the other direction. It is a button rather
+    /// than an invokable row because the row already means "select this to act on
+    /// it", and one gesture cannot mean both without navigating away every time
+    /// an operator picks a receivable to write off.
+    /// </remarks>
+    [Fact]
+    public void AReceivableCanReachItsContract()
+    {
+        XElement button = Assert.Single(
+            XDocument.Parse(Page("FinancePage")).Descendants(),
+            x => (string?)x.Attribute(Name) == "OpenContractButton");
+
+        Assert.Equal("OnOpenContractClick", (string?)button.Attribute("Click"));
+
+        // Nothing is selected when the page opens, and a button that offered to
+        // open a contract then would have nothing to open.
+        Assert.Equal("False", (string?)button.Attribute("IsEnabled"));
+    }
+
+    /// <summary>
     /// The destinations can be opened on one record.
     /// </summary>
     /// <remarks>

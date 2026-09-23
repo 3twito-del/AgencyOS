@@ -89,6 +89,15 @@
                         -->
                         <Button x:Name="RecordInvoiceButton" Content="Record invoice"
                                 Click="OnRecordInvoiceClick" />
+
+                        <!--
+                            The way back. A receivable descends from an obligation
+                            on a contract and names that contract in every row,
+                            and the operator asking what it was agreed under had
+                            to leave and search for the title by hand.
+                        -->
+                        <Button x:Name="OpenContractButton" Content="Open contract"
+                                IsEnabled="False" Click="OnOpenContractClick" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Spacing="4">

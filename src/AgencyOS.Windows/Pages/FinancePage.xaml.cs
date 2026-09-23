@@ -310,11 +310,30 @@ public sealed partial class FinancePage : Page, IPaletteCommandTarget
 
     private void OnLedgerFilterChanged(object sender, RoutedEventArgs e) => _ = LoadLedgerAsync();
 
+    /// <summary>
+    /// Opens the contract a receivable was raised under.
+    /// </summary>
+    /// <remarks>
+    /// The obligations side of this pair was wired in wave 4, so a contract now
+    /// shows the money it obliges. This is the other direction: Finance showed
+    /// the receivable that descends from it and named the contract, with no way
+    /// back to it.
+    /// </remarks>
+    private void OnOpenContractClick(object sender, RoutedEventArgs e)
+    {
+        if (ReceivableList.SelectedItem is ReceivableResponse receivable
+            && App.Window is MainWindow window)
+        {
+            window.Reveal("contracts", receivable.ContractId);
+        }
+    }
+
     private void OnReceivableSelected(object sender, SelectionChangedEventArgs e)
     {
         bool selected = ReceivableList.SelectedItem is ReceivableResponse;
 
         AdjustmentButton.IsEnabled = selected;
+        OpenContractButton.IsEnabled = selected;
 
         // Write-off is offered only where something is actually outstanding.
         // Writing off a settled receivable would be a posting with nothing behind
