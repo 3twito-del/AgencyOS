@@ -634,6 +634,28 @@ public sealed partial class OpenApiContractTests
             x => x == "party");
     }
 
+    /// <summary>The published contract requires an allocation request's allocations.</summary>
+    /// <remarks>
+    /// F-12's contract-side half, for the same reason as the participant case
+    /// above: the server answered <c>500</c> to a body without the collection, and
+    /// the contract already said it was required, so the repair belonged in the
+    /// server and not in contract 17.
+    /// </remarks>
+    [Fact]
+    public async Task Contract_RequiresAnAllocationRequestsAllocations()
+    {
+        using JsonDocument document = await GetContractAsync();
+
+        JsonElement schema = document.RootElement
+            .GetProperty("components")
+            .GetProperty("schemas")
+            .GetProperty("AllocatePaymentRequest");
+
+        Assert.Contains(
+            schema.GetProperty("required").EnumerateArray().Select(x => x.GetString()),
+            x => x == "allocations");
+    }
+
     private async Task<JsonDocument> GetContractAsync()
     {
         using HttpClient client = _fixture.Factory.CreateClient();

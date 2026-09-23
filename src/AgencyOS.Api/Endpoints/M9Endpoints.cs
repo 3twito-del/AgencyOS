@@ -4,6 +4,7 @@ using AgencyOS.Api.Observability;
 using AgencyOS.Application.Finance;
 using AgencyOS.Contracts.Finance;
 using AgencyOS.Domain.Authorization;
+using AgencyOS.Domain.Common;
 using AgencyOS.Domain.Deals;
 using AgencyOS.Domain.Finance;
 using AgencyOS.Domain.Legal;
@@ -649,16 +650,24 @@ internal static class M9Endpoints
             {
                 ArgumentNullException.ThrowIfNull(request);
 
+                // Refused before the handler runs, so a malformed body cannot touch
+                // the payment. It used to be guarded on the way in and dereferenced
+                // for telemetry on the way out, which answered 500 with no reason;
+                // the contract already declares the field required (F-12, as
+                // AOS-R002-025).
+                IReadOnlyList<AllocationRequest> allocations = request.Allocations
+                    ?? throw new DomainException("Allocations is required.");
+
                 Application.Finance.RecordPaymentResult result = await handler.HandleAsync(
                         new AllocatePaymentCommand(
                             new OrganizationId(organizationId),
                             new PaymentId(paymentId),
-                            ParseAllocations(request.Allocations) ?? [],
+                            ParseAllocations(allocations) ?? [],
                             request.ExpectedVersion),
                         cancellationToken)
                     .ConfigureAwait(false);
 
-                AgencyOsTelemetry.AllocationsRecorded.Add(request.Allocations.Count);
+                AgencyOsTelemetry.AllocationsRecorded.Add(allocations.Count);
 
                 return Results.Ok(Map(result));
             })

@@ -1148,6 +1148,90 @@ public sealed class FinanceTests
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
     }
 
+    // ------------------------------------------------------- malformed input
+
+    /// <summary>
+    /// An allocation request with no allocations is refused as a request, and
+    /// nothing moves.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// F-12. The endpoint null-guarded <c>allocations</c> on its way into the
+    /// handler and then read <c>request.Allocations.Count</c> for telemetry, so a
+    /// body that omitted the collection answered <c>500</c> with no reason. The
+    /// published contract already declares the field required; only the server
+    /// disagreed, as with <c>AOS-R002-025</c>.
+    /// </para>
+    /// <para>
+    /// Both shapes a caller can send: the field absent, and the field null. Each
+    /// must be a named <c>400</c>, and each must leave the payment exactly as it
+    /// was — same version, nothing allocated, nothing taken off the receivable —
+    /// after which the well-formed request, at the version the caller already
+    /// held, still works.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData("absent")]
+    [InlineData("null")]
+    public async Task AnAllocationRequestWithNoAllocations_IsRefusedAndChangesNothing(string shape)
+    {
+        Fixture f = await SetUpAsync($"f12-{shape}");
+
+        Guid receivableId = await RaiseReceivableAsync(f, await RecordObligationAsync(f, 50_000m));
+
+        RecordPaymentResponse payment = await PostAsync<RecordPaymentResponse>(
+            f,
+            "payments",
+            new RecordPaymentRequest(
+                "Incoming", Money(20_000m), Today, "BankTransfer", PayerPartyId: f.StudioPartyId),
+            HttpStatusCode.Created);
+
+        PaymentResponse before = await GetAsync<PaymentResponse>(
+            f.Client, $"{f.Root}/payments/{payment.PaymentId}");
+
+        string body = shape == "absent"
+            ? $$"""{ "expectedVersion": {{before.Version}} }"""
+            : $$"""{ "allocations": null, "expectedVersion": {{before.Version}} }""";
+
+        using HttpResponseMessage refused = await f.Client.PostAsync(
+            $"{f.Root}/payments/{payment.PaymentId}/allocations",
+            new StringContent(body, System.Text.Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+
+        Microsoft.AspNetCore.Mvc.ProblemDetails? problem =
+            await refused.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
+
+        Assert.Equal("Invalid request", problem?.Title);
+        Assert.Contains("Allocations", problem?.Detail, StringComparison.Ordinal);
+        Assert.Contains("required", problem?.Detail, StringComparison.Ordinal);
+
+        PaymentResponse after = await GetAsync<PaymentResponse>(
+            f.Client, $"{f.Root}/payments/{payment.PaymentId}");
+
+        Assert.Equal(before.Version, after.Version);
+        Assert.Empty(after.Allocations);
+        Assert.Equal(0m, after.Allocated.Amount);
+        Assert.Equal(20_000m, after.Unapplied.Amount);
+
+        ReceivableResponse receivable = await ReceivableAsync(f, receivableId);
+
+        Assert.Equal(0m, receivable.Allocated.Amount);
+        Assert.Equal(50_000m, receivable.Outstanding.Amount);
+
+        // The well-formed request, at the version the caller already held.
+        RecordPaymentResponse applied = await PostAsync<RecordPaymentResponse>(
+            f,
+            $"payments/{payment.PaymentId}/allocations",
+            new AllocatePaymentRequest(
+                [new AllocationRequest(receivableId, Money(20_000m))],
+                before.Version));
+
+        Assert.Equal(20_000m, applied.Allocated.Amount);
+        Assert.Equal(0m, applied.Unapplied.Amount);
+        Assert.Equal(30_000m, (await ReceivableAsync(f, receivableId)).Outstanding.Amount);
+    }
+
     // ------------------------------------------------------------ saved views
 
     /// <summary>
