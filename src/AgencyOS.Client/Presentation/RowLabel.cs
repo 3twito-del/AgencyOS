@@ -171,15 +171,20 @@ public static class RowLabel
         // raw outcome token - "Yes" - and never the probability, which is the one
         // thing a forecast is. Its outcome is said through ForecastLine instead of
         // the generic qualifier, so "Yes" is read out as "Happened" in both
-        // channels (F-14).
+        // channels (F-14). Only the statement yields to the budget: the first live
+        // reading cut the status instead, because it sat on the shortened side.
         if (ForecastLine.IsPrediction(row))
         {
+            List<string> essential = [.. parts.Skip(1)];
+
             if (Value(row, type, "Status") is { } status)
             {
-                parts.Add(DisplayLabel.For(status));
+                essential.Add(DisplayLabel.For(status));
             }
 
-            return WithEssentials(parts, [.. ForecastLine.Essentials(row)]);
+            essential.AddRange(ForecastLine.Essentials(row));
+
+            return WithEssentials([parts[0]], essential);
         }
 
         // How much. Every quantitative row in the product announced what it was

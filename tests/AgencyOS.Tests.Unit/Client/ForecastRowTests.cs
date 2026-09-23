@@ -153,6 +153,17 @@ public sealed class ForecastRowTests
         Assert.Equal(
             "Could not be resolved, not scored",
             ForecastLine.Result(prediction));
+
+        // The row read live, whose status was the part the budget cut.
+        string spoken = RowLabel.For(Prediction(
+            statement: "The Harbour pilot is picked up to series",
+            status: "Resolved",
+            owner: "Review member",
+            forecaster: "Review Owner",
+            outcome: "Unresolvable"));
+
+        Assert.Contains(", Resolved, ", spoken, StringComparison.Ordinal);
+        Assert.Contains("Could not be resolved, not scored", spoken, StringComparison.Ordinal);
     }
 
     /// <summary>An open prediction claims no outcome at all.</summary>
@@ -210,6 +221,11 @@ public sealed class ForecastRowTests
     /// <summary>
     /// A statement long enough to fill the budget yields before the forecast does.
     /// </summary>
+    /// <remarks>
+    /// And before the status and the owner. The first live reading of build 94's
+    /// candidate announced <c>…, Owner: Review member,…, Forecast 30%</c>: the
+    /// statement survived whole and the status was the part cut.
+    /// </remarks>
     [Fact]
     public void ALongStatementDoesNotCostTheForecastOrTheDate()
     {
@@ -222,6 +238,8 @@ public sealed class ForecastRowTests
         string spoken = RowLabel.For(prediction);
 
         Assert.True(spoken.Length <= 160, $"{spoken.Length} characters: {spoken}");
+        Assert.Contains("Owner: " + OwnerName, spoken, StringComparison.Ordinal);
+        Assert.Contains(", Resolved, ", spoken, StringComparison.Ordinal);
         Assert.Contains("Forecast 80% by " + ForecasterName, spoken, StringComparison.Ordinal);
         Assert.Contains("Did not happen, Brier score 0.640", spoken, StringComparison.Ordinal);
         Assert.Contains("Resolves by ", spoken, StringComparison.Ordinal);
