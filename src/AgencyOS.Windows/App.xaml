@@ -65,6 +65,14 @@
             <presentation:PartyConverter x:Key="Party" />
 
             <!--
+                A prediction row showed who set the forecast and not the forecast,
+                and wrote its date as a raw UTC instant (F-14, F-15). Both bind the
+                row; ForecastLine owns the words and RowLabel reads the same ones.
+            -->
+            <presentation:PredictionCaptionConverter x:Key="PredictionCaption" />
+            <presentation:PredictionDueConverter x:Key="PredictionDue" />
+
+            <!--
                 Dense list rows. A professional workstation shows more rows, not
                 bigger ones: docs/12_WINDOWS_NATIVE.md asks for dense tables over
                 consumer card layouts.

@@ -131,7 +131,14 @@
                                       AutomationProperties.Name="Roles" SelectionMode="Single">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
+                                        <!--
+                                            The label is what tells three Actor roles apart, and the
+                                            row showed only type and status (F-16). RowLabel already
+                                            announced it. Optional, so it collapses where unset.
+                                        -->
                                         <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                            <TextBlock Text="{Binding Label}"
+                                                       Visibility="{Binding Label, Converter={StaticResource PresentVisibility}}" />
                                             <TextBlock Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
                                             <TextBlock Text="{Binding Status, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                        Style="{StaticResource CaptionTextBlockStyle}" />

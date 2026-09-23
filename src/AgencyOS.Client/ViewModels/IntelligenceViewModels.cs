@@ -71,25 +71,27 @@ public static class IntelligenceFormatting
     /// The forecast, with whose it is and when.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The attribution is not decoration. A probability with no name beside it reads
-    /// as the system's estimate, and AgencyOS never has one (§11).
+    /// as the system's estimate, and AgencyOS never has one (§11). Where the name
+    /// did not resolve this says so rather than returning the bare figure.
+    /// </para>
+    /// <para>
+    /// The words are <see cref="Presentation.ForecastLine"/>'s, so the dialogs and
+    /// the prediction row they were opened from say the same thing, and the date is
+    /// <c>yyyy-MM-dd</c> rather than the host's short date, which reads two ways
+    /// (F-15).
+    /// </para>
     /// </remarks>
     public static string Forecast(PredictionResponse prediction)
     {
         ArgumentNullException.ThrowIfNull(prediction);
 
-        string probability = Probability(prediction.CurrentProbability);
-
-        if (prediction.CurrentProbabilityByDisplayName is not { Length: > 0 } forecaster)
-        {
-            return probability;
-        }
+        string stated = Presentation.ForecastLine.Stated(prediction);
 
         return prediction.CurrentProbabilityAsOf is { } asOf
-            ? string.Create(
-                CultureInfo.CurrentCulture,
-                $"{probability} — {forecaster}, {asOf.LocalDateTime:d}")
-            : string.Create(CultureInfo.CurrentCulture, $"{probability} — {forecaster}");
+            ? stated + ", " + Presentation.ForecastLine.LocalDate(asOf)
+            : stated;
     }
 
     /// <summary>Where a prediction stands.</summary>

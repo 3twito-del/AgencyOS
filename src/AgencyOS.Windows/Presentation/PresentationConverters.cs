@@ -227,3 +227,40 @@ public sealed partial class PartyConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException("An attributed name is not converted back into a row.");
 }
+
+/// <summary>
+/// The caption beneath a prediction: the forecast, whose it is, and how it came out.
+/// </summary>
+/// <remarks>
+/// The row bound <c>CurrentProbabilityByDisplayName</c> here, so it showed who set
+/// the forecast and not the forecast, unlabelled, in the place an operator reads an
+/// owner (F-14). Bound to the row so the words come from <see cref="ForecastLine"/>,
+/// which <see cref="RowLabel"/> reads too.
+/// </remarks>
+public sealed partial class PredictionCaptionConverter : IValueConverter
+{
+    /// <inheritdoc />
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        ForecastLine.Caption(value);
+
+    /// <inheritdoc />
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException("A forecast caption is not converted back into a row.");
+}
+
+/// <summary>When a prediction resolves, as the local date the operator picked.</summary>
+/// <remarks>
+/// <c>ResolvesBy</c> was bound raw and rendered as
+/// <c>30/12/2026 22:00:00 +00:00</c> - a UTC instant in the host's day/month order,
+/// a day before the date the operator chose (F-15).
+/// </remarks>
+public sealed partial class PredictionDueConverter : IValueConverter
+{
+    /// <inheritdoc />
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        ForecastLine.ResolvesBy(value) ?? string.Empty;
+
+    /// <inheritdoc />
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException("A resolution date is not converted back into a row.");
+}

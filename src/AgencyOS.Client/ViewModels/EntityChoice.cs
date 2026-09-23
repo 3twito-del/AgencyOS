@@ -290,6 +290,11 @@ public sealed record EntityChoice(Guid Id, string Label)
     }
 
     /// <summary>Predictions, told apart by their standing and the date they resolve.</summary>
+    /// <remarks>
+    /// The date is the local one the row shows. Formatted in the instant's own
+    /// offset it was the UTC date, which can be a day away from the one the
+    /// operator picked (F-15).
+    /// </remarks>
     public static IReadOnlyList<EntityChoice> ForPredictions(
         IReadOnlyList<PredictionResponse> predictions)
     {
@@ -300,7 +305,7 @@ public sealed record EntityChoice(Guid Id, string Label)
             Join(
                 x.Statement,
                 x.Status,
-                "resolves " + x.ResolvesBy.ToString("d MMM yyyy", System.Globalization.CultureInfo.CurrentCulture))))];
+                "resolves " + Presentation.ForecastLine.LocalDate(x.ResolvesBy))))];
     }
 
     /// <summary>Tasks, told apart by their state.</summary>

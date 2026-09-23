@@ -166,6 +166,22 @@ public static class RowLabel
             parts.Add(context);
         }
 
+        // A prediction row says the forecast, whose it is, how it came out and when
+        // it resolves. It announced the statement, its owner, its status and the
+        // raw outcome token - "Yes" - and never the probability, which is the one
+        // thing a forecast is. Its outcome is said through ForecastLine instead of
+        // the generic qualifier, so "Yes" is read out as "Happened" in both
+        // channels (F-14).
+        if (ForecastLine.IsPrediction(row))
+        {
+            if (Value(row, type, "Status") is { } status)
+            {
+                parts.Add(DisplayLabel.For(status));
+            }
+
+            return WithEssentials(parts, [.. ForecastLine.Essentials(row)]);
+        }
+
         // How much. Every quantitative row in the product announced what it was
         // and what state it was in, and never the figure - so a screen-reader
         // operator could scan the agreed terms of a negotiation and hear "Fee",
@@ -214,14 +230,14 @@ public static class RowLabel
 
             essential.Add(TaskLine.When(row));
 
-            return TaskRow(parts, essential);
+            return WithEssentials(parts, essential);
         }
 
         return Shorten(string.Join(", ", parts));
     }
 
     /// <summary>
-    /// A task row, with the operator's questions answered before the budget runs out.
+    /// A row whose essential answers are kept before the budget runs out.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -236,8 +252,12 @@ public static class RowLabel
     /// truncated, and the row keeps its bound: only if the roles alone exceed the
     /// budget - which needs improbably long names - does the total shorten.
     /// </para>
+    /// <para>
+    /// A prediction row has the same shape: a statement long enough to fill the
+    /// budget would otherwise take the forecast and the date with it (F-14).
+    /// </para>
     /// </remarks>
-    private static string TaskRow(List<string> parts, List<string> essential)
+    private static string WithEssentials(List<string> parts, List<string> essential)
     {
         string tail = string.Join(", ", essential);
 
