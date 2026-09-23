@@ -1,24 +1,43 @@
-using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
 /// <summary>
-/// That the Deals page cannot go back to asserting a contract does not exist.
+/// Structural guards on the Deals and Talent pages: what their markup and
+/// code-behind contain.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The blind-handoff retest of build 78 found a green banner on the Deals page
 /// reading "No contract has been drafted, signed or executed, and AgencyOS does not
 /// track that yet", on a deal whose contract had been executed. The sentence was a
-/// literal in the markup, so the guard is on the markup: what it said could not be
-/// wrong about a particular deal, because it did not depend on one.
+/// literal in the markup, so the first guard is on the markup: what it said could
+/// not be wrong about a particular deal, because it did not depend on one.
+/// </para>
+/// <para>
+/// <strong>These read source; they prove that a binding, a call or a literal is
+/// or is not there (F-07).</strong> Several were named for what an operator
+/// receives - "never states", "is reachable", "offers the same" - and a string in
+/// a file is not evidence of any of that. Each is now named for what it checks,
+/// and the operator claims live where they can be executed:
+/// <c>DealPageTruthTests</c> loads the real deal view model across every deal
+/// status and every set of contract statuses; <c>ContractStandingTests</c> and
+/// <c>NextActionTests</c> run the decisions the banners render; and
+/// <c>PersonContactReachTests</c> reads the projection the Talent page binds.
+/// </para>
 /// </remarks>
 public sealed class DealPaperTruthTests
 {
-    /// <summary>The sentence itself is gone, and cannot come back.</summary>
+    /// <summary>The retired "no contract" sentence is not in the Deals markup.</summary>
+    /// <remarks>
+    /// A markup fact, and the right instrument for one: the old sentence was a
+    /// literal. That the page says no such thing while a contract exists, whatever
+    /// the paper is doing, is proved against the real view model in
+    /// <c>DealPageTruthTests.WhileAnyContractIsRecordedThePageNeverSaysThereIsNone</c>.
+    /// </remarks>
     [Fact]
-    public void ThePageNeverStatesThatNoContractExists()
+    public void TheRetiredNoContractSentenceIsNotInTheDealsMarkup()
     {
         string markup = File.ReadAllText(PagePath);
 
@@ -48,9 +67,14 @@ public sealed class DealPaperTruthTests
         Assert.Null(bar.Attribute("Severity"));
     }
 
-    /// <summary>The page asks the view model what the paper is doing.</summary>
+    /// <summary>The page's code reads the view model's standing and maps its severities.</summary>
+    /// <remarks>
+    /// What the standing says is decided in <c>ContractStandingFor</c> and read
+    /// through the real view model in <c>DealPageTruthTests</c>; this shows only
+    /// that the page's code refers to it.
+    /// </remarks>
     [Fact]
-    public void ThePageRendersTheStandingItIsGiven()
+    public void TheDealsPageCodeReadsTheStandingAndMapsItsSeverities()
     {
         string code = File.ReadAllText(CodePath);
 
@@ -59,13 +83,17 @@ public sealed class DealPaperTruthTests
         Assert.Contains("StandingSeverity.Warning", code, StringComparison.Ordinal);
     }
 
-    /// <summary>There is a surface for the next action.</summary>
+    /// <summary>
+    /// The Deals page has a named next-action bar, and its code reads the view
+    /// model's next action.
+    /// </summary>
     /// <remarks>
     /// The other half of the retest: an open task existed and no surface said it was
-    /// the thing to do next.
+    /// the thing to do next. Which task is offered is decided by
+    /// <c>NextActionFrom</c> and proved in <c>NextActionTests</c>.
     /// </remarks>
     [Fact]
-    public void ThePageOffersTheNextAction()
+    public void TheDealsPageHasANamedNextActionBarFedFromTheViewModel()
     {
         XElement bar = Bar("NextActionBar");
 
@@ -78,14 +106,16 @@ public sealed class DealPaperTruthTests
         Assert.Contains("_detail.NextAction", code, StringComparison.Ordinal);
     }
 
-    /// <summary>An overdue action is not rendered as ordinary information.</summary>
+    /// <summary>The shared banner's source has an overdue branch that warns.</summary>
     /// <remarks>
     /// The wording and severity live in the shared banner, so that both surfaces
-    /// offering a next action say it the same way. This checks the one place rather
-    /// than each caller.
+    /// offering a next action say it the same way. The banner writes onto an
+    /// <c>InfoBar</c>, which needs a XAML host this suite does not have, so this
+    /// reads its source. Whether a task is overdue is decided by
+    /// <c>NextActionFrom</c> and proved in <c>NextActionTests</c>.
     /// </remarks>
     [Fact]
-    public void AnOverdueActionIsRaised()
+    public void TheSharedBannerSourceHasAnOverdueWarningBranch()
     {
         string banner = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Presentation", "NextActionBanner.cs"));
@@ -95,9 +125,14 @@ public sealed class DealPaperTruthTests
         Assert.Contains("Next action, overdue", banner, StringComparison.Ordinal);
     }
 
-    /// <summary>Both surfaces that offer an action use the same banner.</summary>
+    /// <summary>The Deals and Talent pages both render through the shared banner.</summary>
+    /// <remarks>
+    /// One renderer is what makes the two surfaces word an action the same way, and
+    /// that is a source fact. It does not show that both pages are handed the same
+    /// action.
+    /// </remarks>
     [Fact]
-    public void TheTalentSurfaceOffersTheSameNextAction()
+    public void TheDealsAndTalentPagesRenderThroughTheSharedNextActionBanner()
     {
         string talent = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml.cs"));
@@ -107,38 +142,12 @@ public sealed class DealPaperTruthTests
     }
 
 
-    /// <summary>The deal's own state wording never mentions a contract.</summary>
-    /// <remarks>
-    /// The build-79 blind handoff found this line asserting "no contract recorded"
-    /// from deal status alone while the panel beside it said the contract was
-    /// executed. Contract truth has one source on this page; this pins that the
-    /// deal's line is not a second one.
-    /// </remarks>
-    [Fact]
-    public void TheDealStateWordingSaysNothingAboutPaper()
-    {
-        string viewModel = File.ReadAllText(Path.Combine(
-            RepositoryRoot, "src", "AgencyOS.Client", "ViewModels", "DealViewModels.cs"));
-
-        int standing = viewModel.IndexOf("public string Standing", StringComparison.Ordinal);
-
-        Assert.True(standing > 0, "The Standing property was not found.");
-
-        int end = viewModel.IndexOf("public Task LoadAsync", standing, StringComparison.Ordinal);
-        string body = viewModel[standing..(end > standing ? end : viewModel.Length)];
-
-        // Comments explain why the wording changed and naturally quote the sentence
-        // that was removed. The invariant is about what an operator reads, so the
-        // explanation is stripped before asserting on the code.
-        string rendered = string.Join(
-            Environment.NewLine,
-            body.ReplaceLineEndings("\n")
-                .Split('\n')
-                .Select(line => line.TrimStart())
-                .Where(line => !line.StartsWith("//", StringComparison.Ordinal)));
-
-        Assert.DoesNotContain("contract", rendered, StringComparison.OrdinalIgnoreCase);
-    }
+    // TheDealStateWordingSaysNothingAboutPaper sliced the source of
+    // DealDetailViewModel.Standing and asserted "contract" was absent from it. The
+    // real property is now read for every deal status in
+    // DealPageTruthTests.TheDealsOwnStateLineNeverMentionsAContract, which proves
+    // the same claim by executing it, so the slice was removed rather than kept as
+    // a weaker duplicate (F-07).
 
     /// <summary>The next action says who owns it.</summary>
     /// <remarks>
@@ -165,15 +174,20 @@ public sealed class DealPaperTruthTests
             StringComparison.Ordinal);
     }
 
-    /// <summary>Detailed notes reach the person's own surface, not only the desk.</summary>
+    /// <summary>
+    /// The Talent page lists interactions through the shared template, which renders
+    /// detailed notes.
+    /// </summary>
     /// <remarks>
     /// The build-80 retest could read a call's summary on the person and never learn
     /// what the call was about: the only template rendering detailed notes was the
     /// org-wide Command Center. One shared template now serves both, so the two
-    /// cannot drift apart about what a contact shows.
+    /// cannot drift apart about what a contact shows. That the notes are in what
+    /// the list is bound to is proved against PostgreSQL in
+    /// <c>PersonContactReachTests</c>.
     /// </remarks>
     [Fact]
-    public void RecentContactIsOnThePersonSurface()
+    public void TheTalentPageListsInteractionsThroughTheNotesTemplate()
     {
         string shared = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "App.xaml"));
@@ -192,9 +206,12 @@ public sealed class DealPaperTruthTests
         Assert.Contains("InteractionList.ItemsSource", code, StringComparison.Ordinal);
     }
 
-    /// <summary>Detailed notes are reachable from the interaction surface.</summary>
+    /// <summary>
+    /// The shared template discloses detailed notes behind an expander, and the
+    /// Command Center uses it.
+    /// </summary>
     [Fact]
-    public void DetailedNotesAreReachable()
+    public void TheSharedTemplateDisclosesNotesAndTheCommandCenterUsesIt()
     {
         // The template moved into App.xaml when the person's own surface began
         // rendering contact too. What matters is unchanged: notes disclose behind an
@@ -211,9 +228,9 @@ public sealed class DealPaperTruthTests
         Assert.Contains("InteractionTemplate", desk, StringComparison.Ordinal);
     }
 
-    /// <summary>The project attachments list is bound to something.</summary>
+    /// <summary>The project page's code gives the attachments list an items source.</summary>
     [Fact]
-    public void TheAttachmentsTabHasASource()
+    public void TheProjectsPageCodeGivesTheAttachmentsListASource()
     {
         string code = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "ProjectsPage.xaml.cs"));
@@ -221,9 +238,11 @@ public sealed class DealPaperTruthTests
         Assert.Contains("AttachmentList.ItemsSource", code, StringComparison.Ordinal);
     }
 
-    /// <summary>Representation dates are written one way on that surface.</summary>
+    /// <summary>
+    /// The Talent page formats representation start dates as ISO and binds none raw.
+    /// </summary>
     [Fact]
-    public void RepresentationDatesUseOneFormat()
+    public void TheTalentPageFormatsStartDatesAsIsoAndBindsNoneRaw()
     {
         string code = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml.cs"));

@@ -1,11 +1,13 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using AgencyOS.Client.ViewModels;
 using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
 /// <summary>
-/// That the representation commands the server has can be reached from the product.
+/// Structural guards on the wiring between the representation scope and team
+/// routes, the client, the palette and the Talent page.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -19,16 +21,27 @@ namespace AgencyOS.Tests.Windows.Presentation;
 /// constructed off a UI thread. The rules these surfaces obey are tested for real
 /// in <c>RepresentationMaintenanceTests</c>.
 /// </para>
+/// <para>
+/// <strong>What these prove, and no more (F-07).</strong> They were named for
+/// reach — "every route has a caller", "the workspace invokes them", "the buttons
+/// wait for a relationship" — and assert that a method, a handler, a registration
+/// or an attribute is present. Each is now named for that. They are scoped to the
+/// four routes of <c>AOS-R001-010</c> and make no claim about any other
+/// representation route.
+/// </para>
 /// </remarks>
 public sealed class RepresentationReachTests
 {
-    /// <summary>Each route the server exposes is called by the client.</summary>
+    /// <summary>
+    /// Each of the four change routes is declared by the server and has a client
+    /// method that addresses it.
+    /// </summary>
     [Theory]
     [InlineData("/scopes", "AddRepresentationScopeAsync")]
     [InlineData("/scopes/end", "EndRepresentationScopeAsync")]
     [InlineData("/team", "AssignRepresentationTeamMemberAsync")]
     [InlineData("/team/remove", "RemoveRepresentationTeamMemberAsync")]
-    public void EveryRepresentationRouteHasACaller(string route, string method)
+    public void EachChangeRouteHasAClientMethodAddressingIt(string route, string method)
     {
         string endpoints = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Api", "Endpoints", "M4Endpoints.cs"));
@@ -48,11 +61,11 @@ public sealed class RepresentationReachTests
             StringComparison.Ordinal);
     }
 
-    /// <summary>The workspace that shows the result can start the change.</summary>
+    /// <summary>The Talent page defines the scope and team handlers and wires each to an event.</summary>
     [Theory]
     [InlineData("ChangeScopeAsync")]
     [InlineData("ChangeTeamAsync")]
-    public void TheTalentWorkspaceInvokesThem(string method)
+    public void TheTalentPageDefinesAndWiresTheChangeHandlers(string method)
     {
         string page = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml.cs"));
@@ -61,20 +74,24 @@ public sealed class RepresentationReachTests
         Assert.Matches(new Regex($@"Click=|_ = {method}\(\)"), page);
     }
 
-    /// <summary>Both are reachable by keyboard as well as by button.</summary>
+    /// <summary>
+    /// Both commands are offered by the real palette, and the Talent page answers
+    /// each of them.
+    /// </summary>
     /// <remarks>
     /// The palette is the product's keyboard-first way to do anything, so a
-    /// command that exists only as a button is half-reachable.
+    /// command that exists only as a button is half-reachable. The first half is
+    /// executed: the palette's own command list is built and searched, rather than
+    /// the registry's source read. The second is a source fact, because page
+    /// code-behind cannot be constructed here.
     /// </remarks>
     [Theory]
     [InlineData("representation.scope.change")]
     [InlineData("representation.team.change")]
-    public void BothAreInThePalette(string commandId)
+    public void BothAreOfferedByThePaletteAndAnsweredByTheTalentPage(string commandId)
     {
-        string commands = File.ReadAllText(Path.Combine(
-            RepositoryRoot, "src", "AgencyOS.Client", "Commands", "AgencyOsCommands.cs"));
-
-        Assert.Contains($"\"{commandId}\"", commands, StringComparison.Ordinal);
+        Assert.Contains(
+            new CommandPaletteViewModel().AllCommands, x => x.Id == commandId);
 
         string page = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml.cs"));
@@ -82,7 +99,10 @@ public sealed class RepresentationReachTests
         Assert.Contains($"case \"{commandId}\":", page, StringComparison.Ordinal);
     }
 
-    /// <summary>The buttons exist and start disabled.</summary>
+    /// <summary>
+    /// The buttons start disabled in markup, and the page's code sets their enabled
+    /// state.
+    /// </summary>
     /// <remarks>
     /// There is nothing to change scopes or a team on until the person has a
     /// representation, and a button that refuses after the fact is worse than one
@@ -91,7 +111,7 @@ public sealed class RepresentationReachTests
     [Theory]
     [InlineData("ChangeScopeButton")]
     [InlineData("ChangeTeamButton")]
-    public void TheButtonsWaitForARelationship(string button)
+    public void TheButtonsStartDisabledAndThePageSetsTheirEnabledState(string button)
     {
         XName name = XName.Get("Name", "http://schemas.microsoft.com/winfx/2006/xaml");
 
@@ -108,13 +128,18 @@ public sealed class RepresentationReachTests
         Assert.Contains($"{button}.IsEnabled = ", page, StringComparison.Ordinal);
     }
 
-    /// <summary>Every call sends the version the operator was looking at.</summary>
+    /// <summary>
+    /// The page builds each change request from the loaded representation's version.
+    /// </summary>
     /// <remarks>
-    /// All four commands are version-checked on the server. Sending a version the
-    /// client never read would turn a stale write into a silent one.
+    /// All four commands take an expected version, and sending one the client never
+    /// read would turn a stale write into a silent one. This shows only that the
+    /// page passes the loaded one. No test here exercises the server refusing a
+    /// stale version on these four routes; <c>RepresentationTests.AStaleRepresentationVersion_IsRefused</c>
+    /// proves that for a status transition, which is a different route.
     /// </remarks>
     [Fact]
-    public void EveryChangeCarriesTheObservedVersion()
+    public void EachChangeRequestIsBuiltFromTheLoadedVersion()
     {
         string page = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "TalentPage.xaml.cs"));

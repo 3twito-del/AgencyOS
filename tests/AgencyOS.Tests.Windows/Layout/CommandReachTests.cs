@@ -72,13 +72,17 @@ public sealed class CommandReachTests
             x => x.Attribute(name)?.Value == "DetailCommands");
     }
 
-    /// <summary>Choosing a destination brings it into view.</summary>
+    /// <summary>
+    /// The shell's selection handler calls <c>StartBringIntoView</c>.
+    /// </summary>
     /// <remarks>
     /// One call, in the one place every selection passes through — including the
-    /// keyboard accelerators, which select through the same property.
+    /// keyboard accelerators, which select through the same property. This reads
+    /// the shell's source and shows the call is there, after the handler begins; it
+    /// does not show the pane scrolling, which needs a running window (F-07).
     /// </remarks>
     [Fact]
-    public void ThePaneFollowsTheSelection()
+    public void TheSelectionHandlerAsksThePaneToBringTheItemIntoView()
     {
         string shell = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "MainWindow.xaml.cs"));

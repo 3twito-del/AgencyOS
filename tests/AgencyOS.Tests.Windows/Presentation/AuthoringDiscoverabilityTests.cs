@@ -24,16 +24,26 @@ namespace AgencyOS.Tests.Windows.Presentation;
 public sealed class AuthoringDiscoverabilityTests
 {
     /// <summary>
-    /// Every Intelligence authoring command is reachable from the workspace.
+    /// The launcher's code builds its menu from the registry, and the page answers
+    /// every Intelligence authoring command the registry holds.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The completeness mechanism. The launcher is built from the registry, so this
     /// asserts the registry is what the launcher reads — a fourteenth command added
     /// later is surfaced by construction, and this fails if that ever stops being
     /// true.
+    /// </para>
+    /// <para>
+    /// Half executed, half read (F-07). The set of authoring commands is taken from
+    /// the real registry; that the page builds its menu from it and has a case for
+    /// each is read from the page's source, because page code-behind cannot be
+    /// constructed here. It was named "reachable", which is a navigation claim this
+    /// cannot make; it is named for the two facts it checks.
+    /// </para>
     /// </remarks>
     [Fact]
-    public void EveryIntelligenceAuthoringCommandIsReachableFromTheWorkspace()
+    public void TheLauncherIsBuiltFromTheRegistryAndThePageAnswersEveryAuthoringCommand()
     {
         string page = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "IntelligencePage.xaml.cs"));
@@ -82,20 +92,54 @@ public sealed class AuthoringDiscoverabilityTests
             launcher.Attribute("AutomationProperties.Name")?.Value));
     }
 
-    /// <summary>The menu announces titles, never command records.</summary>
+    /// <summary>
+    /// Each menu entry's text and accessible name are set from its command's label.
+    /// </summary>
     /// <remarks>
     /// The same property <c>AOS-R002-018</c> is about, one surface along: an entry
     /// whose accessible name were the definition would be unusable to somebody
-    /// listening rather than looking.
+    /// listening rather than looking. This is the wiring, read from source. What
+    /// the label actually says is executed in
+    /// <see cref="EveryIntelligenceAuthoringLabelIsATitleAndNotAnIdentifier"/>;
+    /// together they are the claim this test used to make alone (F-07).
     /// </remarks>
     [Fact]
-    public void TheMenuAnnouncesHumanTitles()
+    public void EachMenuEntryIsWrittenAndNamedFromItsCommandLabel()
     {
         string page = File.ReadAllText(Path.Combine(
             RepositoryRoot, "src", "AgencyOS.Windows", "Pages", "IntelligencePage.xaml.cs"));
 
         Assert.Contains("Text = command.Label", page, StringComparison.Ordinal);
         Assert.Contains("AutomationProperties.SetName(item, command.Label)", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Every Intelligence authoring label is a title a person reads, not an identifier.
+    /// </summary>
+    /// <remarks>
+    /// Executed against the real registry. A label that were empty, equal to the
+    /// command's id, dotted like one, or the record's own <c>ToString()</c> would be
+    /// announced exactly as written, because the entry's accessible name is the
+    /// label.
+    /// </remarks>
+    [Fact]
+    public void EveryIntelligenceAuthoringLabelIsATitleAndNotAnIdentifier()
+    {
+        List<CommandDefinition> commands = [.. Authoring()];
+
+        Assert.NotEmpty(commands);
+
+        foreach (CommandDefinition command in commands)
+        {
+            string label = command.Label;
+
+            Assert.False(string.IsNullOrWhiteSpace(label), $"{command.Id} has no label.");
+            Assert.NotEqual(command.Id, label);
+            Assert.DoesNotContain(".", label.TrimEnd('.', '…'), StringComparison.Ordinal);
+            Assert.DoesNotContain("CommandDefinition", label, StringComparison.Ordinal);
+            Assert.Contains(' ', label);
+            Assert.True(char.IsUpper(label[0]), $"'{label}' does not read as a title.");
+        }
     }
 
     /// <summary>

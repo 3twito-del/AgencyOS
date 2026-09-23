@@ -23,9 +23,26 @@ namespace AgencyOS.Tests.Windows.Presentation;
 /// </remarks>
 public sealed class RefusalPresentationTests
 {
-    /// <summary>Every catch of an API refusal reaches for the detail.</summary>
+    /// <summary>
+    /// No catch of an API refusal in the client's source reads the title without
+    /// the detail.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A scan of every <c>.cs</c> file in the Windows and Client projects, which is
+    /// an enumerable population, so "no" is a claim this can make — about source.
+    /// It was named "no surface shows", which is a claim about what reaches the
+    /// screen; a catch could read the detail and still display something else, and
+    /// this would not see it (F-07).
+    /// </para>
+    /// <para>
+    /// The body is read up to the first closing brace, so a catch whose handling
+    /// sits after a nested block is only partly read. The positive and negative
+    /// controls below pin the shapes it does recognise.
+    /// </para>
+    /// </remarks>
     [Fact]
-    public void NoSurfaceShowsTheTitleInsteadOfTheReason()
+    public void NoCatchOfAnApiRefusalReadsTheTitleWithoutTheDetail()
     {
         List<string> offenders = [];
 
