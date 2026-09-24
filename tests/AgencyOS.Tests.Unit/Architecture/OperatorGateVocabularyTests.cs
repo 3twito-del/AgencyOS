@@ -5,6 +5,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Unit.Architecture;
 
+// SOURCE-PROOF: Compares the state names the client's page gates spell in their
+// source with the states the domain declares. Which tokens the code names is a
+// source fact.
+
 /// <summary>
 /// That the states the Windows client gates on are states the domain produces.
 /// </summary>

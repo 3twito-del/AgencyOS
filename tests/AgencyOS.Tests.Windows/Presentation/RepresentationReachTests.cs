@@ -5,6 +5,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Structural guards on the representation routes, client methods,
+// handlers and buttons. The rules those surfaces obey are executed in
+// RepresentationMaintenanceTests.
+
 /// <summary>
 /// Structural guards on the wiring between the representation scope and team
 /// routes, the client, the palette and the Talent page.

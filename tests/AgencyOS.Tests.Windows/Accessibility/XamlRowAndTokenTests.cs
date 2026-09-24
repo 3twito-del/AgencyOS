@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Accessibility;
 
+// SOURCE-PROOF: Asserts that every row template declares an accessible name and
+// routes domain tokens through a converter. Both are declarations in markup.
+
 /// <summary>
 /// The two markup rules Audit 001 asked for and the suite did not have.
 /// </summary>

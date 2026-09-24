@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Dialogs;
 
+// SOURCE-PROOF: Classifies each dialog's default-button declaration in markup
+// against the reasons listed beside it. The convention is a markup fact.
+
 /// <summary>
 /// That <c>Enter</c> means one thing, and that every departure from it is deliberate.
 /// </summary>

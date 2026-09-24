@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Scans every catch of an API refusal in client source. The claim is
+// about source, and the test's name says so.
+
 /// <summary>
 /// That a surface which catches a refusal shows the server's reason, not the
 /// problem's title.

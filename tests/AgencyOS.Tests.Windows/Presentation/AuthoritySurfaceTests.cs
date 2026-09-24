@@ -2,6 +2,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pins that each page counter is assigned through SummaryAuthority in
+// code-behind. What SummaryAuthority says is executed in the authority tests.
+
 /// <summary>
 /// That every counter closed by Reality Closure still asks before it claims.
 /// </summary>

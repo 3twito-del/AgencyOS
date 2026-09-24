@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Layout;
 
+// SOURCE-PROOF: Asserts which lists are nested inside a ScrollViewer of their own in
+// markup. The nesting is a declaration.
+
 /// <summary>
 /// That no list is wrapped in a scroll viewer of its own.
 /// </summary>

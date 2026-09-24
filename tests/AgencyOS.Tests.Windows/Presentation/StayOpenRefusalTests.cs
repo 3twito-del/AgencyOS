@@ -4,6 +4,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts that the covered dialogs own their mutation and cancel the
+// close on refusal in their code-behind. Dialogs cannot be constructed here.
+
 /// <summary>
 /// That the dialogs the owner's decision covers are wired to stay open.
 /// </summary>

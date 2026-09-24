@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Dialogs;
 
+// SOURCE-PROOF: Reads openers' code-behind to confirm each still constructs its
+// dialog and answers its preconditions. Pages cannot be constructed off a UI thread.
+
 /// <summary>
 /// That the four openers <c>AOS-R002-019</c> named still say something when they
 /// decline to open.

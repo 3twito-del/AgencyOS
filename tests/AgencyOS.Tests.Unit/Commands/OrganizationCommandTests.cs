@@ -4,6 +4,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Unit.Commands;
 
+// SOURCE-PROOF: The registry half is executed. That the shell dispatches the command
+// is read from MainWindow's markup and code-behind, which cannot be constructed
+// here.
+
 /// <summary>
 /// That the organization surface can be found from the palette, without becoming a workspace.
 /// </summary>

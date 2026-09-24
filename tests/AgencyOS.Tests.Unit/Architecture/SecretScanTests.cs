@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Unit.Architecture;
 
+// SOURCE-PROOF: Scans committed files for credentials. The claim is about what the
+// repository contains, so its files are the evidence.
+
 /// <summary>
 /// That no credential has been committed.
 /// </summary>

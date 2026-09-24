@@ -4,6 +4,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts which bar titles and messages a page's code assigns on each
+// path. Where a message is shown is a property of that code.
+
 /// <summary>
 /// That a message appears under a title which names what actually failed.
 /// </summary>

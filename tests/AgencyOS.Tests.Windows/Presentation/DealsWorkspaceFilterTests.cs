@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts the status filter's declared items and the page's mapping of
+// a selection to a query in code-behind. Both are declarations.
+
 /// <summary>
 /// The status filter the Deals workspace opens on.
 /// </summary>

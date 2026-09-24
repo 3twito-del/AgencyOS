@@ -3,6 +3,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Accessibility;
 
+// SOURCE-PROOF: Asserts that controls declare accessible names, notice titles,
+// unfixed text heights and themed colours. Each is a property of what the markup
+// declares.
+
 /// <summary>
 /// That every control a keyboard or a screen reader has to reach can be named.
 /// </summary>

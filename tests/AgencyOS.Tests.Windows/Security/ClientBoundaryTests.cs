@@ -2,6 +2,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Security;
 
+// SOURCE-PROOF: Asserts that client projects reference no server authority and name
+// no model provider or credential. References and literals are facts about the
+// source.
+
 /// <summary>
 /// That the Windows client cannot reach a model provider, and holds no key to one.
 /// </summary>

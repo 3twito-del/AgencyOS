@@ -3,6 +3,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Structural guards on Deals and Talent markup and code-behind. The
+// operator claims they support are executed in DealPageTruthTests, NextActionTests
+// and PersonContactReachTests.
+
 /// <summary>
 /// Structural guards on the Deals and Talent pages: what their markup and
 /// code-behind contain.

@@ -3,6 +3,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Unit.Architecture;
 
+// SOURCE-PROOF: Layer references and naming rules are properties of the project
+// files and the source tree, so the monolith's shape is asserted where it is
+// defined.
+
 /// <summary>
 /// The shape of the monolith, asserted rather than described.
 /// </summary>

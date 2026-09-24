@@ -4,6 +4,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pins that prediction and role rows bind through the tested
+// converters. What the rows say is executed in ForecastRowTests.
+
 /// <summary>
 /// That the prediction rows and the project role rows actually reach the words
 /// their formatters were tested to say.

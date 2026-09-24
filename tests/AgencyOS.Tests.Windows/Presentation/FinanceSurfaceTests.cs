@@ -2,6 +2,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pins that the Finance page routes its money summaries through
+// SummaryAuthority. What they say is executed in MoneyAuthorityTests.
+
 /// <summary>
 /// That the Finance page composes its money statements the way they were tested.
 /// </summary>

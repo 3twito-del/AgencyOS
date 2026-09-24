@@ -4,6 +4,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Dialogs;
 
+// SOURCE-PROOF: Checks that handlers the XAML parser runs during construction guard
+// what it has not built yet. The parser cannot run here, so the guard's presence in
+// source is what is asserted.
+
 /// <summary>
 /// That a handler the XAML parser runs mid-construction survives meeting a
 /// half-built dialog.

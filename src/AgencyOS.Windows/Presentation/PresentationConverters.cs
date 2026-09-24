@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.UI.Xaml;
 using System;
 using AgencyOS.Client.Presentation;
@@ -87,14 +86,7 @@ public sealed partial class IsoDateConverter : IValueConverter
 {
     /// <inheritdoc />
     public object Convert(object value, Type targetType, object parameter, string language) =>
-        value switch
-        {
-            DateOnly date => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            DateTimeOffset moment =>
-                moment.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            DateTime moment => moment.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            _ => string.Empty,
-        };
+        IsoDate.Format(value);
 
     /// <inheritdoc />
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
