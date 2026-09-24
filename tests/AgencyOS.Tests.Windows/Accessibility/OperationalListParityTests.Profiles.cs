@@ -246,8 +246,8 @@ public sealed partial class OperationalListParityTests
 
             // A hidden field's value may still be on screen inside a shown one: the
             // currency every amount carries, the version numbers a conflict sentence
-            // states. The operator sees it there, so saying it there is not a leak.
-            string seen = string.Join(" | ", Visible(entry).Select(x => Render(row, x)));
+            // states. Saying it there, as part of that shown value, is not a leak.
+            List<string> shown = [.. Primaries(entry).Select(x => Render(row, x))];
 
             HashSet<string> read = [.. profile.Fields
                 .SelectMany(x => (string?[])[x.Path, x.RoleFrom])
@@ -259,7 +259,7 @@ public sealed partial class OperationalListParityTests
             {
                 foreach (string hidden in Hidden(property.GetValue(row)))
                 {
-                    if (Coverage.ContainsWords(announced, hidden) && !Coverage.ContainsWords(seen, hidden))
+                    if (SaysHidden(announced, hidden, shown))
                     {
                         said.Add($"{Key(entry.File, entry.Template)}: hidden {property.Name} '{hidden}' in '{announced}'");
                     }
@@ -268,6 +268,47 @@ public sealed partial class OperationalListParityTests
         }
 
         Assert.True(said.Count == 0, string.Join("; ", said));
+    }
+
+    /// <summary>
+    /// Whether an announcement says a hidden value other than as part of a shown one.
+    /// </summary>
+    /// <remarks>
+    /// Narrow on purpose. Each shown value whose rendering contains the hidden one
+    /// accounts for one occurrence of that rendering, and only where the announcement
+    /// says that rendering itself. Whatever remains is said on its own. A hidden value
+    /// that merely equals some token on screen is not excused: said a second time, or
+    /// outside the shown value that holds it, it is a leak.
+    /// </remarks>
+    internal static bool SaysHidden(string announced, string hidden, IEnumerable<string> shown)
+    {
+        string remaining = announced;
+
+        foreach (string rendering in shown.Where(x => x.Length > 0 && Coverage.ContainsWords(x, hidden)))
+        {
+            int at = remaining.IndexOf(rendering, StringComparison.Ordinal);
+
+            if (at >= 0)
+            {
+                remaining = string.Concat(remaining.AsSpan(0, at), " | ", remaining.AsSpan(at + rendering.Length));
+            }
+        }
+
+        return Coverage.ContainsWords(remaining, hidden);
+    }
+
+    /// <summary>The exception for a hidden value inside a shown one stays narrow.</summary>
+    [Theory]
+    [InlineData("Cash, 70.00 USD debits", "USD", "70.00 USD", false)]
+    [InlineData("Cash, 70.00 USD debits, USD", "USD", "70.00 USD", true)]
+    [InlineData("Draft, You saw version 7; it is now version 8.", "7", "You saw version 7; it is now version 8.", false)]
+    [InlineData("Draft, Version: 7", "7", "You saw version 7; it is now version 8.", true)]
+    [InlineData("zqab, Note: zqab", "zqab", "zqab", true)]
+    [InlineData("zqab", "zqab", "zqab", false)]
+    [InlineData("Payer: zqab", "zqab", "zqac", true)]
+    public void TheShownValueExceptionIsNarrow(string announced, string hidden, string shown, bool leak)
+    {
+        Assert.Equal(leak, SaysHidden(announced, hidden, [shown]));
     }
 
     /// <summary>The forms in which a hidden value could be said.</summary>
@@ -332,6 +373,7 @@ public sealed partial class OperationalListParityTests
 
     private static ReceivableResponse Receivable(
         string beneficiary = "Client",
+        string payer = "Northgate Pictures",
         decimal original = 240_000m,
         decimal allocated = 90_000m,
         decimal outstanding = 150_000m) =>
@@ -341,7 +383,7 @@ public sealed partial class OperationalListParityTests
             Guid.CreateVersion7(),
             SlateTitle,
             Guid.CreateVersion7(),
-            "Northgate Pictures",
+            payer,
             beneficiary,
             Guid.CreateVersion7(),
             "Ana Reyes",
@@ -464,14 +506,14 @@ public sealed partial class OperationalListParityTests
         Assert.DoesNotContain(SlateTitle, ReceivableSaid(Receivable()), StringComparison.Ordinal);
     }
 
-    private static CommissionEntitlementResponse Commission(string title = SlateTitle) =>
+    private static CommissionEntitlementResponse Commission(string title = SlateTitle, string client = "Ana Reyes") =>
         new(
             Guid.CreateVersion7(),
             Guid.CreateVersion7(),
             Guid.CreateVersion7(),
             title,
             Guid.CreateVersion7(),
-            "Ana Reyes",
+            client,
             Guid.CreateVersion7(),
             Guid.CreateVersion7(),
             null,
@@ -516,6 +558,169 @@ public sealed partial class OperationalListParityTests
         RowTemplate markup = Template(Find("Pages/FinancePage.xaml", "CommissionList"));
 
         Assert.Equal(SlateTitle, HelpText(markup, Commission()));
+    }
+
+    // ------------------------------------------- D5: truth before the budget
+
+    /// <summary>The least of a yielding value <see cref="RowLabel"/> keeps (its MinimumHeadline).</summary>
+    private const int MinimumFragment = 12;
+
+    private const string ContractRole = "Contract: ";
+
+    /// <summary>
+    /// The contract segment: present once, under its role, holding a recognisable
+    /// fragment of the title — at least its first whole word, and a prefix of it.
+    /// </summary>
+    private static string ContractFragment(string said, string title = SlateTitle)
+    {
+        string segment = Assert.Single(said.Split(", "), x => x.StartsWith(ContractRole, StringComparison.Ordinal));
+        string value = segment[ContractRole.Length..];
+        string stem = value.EndsWith('…') ? value[..^1] : value;
+
+        Assert.True(
+            stem.Length >= title.Split(' ')[0].Length && title.StartsWith(stem, StringComparison.Ordinal),
+            $"'{segment}' is not a recognisable fragment of '{title}'.");
+
+        return value;
+    }
+
+    /// <summary>
+    /// Every compact scan fact of the receivable row, each complete and in its role.
+    /// </summary>
+    private static void AssertEveryReceivableFact(string said, string payer, string beneficiary = "Client")
+    {
+        string[] segments = said.Split(", ");
+
+        Assert.Contains("Payer: " + payer, segments);
+        Assert.True(SaysInRole(said, "240,000.00 GBP", "original"), said);
+        Assert.True(SaysInRole(said, "90,000.00 GBP", "allocated"), said);
+        Assert.True(SaysInRole(said, "150,000.00 GBP", "outstanding"), said);
+        Assert.Contains("Partially paid", segments);
+        Assert.Contains(beneficiary + " money", segments);
+    }
+
+    /// <summary>
+    /// Where a name runs past 160, the excess is only what the required fragment forced.
+    /// </summary>
+    /// <remarks>
+    /// The facts other than the contract are complete, so their length is not a
+    /// choice. Past 160, the fragment must be the minimum one — no more than the
+    /// product's minimum headline — and the normal budget must genuinely have been
+    /// too small for it: there is no larger cap, fixed or otherwise.
+    /// </remarks>
+    private static void AssertExcessIsOnlyWhatTruthForces(string said)
+    {
+        if (said.Length <= 160)
+        {
+            return;
+        }
+
+        string fragment = ContractFragment(said);
+        string rest = string.Join(", ", said.Split(", ").Where(x => !x.StartsWith(ContractRole, StringComparison.Ordinal)));
+
+        Assert.True(fragment.Length <= MinimumFragment, $"'{fragment}' is longer than the minimum fragment.");
+        Assert.True(
+            rest.Length + 2 + ContractRole.Length + MinimumFragment > 160,
+            $"{said.Length}: the compact facts ({rest.Length}) left room for the fragment within 160.");
+        Assert.Equal(rest.Length + 2 + ContractRole.Length + fragment.Length, said.Length);
+    }
+
+    /// <summary>
+    /// A payer a few characters longer must not erase the contract (the D5 reproduction).
+    /// </summary>
+    /// <remarks>
+    /// At <c>4d5b9b2</c> the facts other than the contract left 11 characters for its
+    /// title, one under the minimum, and the row dropped the contract entirely.
+    /// </remarks>
+    [Fact]
+    public void ALongerPayerDoesNotEraseTheContract()
+    {
+        const string payer = "Northgate Pictures LLC";
+        string said = ReceivableSaid(Receivable(payer: payer));
+
+        AssertEveryReceivableFact(said, payer);
+        Assert.Equal("Autumn…", ContractFragment(said));
+        AssertExcessIsOnlyWhatTruthForces(said);
+        Assert.Equal(
+            "Contract: Autumn…, Payer: Northgate Pictures LLC, 240,000.00 GBP original, "
+                + "90,000.00 GBP allocated, 150,000.00 GBP outstanding, Partially paid, Client money",
+            said);
+        Assert.Equal(156, said.Length);
+    }
+
+    /// <summary>
+    /// A long legal payer name keeps every fact whole and the contract recognisable,
+    /// past 160 by exactly what that requires.
+    /// </summary>
+    [Fact]
+    public void ALongLegalPayerKeepsEveryFactAndTheContract()
+    {
+        const string payer = "Northgate Pictures International Film Distribution and Production Holdings Limited";
+        ReceivableResponse row = Receivable(payer: payer, beneficiary: "Agency");
+        string said = ReceivableSaid(row);
+
+        AssertEveryReceivableFact(said, payer, "Agency");
+        Assert.Equal("Autumn…", ContractFragment(said));
+        AssertExcessIsOnlyWhatTruthForces(said);
+        Assert.Equal(said, ReceivableSaid(row));
+        Assert.Equal(216, said.Length);
+
+        // Nothing hidden joined it.
+        Assert.DoesNotContain("INV-2026-0417", said, StringComparison.Ordinal);
+        Assert.DoesNotContain("12,345.00", said, StringComparison.Ordinal);
+        Assert.DoesNotContain("Ana Reyes", said, StringComparison.Ordinal);
+        Assert.Equal(7, said.Split(", ").Length);
+
+        RowTemplate markup = Template(Find("Pages/FinancePage.xaml", "ReceivableList"));
+
+        Assert.Equal(SlateTitle, HelpText(markup, row));
+    }
+
+    /// <summary>A row whose whole phrase fits says its title whole and does not grow.</summary>
+    [Fact]
+    public void AReceivableThatFitsDoesNotUseTheSafetyValve()
+    {
+        ReceivableResponse row = Receivable() with { ContractTitle = "Autumn slate" };
+        string said = ReceivableSaid(row);
+
+        AssertEveryReceivableFact(said, "Northgate Pictures");
+        Assert.Equal("Autumn slate", ContractFragment(said, "Autumn slate"));
+        Assert.Equal(ContractRole.Length + "Autumn slate".Length + 2 + 133, said.Length);
+        Assert.True(said.Length <= 160, said);
+    }
+
+    /// <summary>
+    /// A long client name keeps the client, every amount and the status whole, and the
+    /// contract recognisable.
+    /// </summary>
+    /// <remarks>
+    /// At <c>4d5b9b2</c> this row dropped its contract: the other facts took 150 of
+    /// the 160 characters.
+    /// </remarks>
+    [Fact]
+    public void ALongClientDoesNotEraseTheCommissionContract()
+    {
+        const string client = "Anastasia Reyes-Okafor de la Fuente Montgomery";
+        CommissionEntitlementResponse row = Commission(client: client);
+        string said = InEnglish(() => RowLabel.For(row, "Commission"));
+        string[] segments = said.Split(", ");
+
+        Assert.Equal("Client: " + client, segments[0]);
+        Assert.Equal("Autumn…", ContractFragment(said));
+        Assert.True(SaysInRole(said, "24,000.00 GBP", "entitled"), said);
+        Assert.True(SaysInRole(said, "9,000.00 GBP", "collected"), said);
+        Assert.True(SaysInRole(said, "15,000.00 GBP", "outstanding"), said);
+        Assert.Equal("Partially collected", segments[^1]);
+        AssertExcessIsOnlyWhatTruthForces(said);
+        Assert.Equal(
+            "Client: Anastasia Reyes-Okafor de la Fuente Montgomery, Contract: Autumn…, 24,000.00 GBP entitled, "
+                + "9,000.00 GBP collected, 15,000.00 GBP outstanding, Partially collected",
+            said);
+        Assert.Equal(169, said.Length);
+
+        RowTemplate markup = Template(Find("Pages/FinancePage.xaml", "CommissionList"));
+
+        Assert.Equal(SlateTitle, HelpText(markup, row));
     }
 
     /// <summary>A short contract title is said whole.</summary>

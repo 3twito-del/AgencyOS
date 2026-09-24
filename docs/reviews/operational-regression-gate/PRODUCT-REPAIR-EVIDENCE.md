@@ -51,8 +51,9 @@ template, its announcement and its coverage are unchanged (`TheBalanceRowIsUncha
   words are in the XAML.
 - **Budget.** A row that would exceed 160 characters shortens the one field its profile lets
   yield, and keeps every other field whole. If the rest leaves less than the existing
-  12-character minimum, the yielding field is dropped rather than reduced to an ellipsis. This
-  is the rule task and prediction rows already follow.
+  12-character minimum, a yielding headline is dropped rather than reduced to an ellipsis.
+  This is the rule task and prediction rows already follow. At `4d5b9b2` this drop also
+  applied to D4 overflow fields. Section 10 records the D5 correction that stops it.
 - **Secondary channels.** The 17 unwired secondary values are now bound directly:
   `AutomationProperties.HelpText="{Binding X}"`. No converter was invented. The 18th,
   `InteractionTemplate` `DetailedNotes`, was already a wired descendant.
@@ -68,7 +69,20 @@ title, which is not a recognisable fragment. Two things caused this:
 - the money role written in full as "original amount";
 - the beneficiary written as a bare "Client" that the role rule required to be labelled.
 
-The owner resolved it:
+The chain of decisions, preserved in order:
+
+1. The first bounded repair stopped because realistic Finance rows could not fit 160
+   characters. Control Room adjudicated that STOP, and the owner approved **D4**: a long
+   textual PRIMARY value keeps its role and a scan fragment in the name, with the whole value
+   on a channel of the same row.
+2. The D4 resume stopped on vocabulary (Search `Subtitle`, the link rows). Control Room
+   adjudicated it.
+3. The next resume stopped on this Receivable arithmetic. Control Room then approved the
+   bounded operator vocabulary below.
+4. `4d5b9b2` implemented it. Control Room's review of `4d5b9b2` then exposed an
+   invariant-level drop path in D4. The owner approved **D5**, and section 10 records it.
+
+The vocabulary Control Room approved:
 
 | Field | Before | Now |
 | --- | --- | --- |
@@ -199,6 +213,8 @@ Its first run flagged two such values, and neither is a leak:
 - the ledger `Currency` that every amount on `JournalList` carries;
 - the version numbers inside the visible conflict sentence on `QueueList`.
 
+Section 10 narrows this exemption.
+
 ## 7. Negative control after the repair
 
 With the repair green, one local, uncommitted mutation was made in
@@ -244,3 +260,169 @@ dispatched, as CI closure is out of scope for this step.
 - **What remains:**
   - live proof for the 18 secondary channels and the 2 overflow channels;
   - CI closure and everything after it, none of which was started.
+
+## 10. D5 correction: truth before the budget
+
+### The finding
+
+Control Room reviewed the repair snapshot `4d5b9b2`. It found that `RowLabel.Profiled` could
+still erase a PRIMARY value. The trigger was the other PRIMARY facts leaving fewer than
+`MinimumHeadline` (12) characters for the yielding field. `Profiled` then returned only the
+rest, and a D4 overflow field vanished from the name entirely.
+
+### The reproduction, before any fix
+
+Three controls were added first and run against the unchanged `4d5b9b2` product code. All
+three failed on the missing "Contract" segment:
+
+- **`ALongerPayerDoesNotEraseTheContract`**:
+  - The payer is "Northgate Pictures LLC", four characters longer than the approved
+    fixture. That leaves 11 characters for the title, one under the minimum.
+  - Every compact fact was present and complete.
+  - No "Contract" segment was present at all: `Payer: Northgate Pictures LLC, 240,000.00 GBP
+    original, 90,000.00 GBP allocated, 150,000.00 GBP outstanding, Partially paid, Client
+    money`.
+- **`ALongClientDoesNotEraseTheCommissionContract`**:
+  - The client is "Anastasia Reyes-Okafor de la Fuente Montgomery".
+  - The client, the three amounts and the status were complete.
+  - The "Contract" segment was absent.
+- **`ALongLegalPayerKeepsEveryFactAndTheContract`**:
+  - The payer is an 82-character legal name.
+  - The contract was dropped.
+  - The rest was then cut to 160: `…150,000.00 GBP…`, with the status and beneficiary gone.
+
+### Owner decision D5
+
+160 characters remains the normal scan target. PRIMARY truth outranks it where the two cannot
+coexist:
+- compact PRIMARY facts stay complete;
+- a long textual PRIMARY keeps its role and a recognisable fragment;
+- its whole value stays on its D4 channel;
+- the name may exceed 160 only by the minimum needed.
+
+D5 introduces no fixed larger cap, no Finance-specific cap and no reclassification.
+
+### The correction
+
+It is one branch in `RowLabel.Profiled`, and it applies only to a field whose profile marks it
+`Overflow`:
+
+```csharp
+if (budget < MinimumHeadline)
+{
+    if (!yields.Field.Overflow)
+    {
+        return Shorten(rest);          // unchanged: a yielding headline, as task rows
+    }
+
+    budget = MinimumHeadline;          // D5: keep the minimum fragment, drop nothing
+}
+```
+
+What changes and what does not:
+- Where the budget holds, nothing changes.
+- Where it does not, the overflow field keeps its role prefix and `Shorten(value, 12)`, the
+  product's existing minimum fragment. Every other part is joined whole, and nothing is cut
+  from the rest.
+- The name exceeds 160 by exactly the fragment the normal budget could not hold. There is no
+  other cap.
+- Ordinary yielding headlines, generic `RowLabel.For(row)`, and task and prediction rows are
+  untouched. The two overflow fields are the Receivable and Commission `ContractTitle`, the
+  only fields marked `Overflow`.
+
+### Boundary results
+
+All strings below are exact outputs under en-GB formatting, asserted by the tests named.
+
+| Case | Test | Announced name | Length |
+| --- | --- | --- | --- |
+| A. Approved receivable | `TheRealisticReceivableRowKeepsEveryScanFact` | `Contract: Autumn slate…, Payer: Northgate Pictures, 240,000.00 GBP original, 90,000.00 GBP allocated, 150,000.00 GBP outstanding, Partially paid, Client money` | **158**, unchanged |
+| B. "Northgate Pictures LLC" | `ALongerPayerDoesNotEraseTheContract` | `Contract: Autumn…, Payer: Northgate Pictures LLC, 240,000.00 GBP original, 90,000.00 GBP allocated, 150,000.00 GBP outstanding, Partially paid, Client money` | **156**, within 160 |
+| C. Long legal payer (82 characters), agency money | `ALongLegalPayerKeepsEveryFactAndTheContract` | `Contract: Autumn…, Payer: Northgate Pictures International Film Distribution and Production Holdings Limited, 240,000.00 GBP original, 90,000.00 GBP allocated, 150,000.00 GBP outstanding, Partially paid, Agency money` | **216** |
+| Commission, long client | `ALongClientDoesNotEraseTheCommissionContract` | `Client: Anastasia Reyes-Okafor de la Fuente Montgomery, Contract: Autumn…, 24,000.00 GBP entitled, 9,000.00 GBP collected, 15,000.00 GBP outstanding, Partially collected` | **169** |
+| D. Short title | `AShortContractTitleIsSaidWhole` | `Contract: Autumn slate`, said whole | n/a |
+| E. Fits, title "Autumn slate" | `AReceivableThatFitsDoesNotUseTheSafetyValve` | whole, no ellipsis | **157** |
+
+How the lengths come about:
+- **B** falls back to the 12-character minimum, and the result still fits within 160. The
+  word-boundary rule yields "Autumn…", which is 7 characters.
+- **C** needs 198 characters for its compact facts alone. It exceeds 160 only because those
+  facts are complete, plus 19 characters for ", Contract: Autumn…".
+- **Commission** needs 150 characters for its compact facts, which leaves 10 for a segment that
+  needs 19. The excess is exactly 9.
+
+`AssertExcessIsOnlyWhatTruthForces` checks every name past 160. It holds three things:
+- the fragment is at most the 12-character minimum;
+- the compact facts left no room for that minimum within 160;
+- the length is exactly the compact facts plus the contract segment.
+
+There is no fixed larger cap in the code or the tests.
+
+Every PRIMARY value survives, each checked by role:
+- the "Contract" role with a recognisable prefix of the title of at least one whole word;
+- the complete payer or client;
+- all three amounts, each with its currency and role;
+- the status;
+- the beneficiary.
+
+In C, the name has exactly its seven fields. The hidden reference, adjusted amount and client
+name are absent. The call is deterministic, and the full title is on the same row's help text.
+
+Both overflow channels remain **PRIMARY OVERFLOW — LIVE PROOF PENDING**, and all 18 secondary
+channels remain **LIVE PROOF PENDING**. The PRIMARY and SECONDARY results are unchanged: 0
+uncovered and 0 unwired. The frozen 112 / 346 / 328 / 18 population and the 110-on-70
+pre-repair count are unchanged.
+
+### The hidden-value exemption, narrowed
+
+The exemption no longer excuses a hidden value merely because the same token appears
+somewhere on screen. `SaysHidden` lets each shown value's rendering account for one occurrence,
+and only where the announcement says that rendering itself. Anything left over is a leak.
+`TheShownValueExceptionIsNarrow` holds it with seven controls:
+
+| Control | Result |
+| --- | --- |
+| Currency inside a spoken amount | allowed |
+| The same currency said a second time on its own | leak |
+| Version numbers inside the spoken conflict sentence | allowed |
+| A version said as its own segment | leak |
+| A hidden value equal to a shown one, said twice | leak |
+| Said once, as that shown value | allowed |
+| A token absent from every shown rendering | leak |
+
+The two observed cases, the ledger currency and the sync versions, still pass under the
+narrowed rule, and nothing else needed exempting.
+
+### Documentation corrections
+
+- The account in section 3 of who decided what is corrected. The earlier STOPs are kept.
+- The remarks in `IsoDate` now say that it writes a calendar date only. Given an instant, it
+  writes that instant's day in the instant's own offset, with no time and no offset. A
+  profiled row's raw instants are announced by `RowLabel`'s own formatting, not by `IsoDate`.
+  Visible dates are unchanged.
+
+### Negative control
+
+With the gate green, one local, uncommitted mutation was made: the overflow condition in
+`RowLabel.Profiled` was forced to take the old drop path. The focused suite then failed 3 of
+413. They are exactly the three D5 controls, and each diagnostic lists the complete compact
+facts with no "Contract" segment.
+
+The file was restored from the copy taken before the mutation. The copy is byte-identical
+(SHA-256 `932532391d043e3dff2da709f3283a095c5e3e9f7db19e76acb1314b2408711c`). The rerun was
+413 of 413, and `git status` shows only the intended changes.
+
+### Local gates
+
+| Gate | Result |
+| --- | --- |
+| Focused `OperationalListParityTests` | 413 passed, 0 failed |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4088 passed, including `ValueParityTests` and the source-reading rule |
+| `test-windows` | 1797 passed |
+| `test-reviewer` | 163 passed |
+
+These are local evidence only. C9 is not proved, and authoritative CI and the PostgreSQL 18.6
+evidence come next. There was no API, domain, contract, schema, migration, persistence, OpenAPI,
+workflow or Reviewer-infrastructure change. The contract stays at 17, the schema stays at
+`20260909072201_AiResultClassification`, and there is no Build 96.

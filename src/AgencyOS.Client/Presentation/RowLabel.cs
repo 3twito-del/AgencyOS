@@ -297,11 +297,22 @@ public static class RowLabel
         // Two for the separator, where anything else is said.
         int budget = MaximumLength - rest.Length - (rest.Length > 0 ? 2 : 0) - yields.Prefix.Length;
 
-        // As a task row: where the rest nearly fills the budget, the yielding value
-        // is dropped rather than said as an ellipsis with a syllable in front of it.
         if (budget < MinimumHeadline)
         {
-            return Shorten(rest);
+            // As a task row: where the rest nearly fills the budget, a yielding
+            // headline is dropped rather than said as an ellipsis with a syllable in
+            // front of it.
+            if (!yields.Field.Overflow)
+            {
+                return Shorten(rest);
+            }
+
+            // An overflowing field is a scan fact, not a headline, and truth outranks
+            // the budget (owner decision D5). It keeps its role and the least fragment
+            // any shortened value keeps, and every other fact stays whole: the name
+            // runs past 160 by exactly what those require, and no further. Its whole
+            // value is on the row's help text.
+            budget = MinimumHeadline;
         }
 
         parts[yielding] = yields with { Value = Shorten(yields.Value, budget) };

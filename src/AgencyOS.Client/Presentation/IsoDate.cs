@@ -15,13 +15,16 @@ namespace AgencyOS.Client.Presentation;
 /// The Windows <c>IsoDateConverter</c> writes what a row shows through this. It lives
 /// here rather than in the converter so that a test can run it: a formatter only the
 /// WinUI assembly could execute is one the operational parity gate would have to copy.
-/// A profiled <see cref="RowLabel"/> writes a row's dates through it too, so the date a
-/// row shows and the one it announces are one string.
+/// A profiled <see cref="RowLabel"/> writes a row's calendar dates through it too, so
+/// the date a row shows and the one it announces are one string.
 /// </para>
 /// <para>
-/// An instant is written in its own offset, not converted to local time. That is
-/// what the converter has always done, and changing it here would move every date
-/// the product already shows.
+/// It writes a calendar date and nothing else. Given an instant it writes that
+/// instant's calendar day in the instant's own offset, not converted to local time,
+/// and drops the time and the offset: that is what the converter has always shown,
+/// and changing it here would move every date the product already shows. An instant
+/// a profiled row shows raw, to the second and with its offset, is announced by
+/// <see cref="RowLabel"/>'s own profiled formatting, not by this.
 /// </para>
 /// </remarks>
 public static class IsoDate
