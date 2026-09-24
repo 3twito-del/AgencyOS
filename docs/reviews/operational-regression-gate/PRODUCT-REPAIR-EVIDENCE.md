@@ -1022,3 +1022,89 @@ The file was restored byte-identical (SHA-256
 
 C3, C7 and C9 are not claimed. The next stage is fresh authoritative CI and PostgreSQL 18.6 on
 the new SHA, and then a fresh RC from the beginning.
+
+## 15. Decision C: stale profile-notice correction
+
+### Control Room review of `488e1d4`
+
+Control Room accepted the five-state profile model and the generation guard against stale
+reads. It found one remaining same-surface defect. Sections 13 and 14 are kept.
+
+### The finding
+
+`ProfileNotice` gives an earlier create outcome (`_profileMessage` / `_profileFailed`)
+precedence over the current profile state. A later `CheckTalentProfileAsync()` set the state
+to `Checking` but did not clear that outcome. So the surface could have
+`ProfileState == Checking` while still showing "Talent profile not created", and the stale
+outcome went on masking whatever the fresh read established.
+
+### Reproduction, before any fix, against the unchanged `488e1d4` product code
+
+A client is signed as `Absent`, and the explicit create is refused with 403. A fresh talent
+read is then started and held in flight on the existing `TalentReadGates` gate, with no timing
+involved. On that code all five new tests failed:
+
+| Test | Expected | Shown at `488e1d4` |
+| --- | --- | --- |
+| A. read in flight | "Checking whether O'Brien D'Angelo-Smith a…" | "You do not have permission to create tale…" |
+| B. read finds a profile | "O'Brien D'Angelo-Smith has a talent profi…" | "You do not have permission to create tale…" |
+| C. read finds none | title "Next: create a talent profile" | title "Talent profile not created" |
+| D. read fails | "Whether O'Brien D'Angelo-Smith has a tale…" | "You do not have permission to create tale…" |
+| after a successful create, a deliberate re-read in flight | "Checking whether O'Brien D'Angelo-Smith a…" | "Talent profile created. O'Brien D'Angelo-…" |
+
+### The fix
+
+The change is in `RepresentationViewModels.cs` only. When `ReadProfileStateAsync` starts a
+fresh read for the current signed client, it now clears `_profileMessage` and resets
+`_profileFailed`, then sets `Checking`. The read owns the status from the moment it starts.
+
+The accepted mechanism is unchanged:
+- the five states and their meanings;
+- 404 only gives `Absent`, and a failed or refused read gives `Unavailable`;
+- Create is offered only for `Absent` or `Unavailable`;
+- a successful create or a 409 gives `Present`, and a failed create keeps the prior state;
+- the generation guard, and a successful create retiring an older read.
+
+The immediate feedback after a create stays. It is superseded only when a later read actually
+starts.
+
+### Results
+
+- **A.** With the read in flight after a refused create, the state is `Checking`, the message
+  is "Checking whether O'Brien D'Angelo-Smith already has a talent profile.", it is not an
+  error, the old refusal text is gone, and Create is not offered.
+- **B, C, D.** The fresh read's own wording replaces the refusal:
+  - Present gives "O'Brien D'Angelo-Smith has a talent profile and appears in Talent."
+  - Absent gives "Next: create a talent profile" and "O'Brien D'Angelo-Smith is a client, but
+    does not appear in Talent or in talent pursuits until they have a talent profile."
+  - Unavailable gives "Whether O'Brien D'Angelo-Smith has a talent profile could not be
+    checked. Create one if they need to appear in Talent."
+- **A successful create, then a re-read.** "Talent profile created. … now appears in Talent."
+  shows at once. A deliberate later read shows `Checking`, and then `Present` with its
+  wording.
+
+All earlier decision-C tests still pass: NotChecked, Checking, Absent, Present, Unavailable,
+Unavailable → 409 → Present, a failed create keeping its state, the stale read across two
+clients, and the full story.
+
+### Negative control
+
+With the gate green, one local, uncommitted mutation was made: a new read no longer cleared
+the prior outcome. Exactly the five new tests failed; the other 14 decision-C client tests
+passed. The file was restored byte-identical (SHA-256
+`ad361379798a8c45c911e8a8b5ea357955afe543e1f05df15116ac920c119d37`) and the rerun was 19 of
+19.
+
+### Local gates
+
+| Gate | Result |
+| --- | --- |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4110 passed |
+| `test-windows` | 1820 passed |
+| `test-reviewer` | 163 passed |
+| Decision-C integration tests, on the LAB PostgreSQL 19 cluster | 3 passed (corroboration only; not 18.6 authority) |
+
+There was no XAML, API, contract, schema, migration, domain, query, permission or workflow
+change. C3, C7 and C9 are not claimed. The next stage is fresh authoritative CI and
+PostgreSQL 18.6 on the new SHA.

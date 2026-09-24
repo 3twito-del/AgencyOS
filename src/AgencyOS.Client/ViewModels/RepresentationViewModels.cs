@@ -588,6 +588,11 @@ public sealed class ProspectsViewModel : ViewModelBase
         // read, or one for a client the operator has since moved away from, is ignored.
         int read = ++_profileRead;
 
+        // A fresh read owns what the surface says from the moment it starts. The
+        // outcome of an earlier create - a refusal, or a success - is history, and
+        // left in place it would mask both the read in progress and its answer.
+        _profileMessage = null;
+        _profileFailed = false;
         _profileState = TalentProfileState.Checking;
         RaiseProfileChanged();
 

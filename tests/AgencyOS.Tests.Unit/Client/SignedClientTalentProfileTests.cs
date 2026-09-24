@@ -237,6 +237,142 @@ public sealed class SignedClientTalentProfileTests
         Assert.True(viewModel.CanCreateTalentProfile);
     }
 
+    private const string RefusedCreate =
+        "You do not have permission to create talent profiles. O'Brien D'Angelo-Smith is still a client.";
+
+    /// <summary>
+    /// A client signed as Absent, whose explicit create was then refused, and a fresh
+    /// talent read started and held in flight.
+    /// </summary>
+    private static async Task<(FakeAgencyOsApi Api, ProspectsViewModel ViewModel, ProspectResponse Prospect, TaskCompletionSource Gate, Task Read)>
+        RefusedThenRereadingAsync()
+    {
+        (FakeAgencyOsApi api, ProspectsViewModel viewModel, ProspectResponse prospect) = await SignAsync();
+
+        Assert.Equal(TalentProfileState.Absent, viewModel.ProfileState);
+
+        api.Failures.Enqueue(new AgencyOsApiException(HttpStatusCode.Forbidden, "Permission denied"));
+        await viewModel.CreateTalentProfileAsync("Unknown");
+
+        Assert.Equal(RefusedCreate, viewModel.ProfileNotice?.Message);
+        Assert.True(viewModel.ProfileNotice?.IsError);
+
+        TaskCompletionSource gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        api.TalentReadGates[prospect.PersonId] = gate;
+
+        Task read = viewModel.CheckTalentProfileAsync();
+
+        return (api, viewModel, prospect, gate, read);
+    }
+
+    /// <summary>
+    /// A: a fresh read after a refused create shows the read, not the old refusal.
+    /// </summary>
+    [Fact]
+    public async Task AfterARefusedCreate_AFreshReadInFlight_SaysChecking()
+    {
+        (_, ProspectsViewModel viewModel, _, TaskCompletionSource gate, Task read) = await RefusedThenRereadingAsync();
+
+        Assert.Equal(TalentProfileState.Checking, viewModel.ProfileState);
+
+        ProfileNotice notice = Assert.IsType<ProfileNotice>(viewModel.ProfileNotice);
+
+        Assert.Equal("Checking whether O'Brien D'Angelo-Smith already has a talent profile.", notice.Message);
+        Assert.Equal("Talent profile", notice.Title);
+        Assert.False(notice.IsError);
+        Assert.DoesNotContain("permission", notice.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.False(viewModel.CanCreateTalentProfile);
+
+        gate.SetResult();
+        await read;
+    }
+
+    /// <summary>B: the fresh read finds a profile, and says so, not the old refusal.</summary>
+    [Fact]
+    public async Task AfterARefusedCreate_AFreshReadFindingAProfile_SaysPresent()
+    {
+        (FakeAgencyOsApi api, ProspectsViewModel viewModel, ProspectResponse prospect, TaskCompletionSource gate, Task read) =
+            await RefusedThenRereadingAsync();
+
+        // Somebody with the permission created it meanwhile.
+        await api.CreateTalentProfileAsync(new CreateTalentProfileRequest(prospect.PersonId, "Established"));
+
+        gate.SetResult();
+        await read;
+
+        Assert.Equal(TalentProfileState.Present, viewModel.ProfileState);
+        Assert.Equal("O'Brien D'Angelo-Smith has a talent profile and appears in Talent.", viewModel.ProfileNotice?.Message);
+        Assert.False(viewModel.ProfileNotice?.IsError);
+    }
+
+    /// <summary>C: the fresh read finds none, and gives the next step, not the old refusal.</summary>
+    [Fact]
+    public async Task AfterARefusedCreate_AFreshReadFindingNone_SaysTheNextStep()
+    {
+        (_, ProspectsViewModel viewModel, _, TaskCompletionSource gate, Task read) = await RefusedThenRereadingAsync();
+
+        gate.SetResult();
+        await read;
+
+        Assert.Equal(TalentProfileState.Absent, viewModel.ProfileState);
+
+        ProfileNotice notice = Assert.IsType<ProfileNotice>(viewModel.ProfileNotice);
+
+        Assert.Equal("Next: create a talent profile", notice.Title);
+        Assert.Equal(
+            "O'Brien D'Angelo-Smith is a client, but does not appear in Talent or in talent pursuits until they have a talent profile.",
+            notice.Message);
+        Assert.False(notice.IsError);
+    }
+
+    /// <summary>D: the fresh read cannot answer, and says that, not the old refusal.</summary>
+    [Fact]
+    public async Task AfterARefusedCreate_AFreshReadThatFails_SaysUnavailable()
+    {
+        (_, ProspectsViewModel viewModel, _, TaskCompletionSource gate, Task read) = await RefusedThenRereadingAsync();
+
+        gate.SetException(new AgencyOsApiException(HttpStatusCode.ServiceUnavailable, "Unavailable"));
+        await read;
+
+        Assert.Equal(TalentProfileState.Unavailable, viewModel.ProfileState);
+        Assert.Equal(
+            "Whether O'Brien D'Angelo-Smith has a talent profile could not be checked. Create one if they need to appear in Talent.",
+            viewModel.ProfileNotice?.Message);
+        Assert.False(viewModel.ProfileNotice?.IsError);
+    }
+
+    /// <summary>
+    /// A successful create is said at once, and a read deliberately made afterwards
+    /// then owns the status.
+    /// </summary>
+    [Fact]
+    public async Task AfterASuccessfulCreate_ALaterReadOwnsTheStatus()
+    {
+        (FakeAgencyOsApi api, ProspectsViewModel viewModel, ProspectResponse prospect) = await SignAsync();
+
+        await viewModel.CreateTalentProfileAsync("Emerging");
+
+        Assert.Equal("Talent profile created. O'Brien D'Angelo-Smith now appears in Talent.", viewModel.ProfileNotice?.Message);
+        Assert.True(viewModel.ProfileNotice?.IsSuccess);
+
+        TaskCompletionSource gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        api.TalentReadGates[prospect.PersonId] = gate;
+
+        Task read = viewModel.CheckTalentProfileAsync();
+
+        Assert.Equal(TalentProfileState.Checking, viewModel.ProfileState);
+        Assert.Equal("Checking whether O'Brien D'Angelo-Smith already has a talent profile.", viewModel.ProfileNotice?.Message);
+        Assert.False(viewModel.ProfileNotice?.IsSuccess);
+
+        gate.SetResult();
+        await read;
+
+        Assert.Equal(TalentProfileState.Present, viewModel.ProfileState);
+        Assert.Equal("O'Brien D'Angelo-Smith has a talent profile and appears in Talent.", viewModel.ProfileNotice?.Message);
+    }
+
     /// <summary>
     /// A newly assigned signed client is NotChecked until a read starts, and says so
     /// without claiming a failure or an absence.
