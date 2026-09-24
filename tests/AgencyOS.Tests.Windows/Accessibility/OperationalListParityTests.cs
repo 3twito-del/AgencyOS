@@ -260,9 +260,16 @@ public sealed partial class OperationalListParityTests
     }
 
     /// <summary>A binding's classification, the channel it may use, and why.</summary>
-    public sealed record Classification(Weight Weight, Channel Channel, string Reason);
+    /// <param name="Role">
+    /// The word the row itself uses for this value's role, where its field name is not
+    /// that word — taken from the list's own column header, never invented.
+    /// </param>
+    public sealed record Classification(Weight Weight, Channel Channel, string Reason, string? Role = null);
 
     private static Classification Primary { get; } = new(Weight.Primary, Channel.None, string.Empty);
+
+    private static Classification PrimaryAs(string role, string reason) =>
+        new(Weight.Primary, Channel.None, reason, role);
 
     private static Classification Secondary(Channel channel, string reason) =>
         new(Weight.Secondary, channel, reason);
@@ -377,9 +384,9 @@ public sealed partial class OperationalListParityTests
         ["Pages/ContractsPage.xaml#TermList#{Binding ClauseReference}"] = Primary,
         ["Pages/ContractsPage.xaml#TermList#{Binding DisplayValue}"] = Primary,
         ["Pages/ContractsPage.xaml#ReconcileList#{Binding DisplayName}"] = Primary,
-        ["Pages/ContractsPage.xaml#ReconcileList#{Binding Negotiated.DisplayValue}"] = Primary,
-        ["Pages/ContractsPage.xaml#ReconcileList#{Binding Contracted.DisplayValue}"] = Primary,
-        ["Pages/ContractsPage.xaml#ReconcileList#{Binding Result}"] = Primary,
+        ["Pages/ContractsPage.xaml#ReconcileList#{Binding Negotiated.DisplayValue}"] = PrimaryAs("Agreed", "The column header above this value in ContractsPage ReconcileList reads \"Agreed\"."),
+        ["Pages/ContractsPage.xaml#ReconcileList#{Binding Contracted.DisplayValue}"] = PrimaryAs("In the draft", "The column header above this value in ContractsPage ReconcileList reads \"In the draft\"."),
+        ["Pages/ContractsPage.xaml#ReconcileList#{Binding Result}"] = PrimaryAs("Result", "The column header above this value in ContractsPage ReconcileList reads \"Result\"."),
         ["Pages/ContractsPage.xaml#PartyList#{Binding DisplayName}"] = Primary,
         ["Pages/ContractsPage.xaml#PartyList#{Binding Role}"] = Primary,
         ["Pages/ContractsPage.xaml#PartyList#{Binding SignedOn}"] = Primary,
@@ -422,9 +429,9 @@ public sealed partial class OperationalListParityTests
         ["Pages/DealsPage.xaml#TermList#{Binding Notes}"] = Secondary(Channel.HelpText, "Context that is not part of the term's value; the term is identified by its name and value."),
         ["Pages/DealsPage.xaml#TermList#{Binding DisplayValue}"] = Primary,
         ["Pages/DealsPage.xaml#ComparisonList#{Binding DisplayName}"] = Primary,
-        ["Pages/DealsPage.xaml#ComparisonList#{Binding Previous.DisplayValue}"] = Primary,
-        ["Pages/DealsPage.xaml#ComparisonList#{Binding Current.DisplayValue}"] = Primary,
-        ["Pages/DealsPage.xaml#ComparisonList#{Binding Change}"] = Primary,
+        ["Pages/DealsPage.xaml#ComparisonList#{Binding Previous.DisplayValue}"] = PrimaryAs("Previous", "The column header above this value in DealsPage ComparisonList reads \"Previous\"."),
+        ["Pages/DealsPage.xaml#ComparisonList#{Binding Current.DisplayValue}"] = PrimaryAs("Current", "The column header above this value in DealsPage ComparisonList reads \"Current\"."),
+        ["Pages/DealsPage.xaml#ComparisonList#{Binding Change}"] = PrimaryAs("Change", "The column header above this value in DealsPage ComparisonList reads \"Change\"."),
         ["Pages/DealsPage.xaml#TaskList#{Binding Title}"] = Primary,
         ["Pages/DealsPage.xaml#TaskList#{Binding Priority, Converter={StaticResource DisplayLabel}}"] = Primary,
         ["Pages/DealsPage.xaml#TaskList#{Binding Converter={StaticResource TaskWho}}"] = Primary,
@@ -737,6 +744,27 @@ public sealed partial class OperationalListParityTests
                 + " | Classifications with no binding: " + string.Join(", ", stale));
     }
 
+    /// <summary>
+    /// Every role word the accounting supplies is one the page itself shows.
+    /// </summary>
+    /// <remarks>
+    /// A role word is taken from the product, never invented: each must be the literal
+    /// text of a visible label in the markup file that holds the row.
+    /// </remarks>
+    [Fact]
+    public void EveryAccountedRoleWordIsVisibleOnItsPage()
+    {
+        foreach ((string key, Classification value) in Accounting.Where(x => x.Value.Role is not null))
+        {
+            string file = key.Split('#')[0];
+            string markup = System.IO.File.ReadAllText(Path.Combine(WindowsRoot, file));
+
+            Assert.True(
+                markup.Contains($"Text=\"{value.Role}\"", StringComparison.Ordinal),
+                $"{key}: the role word '{value.Role}' is not a visible label in {file}.");
+        }
+    }
+
     /// <summary>Every secondary value says where it goes and why it is not a scan fact.</summary>
     [Fact]
     public void EverySecondaryValueNamesAChannelAndAReason()
@@ -807,9 +835,13 @@ public sealed partial class OperationalListParityTests
 
         List<string> missing = [];
 
-        foreach (Shown value in shown.Where(x => Accounting[AccountingKey(entry, x)].Weight == Weight.Primary))
+        List<Shown> primary = [.. shown
+            .Where(x => Accounting[AccountingKey(entry, x)].Weight == Weight.Primary)
+            .Select(x => x with { Role = Accounting[AccountingKey(entry, x)].Role })];
+
+        foreach (Shown value in primary)
         {
-            if (Coverage.Check(row, value, shown, announced) is { } reason)
+            if (Coverage.Check(row, value, primary, announced) is { } reason)
             {
                 missing.Add(reason);
             }
@@ -1031,6 +1063,150 @@ public sealed partial class OperationalListParityTests
         Assert.Null(Check(row, "{Binding PayerDisplayName}", "zqab, zqac"));
     }
 
+    private sealed record Filing(string Name, string Claimant, string Respondent);
+
+    private sealed record Grant(string Name, string Medium, string Territory);
+
+    private sealed record Brief(string Name, string Claimant);
+
+    private sealed record Stamped(DateTime RecordedAt);
+
+    private sealed record Offset(DateTimeOffset RecordedAt);
+
+    /// <summary>Two texts in their right roles are covered.</summary>
+    [Fact]
+    public void TheComparatorAcceptsTwoTextsInTheirRoles()
+    {
+        Filing row = new("Case 12", "Ana Reyes", "Ben Okafor");
+        string[] shown = ["{Binding Name}", "{Binding Claimant}", "{Binding Respondent}"];
+        const string said = "Case 12, Claimant Ana Reyes, Respondent Ben Okafor";
+
+        Assert.Null(Check(row, shown[1], said, shown));
+        Assert.Null(Check(row, shown[2], said, shown));
+    }
+
+    /// <summary>The same two texts swapped between their roles fail both.</summary>
+    [Fact]
+    public void TheComparatorFailsTwoTextsSwappedBetweenRoles()
+    {
+        Filing row = new("Case 12", "Ana Reyes", "Ben Okafor");
+        string[] shown = ["{Binding Name}", "{Binding Claimant}", "{Binding Respondent}"];
+
+        Assert.NotNull(Check(row, shown[1], "Case 12, Claimant Ben Okafor, Respondent Ana Reyes", shown));
+        Assert.NotNull(Check(row, shown[2], "Case 12, Claimant Ben Okafor, Respondent Ana Reyes", shown));
+
+        // Both values present, neither attributed: value presence alone is not enough.
+        Assert.NotNull(Check(row, shown[1], "Case 12, Ana Reyes, Ben Okafor", shown));
+    }
+
+    /// <summary>Two domain tokens swapped between their roles fail.</summary>
+    [Fact]
+    public void TheComparatorFailsTwoTokensSwappedBetweenRoles()
+    {
+        Grant row = new("Rights", "Film", "Europe");
+        string[] shown =
+        [
+            "{Binding Name}",
+            "{Binding Medium, Converter={StaticResource DisplayLabel}}",
+            "{Binding Territory, Converter={StaticResource DisplayLabel}}",
+        ];
+
+        Assert.Null(Check(row, shown[1], "Rights, Medium Film, Territory Europe", shown));
+        Assert.NotNull(Check(row, shown[1], "Rights, Medium Europe, Territory Film", shown));
+        Assert.NotNull(Check(row, shown[2], "Rights, Medium Europe, Territory Film", shown));
+    }
+
+    private sealed record Priced2(MoneyResponse Amount, string Name, string DisplayValue, string ClauseReference);
+
+    /// <summary>A term's stated value is the value of its headline and needs no label.</summary>
+    [Fact]
+    public void TheComparatorDoesNotAskAStatedValueForARoleLabel()
+    {
+        Priced2 row = new(new MoneyResponse(1m, "USD"), "Fee", "185,000.00 USD", "7.2");
+        string[] shown = ["{Binding Name}", "{Binding ClauseReference}", "{Binding DisplayValue}"];
+
+        Assert.Null(Check(row, shown[2], "Fee, 7.2, 185,000.00 USD", shown));
+    }
+
+    /// <summary>A role word the row's own header gives is the one required.</summary>
+    [Fact]
+    public void TheComparatorUsesTheRowsOwnRoleWord()
+    {
+        Filing row = new("Case 12", "Ana Reyes", "Ben Okafor");
+        Shown[] shown =
+        [
+            Parse("{Binding Name}"),
+            Parse("{Binding Claimant}") with { Role = "Agreed" },
+            Parse("{Binding Respondent}") with { Role = "In the draft" },
+        ];
+
+        Assert.Null(Coverage.Check(row, shown[1], shown, "Case 12, Agreed Ana Reyes, In the draft Ben Okafor"));
+        Assert.NotNull(Coverage.Check(row, shown[1], shown, "Case 12, Claimant Ana Reyes, Respondent Ben Okafor"));
+    }
+
+    /// <summary>A headline and one other text need no role label.</summary>
+    [Fact]
+    public void TheComparatorDoesNotAskAHeadlineForARoleLabel()
+    {
+        Brief row = new("Case 12", "Ana Reyes");
+        string[] shown = ["{Binding Name}", "{Binding Claimant}"];
+
+        Assert.Null(Check(row, shown[0], "Case 12, Ana Reyes", shown));
+        Assert.Null(Check(row, shown[1], "Case 12, Ana Reyes", shown));
+    }
+
+    /// <summary>A raw instant on the same day at another time is not the same value.</summary>
+    [Fact]
+    public void TheComparatorRefusesTheSameDayAtAnotherTime()
+    {
+        Stamped row = new(new DateTime(2032, 1, 4, 12, 0, 0, DateTimeKind.Unspecified));
+
+        Assert.NotNull(Check(row, "{Binding RecordedAt}", "Note, 2032-01-04 13:00:00"));
+        Assert.NotNull(Check(row, "{Binding RecordedAt}", "Note, 2032-01-04"));
+    }
+
+    /// <summary>The same date and time written another way is the same value.</summary>
+    [Fact]
+    public void TheComparatorAcceptsTheSameInstantInAnotherFormat()
+    {
+        DateTime moment = new(2032, 1, 4, 12, 30, 15, DateTimeKind.Unspecified);
+        Stamped row = new(moment);
+
+        Assert.Null(Check(row, "{Binding RecordedAt}", "Note, 2032-01-04 12:30:15"));
+        Assert.Null(Check(row, "{Binding RecordedAt}", "Note, " + moment.ToString("G", CultureInfo.CurrentCulture)));
+    }
+
+    /// <summary>
+    /// An instant with an offset is refused under an incompatible offset, and without one.
+    /// </summary>
+    [Fact]
+    public void TheComparatorRefusesAnInstantUnderAnotherOffset()
+    {
+        Offset row = new(new DateTimeOffset(2032, 1, 4, 12, 0, 0, TimeSpan.Zero));
+        const string shown = "{Binding RecordedAt}";
+
+        Assert.Null(Check(row, shown, "Note, 2032-01-04 12:00:00 +00:00"));
+
+        // The same moment written in another offset is the same instant.
+        Assert.Null(Check(row, shown, "Note, 2032-01-04 14:00:00 +02:00"));
+
+        // The same wall-clock time in another offset is a different instant.
+        Assert.NotNull(Check(row, shown, "Note, 2032-01-04 12:00:00 +02:00"));
+
+        // The row states an offset; an announcement without one drops it.
+        Assert.NotNull(Check(row, shown, "Note, 2032-01-04 12:00:00"));
+    }
+
+    /// <summary>A date shows no time, and acquires no time requirement.</summary>
+    [Fact]
+    public void TheComparatorAsksNoTimeOfADate()
+    {
+        TwoDates row = new(First, Second);
+
+        Assert.Null(Check(row, "{Binding DueOn}", "Party, Due 2031-01-01"));
+        Assert.Null(Check(row, "{Binding DueOn, Converter={StaticResource IsoDate}}", "Party, Due 2031-01-01"));
+    }
+
     /// <summary>Two builds of one type are the same row, down to its identifiers.</summary>
     [Fact]
     public void SentinelsAreDeterministic()
@@ -1081,15 +1257,20 @@ public sealed partial class OperationalListParityTests
     /// <remarks>
     /// <list type="bullet">
     /// <item><b>Text</b> is covered when the announcement contains it as a whole word
-    /// sequence.</item>
+    /// sequence — with its role word beside it when another text on the row could
+    /// answer for it.</item>
     /// <item><b>Token</b> — a domain value shown through <c>DisplayLabel</c> — is
     /// covered by the same words.</item>
     /// <item><b>Number</b> is covered by the same number, in either the invariant
     /// or the current culture.</item>
     /// <item><b>Flag</b> is covered by its role word, because a true flag has no
     /// value of its own to say; the row announces a set flag by name.</item>
-    /// <item><b>Date</b> is covered by the same calendar date, in any of the
-    /// product's formats, read in the value's own offset or in local time.</item>
+    /// <item><b>Date</b> — a <see cref="DateOnly"/>, or any value shown through the
+    /// date converter — is covered by the same calendar date in any of the product's
+    /// formats. It shows no time, and none is required.</item>
+    /// <item><b>Instant</b> — a raw <see cref="DateTime"/> or <see cref="DateTimeOffset"/>
+    /// — is covered only by the same date and time to the second, and for an offset
+    /// value by the same instant written with an offset: everything the row shows.</item>
     /// <item><b>Money</b> is covered by the same amount in the same currency,
     /// whatever the number format.</item>
     /// <item><b>Bare amount</b> — a money amount shown without its currency — is
@@ -1102,8 +1283,10 @@ public sealed partial class OperationalListParityTests
     /// <item><b>Composed</b> converter output is covered part by part.</item>
     /// </list>
     /// <para>
-    /// Role identity: where a row shows more than one number, date or flag, each
-    /// must be announced with its role, or one could answer for another.
+    /// Role identity: where a row shows more than one number, date or flag, or more
+    /// than one text or token that is neither the row's headline nor one of the
+    /// product's qualifiers, each must be announced with its role, or one could answer
+    /// for another.
     /// </para>
     /// </remarks>
     internal static class Coverage
@@ -1120,18 +1303,22 @@ public sealed partial class OperationalListParityTests
 
             object? raw = value.Path is null ? row : Read(row, value.Path);
             Kind kind = KindOf(value, raw, row);
-            bool needsRole = kind is Kind.Number or Kind.Date or Kind.Flag
-                && rowBindings.Count(x => KindOf(x, x.Path is null ? row : Read(row, x.Path), row) == kind) > 1;
+            bool needsRole = NeedsRole(row, value, kind, rowBindings);
 
             bool covered = kind switch
             {
-                Kind.Text or Kind.Token => ContainsWords(announced, text),
+                Kind.Text or Kind.Token => needsRole
+                    ? Segments(announced).Any(s => ContainsWords(s, text) && ContainsWords(s, RoleWord(value)))
+                    : ContainsWords(announced, text),
                 Kind.Number => Segments(announced).Any(s =>
                     Numbers(raw).Any(n => ContainsWords(s, n))
                     && (!needsRole || ContainsWords(s, RoleWord(value)))),
                 Kind.Flag => ContainsWords(announced, RoleWord(value)),
                 Kind.Date => Segments(announced).Any(s =>
                     Dates(raw).Any(d => s.Contains(d, StringComparison.OrdinalIgnoreCase))
+                    && (!needsRole || ContainsWords(s, RoleWord(value)))),
+                Kind.Instant => Segments(announced).Any(s =>
+                    SameInstant(raw, s)
                     && (!needsRole || ContainsWords(s, RoleWord(value)))),
                 Kind.Money => raw is MoneyResponse money && HasMoney(announced, money.Amount, money.Currency),
                 Kind.BareAmount => BareAmountCovered(row, value, rowBindings, announced),
@@ -1151,6 +1338,7 @@ public sealed partial class OperationalListParityTests
             Number,
             Flag,
             Date,
+            Instant,
             Money,
             BareAmount,
             Party,
@@ -1167,13 +1355,147 @@ public sealed partial class OperationalListParityTests
                 or "PredictionCaption" or "PredictionDue" => Kind.Composed,
             _ => raw switch
             {
-                DateOnly or DateTimeOffset or DateTime => Kind.Date,
+                DateOnly => Kind.Date,
+                DateTimeOffset or DateTime => Kind.Instant,
                 bool => Kind.Flag,
                 decimal when IsMoneyAmount(row, value) => Kind.BareAmount,
                 int or long or short or decimal or double => Kind.Number,
                 _ => Kind.Text,
             },
         };
+
+        /// <summary>
+        /// Whether a value must carry its role word because another could answer for it.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Numbers, dates and flags: whenever the row shows more than one of the kind,
+        /// dates and instants counting together.
+        /// </para>
+        /// <para>
+        /// Text and domain tokens: whenever the row shows two or more that could
+        /// answer for each other. A field is exempt when its value already says what it
+        /// is, which the product has settled in <see cref="RowLabel"/>'s own
+        /// vocabularies: the headline it names the row by, its qualifiers (status,
+        /// stage, kind and the like), the related record it uses as context, and a
+        /// term's stated value. Those are read from <see cref="RowLabel"/> by
+        /// reflection, so the gate cannot drift from the product's own choice of them,
+        /// and are judged on the row's own field.
+        /// </para>
+        /// </remarks>
+        public static bool NeedsRole(object row, Shown value, Kind kind, IReadOnlyList<Shown> rowBindings)
+        {
+            Kind KindOfBinding(Shown x) => KindOf(x, x.Path is null ? row : Read(row, x.Path), row);
+
+            if (kind is Kind.Number or Kind.Flag)
+            {
+                return rowBindings.Count(x => KindOfBinding(x) == kind) > 1;
+            }
+
+            if (kind is Kind.Date or Kind.Instant)
+            {
+                return rowBindings.Count(x => KindOfBinding(x) is Kind.Date or Kind.Instant) > 1;
+            }
+
+            if (kind is Kind.Text or Kind.Token)
+            {
+                return RoleAmbiguous(row, value, kind)
+                    && rowBindings.Count(x => KindOfBinding(x) is var k
+                        && k is Kind.Text or Kind.Token
+                        && RoleAmbiguous(row, x, k)) > 1;
+            }
+
+            return false;
+        }
+
+        private static bool RoleAmbiguous(object row, Shown value, Kind kind)
+        {
+            if (value.Path is not { } path)
+            {
+                return false;
+            }
+
+            // Judged on the row's own field: Previous.DisplayValue is the row's
+            // Previous, not a stated value.
+            string field = path.Split('.')[0];
+
+            return !string.Equals(field, Headline(row), StringComparison.Ordinal)
+                && !Settled.Any(name => Vocabulary(name).Contains(field, StringComparer.Ordinal));
+        }
+
+        /// <summary>
+        /// <see cref="RowLabel"/>'s vocabularies whose values it announces bare, by settled
+        /// convention: what a row is called, where it stands, the related record that
+        /// tells it apart, and the value a term states.
+        /// </summary>
+        private static readonly string[] Settled = ["Headline", "Qualifiers", "Context", "Stated"];
+
+        /// <summary>The field <see cref="RowLabel"/> names this row by, if any.</summary>
+        private static string? Headline(object row)
+        {
+            foreach (string name in Vocabulary("Headline"))
+            {
+                if (row.GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance) is { } property
+                    && property.GetValue(row) is string { Length: > 0 })
+                {
+                    return name;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>One of <see cref="RowLabel"/>'s own vocabularies, read rather than copied.</summary>
+        private static string[] Vocabulary(string name) =>
+            typeof(RowLabel).GetField(name, BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(null) as string[]
+                ?? throw new InvalidOperationException($"RowLabel has no vocabulary called {name}.");
+
+        /// <summary>
+        /// Whether an announced segment states the same instant the row shows.
+        /// </summary>
+        /// <remarks>
+        /// A raw instant is shown with its date, its time to the second and — for a
+        /// <see cref="DateTimeOffset"/> — its offset. The announcement may write it
+        /// another way, but it may not drop what the row shows: a different time, a
+        /// time missing, or an instant that lacks the offset the row states is not the
+        /// same value. It is compared as an instant, so the same moment written in
+        /// another offset is the same value; the same wall-clock time in a different
+        /// offset is not.
+        /// </remarks>
+        public static bool SameInstant(object? raw, string segment)
+        {
+            Match span = Regex.Match(segment, @"\d.*$");
+
+            if (!span.Success || !span.Value.Contains(':', StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            string text = span.Value.Trim();
+            bool offset = Regex.IsMatch(text, @"(?:[+-]\d{2}:?\d{2}|Z)$");
+
+            foreach (CultureInfo culture in (CultureInfo[])[CultureInfo.CurrentCulture, CultureInfo.InvariantCulture])
+            {
+                if (!DateTimeOffset.TryParse(text, culture, DateTimeStyles.AllowWhiteSpaces, out DateTimeOffset said))
+                {
+                    continue;
+                }
+
+                switch (raw)
+                {
+                    case DateTimeOffset moment when offset
+                        && Seconds(said.UtcDateTime) == Seconds(moment.UtcDateTime):
+                        return true;
+
+                    case DateTime moment when Seconds(said.DateTime) == Seconds(moment):
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static long Seconds(DateTime moment) => moment.Ticks / TimeSpan.TicksPerSecond;
 
         /// <summary>Whether a bound decimal is the <c>Amount</c> of a <see cref="MoneyResponse"/>.</summary>
         private static bool IsMoneyAmount(object row, Shown value) =>
@@ -1229,9 +1551,6 @@ public sealed partial class OperationalListParityTests
             List<DateOnly> days = raw switch
             {
                 DateOnly date => [date],
-                DateTimeOffset moment =>
-                    [DateOnly.FromDateTime(moment.DateTime), DateOnly.FromDateTime(moment.ToLocalTime().DateTime)],
-                DateTime moment => [DateOnly.FromDateTime(moment), DateOnly.FromDateTime(moment.ToLocalTime())],
                 _ => [],
             };
 
@@ -1262,6 +1581,11 @@ public sealed partial class OperationalListParityTests
         /// </remarks>
         public static string RoleWord(Shown value)
         {
+            if (value.Role is { Length: > 0 } role)
+            {
+                return role;
+            }
+
             string leaf = (value.Path ?? string.Empty).Split('.')[^1];
             string words = DisplayLabel.For(leaf);
 
@@ -1331,7 +1655,8 @@ public sealed partial class OperationalListParityTests
     // ------------------------------------------------------------ the markup
 
     /// <summary>One visible binding in a row template.</summary>
-    public sealed record Shown(string Binding, string? Path, string? Converter, string? Parameter);
+    /// <param name="Role">The row's own word for this value's role, from the accounting.</param>
+    public sealed record Shown(string Binding, string? Path, string? Converter, string? Parameter, string? Role = null);
 
     private sealed record RowTemplate(string File, string Template, XElement Declaration, XElement Root);
 
@@ -1681,8 +2006,7 @@ public sealed partial class OperationalListParityTests
             ? Block(text, declaration.Groups["body"].Index)
             : string.Empty;
 
-        Assert.DoesNotContain("ToString(", body, StringComparison.Ordinal);
-        Assert.DoesNotMatch(new Regex(@"public\s+[\w<>?.]+\s+\w+\s*=>"), body);
+        Assert.Empty(HiddenBehaviour(body));
 
         foreach (Match property in Regex.Matches(body, @"public\s+(?<type>[\w<>?.]+)\s+(?<name>\w+)\s*\{\s*get;"))
         {
@@ -1695,6 +2019,63 @@ public sealed partial class OperationalListParityTests
 
         Assert.Equal(name, surrogate.Name);
         Assert.Equal(declared, stand);
+    }
+
+    /// <summary>
+    /// Anything in a declaration's body that could change what a row says without
+    /// changing its shape: a <c>ToString</c>, or a public property that is not a plain
+    /// stored one.
+    /// </summary>
+    /// <remarks>
+    /// Narrow on purpose. It reads each <c>public</c> property in the body and accepts
+    /// only the auto-property forms — <c>{ get; }</c>, <c>{ get; init; }</c>,
+    /// <c>{ get; set; }</c>, with or without an initialiser. An expression body, a
+    /// block-bodied or expression-bodied accessor, or a backing field behind a getter
+    /// is reported. Positional record parameters are outside the body and are always
+    /// stored.
+    /// </remarks>
+    internal static List<string> HiddenBehaviour(string body)
+    {
+        List<string> found = [];
+
+        if (Regex.IsMatch(body, @"\bToString\s*\("))
+        {
+            found.Add("ToString");
+        }
+
+        foreach (Match property in Regex.Matches(
+            body, @"public\s+(?:(?:override|virtual|new|required)\s+)*[\w<>?.,\[\]]+\s+(?<name>\w+)\s*(?<tail>=>|\{)"))
+        {
+            if (property.Groups["tail"].Value == "=>")
+            {
+                found.Add(property.Groups["name"].Value);
+                continue;
+            }
+
+            string accessors = Block(body, property.Groups["tail"].Index);
+
+            if (!Regex.IsMatch(accessors, @"^\{\s*get;\s*(?:(?:init|set);\s*)?\}$"))
+            {
+                found.Add(property.Groups["name"].Value);
+            }
+        }
+
+        return found;
+    }
+
+    /// <summary>The detector for hidden behaviour tells the shapes apart.</summary>
+    [Theory]
+    [InlineData("{ public string Code { get; } }", "")]
+    [InlineData("{ public string AmountDisplay { get; init; } = string.Empty; }", "")]
+    [InlineData("{ public string Name { get; set; } }", "")]
+    [InlineData("{ public string Label => Code + Name; }", "Label")]
+    [InlineData("{ public string Label { get { return Code; } } }", "Label")]
+    [InlineData("{ public string Label { get => Code; } }", "Label")]
+    [InlineData("{ private string _l; public string Label { get { return _l; } set { _l = value; } } }", "Label")]
+    [InlineData("{ public override string ToString() => Code; }", "ToString")]
+    public void TheHiddenBehaviourDetectorTellsTheShapesApart(string body, string expected)
+    {
+        Assert.Equal(expected, string.Join(",", HiddenBehaviour(body)));
     }
 
     /// <summary>The body of a declaration, from its opening brace to the matching one.</summary>

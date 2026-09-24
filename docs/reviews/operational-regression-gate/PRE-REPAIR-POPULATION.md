@@ -63,17 +63,21 @@ formatting is copied into the test — and compared by what it is:
 | Token (`DisplayLabel`) | the announcement contains the same words |
 | Number | the same number, invariant or current culture |
 | Flag | its role word, because a set flag is announced by name |
-| Date | the same calendar date in any of the product's formats, in its own offset or local time |
+| Date (`DateOnly`, or shown through the date converter) | the same calendar date in any of the product's formats; no time is asked |
+| Instant (raw `DateTime` / `DateTimeOffset`) | the same date and time to the second; for an offset value, the same instant written with an offset |
 | Money | the same amount in the same currency, whatever the number format |
 | Bare amount | the row visibly states that money's currency, and the announcement says the amount in it |
 | Party | the role word and the name together, as `PartyLine` writes them |
 | Composed converter output | each part, split at the product's visible separator |
 
-**Role identity.** A row showing more than one number, date or flag must announce each with
-its role, or one could answer for another.
+**Role identity.** A row showing more than one number, date or flag, or more than one text or
+token outside `RowLabel`'s settled vocabularies (headline, qualifiers, context, stated value),
+must announce each with its role word, or one could answer for another. The role word is the
+field's own name, or the list's visible column header where the manifest records one.
 
-**Dates.** Formatting differences alone are not a parity defect: a date is covered by the same
-calendar date in any format. No visible formatting was changed.
+**Dates and instants.** A difference in format alone is not a parity defect. What the visible
+channel shows is what must be kept: a date shows a calendar day, while a raw instant shows a
+day, a time and (as a `DateTimeOffset`) an offset. No visible formatting was changed.
 
 **BalanceList passes, for the canonical reason and with no exemption.** The row shows three
 bare amounts beside one Currency column. Each amount is covered because the row visibly states
@@ -98,10 +102,26 @@ no visible currency is not covered, and a self-test holds that case.
 
 ## 3. PRIMARY gaps: values shown and not in the row's name
 
-**108 values on 70 templates**, grouped by the mechanism in
+**110 values on 70 templates**, grouped by the mechanism in
 `RowLabel` that loses them.
 
-### D1 Dates: RowLabel has no date vocabulary: 20
+### D1 Dates: RowLabel has no date vocabulary: 11
+
+| Template | Row type | Binding |
+| --- | --- | --- |
+| `Pages/ContractsPage.xaml#MoneyObligationList` | `MonetaryObligationResponse` | `{Binding DueOn}` |
+| `Pages/ContractsPage.xaml#NoticeList` | `NoticeRecordResponse` | `{Binding OccurredOn}` |
+| `Pages/ContractsPage.xaml#NoticeRequirementList` | `NoticeRequirementResponse` | `{Binding DueOn}` |
+| `Pages/ContractsPage.xaml#ObligationList` | `ObligationResponse` | `{Binding DueOn}` |
+| `Pages/ContractsPage.xaml#OptionList` | `ContractOptionResponse` | `{Binding DeadlineOn}` |
+| `Pages/ContractsPage.xaml#PartyList` | `ContractPartyResponse` | `{Binding SignedOn}` |
+| `Pages/FinancePage.xaml#CommissionRuleList` | `CommissionRuleResponse` | `{Binding EffectiveFrom}` |
+| `Pages/FinancePage.xaml#JournalList` | `JournalEntryResponse` | `{Binding PostingDate}` |
+| `Pages/FinancePage.xaml#PaymentList` | `PaymentResponse` | `{Binding ReceivedOn}` |
+| `Pages/TalentPage.xaml#HistoryList` | `RepresentationHistoryEntryResponse` | `{Binding OccurredOn}` |
+| `Pages/TalentPage.xaml#ScopeList` | `RepresentationScopeResponse` | `{Binding StartsOn, Converter={StaticResource IsoDate}}` |
+
+### D1b Instants: RowLabel has no date or time vocabulary: 9
 
 | Template | Row type | Binding |
 | --- | --- | --- |
@@ -111,20 +131,9 @@ no visible currency is not covered, and a self-test holds that case.
 | `Pages/AiPage.xaml#StepList` | `AgentStepResponse` | `{Binding OccurredAt}` |
 | `Pages/CommunicationsPage.xaml#MailboxList` | `CommunicationAccountResponse` | `{Binding LastSyncedAt}` |
 | `Pages/CommunicationsPage.xaml#MessageList` | `MessageSummaryResponse` | `{Binding OccurredAt}` |
-| `Pages/ContractsPage.xaml#MoneyObligationList` | `MonetaryObligationResponse` | `{Binding DueOn}` |
-| `Pages/ContractsPage.xaml#NoticeList` | `NoticeRecordResponse` | `{Binding OccurredOn}` |
-| `Pages/ContractsPage.xaml#NoticeRequirementList` | `NoticeRequirementResponse` | `{Binding DueOn}` |
-| `Pages/ContractsPage.xaml#ObligationList` | `ObligationResponse` | `{Binding DueOn}` |
-| `Pages/ContractsPage.xaml#OptionList` | `ContractOptionResponse` | `{Binding DeadlineOn}` |
-| `Pages/ContractsPage.xaml#PartyList` | `ContractPartyResponse` | `{Binding SignedOn}` |
 | `Pages/DocumentsPage.xaml#HistoryList` | `DocumentEventResponse` | `{Binding OccurredAt}` |
 | `Pages/DocumentsPage.xaml#VersionList` | `DocumentVersionResponse` | `{Binding RecordedAt}` |
-| `Pages/FinancePage.xaml#CommissionRuleList` | `CommissionRuleResponse` | `{Binding EffectiveFrom}` |
 | `Pages/FinancePage.xaml#HistoryList` | `FinanceHistoryEntryResponse` | `{Binding OccurredAt}` |
-| `Pages/FinancePage.xaml#JournalList` | `JournalEntryResponse` | `{Binding PostingDate}` |
-| `Pages/FinancePage.xaml#PaymentList` | `PaymentResponse` | `{Binding ReceivedOn}` |
-| `Pages/TalentPage.xaml#HistoryList` | `RepresentationHistoryEntryResponse` | `{Binding OccurredOn}` |
-| `Pages/TalentPage.xaml#ScopeList` | `RepresentationScopeResponse` | `{Binding StartsOn, Converter={StaticResource IsoDate}}` |
 
 ### D2 Numbers: RowLabel announces no bare numbers: 5
 
@@ -244,6 +253,13 @@ no visible currency is not covered, and a self-test holds that case.
 | `Pages/FinancePage.xaml#CommissionList` | `CommissionEntitlementResponse` | `{Binding ClientDisplayName}` |
 | `Pages/FinancePage.xaml#CommissionList` | `CommissionEntitlementResponse` | `{Binding ContractTitle}` |
 
+### T4 Text announced but not attributed to its role: 2
+
+| Template | Row type | Binding |
+| --- | --- | --- |
+| `Pages/ContractsPage.xaml#ReconcileList` | `ReconciliationLineResponse` | `{Binding Negotiated.DisplayValue}` |
+| `Pages/DealsPage.xaml#ComparisonList` | `TermDifferenceResponse` | `{Binding Previous.DisplayValue}` |
+
 ## 4. SECONDARY values
 
 Explanatory prose beneath a row already identified by its primary facts. Classified per row,
@@ -287,7 +303,7 @@ At `cad3a97`: 106 templates executed, 77 failing, 121 omitted values on 119 dist
 | reclassified SECONDARY | −17 | explanatory prose, per row, with channel and reason (section 4) |
 | `BalanceList` `Amount` and `Currency` | −2 | covered by the stated-currency rule |
 | six formerly unreachable rows | +8 | now executed through surrogates |
-| **PRIMARY gaps now** | **108** | on 70 templates |
+| **PRIMARY gaps at `d1a6e77`** | **108** | on 70 templates, superseded in section 7 |
 
 The detailed-notes value was skipped silently at `cad3a97` because it sits inside a named
 expander. It is now accounted for as SECONDARY.
@@ -374,7 +390,87 @@ pass; two gate-file declarations were reworded.
 None of the declarations supports a runtime claim that source cannot prove. Each file's own
 remarks already bound its assertions to source, markup or build structure.
 
-## 7. What this is not
+## 7. Final methodology correction
+
+`d1a6e77` was not yet final: three mechanisms could still report green without the
+announcement carrying what the row shows.
+
+**Temporal fidelity.** Raw `DateTime` and `DateTimeOffset` values were reduced to a calendar
+day, so an announcement with the right day and the wrong time, or no offset, would have
+passed. They are now their own kind, `Instant`: covered only by the same date and time to the
+second, and, for an offset value, by an announcement that carries an offset and denotes the
+same instant. `DateOnly` and values shown through the date converter remain calendar dates,
+with no time asked.
+
+**Generic role = value.** Text and domain tokens were covered by presence alone, so subject X
+and assignee Y swapped would have passed. When a row shows two or more text or token values
+that could answer for each other, each must now appear with its role word in its own segment.
+A value needs no label when its field is in one of `RowLabel`'s settled vocabularies, read by
+reflection rather than copied: the headline it names the row by, its qualifiers, its context
+field, and a term's stated value. Membership is judged on the row's own field, so
+`Previous.DisplayValue` is judged as `Previous`. Where the field name is not the operator's
+word, the manifest records the row's own column header, and
+`EveryAccountedRoleWordIsVisibleOnItsPage` requires that word to be visible text on that page:
+
+| Binding | Role word | Source |
+| --- | --- | --- |
+| `DealsPage#ComparisonList` `Previous.DisplayValue` / `Current.DisplayValue` / `Change` | Previous / Current / Change | column headers |
+| `ContractsPage#ReconcileList` `Negotiated.DisplayValue` / `Contracted.DisplayValue` / `Result` | Agreed / In the draft / Result | column headers |
+
+A first cut of the rule judged only headline and qualifier fields as settled, and briefly
+demanded labels on `PersonRowTemplate.PrimaryCompanyName`, `ProjectsPage#CompanyList.CompanyName`
+and `ContractsPage#TermList.DisplayValue`. Those were the rule over-reaching, not product gaps:
+each is in `RowLabel`'s context or stated-value vocabulary, which it deliberately announces
+bare. They are not in the population.
+
+**Surrogate shape.** The ratchet caught `ToString` and expression-bodied properties but not a
+block-bodied getter. It now accepts only the auto-property forms and rejects any other
+property body. None of the four production declarations violates it.
+
+### Controls added (all passing)
+
+| Test | Proves |
+| --- | --- |
+| `TheComparatorAsksNoTimeOfADate` | DateOnly and IsoDate acquire no time requirement |
+| `TheComparatorAcceptsADateInAnotherFormat` | an IsoDate date in another format passes |
+| `TheComparatorRefusesTheSameDayAtAnotherTime` | a raw DateTime on the same day at another time, or with the time dropped, fails |
+| `TheComparatorAcceptsTheSameInstantInAnotherFormat` | the same date and time in another format passes |
+| `TheComparatorRefusesAnInstantUnderAnotherOffset` | same wall clock under another offset fails, offset dropped fails; the same instant in another offset passes |
+| `TheComparatorAcceptsTwoTextsInTheirRoles` | two texts in their roles pass |
+| `TheComparatorFailsTwoTextsSwappedBetweenRoles` | swapped texts fail both, and unattributed presence fails |
+| `TheComparatorFailsTwoTokensSwappedBetweenRoles` | swapped domain tokens fail |
+| `TheComparatorDoesNotAskAHeadlineForARoleLabel` | a headline and one other text need no labels |
+| `TheComparatorDoesNotAskAStatedValueForARoleLabel` | a term's stated value needs no label |
+| `TheComparatorUsesTheRowsOwnRoleWord` | the header's word is the one required |
+| `TheComparatorRefusesTheRightNameUnderTheWrongRole` | Party protection unchanged |
+| `TheHiddenBehaviourDetectorTellsTheShapesApart` | auto-properties accepted; expression-bodied, block-bodied and accessor-bodied properties and ToString rejected |
+| `EveryAccountedRoleWordIsVisibleOnItsPage` | no role word is invented |
+
+### Population before and after
+
+| | `d1a6e77` | Now |
+| --- | --- | --- |
+| PRIMARY values | 108 | **110** |
+| PRIMARY-failing templates | 70 | **70** |
+| SECONDARY total | 18 | **18** |
+| SECONDARY unwired | 17 | **17** |
+
+Deltas:
+
+- **+2, exposed by role identity.** `ContractsPage#ReconcileList` `Negotiated.DisplayValue` and
+  `DealsPage#ComparisonList` `Previous.DisplayValue`. Their values were already in the
+  announcement, without the column's role word, so `d1a6e77` counted them covered.
+- **9 re-typed from Date to Instant, count unchanged.** `VersionList.RecordedAt`,
+  `StepList.OccurredAt`, `MailboxList.LastSyncedAt`, `FinancePage#HistoryList.OccurredAt`,
+  `MessageList.OccurredAt`, `RunList.StartedAt`, `TimelineEntryTemplate.OccurredAt`,
+  `DocumentsPage#HistoryList.OccurredAt`, `ApprovalList.ExpiresAt`. All were already failing,
+  because `RowLabel` announces no dates; they are now held to date, time and offset.
+- **Surrogate hardening:** no change.
+
+`BalanceList` still passes with no exemption, and all 112 templates are still executed. No
+further methodology change is intended: this population is the authority for product repair.
+
+## 8. What this is not
 
 - Not a repair. `RowLabel`, row names, secondary channels, visible dates and `BalanceList`
   markup are unchanged. The only production change on the branch is the behaviour-preserving
