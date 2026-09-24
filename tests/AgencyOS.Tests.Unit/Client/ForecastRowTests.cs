@@ -285,6 +285,32 @@ public sealed class ForecastRowTests
         return new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local));
     }
 
+    /// <summary>
+    /// Legal long names keep the statement recognisable and every forecast fact whole (D5).
+    /// </summary>
+    /// <remarks>
+    /// A member's display name is up to 256 characters. With a 46-character owner
+    /// and forecaster, the facts after the statement take 147 of the 160 characters:
+    /// at <c>4245c7a</c> the statement was dropped.
+    /// </remarks>
+    [Fact]
+    public void LegalLongNamesKeepTheStatement()
+    {
+        const string name = "Anastasia Reyes-Okafor de la Fuente Montgomery";
+
+        string spoken = RowLabel.For(Prediction(
+            owner: name,
+            forecaster: name,
+            resolvesBy: new DateTimeOffset(2026, 12, 31, 12, 0, 0, TimeSpan.Zero)));
+        string[] segments = spoken.Split(", ");
+
+        Assert.StartsWith("Vesper", segments[0], StringComparison.Ordinal);
+        Assert.Contains("Owner: " + name, segments);
+        Assert.Contains("Open", segments);
+        Assert.Contains("Forecast 80% by " + name, segments);
+        Assert.Contains("Resolves by 2026-12-31", segments);
+    }
+
     private static PredictionResponse Prediction(
         string statement = "Vesper Kestrel casts a lead for the spring shoot",
         string status = "Open",

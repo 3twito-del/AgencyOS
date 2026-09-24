@@ -240,12 +240,14 @@ public sealed class SemanticRoleTests
     }
 
     /// <summary>
-    /// Long names do not push the row past its bound or strand a separator.
+    /// Long names keep every answer whole and the title recognisable, and strand no
+    /// separator.
     /// </summary>
     /// <remarks>
-    /// Where the roles nearly fill the budget on their own there is no room left
-    /// for a title, and the row has to drop it rather than emit a phrase that
-    /// begins with a comma or overruns the limit it exists to keep.
+    /// This once required the row to stay within 160 by dropping the title when the
+    /// roles filled the budget, and cutting the answers when they overran it. Owner
+    /// decision D5 put truth first: the title keeps its minimum fragment, every answer
+    /// stays whole, and the row runs past 160 by exactly what that requires.
     /// </remarks>
     [Theory]
     [InlineData(40, 40)]
@@ -254,15 +256,85 @@ public sealed class SemanticRoleTests
     [InlineData(200, 200)]
     public void RolesTooLongForTheBudgetStillProduceAWellFormedRow(int subject, int assignee)
     {
-        string row = RowLabel.For(Task(
-            subject: new string('s', subject),
-            assignee: Member,
-            assigneeName: new string('a', assignee),
-            due: Due));
+        const string title = "Send Harrowgate the updated availability window";
+        string subjectName = new('s', subject);
+        string assigneeName = new('a', assignee);
 
-        Assert.True(row.Length <= 160, $"{row.Length} characters: {row}");
+        string row = RowLabel.For(Task(
+            subject: subjectName,
+            assignee: Member,
+            assigneeName: assigneeName,
+            due: Due));
+        string[] segments = row.Split(", ");
+
         Assert.False(row.StartsWith(",", StringComparison.Ordinal), row);
         Assert.DoesNotContain(", ,", row, StringComparison.Ordinal);
+        Assert.Contains("About " + subjectName, segments);
+        Assert.Contains("Assigned to " + assigneeName, segments);
+        Assert.Contains("Due 2026-10-09", segments);
+        Assert.Contains("High", segments);
+
+        string fragment = segments[0].TrimEnd('…');
+
+        Assert.True(fragment.Length >= "Send".Length && title.StartsWith(fragment, StringComparison.Ordinal), row);
+
+        if (row.Length > 160)
+        {
+            // Past 160 only by the title's minimum fragment: the rest is the answers, whole.
+            string rest = string.Join(", ", segments.Skip(1));
+
+            Assert.True(segments[0].Length <= 12, row);
+            Assert.True(rest.Length + 2 + 12 > 160, row);
+        }
+    }
+
+    /// <summary>
+    /// Legal long names keep the title recognisable and every answer whole (D5).
+    /// </summary>
+    /// <remarks>
+    /// A company name and a member's display name are each up to 256 characters.
+    /// With an 82-character company and a 46-character assignee, the answers alone
+    /// take 164 characters: at <c>4245c7a</c> the title and priority were dropped
+    /// and the due date cut to fit 160.
+    /// </remarks>
+    [Fact]
+    public void LegalLongNamesKeepTheTitleAndEveryAnswer()
+    {
+        const string company = "Northgate Pictures International Film Distribution and Production Holdings Limited";
+        const string assignee = "Anastasia Reyes-Okafor de la Fuente Montgomery";
+
+        string row = RowLabel.For(Task(subject: company, assignee: Member, assigneeName: assignee, due: Due));
+        string[] segments = row.Split(", ");
+
+        Assert.StartsWith("Send", segments[0], StringComparison.Ordinal);
+        Assert.EndsWith("…", segments[0], StringComparison.Ordinal);
+        Assert.Contains("High", segments);
+        Assert.Contains("About " + company, segments);
+        Assert.Contains("Assigned to " + assignee, segments);
+        Assert.Contains("Due 2026-10-09", segments);
+    }
+
+    /// <summary>
+    /// A long legal title costs only the title: the priority the row shows stays (D5).
+    /// </summary>
+    /// <remarks>
+    /// The title yielded together with the qualifiers after it, so a title long
+    /// enough to shorten cut the priority first.
+    /// </remarks>
+    [Fact]
+    public void ALongTitleDoesNotCostThePriority()
+    {
+        string title = string.Join(" ", Enumerable.Repeat("chase the completion bond paperwork through legal", 3));
+
+        string row = RowLabel.For(Task(title: title, assignee: Member, assigneeName: Worker, due: Due));
+        string[] segments = row.Split(", ");
+
+        Assert.StartsWith("chase the completion", segments[0], StringComparison.Ordinal);
+        Assert.EndsWith("…", segments[0], StringComparison.Ordinal);
+        Assert.Contains("High", segments);
+        Assert.Contains($"Assigned to {Worker}", segments);
+        Assert.Contains("Due 2026-10-09", segments);
+        Assert.True(row.Length <= 160, $"{row.Length}: {row}");
     }
 
     // ----------------------------------------------------------- target roles

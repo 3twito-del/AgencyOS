@@ -723,6 +723,259 @@ public sealed partial class OperationalListParityTests
         Assert.Equal(SlateTitle, HelpText(markup, row));
     }
 
+    // ------------------------------- D5 siblings: an ordinary yielding field
+
+    private const string LegalPayer = "Northgate Pictures International Film Distribution and Production Holdings Limited";
+
+    private const string BankReference = "BACS-2026-0917-NORTHGATE";
+
+    private static PaymentResponse Payment(
+        string payer = "Northgate Pictures", string? reference = BankReference, string status = "PartiallyAllocated") =>
+        new(
+            Guid.CreateVersion7(),
+            "Inbound",
+            Guid.CreateVersion7(),
+            payer,
+            null,
+            "Harrowgate Talent Agency Client Account",
+            new MoneyResponse(240_000m, "GBP"),
+            new MoneyResponse(90_000m, "GBP"),
+            new MoneyResponse(150_000m, "GBP"),
+            new DateOnly(2026, 9, 1),
+            new DateTimeOffset(2026, 9, 2, 10, 30, 0, TimeSpan.Zero),
+            "BankTransfer",
+            reference,
+            "Barclays statement import",
+            status,
+            null,
+            null,
+            null,
+            "Ben Okafor",
+            "First tranche of three",
+            [],
+            4);
+
+    private static string PaymentSaid(PaymentResponse row) => InEnglish(() => RowLabel.For(row, "Payment"));
+
+    /// <summary>
+    /// A recognisable fragment of a yielding value: under its role, a prefix of the
+    /// value holding at least its first word or the product's minimum fragment.
+    /// </summary>
+    private static string Fragment(string said, string role, string full)
+    {
+        string segment = Assert.Single(said.Split(", "), x => x.StartsWith(role, StringComparison.Ordinal));
+        string value = segment[role.Length..];
+        string stem = value.EndsWith('…') ? value[..^1] : value;
+        int least = Math.Min(full.Split(' ')[0].Length, MinimumFragment - 1);
+
+        Assert.True(
+            stem.Length >= least && full.StartsWith(stem, StringComparison.Ordinal),
+            $"'{segment}' is not a recognisable fragment of '{full}'.");
+
+        return value;
+    }
+
+    private static void AssertEveryPaymentFact(string said, string payer, string status = "Partially allocated")
+    {
+        string[] segments = said.Split(", ");
+
+        Assert.Contains("Payer: " + payer, segments);
+        Assert.Contains("240,000.00 GBP", segments);
+        Assert.True(SaysInRole(said, "90,000.00 GBP", "allocated"), said);
+        Assert.True(SaysInRole(said, "150,000.00 GBP", "unapplied"), said);
+        Assert.Contains(status, segments);
+        Assert.Contains("Received: 2026-09-01", segments);
+    }
+
+    /// <summary>
+    /// A long legal payer does not erase the bank reference, nor cut the facts after it
+    /// (the D5 sibling reproduction).
+    /// </summary>
+    /// <remarks>
+    /// At <c>4245c7a</c> the other facts took more than the whole budget, so the
+    /// reference was dropped and the rest cut to 160: the status and the received
+    /// date went with it.
+    /// </remarks>
+    [Fact]
+    public void ALongLegalPayerDoesNotEraseThePaymentReference()
+    {
+        PaymentResponse row = Payment(payer: LegalPayer);
+        string said = PaymentSaid(row);
+
+        AssertEveryPaymentFact(said, LegalPayer);
+        Assert.Equal("BACS-2026-0…", Fragment(said, "External reference: ", BankReference));
+        Assert.Equal(
+            "Payer: Northgate Pictures International Film Distribution and Production Holdings Limited, "
+                + "External reference: BACS-2026-0…, 240,000.00 GBP, 90,000.00 GBP allocated, "
+                + "150,000.00 GBP unapplied, Partially allocated, Received: 2026-09-01",
+            said);
+        Assert.Equal(233, said.Length);
+
+        // Past 160 only by what the fragment needs: the other facts alone take 199.
+        string rest = string.Join(", ", said.Split(", ").Where(x => !x.StartsWith("External reference: ", StringComparison.Ordinal)));
+
+        Assert.Equal(199, rest.Length);
+        Assert.Equal(rest.Length + 2 + "External reference: ".Length + MinimumFragment, said.Length);
+
+        // Nothing hidden joined it.
+        foreach (string hidden in (string[])["Harrowgate", "BankTransfer", "Bank transfer", "Barclays", "Ben Okafor", "First tranche", "Inbound", "2026-09-02"])
+        {
+            Assert.DoesNotContain(hidden, said, StringComparison.Ordinal);
+        }
+
+        // The whole reference is on the row, as the value it shows.
+        Assert.Contains(
+            Template(Find("Pages/FinancePage.xaml", "PaymentList")).Root.Descendants(),
+            x => x.Attribute("Text")?.Value == "{Binding ExternalReference}");
+    }
+
+    /// <summary>
+    /// The realistic payment keeps its reference recognisable: at <c>4245c7a</c> it was dropped.
+    /// </summary>
+    /// <remarks>
+    /// The ordinary payer, three amounts, "Partially allocated" and the received date
+    /// take 135 characters, leaving 3 for the reference behind its role.
+    /// </remarks>
+    [Fact]
+    public void TheRealisticPaymentKeepsItsReference()
+    {
+        string said = PaymentSaid(Payment());
+
+        AssertEveryPaymentFact(said, "Northgate Pictures");
+        Assert.Equal("BACS-2026-0…", Fragment(said, "External reference: ", BankReference));
+        Assert.Equal(169, said.Length);
+    }
+
+    /// <summary>A payment whose whole phrase fits says it whole, within 160.</summary>
+    [Fact]
+    public void APaymentThatFitsIsSaidWhole()
+    {
+        string said = PaymentSaid(Payment(reference: "BACS-0917", status: "Received"));
+
+        AssertEveryPaymentFact(said, "Northgate Pictures", "Received");
+        Assert.Contains("External reference: BACS-0917", said.Split(", "));
+        Assert.DoesNotContain("…", said, StringComparison.Ordinal);
+        Assert.Equal(155, said.Length);
+    }
+
+    /// <summary>Every profile lets exactly one field yield: none falls back to cutting the row.</summary>
+    [Fact]
+    public void EveryProfileLetsExactlyOneFieldYield()
+    {
+        List<string> wrong = [.. RowProfiles.All.Values
+            .Where(x => x.Fields.Count(f => f.Yields) != 1)
+            .Select(x => x.Id)];
+
+        Assert.True(wrong.Count == 0, "Profiles without exactly one yielding field: " + string.Join(", ", wrong));
+    }
+
+    /// <summary>
+    /// With long legal-length values everywhere else, every profiled row keeps each
+    /// other scan fact whole and its yielding value recognisable (D5).
+    /// </summary>
+    /// <remarks>
+    /// The ratchet against the old path, where a yielding value was dropped and the
+    /// rest cut to 160. Every settable text field other than the yielding one is
+    /// lengthened past what the budget can hold, so every profile reaches the path.
+    /// </remarks>
+    [Fact]
+    public void NoProfiledRowDropsAScanFactToKeepItsBudget()
+    {
+        List<string> lost = [];
+
+        foreach ((Entry entry, RowProfile profile) in Profiled())
+        {
+            RowField yielding = profile.Fields.Single(x => x.Yields);
+            string yieldingField = yielding.Path.Split('.')[0];
+            object row = Sentinels.Build(RowType(entry));
+
+            foreach (PropertyInfo property in row.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.PropertyType == typeof(string) && x.CanWrite && x.Name != yieldingField))
+            {
+                if (property.GetValue(row) is string { Length: > 0 } value)
+                {
+                    property.SetValue(row, value + " " + string.Join(" ", Enumerable.Repeat("long", 30)));
+                }
+            }
+
+            string announced = Announce(entry, row);
+            List<Shown> primary = [.. Primaries(entry)];
+
+            foreach (Shown shown in primary.Where(x => FieldFor(profile, x) != yielding
+                && !(yielding.RoleFrom is not null && x.Path == yielding.RoleFrom)))
+            {
+                if (Coverage.Check(row, shown, primary, announced) is { } reason)
+                {
+                    lost.Add($"{Key(entry.File, entry.Template)}: {reason}");
+                }
+            }
+
+            string full = Convert.ToString(Read(row, yielding.Path), CultureInfo.CurrentCulture) ?? string.Empty;
+            string head = full[..Math.Min(full.Length, 4)];
+
+            if (full.Length > 0 && !announced.Split(", ").Any(x => x.Contains(head, StringComparison.Ordinal)))
+            {
+                lost.Add($"{Key(entry.File, entry.Template)}: yielding {yielding.Path} '{full}' is not in '{announced}'");
+            }
+        }
+
+        Assert.True(lost.Count == 0, string.Join("; ", lost));
+    }
+
+    /// <summary>
+    /// Every yielding value is whole on its own row: as help text where it overflows,
+    /// otherwise as the visible value the row shows.
+    /// </summary>
+    /// <remarks>
+    /// Structural candidate evidence only. The visible value is the
+    /// <em>PRIMARY FULL-VALUE DESCENDANT — LIVE PROOF PENDING</em>: that a screen reader
+    /// finds it is for the release-candidate run to show. It must be the exact binding,
+    /// in the same row, and not hidden from accessibility in markup.
+    /// </remarks>
+    [Fact]
+    public void EveryYieldingValueIsWholeOnItsRow()
+    {
+        List<string> missing = [];
+
+        foreach ((Entry entry, RowProfile profile) in Profiled())
+        {
+            RowField yielding = profile.Fields.Single(x => x.Yields);
+            RowTemplate markup = Template(entry);
+
+            bool whole = yielding.Overflow
+                ? markup.Root.Attribute("AutomationProperties.HelpText")?.Value == $"{{Binding {yielding.Path}}}"
+                : FullValueDescendant(markup, yielding.Path);
+
+            if (!whole)
+            {
+                missing.Add($"{Key(entry.File, entry.Template)}: {yielding.Path}");
+            }
+        }
+
+        foreach (Entry entry in Catalog.Where(x => ProfileOf(x) is null))
+        {
+            object row = Sentinels.Build(RowType(entry));
+            string? headline = TaskLine.IsTask(row) ? "Title" : ForecastLine.IsPrediction(row) ? "Statement" : null;
+
+            if (headline is not null && !FullValueDescendant(Template(entry), headline))
+            {
+                missing.Add($"{Key(entry.File, entry.Template)}: {headline}");
+            }
+        }
+
+        Assert.True(missing.Count == 0, "Yielding values not whole on their row: " + string.Join("; ", missing));
+    }
+
+    /// <summary>
+    /// Whether the row shows this field's whole value itself, not hidden from accessibility.
+    /// </summary>
+    private static bool FullValueDescendant(RowTemplate markup, string path) =>
+        markup.Root.DescendantsAndSelf().Any(x =>
+            x.Attribute("Text")?.Value == $"{{Binding {path}}}"
+            && x.AncestorsAndSelf().TakeWhile(a => a != markup.Root.Parent).All(a =>
+                a.Attribute("AutomationProperties.AccessibilityView")?.Value is not "Raw"
+                && a.Attribute("Visibility")?.Value is not "Collapsed"));
+
     /// <summary>A short contract title is said whole.</summary>
     [Fact]
     public void AShortContractTitleIsSaidWhole()

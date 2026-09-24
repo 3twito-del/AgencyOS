@@ -51,7 +51,9 @@ public static class RowLabel
     /// </summary>
     /// <remarks>
     /// Below this a truncated title is an ellipsis with a syllable in front of
-    /// it, which tells an operator less than leaving it out does.
+    /// it. It is the floor a yielding value is never shortened past: a row whose
+    /// other facts leave less keeps this much and runs past 160, rather than drop
+    /// the value (D5, <see cref="Fragment"/>).
     /// </remarks>
     private const int MinimumHeadline = 12;
 
@@ -295,30 +297,35 @@ public static class RowLabel
         string rest = string.Join(", ", parts.Where((_, i) => i != yielding).Select(x => x.Text));
 
         // Two for the separator, where anything else is said.
-        int budget = MaximumLength - rest.Length - (rest.Length > 0 ? 2 : 0) - yields.Prefix.Length;
+        int taken = rest.Length + (rest.Length > 0 ? 2 : 0) + yields.Prefix.Length;
 
-        if (budget < MinimumHeadline)
-        {
-            // As a task row: where the rest nearly fills the budget, a yielding
-            // headline is dropped rather than said as an ellipsis with a syllable in
-            // front of it.
-            if (!yields.Field.Overflow)
-            {
-                return Shorten(rest);
-            }
-
-            // An overflowing field is a scan fact, not a headline, and truth outranks
-            // the budget (owner decision D5). It keeps its role and the least fragment
-            // any shortened value keeps, and every other fact stays whole: the name
-            // runs past 160 by exactly what those require, and no further. Its whole
-            // value is on the row's help text.
-            budget = MinimumHeadline;
-        }
-
-        parts[yielding] = yields with { Value = Shorten(yields.Value, budget) };
+        parts[yielding] = yields with { Value = Fragment(yields.Value, taken) };
 
         return string.Join(", ", parts.Select(x => x.Text));
     }
+
+    /// <summary>
+    /// The yielding value of a row that does not fit, given what the rest of the row takes.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The one budget rule for every value this lets yield — a profiled field, a
+    /// task's title, a prediction's statement. The value is shortened to what the
+    /// rest leaves of the 160, and never below <see cref="MinimumHeadline"/>.
+    /// </para>
+    /// <para>
+    /// It used to be dropped below that, and the rest cut to fit. With legal names
+    /// that erased what the row shows: a payment's reference, a receivable's contract,
+    /// a task's title with its due date cut, a prediction's statement. Truth outranks
+    /// the budget (owner decision D5): every other fact stays whole, the yielding value
+    /// keeps its role and a fragment an operator can recognise, and the row runs past
+    /// 160 by exactly what those require. There is no other cap. The whole value is on
+    /// the row: on its help text where the profile marks it as overflowing, and as the
+    /// visible value the row shows otherwise.
+    /// </para>
+    /// </remarks>
+    private static string Fragment(string value, int taken) =>
+        Shorten(value, Math.Max(MaximumLength - taken, MinimumHeadline));
 
     /// <summary>One profiled field, in its role, or null where the row holds no value.</summary>
     private static Spoken? Say(object row, RowField field)
@@ -405,9 +412,11 @@ public static class RowLabel
     /// purpose is to say who and when saying neither.
     /// </para>
     /// <para>
-    /// So the title yields instead. It is the part an operator can still recognise
-    /// truncated, and the row keeps its bound: only if the roles alone exceed the
-    /// budget - which needs improbably long names - does the total shorten.
+    /// So the title yields instead, and only the title: it is the part an operator
+    /// can still recognise truncated. What follows it - the priority and status a
+    /// task row shows - and the essential answers stay whole. Where they leave the
+    /// title less than its minimum, the row keeps that minimum and runs past 160
+    /// rather than drop the title or cut an answer (D5; see <see cref="Fragment"/>).
     /// </para>
     /// <para>
     /// A prediction row has the same shape: a statement long enough to fill the
@@ -416,20 +425,19 @@ public static class RowLabel
     /// </remarks>
     private static string WithEssentials(List<string> parts, List<string> essential)
     {
-        string tail = string.Join(", ", essential);
+        string whole = string.Join(", ", parts.Concat(essential));
 
-        // Two for the separator that joins the two halves.
-        int budget = MaximumLength - tail.Length - 2;
-
-        // Where the roles nearly fill the budget on their own there is no room
-        // for a title worth reading. The row drops it rather than emit a phrase
-        // that begins with a comma or overruns the bound it exists to keep.
-        if (budget < MinimumHeadline)
+        if (whole.Length <= MaximumLength)
         {
-            return Shorten(tail);
+            return whole;
         }
 
-        return string.Concat(Shorten(string.Join(", ", parts), budget), ", ", tail);
+        string rest = string.Join(", ", parts.Skip(1).Concat(essential));
+
+        // Two for the separator that joins the title to the rest.
+        return rest.Length == 0
+            ? Shorten(parts[0])
+            : string.Concat(Fragment(parts[0], rest.Length + 2), ", ", rest);
     }
 
     /// <summary>
