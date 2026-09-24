@@ -72,6 +72,20 @@
                 <TextBlock x:Name="ProspectLine" Opacity="0.75" TextWrapping="Wrap"
                            Style="{StaticResource CaptionTextBlockStyle}" />
 
+                <!--
+                    Signing creates a representation, not a talent profile, and Talent
+                    and talent pursuits are built from profiles (owner decision C). So
+                    the next step is offered here, where the operator has just been
+                    told the person is a client, and taken only when they choose it.
+                -->
+                <InfoBar x:Name="ProfileBar" IsOpen="False" IsClosable="False" Severity="Informational">
+                    <InfoBar.ActionButton>
+                        <Button x:Name="CreateProfileButton" Content="Create talent profile…"
+                                AutomationProperties.Name="Create talent profile…"
+                                Click="OnCreateProfileClick" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
+
                 <InfoBar x:Name="DetailEmpty" Severity="Informational" IsOpen="True" IsClosable="False"
                          Title="Select a prospect"
                          Message="Choose somebody to see where the pursuit stands and what to do next." />

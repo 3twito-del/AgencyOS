@@ -773,3 +773,150 @@ These are local evidence only. C3 and C9 are not claimed. No XAML and no `RowPro
 There was no API, domain, contract, schema, migration, persistence, OpenAPI, workflow or
 Reviewer-infrastructure change. The contract stays at 17, the schema stays at
 `20260909072201_AiResultClassification`, and there is no Build 96.
+
+## 13. The failed final-candidate RC, and owner decision C
+
+### What stood before the RC
+
+Authoritative CI run `36049271786` (#103, `workflow_dispatch`) passed on `f29a2ee`. Its
+totals were:
+- Unit 4091, Windows 1806, Reviewer 163;
+- Integration 949 passed, 0 failed and 0 skipped, against the `postgres:18.6` service with
+  `pg_dump` and `pg_restore` at 18.6;
+- contract 17, schema `20260909072201_AiResultClassification`.
+
+That run remains the authoritative CI result for `f29a2ee`.
+
+### The sealed real-client RC on `f29a2ee`
+
+- **Candidate:** `release -Channel alpha -BuildId 103` from exactly `f29a2ee`. The manifest
+  was verified: commit `f29a2ee…`, contract 17, schema as above, 111 artifacts with every
+  hash checked. `AgencyOS.Windows.exe` SHA-256
+  `01d640b536064ca84eef5dce82f67cd3ae633546e1341e578f5837a469278f5d`.
+- **Backend:** a private PostgreSQL cluster on 127.0.0.1:5434. `show data_directory`
+  returned the run's own `pgdata`. It was PostgreSQL 19 beta 3, which is operator evidence
+  only: CI run 103 remains the 18.6 authority.
+- **API:** from source at `f29a2ee` (contract 17, Development authentication).
+- **Tenant:** a synthetic tenant, `01a0d511-2ba2-7c75-9032-ff6a7858f3bd`.
+- **Evidence:** all of it is under `artifacts/reviewer/rc-f29a2ee-20260924/`, which is not
+  committed.
+
+**C3, original Talent scope probe: passed live.** The visible row shows "Acting" and
+"2026-09-24". The keyboard reaches it by Tab → Change status → Change scopes → the row. The
+focused row's accessible name is "Acting, Starts: 2026-09-24". No identifier or version is
+announced.
+
+**C7 step 1, REPRESENT: passed live.** The route was Prospects → O'Brien D'Angelo-Smith →
+"Convert to client…" → Film → Sign. The product said "Signed. O'Brien D'Angelo-Smith is now a
+client, represented for Film."
+
+**C7 step 2, PURSUE/NEGOTIATE: stopped.**
+- The Talent page after signing listed only A, Rivka, Zoë Ångström and 千尋, with
+  "1 client(s)". O'Brien was absent.
+- New opportunity → Kind "Talent engagement" → Subject offered the same four people only.
+- The signed client could not enter Talent or a talent pursuit, so the same story could not
+  continue. The RC stopped under its failure rule, with no repair and no fixture writes after
+  the handoff. The stop stands as historical evidence.
+
+### Source proof of the cause
+
+- Prospect conversion creates and activates a `Representation`, and nothing else.
+- `ListTalentAsync` is rooted in `TalentProfiles`.
+- The talent-engagement subject picker (`CreateOpportunityDialog`) is built from that
+  roster, through `EntityChoice.ForTalent(ListTalentAsync())`.
+- The Windows client had no route that creates a talent profile.
+
+### Owner decision C
+
+`Representation` and `TalentProfile` remain separate concepts:
+- "Convert to client" does not create a talent profile.
+- Creating one is a separate, explicit operator action.
+- Client-ness, the Talent query and the meaning of a Talent engagement are unchanged.
+
+### The repair
+
+**The capability already existed in contract 17.** It is
+`POST /api/v1/organizations/{organizationId}/talent`: `CreateTalentProfileRequest`, handled
+by `CreateTalentProfileHandler`, and authorized by `Permission.TalentWrite`.
+- A second profile for the same person is refused with 409.
+- `GET …/talent/{personId}` answers 404 for a person without a profile.
+- The client wrapper, `IAgencyOsApi.CreateTalentProfileAsync`, already existed.
+
+No endpoint, DTO, OpenAPI path, contract version, schema or migration changed.
+
+**Client and Windows only:**
+
+- **`ProspectsViewModel`.** It remembers the client just signed, or a converted pursuit the
+  operator selects. It reads whether that person has a talent profile from the talent read.
+  - A 404 is said as "absent".
+  - A refusal or failure is said as "unknown", never as missing.
+  - It offers `CreateTalentProfileAsync(careerStage)` until a profile is known to exist.
+  - A 403 refusal says "You do not have permission to create talent profiles. … is still a
+    client." It creates nothing and does not borrow the list's error state.
+  - A 409 conflict is said as "already has a talent profile, so none was created".
+- **Prospects page.** An InfoBar sits directly beneath the "Signed. … is now a client" line.
+  Before any attempt it reads "Next: create a talent profile — … is a client, but does not
+  appear in Talent or in talent pursuits until they have a talent profile." Its action
+  button is "Create talent profile…", with an explicit accessible name.
+- **`CreateTalentProfileDialog`.**
+  - Title "Create talent profile", buttons Create and Cancel, and Enter commits (an ordinary
+    affirmative dialog under AOS-R002-016).
+  - The person is fixed; there is no picker.
+  - Career stage is a labelled ComboBox offering exactly the domain's values, with Unknown
+    ("not assessed yet") as the default.
+
+**Not changed:**
+- `ConvertProspectHandler`, which keeps ProspectsWrite and RepresentationWrite and does not
+  need TalentWrite;
+- `ListTalentAsync`;
+- the subject semantics of a Talent engagement;
+- permissions.
+
+### Tests
+
+| Suite | Test | Proves |
+| --- | --- | --- |
+| Integration, `SignedClientTalentProfileTests` | `AConvertedClient_EntersTalentOnlyThroughTheExplicitProfile` | prospect → convert gives an active representation, zero profiles, 404 from the talent read and no roster entry; then the explicit POST gives exactly one profile, and the person is in the roster and in the clients-only roster with IsClient, Active and scope Film, still under the single representation conversion created |
+| Integration | `ASecondProfile_IsRefused` | 409, and one profile remains |
+| Integration | `WithoutTheTalentPermission_TheProfileIsRefused_AndTheClientStaysSigned` | an Observer in the same tenant gets 403; no profile is created; the representation is unchanged, same status and same version |
+| Client (Unit), `SignedClientTalentProfileTests` | 8 tests | signing offers the step and creates no profile; the step makes exactly one profile for that person with the chosen stage; afterwards the person is in the Talent list with the right client count, and in `EntityChoice.ForTalent`, the talent-engagement subject source; refusal; duplicate; unknown versus absent; selecting a converted pursuit; a refreshed list keeps the signed client |
+| Windows, `SignedClientProfileSurfaceTests` | 6 tests | the step sits directly after the "Signed" line; it is an ordinary named button that is not taken out of the tab order; the profile is created only by the confirmed dialog, and `ConvertAsync` never creates one; the dialog is labelled and commits on Enter; there is no person picker; the stages are the domain's, with Unknown as the default |
+
+The unit fake now answers a missing talent profile with 404 and a duplicate with 409, as the
+server does.
+
+Live discoverability is **not** claimed from these tests. It is for the fresh
+final-candidate RC.
+
+### Negative control
+
+With the gate green, one local, uncommitted mutation was made:
+`CanCreateTalentProfile => false`, which disables the explicit step.
+- All 8 client tests failed.
+- The C7 story test failed at the Talent roster with "Assert.Single() Failure: The collection
+  was empty": the signed client never became a Talent member or a talent-pursuit subject.
+- The file was restored byte-identical (SHA-256
+  `042ef331a78dcf8545771a702e106e235a5e10bd7f4bfcc47617b0cf3af92551`) and the rerun was 8 of
+  8.
+
+### Local gates
+
+| Gate | Result |
+| --- | --- |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4099 passed |
+| `test-windows` | 1820 passed |
+| `test-reviewer` | 163 passed |
+| Integration: representation and the new tests, on the LAB PostgreSQL 19 cluster | 17 passed (corroboration only; CI remains the 18.6 authority) |
+| Full integration suite, on the LAB PostgreSQL 19 cluster | 952 passed, 0 failed, 0 skipped (the 949 of CI run 103, plus the 3 new tests; corroboration only) |
+
+### What happens next
+
+This changes production Windows and client code. The old RC is not resumed, and its step 1 is
+not spliced into a new chain. The new candidate needs, in order:
+1. Control Room source review;
+2. fresh authoritative CI and PostgreSQL 18.6 on the new SHA;
+3. a fresh final-candidate RC from the beginning: C3, the channels B–E, and C7 steps 1–5 as
+   one story.
+
+If it passes, the next ALPHA would be Build 96. That build has not been created.

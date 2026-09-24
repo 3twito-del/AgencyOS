@@ -481,7 +481,9 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
     {
         Throw();
 
-        TalentSummaryResponse summary = Talent.First(x => x.PersonId == personId);
+        // As the server does: a person with no talent profile is not found.
+        TalentSummaryResponse summary = Talent.FirstOrDefault(x => x.PersonId == personId)
+            ?? throw new AgencyOsApiException(System.Net.HttpStatusCode.NotFound, "Not found");
 
         return Task.FromResult(new TalentDetailResponse(summary, null, null, null, null, DateTimeOffset.UtcNow));
     }
@@ -493,17 +495,31 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
     {
         Submit(idempotencyKey);
 
+        // As the server does: one talent profile per person.
+        if (Talent.Any(x => x.PersonId == request.PersonId))
+        {
+            throw new AgencyOsApiException(
+                System.Net.HttpStatusCode.Conflict,
+                "Already exists",
+                "This person already has a talent profile.");
+        }
+
+        // A profile reads the person's representation as the talent roster does: a
+        // person signed through a conversion is a client once they have a profile.
+        RepresentationResponse? representation = Conversions.Values
+            .FirstOrDefault(x => x.PersonId == request.PersonId);
+
         TalentSummaryResponse summary = new(
             Guid.NewGuid(),
             request.PersonId,
-            "Created",
+            representation?.DisplayName ?? "Created",
             request.CareerStage ?? "Unknown",
             request.Disciplines ?? [],
+            representation?.Status,
+            IsClient: representation is { Status: "Active" },
             null,
-            IsClient: false,
             null,
-            null,
-            [],
+            representation is null ? [] : [.. representation.Scopes.Select(x => x.Area)],
             DateTimeOffset.UtcNow,
             1);
 

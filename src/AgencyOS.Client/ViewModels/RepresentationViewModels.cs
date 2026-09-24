@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Net;
 using AgencyOS.Contracts.Representation;
 using AgencyOS.Client.Presentation;
 
@@ -225,6 +226,31 @@ public sealed class ClientOverviewViewModel : ViewModelBase
     }
 }
 
+/// <summary>A client signed on the prospects surface.</summary>
+/// <param name="PersonId">The person now represented.</param>
+/// <param name="DisplayName">Their name, as the conversion returned it.</param>
+public sealed record SignedClient(Guid PersonId, string DisplayName);
+
+/// <summary>What a surface says about a signed client's talent profile.</summary>
+/// <param name="Title">The heading.</param>
+/// <param name="Message">The sentence the operator reads.</param>
+/// <param name="IsError">Whether an attempt was refused or failed.</param>
+/// <param name="IsSuccess">Whether an attempt left a profile in place.</param>
+public sealed record ProfileNotice(string Title, string Message, bool IsError = false, bool IsSuccess = false);
+
+/// <summary>Whether a signed client has a talent profile, as far as a surface knows.</summary>
+public enum TalentProfileState
+{
+    /// <summary>Not established: not yet read, or the read failed or was refused.</summary>
+    Unknown,
+
+    /// <summary>The talent read answered that this person has no profile.</summary>
+    Absent,
+
+    /// <summary>The person has a talent profile.</summary>
+    Present,
+}
+
 /// <summary>
 /// The prospect pipeline, and the conversion workflow.
 /// </summary>
@@ -241,6 +267,10 @@ public sealed class ProspectsViewModel : ViewModelBase
     private bool _openOnly = true;
     private string? _stage;
     private ProspectResponse? _selected;
+    private SignedClient? _signed;
+    private TalentProfileState _profileState;
+    private string? _profileMessage;
+    private bool _profileFailed;
 
     public ProspectsViewModel(IAgencyOsApi api)
     {
@@ -257,11 +287,73 @@ public sealed class ProspectsViewModel : ViewModelBase
         {
             if (Set(ref _selected, value))
             {
+                // A converted pursuit is a signed client, who may still need a
+                // talent profile. Any other selection is not; clearing the
+                // selection keeps whoever was just signed, because a refreshed list
+                // drops the converted row while the operator is still looking at
+                // what signing them meant.
+                if (value is { Stage: "Converted" })
+                {
+                    SetSignedClient(new SignedClient(value.PersonId, value.DisplayName));
+                }
+                else if (value is not null)
+                {
+                    SetSignedClient(null);
+                }
+
                 OnPropertyChanged(nameof(CanConvert));
                 OnPropertyChanged(nameof(CanAdvance));
             }
         }
     }
+
+    /// <summary>The client signed here, or the converted pursuit selected, if any.</summary>
+    public SignedClient? Signed => _signed;
+
+    /// <summary>Whether <see cref="Signed"/> has a talent profile, as far as this surface knows.</summary>
+    public TalentProfileState ProfileState => _profileState;
+
+    /// <summary>What the last attempt to create a talent profile came to, or null.</summary>
+    public string? ProfileMessage => _profileMessage;
+
+    /// <summary>Whether the last attempt to create a talent profile was refused or failed.</summary>
+    public bool ProfileFailed => _profileFailed;
+
+    /// <summary>
+    /// Gets a value indicating whether the signed client can be given a talent profile here.
+    /// </summary>
+    /// <remarks>
+    /// Signing a client creates a representation, not a talent profile; they are
+    /// separate, and the Talent roster and talent pursuits are built from profiles
+    /// (owner decision C). So the next step after signing is a deliberate one, offered
+    /// until the profile is known to exist. Where that is unknown the action stays
+    /// available: the server refuses a second profile, so offering it cannot make one.
+    /// </remarks>
+    public bool CanCreateTalentProfile => _signed is not null && _profileState != TalentProfileState.Present;
+
+    /// <summary>
+    /// What the operator is told about the signed client's talent profile, or null
+    /// when nobody has been signed here.
+    /// </summary>
+    /// <remarks>
+    /// Absent is said only when the talent read answered that there is no profile;
+    /// an unread or refused read is said as unknown, never as missing.
+    /// </remarks>
+    public ProfileNotice? ProfileNotice => (_signed, _profileMessage, _profileState) switch
+    {
+        (null, _, _) => null,
+        (_, { } outcome, _) when _profileFailed => new ProfileNotice("Talent profile not created", outcome, IsError: true),
+        (_, { } outcome, _) => new ProfileNotice("Talent profile", outcome, IsSuccess: true),
+        ({ } client, null, TalentProfileState.Absent) => new ProfileNotice(
+            "Next: create a talent profile",
+            $"{client.DisplayName} is a client, but does not appear in Talent or in talent pursuits until they have a talent profile."),
+        ({ } client, null, TalentProfileState.Present) => new ProfileNotice(
+            "Talent profile",
+            $"{client.DisplayName} has a talent profile and appears in Talent."),
+        ({ } client, null, _) => new ProfileNotice(
+            "Talent profile",
+            $"Whether {client.DisplayName} has a talent profile could not be checked. Create one if they need to appear in Talent."),
+    };
 
     /// <summary>Show only pursuits that are still live.</summary>
     public bool OpenOnly
@@ -371,8 +463,143 @@ public sealed class ProspectsViewModel : ViewModelBase
 
             await LoadAsync(token).ConfigureAwait(true);
 
+            // Signing does not create a talent profile. Say whether one exists, so
+            // the operator is told the next step rather than left to find it.
+            SetSignedClient(new SignedClient(prospect.PersonId, representation.DisplayName));
+            await ReadProfileStateAsync(token).ConfigureAwait(true);
+
             return representation;
         }, cancellationToken);
+    }
+
+    /// <summary>Reads whether the signed client already has a talent profile.</summary>
+    /// <remarks>
+    /// The talent read is the authority on that question: it answers not-found for
+    /// a person with no profile. A refusal or any other failure leaves it unknown,
+    /// never absent - a surface that could not look must not claim there is nothing.
+    /// </remarks>
+    public Task CheckTalentProfileAsync(CancellationToken cancellationToken = default) =>
+        ReadProfileStateAsync(cancellationToken);
+
+    /// <summary>
+    /// Creates the signed client's talent profile, as its own deliberate step.
+    /// </summary>
+    /// <param name="careerStage">The career stage the operator chose; Unknown is honest.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>Whether a profile now exists for the signed client.</returns>
+    /// <remarks>
+    /// Uses the existing talent-profile command, which the server authorizes on its
+    /// own permission. A refusal or failure leaves the representation exactly as it
+    /// was and creates nothing on this side; the operator is told which happened.
+    /// </remarks>
+    public async Task<bool> CreateTalentProfileAsync(
+        string careerStage,
+        CancellationToken cancellationToken = default)
+    {
+        if (_signed is not { } client || !CanCreateTalentProfile)
+        {
+            return false;
+        }
+
+        string key = Guid.CreateVersion7().ToString("N", CultureInfo.InvariantCulture);
+        string? message;
+        bool failed;
+
+        try
+        {
+            await _api
+                .CreateTalentProfileAsync(
+                    new CreateTalentProfileRequest(client.PersonId, careerStage),
+                    key,
+                    cancellationToken)
+                .ConfigureAwait(true);
+
+            _profileState = TalentProfileState.Present;
+            message = $"Talent profile created. {client.DisplayName} now appears in Talent.";
+            failed = false;
+        }
+        catch (AgencyOsApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            _profileState = TalentProfileState.Present;
+            message = $"{client.DisplayName} already has a talent profile, so none was created.";
+            failed = false;
+        }
+        catch (AgencyOsApiException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
+        {
+            message = $"You do not have permission to create talent profiles. {client.DisplayName} is still a client.";
+            failed = true;
+        }
+        catch (AgencyOsApiException ex)
+        {
+            message = $"The talent profile was not created. {ex.Detail ?? ex.Message} {client.DisplayName} is still a client.";
+            failed = true;
+        }
+        catch (HttpRequestException ex)
+        {
+            message = $"Cannot reach the AgencyOS server, so the talent profile was not created. {ex.Message}";
+            failed = true;
+        }
+
+        _profileMessage = message;
+        _profileFailed = failed;
+        RaiseProfileChanged();
+
+        return _profileState == TalentProfileState.Present;
+    }
+
+    private async Task ReadProfileStateAsync(CancellationToken cancellationToken)
+    {
+        if (_signed is not { } client)
+        {
+            return;
+        }
+
+        TalentProfileState state;
+
+        try
+        {
+            await _api.GetTalentAsync(client.PersonId, cancellationToken).ConfigureAwait(true);
+            state = TalentProfileState.Present;
+        }
+        catch (AgencyOsApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            state = TalentProfileState.Absent;
+        }
+        catch (Exception ex) when (ex is AgencyOsApiException or HttpRequestException)
+        {
+            state = TalentProfileState.Unknown;
+        }
+
+        // The operator may have moved on while the read was in flight.
+        if (_signed == client)
+        {
+            _profileState = state;
+            RaiseProfileChanged();
+        }
+    }
+
+    private void SetSignedClient(SignedClient? client)
+    {
+        if (_signed == client)
+        {
+            return;
+        }
+
+        _signed = client;
+        _profileState = TalentProfileState.Unknown;
+        _profileMessage = null;
+        _profileFailed = false;
+        RaiseProfileChanged();
+    }
+
+    private void RaiseProfileChanged()
+    {
+        OnPropertyChanged(nameof(Signed));
+        OnPropertyChanged(nameof(ProfileState));
+        OnPropertyChanged(nameof(ProfileMessage));
+        OnPropertyChanged(nameof(ProfileFailed));
+        OnPropertyChanged(nameof(CanCreateTalentProfile));
+        OnPropertyChanged(nameof(ProfileNotice));
     }
 
     private async Task ReloadAsync(Guid prospectId, CancellationToken cancellationToken)
