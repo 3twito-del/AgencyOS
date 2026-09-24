@@ -74,7 +74,7 @@
                       SelectionChanged="OnProjectSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Project}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -161,7 +161,7 @@
                               AutomationProperties.Name="Attachments" SelectionMode="Single" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=ProjectAttachment}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
@@ -191,7 +191,7 @@
                                       AutomationProperties.Name="Companies" SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=ProjectCompany}">
                                             <TextBlock Text="{Binding CompanyName}" />
                                             <TextBlock Text="{Binding Capacity}" Opacity="0.7"
                                                        Style="{StaticResource CaptionTextBlockStyle}" />
@@ -213,7 +213,7 @@
                                       AutomationProperties.Name="Sources" SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=SourceProperty}">
                                             <TextBlock Text="{Binding Title}" />
                                             <TextBlock Text="{Binding AttributedCreator}" Opacity="0.7"
                                                        Style="{StaticResource CaptionTextBlockStyle}" />
@@ -230,7 +230,7 @@
                               AutomationProperties.Name="Materials" SelectionMode="None" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=ProjectMaterial}">
                                     <TextBlock Text="{Binding Title}" />
                                     <TextBlock Text="{Binding PersonName}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
@@ -327,7 +327,7 @@
                               AutomationProperties.Name="History" SelectionMode="None" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}" AutomationProperties.HelpText="{Binding Detail}">
                                     <TextBlock Text="{Binding Summary}" />
                                     <TextBlock Text="{Binding Detail}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />

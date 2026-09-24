@@ -113,7 +113,7 @@
                               SelectionChanged="OnReceivableSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Receivable}" AutomationProperties.HelpText="{Binding ContractTitle}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="130" />
@@ -284,7 +284,7 @@
                               SelectionChanged="OnPaymentSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Payment}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="130" />
@@ -355,7 +355,7 @@
                               AutomationProperties.Name="Commissions" SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Commission}" AutomationProperties.HelpText="{Binding ContractTitle}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="130" />
@@ -393,7 +393,7 @@
                               AutomationProperties.Name="Commission rules" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,4" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,4" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=CommissionRule}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="140" />
@@ -482,7 +482,7 @@
                               SelectionChanged="OnJournalSelected">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Journal}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="130" />
@@ -600,7 +600,7 @@
                               AutomationProperties.Name="History" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=FinanceHistory}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="160" />
                                         <ColumnDefinition Width="*" />

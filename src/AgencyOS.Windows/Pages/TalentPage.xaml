@@ -78,7 +78,7 @@
                 SelectionChanged="OnTalentSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Talent}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -246,7 +246,7 @@
                                       AutomationProperties.Name="Representation scopes" SelectionMode="None" MaxHeight="220">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Padding="4,4" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <Grid Padding="4,4" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=RepresentationScope}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
@@ -310,7 +310,7 @@
                                   AutomationProperties.Name="Credits" SelectionMode="None">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                    <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Credit}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
@@ -364,7 +364,7 @@
                                   AutomationProperties.Name="Materials" SelectionMode="None">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                    <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=TalentMaterial}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
@@ -395,7 +395,7 @@
                               AutomationProperties.Name="History" SelectionMode="None" Padding="12">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=TalentHistory}" AutomationProperties.HelpText="{Binding Detail}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />

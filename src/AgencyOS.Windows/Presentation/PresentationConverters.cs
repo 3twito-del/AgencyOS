@@ -14,13 +14,15 @@ namespace AgencyOS.Windows.Presentation;
 /// Bound once per template root as <c>AutomationProperties.Name</c>, so a row says
 /// what it shows instead of reciting its record. The decision about what to say
 /// lives in <see cref="RowLabel"/>, in the client assembly, where a test can reach
-/// it without standing up a window.
+/// it without standing up a window. A template whose row needs more than the inferred
+/// phrase names its <see cref="RowProfile"/> as the parameter; the words stay in the
+/// client.
 /// </remarks>
 public sealed partial class RowLabelConverter : IValueConverter
 {
     /// <inheritdoc />
     public object Convert(object value, Type targetType, object parameter, string language) =>
-        RowLabel.For(value);
+        RowLabel.For(value, parameter as string);
 
     /// <inheritdoc />
     /// <remarks>

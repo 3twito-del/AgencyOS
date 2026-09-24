@@ -167,7 +167,7 @@
                                       SelectionChanged="OnOfferSelected">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Offer}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
@@ -205,7 +205,7 @@
                                       AutomationProperties.Name="Terms" SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}" AutomationProperties.HelpText="{Binding Notes}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
@@ -258,7 +258,7 @@
                                       AutomationProperties.Name="Version comparison" SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=TermComparison}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="140" />
@@ -313,7 +313,7 @@
                               AutomationProperties.Name="History" SelectionMode="None" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}" AutomationProperties.HelpText="{Binding Detail}">
                                     <TextBlock Text="{Binding Summary}" />
                                     <TextBlock Text="{Binding Detail}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />

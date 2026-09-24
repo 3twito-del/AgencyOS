@@ -247,8 +247,7 @@ public sealed partial class OperationalListParityTests
         None,
 
         /// <summary>
-        /// The row's own <c>AutomationProperties.HelpText</c>. Proposed; not yet
-        /// wired anywhere in the product.
+        /// The row's own <c>AutomationProperties.HelpText</c>, bound to the value.
         /// </summary>
         HelpText,
 
@@ -262,14 +261,29 @@ public sealed partial class OperationalListParityTests
     /// <summary>A binding's classification, the channel it may use, and why.</summary>
     /// <param name="Role">
     /// The word the row itself uses for this value's role, where its field name is not
-    /// that word — taken from the list's own column header, never invented.
+    /// that word — taken from the list's own column header or the approved concise
+    /// vocabulary the row's profile declares, never invented.
     /// </param>
-    public sealed record Classification(Weight Weight, Channel Channel, string Reason, string? Role = null);
+    /// <param name="RoleFrom">
+    /// Another binding on the row whose value is this one's role: a link row's kind
+    /// names what its label is. The two are covered together, as one statement.
+    /// </param>
+    public sealed record Classification(
+        Weight Weight, Channel Channel, string Reason, string? Role = null, string? RoleFrom = null);
 
     private static Classification Primary { get; } = new(Weight.Primary, Channel.None, string.Empty);
 
     private static Classification PrimaryAs(string role, string reason) =>
         new(Weight.Primary, Channel.None, reason, role);
+
+    private static Classification PrimaryAs(string role) =>
+        new(Weight.Primary, Channel.None, Concise, role);
+
+    private static Classification PrimaryRoledBy(string roleFrom, string reason) =>
+        new(Weight.Primary, Channel.None, reason, RoleFrom: roleFrom);
+
+    private const string Concise =
+        "The approved concise role word, declared once in the row's profile in RowProfiles.";
 
     private static Classification Secondary(Channel channel, string reason) =>
         new(Weight.Secondary, channel, reason);
@@ -310,9 +324,9 @@ public sealed partial class OperationalListParityTests
         ["Dialogs/AnswerOfferDialog.xaml#TermList#{Binding DisplayValue}"] = Primary,
         ["Dialogs/ComposeMessageDialog.xaml#RecipientList#{Binding Role}"] = Primary,
         ["Dialogs/ComposeMessageDialog.xaml#RecipientList#{Binding Address}"] = Primary,
-        ["Dialogs/PostJournalEntryDialog.xaml#LineList#{Binding Account}"] = Primary,
-        ["Dialogs/PostJournalEntryDialog.xaml#LineList#{Binding Side}"] = Primary,
-        ["Dialogs/PostJournalEntryDialog.xaml#LineList#{Binding AmountDisplay}"] = Primary,
+        ["Dialogs/PostJournalEntryDialog.xaml#LineList#{Binding Account}"] = PrimaryAs("Account"),
+        ["Dialogs/PostJournalEntryDialog.xaml#LineList#{Binding Side}"] = PrimaryAs("Side"),
+        ["Dialogs/PostJournalEntryDialog.xaml#LineList#{Binding AmountDisplay}"] = PrimaryAs("Amount"),
         ["Dialogs/RecordInvoiceDialog.xaml#LineList#{Binding Description}"] = Primary,
         ["Dialogs/RecordInvoiceDialog.xaml#LineList#{Binding AmountDisplay}"] = Primary,
         ["Dialogs/RecordOfferDialog.xaml#TermList#{Binding DisplayName}"] = Primary,
@@ -322,12 +336,12 @@ public sealed partial class OperationalListParityTests
         ["Dialogs/ResolveParticipantDialog.xaml#SuggestionList#{Binding DisplayName}"] = Primary,
         ["Dialogs/ResolveParticipantDialog.xaml#SuggestionList#{Binding MatchedAddress}"] = Primary,
         ["MainWindow.xaml#SearchResults#{Binding Title}"] = Primary,
-        ["MainWindow.xaml#SearchResults#{Binding Subtitle}"] = Primary,
+        ["MainWindow.xaml#SearchResults#{Binding Subtitle}"] = PrimaryAs("Context"),
         ["MainWindow.xaml#SearchResults#{Binding Type, Converter={StaticResource DisplayLabel}}"] = Primary,
-        ["MainWindow.xaml#SearchResults#{Binding MatchedOn}"] = Primary,
+        ["MainWindow.xaml#SearchResults#{Binding MatchedOn}"] = PrimaryAs("Matched"),
         ["MainWindow.xaml#PaletteResults#{Binding Title}"] = Primary,
-        ["MainWindow.xaml#PaletteResults#{Binding Category}"] = Primary,
-        ["MainWindow.xaml#PaletteResults#{Binding Shortcut}"] = Primary,
+        ["MainWindow.xaml#PaletteResults#{Binding Category}"] = PrimaryAs("Category"),
+        ["MainWindow.xaml#PaletteResults#{Binding Shortcut}"] = PrimaryAs("Shortcut"),
         ["Pages/AiPage.xaml#ApprovalList#{Binding Summary}"] = Primary,
         ["Pages/AiPage.xaml#ApprovalList#{Binding ToolName}"] = Primary,
         ["Pages/AiPage.xaml#ApprovalList#{Binding ExpiresAt}"] = Primary,
@@ -337,13 +351,13 @@ public sealed partial class OperationalListParityTests
         ["Pages/AiPage.xaml#StepList#{Binding Summary}"] = Primary,
         ["Pages/AiPage.xaml#StepList#{Binding Kind, Converter={StaticResource DisplayLabel}}"] = Primary,
         ["Pages/AiPage.xaml#StepList#{Binding OccurredAt}"] = Primary,
-        ["Pages/AiPage.xaml#PolicyList#{Binding ProviderKey}"] = Primary,
-        ["Pages/AiPage.xaml#PolicyList#{Binding MaximumSensitivity}"] = Primary,
+        ["Pages/AiPage.xaml#PolicyList#{Binding ProviderKey}"] = PrimaryAs("Provider"),
+        ["Pages/AiPage.xaml#PolicyList#{Binding MaximumSensitivity}"] = PrimaryAs("Maximum sensitivity"),
         ["Pages/AiPage.xaml#ToolList#{Binding Description}"] = Secondary(Channel.HelpText, "What the tool does, in prose, beneath a tool identified by its name and the permission it needs."),
         ["Pages/AiPage.xaml#ToolList#{Binding Name}"] = Primary,
         ["Pages/AiPage.xaml#ToolList#{Binding RequiredPermission}"] = Primary,
-        ["Pages/AiPage.xaml#ModelList#{Binding Key}"] = Primary,
-        ["Pages/AiPage.xaml#ModelList#{Binding ProviderKey}"] = Primary,
+        ["Pages/AiPage.xaml#ModelList#{Binding Key}"] = PrimaryAs("Model"),
+        ["Pages/AiPage.xaml#ModelList#{Binding ProviderKey}"] = PrimaryAs("Provider"),
         ["Pages/CommunicationsPage.xaml#MessageList#{Binding Subject}"] = Primary,
         ["Pages/CommunicationsPage.xaml#MessageList#{Binding FromAddress}"] = Primary,
         ["Pages/CommunicationsPage.xaml#MessageList#{Binding OccurredAt}"] = Primary,
@@ -351,10 +365,10 @@ public sealed partial class OperationalListParityTests
         ["Pages/CommunicationsPage.xaml#ParticipantList#{Binding Address}"] = Primary,
         ["Pages/CommunicationsPage.xaml#ParticipantList#{Binding DisplayName}"] = Primary,
         ["Pages/CommunicationsPage.xaml#ParticipantList#{Binding Converter={StaticResource Party}, ConverterParameter=PersonDisplayName}"] = Primary,
-        ["Pages/CommunicationsPage.xaml#AttachmentList#{Binding FileName}"] = Primary,
-        ["Pages/CommunicationsPage.xaml#AttachmentList#{Binding MediaType}"] = Primary,
-        ["Pages/CommunicationsPage.xaml#AttachmentList#{Binding HoldsContent}"] = Primary,
-        ["Pages/CommunicationsPage.xaml#MessageLinkList#{Binding TargetLabel}"] = Primary,
+        ["Pages/CommunicationsPage.xaml#AttachmentList#{Binding FileName}"] = PrimaryAs("File name"),
+        ["Pages/CommunicationsPage.xaml#AttachmentList#{Binding MediaType}"] = PrimaryAs("Media type"),
+        ["Pages/CommunicationsPage.xaml#AttachmentList#{Binding HoldsContent}"] = PrimaryAs("Holds content"),
+        ["Pages/CommunicationsPage.xaml#MessageLinkList#{Binding TargetLabel}"] = PrimaryRoledBy("Target", "A link row's kind names what its label is: the kind is the label's role."),
         ["Pages/CommunicationsPage.xaml#MessageLinkList#{Binding Target}"] = Primary,
         ["Pages/CommunicationsPage.xaml#OutboundList#{Binding Subject}"] = Primary,
         ["Pages/CommunicationsPage.xaml#OutboundList#{Binding MailboxAddress}"] = Primary,
@@ -390,10 +404,10 @@ public sealed partial class OperationalListParityTests
         ["Pages/ContractsPage.xaml#PartyList#{Binding DisplayName}"] = Primary,
         ["Pages/ContractsPage.xaml#PartyList#{Binding Role}"] = Primary,
         ["Pages/ContractsPage.xaml#PartyList#{Binding SignedOn}"] = Primary,
-        ["Pages/ContractsPage.xaml#RightsList#{Binding RightType}"] = Primary,
-        ["Pages/ContractsPage.xaml#RightsList#{Binding Medium}"] = Primary,
-        ["Pages/ContractsPage.xaml#RightsList#{Binding Territory}"] = Primary,
-        ["Pages/ContractsPage.xaml#RightsList#{Binding PeriodKind}"] = Primary,
+        ["Pages/ContractsPage.xaml#RightsList#{Binding RightType}"] = PrimaryAs("Right"),
+        ["Pages/ContractsPage.xaml#RightsList#{Binding Medium}"] = PrimaryAs("Medium"),
+        ["Pages/ContractsPage.xaml#RightsList#{Binding Territory}"] = PrimaryAs("Territory"),
+        ["Pages/ContractsPage.xaml#RightsList#{Binding PeriodKind}"] = PrimaryAs("Period"),
         ["Pages/ContractsPage.xaml#OptionList#{Binding Subject}"] = Primary,
         ["Pages/ContractsPage.xaml#OptionList#{Binding Kind, Converter={StaticResource DisplayLabel}}"] = Primary,
         ["Pages/ContractsPage.xaml#OptionList#{Binding DeadlineOn}"] = Primary,
@@ -444,21 +458,21 @@ public sealed partial class OperationalListParityTests
         ["Pages/DocumentsPage.xaml#DocumentList#{Binding Status, Converter={StaticResource DisplayLabel}}"] = Primary,
         ["Pages/DocumentsPage.xaml#VersionList#{Binding Sequence}"] = Primary,
         ["Pages/DocumentsPage.xaml#VersionList#{Binding DisplayFileName}"] = Primary,
-        ["Pages/DocumentsPage.xaml#VersionList#{Binding MediaType}"] = Primary,
+        ["Pages/DocumentsPage.xaml#VersionList#{Binding MediaType}"] = PrimaryAs("Media type"),
         ["Pages/DocumentsPage.xaml#VersionList#{Binding RecordedAt}"] = Primary,
-        ["Pages/DocumentsPage.xaml#VersionList#{Binding ContentHash}"] = Primary,
-        ["Pages/DocumentsPage.xaml#LinkList#{Binding TargetLabel}"] = Primary,
+        ["Pages/DocumentsPage.xaml#VersionList#{Binding ContentHash}"] = PrimaryAs("Content hash"),
+        ["Pages/DocumentsPage.xaml#LinkList#{Binding TargetLabel}"] = PrimaryRoledBy("Target", "A link row's kind names what its label is: the kind is the label's role."),
         ["Pages/DocumentsPage.xaml#LinkList#{Binding Target}"] = Primary,
         ["Pages/DocumentsPage.xaml#HistoryList#{Binding OccurredAt}"] = Primary,
         ["Pages/DocumentsPage.xaml#HistoryList#{Binding Summary}"] = Primary,
         ["Pages/DocumentsPage.xaml#HistoryList#{Binding Converter={StaticResource Party}, ConverterParameter=ActorDisplayName}"] = Primary,
-        ["Pages/FinancePage.xaml#ReceivableList#{Binding ContractTitle}"] = Primary,
+        ["Pages/FinancePage.xaml#ReceivableList#{Binding ContractTitle}"] = PrimaryAs("Contract"),
         ["Pages/FinancePage.xaml#ReceivableList#{Binding Converter={StaticResource Party}, ConverterParameter=PayerDisplayName}"] = Primary,
         ["Pages/FinancePage.xaml#ReceivableList#{Binding OriginalAmount, Converter={StaticResource Money}}"] = Primary,
         ["Pages/FinancePage.xaml#ReceivableList#{Binding Allocated, Converter={StaticResource Money}}"] = Primary,
         ["Pages/FinancePage.xaml#ReceivableList#{Binding Outstanding, Converter={StaticResource Money}}"] = Primary,
         ["Pages/FinancePage.xaml#ReceivableList#{Binding Status, Converter={StaticResource DisplayLabel}}"] = Primary,
-        ["Pages/FinancePage.xaml#ReceivableList#{Binding Beneficiary}"] = Primary,
+        ["Pages/FinancePage.xaml#ReceivableList#{Binding Beneficiary}"] = PrimaryAs("money"),
         ["Pages/FinancePage.xaml#InvoiceList#{Binding Reference}"] = Primary,
         ["Pages/FinancePage.xaml#InvoiceList#{Binding Converter={StaticResource Party}, ConverterParameter=DebtorDisplayName}"] = Primary,
         ["Pages/FinancePage.xaml#InvoiceList#{Binding Total, Converter={StaticResource Money}}"] = Primary,
@@ -471,14 +485,14 @@ public sealed partial class OperationalListParityTests
         ["Pages/FinancePage.xaml#PaymentList#{Binding Unapplied, Converter={StaticResource Money}}"] = Primary,
         ["Pages/FinancePage.xaml#PaymentList#{Binding Status, Converter={StaticResource DisplayLabel}}"] = Primary,
         ["Pages/FinancePage.xaml#PaymentList#{Binding ReceivedOn}"] = Primary,
-        ["Pages/FinancePage.xaml#CommissionList#{Binding ClientDisplayName}"] = Primary,
-        ["Pages/FinancePage.xaml#CommissionList#{Binding ContractTitle}"] = Primary,
+        ["Pages/FinancePage.xaml#CommissionList#{Binding ClientDisplayName}"] = PrimaryAs("Client"),
+        ["Pages/FinancePage.xaml#CommissionList#{Binding ContractTitle}"] = PrimaryAs("Contract"),
         ["Pages/FinancePage.xaml#CommissionList#{Binding Entitled, Converter={StaticResource Money}}"] = Primary,
         ["Pages/FinancePage.xaml#CommissionList#{Binding Collected, Converter={StaticResource Money}}"] = Primary,
         ["Pages/FinancePage.xaml#CommissionList#{Binding Outstanding, Converter={StaticResource Money}}"] = Primary,
         ["Pages/FinancePage.xaml#CommissionList#{Binding Status, Converter={StaticResource DisplayLabel}}"] = Primary,
-        ["Pages/FinancePage.xaml#CommissionRuleList#{Binding ClientDisplayName}"] = Primary,
-        ["Pages/FinancePage.xaml#CommissionRuleList#{Binding Basis}"] = Primary,
+        ["Pages/FinancePage.xaml#CommissionRuleList#{Binding ClientDisplayName}"] = PrimaryAs("Client"),
+        ["Pages/FinancePage.xaml#CommissionRuleList#{Binding Basis}"] = PrimaryAs("Basis"),
         ["Pages/FinancePage.xaml#CommissionRuleList#{Binding EffectiveFrom}"] = Primary,
         ["Pages/FinancePage.xaml#BalanceList#{Binding Name}"] = Primary,
         ["Pages/FinancePage.xaml#BalanceList#{Binding Currency}"] = Primary,
@@ -506,22 +520,22 @@ public sealed partial class OperationalListParityTests
         ["Pages/IntelligencePage.xaml#RadarReviewList#{Binding Rationale}"] = Secondary(Channel.HelpText, "Why the person is being watched, beneath a review entry identified by the person."),
         ["Pages/IntelligencePage.xaml#SignalList#{Binding Title}"] = Primary,
         ["Pages/IntelligencePage.xaml#SignalList#{Binding Claim}"] = Secondary(Channel.HelpText, "The claim in full beneath a signal identified by its title, verification and sensitivity."),
-        ["Pages/IntelligencePage.xaml#SignalList#{Binding Verification}"] = Primary,
-        ["Pages/IntelligencePage.xaml#SignalList#{Binding Sensitivity}"] = Primary,
+        ["Pages/IntelligencePage.xaml#SignalList#{Binding Verification}"] = PrimaryAs("Verification"),
+        ["Pages/IntelligencePage.xaml#SignalList#{Binding Sensitivity}"] = PrimaryAs("Sensitivity"),
         ["Pages/IntelligencePage.xaml#SignalEvidenceList#{Binding SourceTitle}"] = Primary,
         ["Pages/IntelligencePage.xaml#SignalEvidenceList#{Binding Role}"] = Primary,
         ["Pages/IntelligencePage.xaml#SignalEvidenceList#{Binding Excerpt}"] = Secondary(Channel.HelpText, "An analyst's quotation from the source, beneath evidence identified by its source and role."),
         ["Pages/IntelligencePage.xaml#SourceList#{Binding Title}"] = Primary,
         ["Pages/IntelligencePage.xaml#SourceList#{Binding Kind, Converter={StaticResource DisplayLabel}}"] = Primary,
-        ["Pages/IntelligencePage.xaml#SourceList#{Binding Reliability}"] = Primary,
-        ["Pages/IntelligencePage.xaml#SourceList#{Binding Sensitivity}"] = Primary,
+        ["Pages/IntelligencePage.xaml#SourceList#{Binding Reliability}"] = PrimaryAs("Reliability"),
+        ["Pages/IntelligencePage.xaml#SourceList#{Binding Sensitivity}"] = PrimaryAs("Sensitivity"),
         ["Pages/IntelligencePage.xaml#ThesisList#{Binding Title}"] = Primary,
         ["Pages/IntelligencePage.xaml#ThesisList#{Binding Proposition}"] = Secondary(Channel.HelpText, "The belief in full beneath a thesis identified by its title and status."),
         ["Pages/IntelligencePage.xaml#ThesisList#{Binding Status, Converter={StaticResource DisplayLabel}}"] = Primary,
         ["Pages/IntelligencePage.xaml#ThesisRevisionList#{Binding Proposition}"] = Primary,
         ["Pages/IntelligencePage.xaml#ThesisRevisionList#{Binding ChangeNote}"] = Secondary(Channel.HelpText, "Why the belief changed, beneath a revision identified by the proposition it moved to."),
-        ["Pages/IntelligencePage.xaml#ThesisEvidenceList#{Binding SignalTitle}"] = Primary,
-        ["Pages/IntelligencePage.xaml#ThesisEvidenceList#{Binding Stance}"] = Primary,
+        ["Pages/IntelligencePage.xaml#ThesisEvidenceList#{Binding SignalTitle}"] = PrimaryAs("Signal"),
+        ["Pages/IntelligencePage.xaml#ThesisEvidenceList#{Binding Stance}"] = PrimaryAs("Stance"),
         ["Pages/IntelligencePage.xaml#PredictionList#{Binding Statement}"] = Primary,
         ["Pages/IntelligencePage.xaml#PredictionList#{Binding Converter={StaticResource PredictionCaption}}"] = Primary,
         ["Pages/IntelligencePage.xaml#PredictionList#{Binding Status, Converter={StaticResource DisplayLabel}}"] = Primary,
@@ -540,9 +554,9 @@ public sealed partial class OperationalListParityTests
         ["Pages/IntelligencePage.xaml#ResearchTaskList#{Binding Converter={StaticResource TaskWho}}"] = Primary,
         ["Pages/IntelligencePage.xaml#ResearchTaskList#{Binding Converter={StaticResource TaskWhen}}"] = Primary,
         ["Pages/OrganizationPage.xaml#MemberList#{Binding DisplayName}"] = Primary,
-        ["Pages/OrganizationPage.xaml#MemberList#{Binding Email}"] = Primary,
+        ["Pages/OrganizationPage.xaml#MemberList#{Binding Email}"] = PrimaryAs("Email"),
         ["Pages/OrganizationPage.xaml#MemberList#{Binding Role, Converter={StaticResource DisplayLabel}}"] = Primary,
-        ["Pages/OrganizationPage.xaml#MemberList#{Binding Note}"] = Primary,
+        ["Pages/OrganizationPage.xaml#MemberList#{Binding Note}"] = PrimaryAs("Note"),
         ["Pages/PackagesPage.xaml#PackageList#{Binding Name}"] = Primary,
         ["Pages/PackagesPage.xaml#PackageList#{Binding ProjectTitle}"] = Primary,
         ["Pages/PackagesPage.xaml#AttachedList#{Binding DisplayName}"] = Primary,
@@ -611,8 +625,8 @@ public sealed partial class OperationalListParityTests
         ["Pages/SyncPage.xaml#QueueList#{Binding Explanation}"] = Primary,
         ["Pages/SyncPage.xaml#QueueList#{Binding State, Converter={StaticResource DisplayLabel}}"] = Primary,
         ["Pages/TalentPage.xaml#TalentList#{Binding DisplayName}"] = Primary,
-        ["Pages/TalentPage.xaml#TalentList#{Binding CareerStage}"] = Primary,
-        ["Pages/TalentPage.xaml#TalentList#{Binding RepresentationStatus}"] = Primary,
+        ["Pages/TalentPage.xaml#TalentList#{Binding CareerStage}"] = PrimaryAs("Career stage"),
+        ["Pages/TalentPage.xaml#TalentList#{Binding RepresentationStatus}"] = PrimaryAs("Representation"),
         ["Pages/TalentPage.xaml#ScopeList#{Binding Area}"] = Primary,
         ["Pages/TalentPage.xaml#ScopeList#{Binding StartsOn, Converter={StaticResource IsoDate}}"] = Primary,
         ["Pages/TalentPage.xaml#TeamList#{Binding DisplayName}"] = Primary,
@@ -749,7 +763,8 @@ public sealed partial class OperationalListParityTests
     /// </summary>
     /// <remarks>
     /// A role word is taken from the product, never invented: each must be the literal
-    /// text of a visible label in the markup file that holds the row.
+    /// text of a visible label in the markup file that holds the row, or the approved
+    /// concise word the row's own profile declares for that field.
     /// </remarks>
     [Fact]
     public void EveryAccountedRoleWordIsVisibleOnItsPage()
@@ -757,13 +772,24 @@ public sealed partial class OperationalListParityTests
         foreach ((string key, Classification value) in Accounting.Where(x => x.Value.Role is not null))
         {
             string file = key.Split('#')[0];
-            string markup = System.IO.File.ReadAllText(Path.Combine(WindowsRoot, file));
+            string markup = PageText(file);
+            Entry entry = Find(file, key.Split('#')[1]);
+            Shown shown = Parse(key.Split('#', 3)[2]);
+
+            bool visible = markup.Contains($"Text=\"{value.Role}\"", StringComparison.Ordinal);
+            bool declared = ProfileOf(entry) is { } profile
+                && FieldFor(profile, shown) is { } field
+                && string.Equals(field.Role, value.Role, StringComparison.Ordinal);
 
             Assert.True(
-                markup.Contains($"Text=\"{value.Role}\"", StringComparison.Ordinal),
-                $"{key}: the role word '{value.Role}' is not a visible label in {file}.");
+                visible || declared,
+                $"{key}: the role word '{value.Role}' is neither a visible label in {file} nor its profile's word.");
         }
     }
+
+    /// <summary>The whole markup file that holds a row.</summary>
+    internal static string PageText(string file) =>
+        System.IO.File.ReadAllText(Path.Combine(WindowsRoot, file));
 
     /// <summary>Every secondary value says where it goes and why it is not a scan fact.</summary>
     [Fact]
@@ -830,14 +856,10 @@ public sealed partial class OperationalListParityTests
     {
         Entry entry = Find(file, template);
         object row = Sentinels.Build(RowType(entry));
-        string announced = RowLabel.For(row);
-        List<Shown> shown = [.. Visible(entry)];
-
+        string announced = Announce(entry, row);
         List<string> missing = [];
 
-        List<Shown> primary = [.. shown
-            .Where(x => Accounting[AccountingKey(entry, x)].Weight == Weight.Primary)
-            .Select(x => x with { Role = Accounting[AccountingKey(entry, x)].Role })];
+        List<Shown> primary = [.. Primaries(entry)];
 
         foreach (Shown value in primary)
         {
@@ -852,6 +874,35 @@ public sealed partial class OperationalListParityTests
             $"{Key(file, template)} [{row.GetType().Name}] announces '{announced}' and does not cover: "
                 + string.Join("; ", missing));
     }
+
+    /// <summary>What a row announces: <see cref="RowLabel"/>, under its template's profile.</summary>
+    internal static string Announce(Entry entry, object row) =>
+        RowLabel.For(row, ProfileId(Template(entry)));
+
+    /// <summary>A row's primary bindings, each with the role its accounting gives it.</summary>
+    internal static IEnumerable<Shown> Primaries(Entry entry) =>
+        Visible(entry)
+            .Where(x => Accounting[AccountingKey(entry, x)].Weight == Weight.Primary)
+            .Select(x => x with
+            {
+                Role = Accounting[AccountingKey(entry, x)].Role,
+                RoleFrom = Accounting[AccountingKey(entry, x)].RoleFrom,
+            });
+
+    /// <summary>The profile id a template passes to the row converter, if any.</summary>
+    private static string? ProfileId(RowTemplate template) =>
+        template.Root.Attribute("AutomationProperties.Name")?.Value is { } name
+            ? Parse(name).Parameter
+            : null;
+
+    /// <summary>The profile a catalog entry's template names, if any.</summary>
+    internal static RowProfile? ProfileOf(Entry entry) => RowProfiles.Find(ProfileId(Template(entry)));
+
+    /// <summary>The profile field that speaks a visible binding, if any.</summary>
+    internal static RowField? FieldFor(RowProfile profile, Shown shown) =>
+        profile.Fields.FirstOrDefault(x => x.Kind == RowFieldKind.Party
+            ? shown.Converter == "Party" && shown.Parameter == x.Path
+            : shown.Path == x.Path);
 
     /// <summary>
     /// Every secondary value is wired to the channel its classification names.
@@ -909,21 +960,29 @@ public sealed partial class OperationalListParityTests
 
             case Channel.HelpText:
                 // The row's own help text, evaluated the way the row would evaluate
-                // it. No row declares one yet.
-                if (markup.Root.Attribute("AutomationProperties.HelpText")?.Value is not { } help
-                    || !help.StartsWith("{Binding", StringComparison.Ordinal))
-                {
-                    return false;
-                }
-
-                Shown channelBinding = Parse(help);
-
-                return Evaluators.Contains(channelBinding.Converter ?? string.Empty)
-                    && Render(row, channelBinding).Contains(text, StringComparison.Ordinal);
+                // it: bound to the value directly, or through a converter this gate
+                // can run.
+                return HelpText(markup, row) is { } help && help.Contains(text, StringComparison.Ordinal);
 
             default:
                 return false;
         }
+    }
+
+    /// <summary>What a row's own help text says, or null where it binds none.</summary>
+    private static string? HelpText(RowTemplate markup, object row)
+    {
+        if (markup.Root.Attribute("AutomationProperties.HelpText")?.Value is not { } help
+            || !help.StartsWith("{Binding", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        Shown channel = Parse(help);
+
+        return channel.Converter is null || Evaluators.Contains(channel.Converter)
+            ? Render(row, channel)
+            : null;
     }
 
     private static bool IsBinding(XElement element, Shown value) =>
@@ -1294,6 +1353,16 @@ public sealed partial class OperationalListParityTests
         /// <summary>Null when covered; otherwise why not.</summary>
         public static string? Check(object row, Shown value, IReadOnlyList<Shown> rowBindings, string announced)
         {
+            // A binding that is another's role is covered only as that role, beside
+            // the value it names: the kind of a link is said as "Deal: Autumn slate",
+            // not on its own.
+            if (rowBindings.FirstOrDefault(x => x.RoleFrom is not null && x.RoleFrom == value.Path) is { } dependent)
+            {
+                return Check(row, dependent, rowBindings, announced) is null
+                    ? null
+                    : $"{value.Binding} [role of {dependent.Binding}] shows '{Render(row, value)}'";
+            }
+
             string text = Render(row, value);
 
             if (string.IsNullOrWhiteSpace(text))
@@ -1303,23 +1372,23 @@ public sealed partial class OperationalListParityTests
 
             object? raw = value.Path is null ? row : Read(row, value.Path);
             Kind kind = KindOf(value, raw, row);
-            bool needsRole = NeedsRole(row, value, kind, rowBindings);
+            bool needsRole = value.RoleFrom is not null || NeedsRole(row, value, kind, rowBindings);
 
             bool covered = kind switch
             {
                 Kind.Text or Kind.Token => needsRole
-                    ? Segments(announced).Any(s => ContainsWords(s, text) && ContainsWords(s, RoleWord(value)))
+                    ? Segments(announced).Any(s => ContainsWords(s, text) && ContainsWords(s, RoleWord(value, row)))
                     : ContainsWords(announced, text),
                 Kind.Number => Segments(announced).Any(s =>
                     Numbers(raw).Any(n => ContainsWords(s, n))
-                    && (!needsRole || ContainsWords(s, RoleWord(value)))),
-                Kind.Flag => ContainsWords(announced, RoleWord(value)),
+                    && (!needsRole || ContainsWords(s, RoleWord(value, row)))),
+                Kind.Flag => ContainsWords(announced, RoleWord(value, row)),
                 Kind.Date => Segments(announced).Any(s =>
                     Dates(raw).Any(d => s.Contains(d, StringComparison.OrdinalIgnoreCase))
-                    && (!needsRole || ContainsWords(s, RoleWord(value)))),
+                    && (!needsRole || ContainsWords(s, RoleWord(value, row)))),
                 Kind.Instant => Segments(announced).Any(s =>
                     SameInstant(raw, s)
-                    && (!needsRole || ContainsWords(s, RoleWord(value)))),
+                    && (!needsRole || ContainsWords(s, RoleWord(value, row)))),
                 Kind.Money => raw is MoneyResponse money && HasMoney(announced, money.Amount, money.Currency),
                 Kind.BareAmount => BareAmountCovered(row, value, rowBindings, announced),
                 Kind.Party or Kind.Composed => text
@@ -1575,15 +1644,22 @@ public sealed partial class OperationalListParityTests
 
         /// <summary>The words a row uses for a field's role.</summary>
         /// <remarks>
-        /// The field's own name, as <see cref="DisplayLabel"/> writes it, without the
-        /// "on" or "at" that only says it is a date — which is how the row already
-        /// names a set flag.
+        /// The accounting's word where it gives one; the value of the binding it names
+        /// as the role, as <see cref="DisplayLabel"/> writes it, where the role is
+        /// another field; otherwise the field's own name, as <see cref="DisplayLabel"/>
+        /// writes it, without the "on" or "at" that only says it is a date — which is
+        /// how the row already names a set flag.
         /// </remarks>
-        public static string RoleWord(Shown value)
+        public static string RoleWord(Shown value, object row)
         {
             if (value.Role is { Length: > 0 } role)
             {
                 return role;
+            }
+
+            if (value.RoleFrom is { } source)
+            {
+                return DisplayLabel.For(Convert.ToString(Read(row, source), CultureInfo.CurrentCulture));
             }
 
             string leaf = (value.Path ?? string.Empty).Split('.')[^1];
@@ -1656,7 +1732,9 @@ public sealed partial class OperationalListParityTests
 
     /// <summary>One visible binding in a row template.</summary>
     /// <param name="Role">The row's own word for this value's role, from the accounting.</param>
-    public sealed record Shown(string Binding, string? Path, string? Converter, string? Parameter, string? Role = null);
+    /// <param name="RoleFrom">The binding whose value is this one's role, from the accounting.</param>
+    public sealed record Shown(
+        string Binding, string? Path, string? Converter, string? Parameter, string? Role = null, string? RoleFrom = null);
 
     private sealed record RowTemplate(string File, string Template, XElement Declaration, XElement Root);
 

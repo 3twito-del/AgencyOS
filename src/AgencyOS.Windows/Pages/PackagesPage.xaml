@@ -104,7 +104,7 @@
                               AutomationProperties.Name="Attached talent" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=PackageElement}">
                                     <TextBlock Text="{Binding DisplayName}" />
                                     <TextBlock Text="{Binding Detail}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
@@ -123,7 +123,7 @@
                               AutomationProperties.Name="Proposed roles" SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=PackageElement}">
                                     <TextBlock Text="{Binding DisplayName}" />
                                     <TextBlock Text="{Binding Detail}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />

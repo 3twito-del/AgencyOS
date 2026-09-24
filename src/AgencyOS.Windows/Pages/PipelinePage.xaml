@@ -170,7 +170,7 @@
                                       AutomationProperties.Name="Submissions" SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Submission}">
                                             <TextBlock Text="{Binding TargetDisplayName}" />
                                             <TextBlock Text="{Binding Subject}" Opacity="0.7"
                                                        Style="{StaticResource CaptionTextBlockStyle}" />
@@ -193,7 +193,7 @@
                               AutomationProperties.Name="Pitches" SelectionMode="None" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Pitch}">
                                     <TextBlock Text="{Binding TargetDisplayName}" />
                                     <TextBlock Text="{Binding Outcome, Converter={StaticResource DisplayLabel}}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
@@ -208,7 +208,7 @@
                               AutomationProperties.Name="Subjects" SelectionMode="None" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=OpportunitySubject}">
                                     <TextBlock Text="{Binding DisplayName}" />
                                     <TextBlock Text="{Binding Detail}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
@@ -242,7 +242,7 @@
                               AutomationProperties.Name="History" SelectionMode="None" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=OpportunityHistory}">
                                     <TextBlock Text="{Binding Summary}" />
                                     <TextBlock Text="{Binding TargetDisplayName}" Opacity="0.7"
                                                Style="{StaticResource CaptionTextBlockStyle}" />

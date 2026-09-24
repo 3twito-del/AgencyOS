@@ -15,7 +15,8 @@ namespace AgencyOS.Client.Presentation;
 /// The Windows <c>IsoDateConverter</c> writes what a row shows through this. It lives
 /// here rather than in the converter so that a test can run it: a formatter only the
 /// WinUI assembly could execute is one the operational parity gate would have to copy.
-/// <see cref="RowLabel"/> does not use it: rows announce no dates at present.
+/// A profiled <see cref="RowLabel"/> writes a row's dates through it too, so the date a
+/// row shows and the one it announces are one string.
 /// </para>
 /// <para>
 /// An instant is written in its own offset, not converted to local time. That is

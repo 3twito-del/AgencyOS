@@ -32,7 +32,7 @@
                   SelectionChanged="OnChanged">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=ParticipantSuggestion}">
                         <TextBlock Text="{Binding DisplayName}" />
                         <TextBlock Text="{Binding MatchedAddress}" Opacity="0.7"
                                    Style="{StaticResource CaptionTextBlockStyle}" />
