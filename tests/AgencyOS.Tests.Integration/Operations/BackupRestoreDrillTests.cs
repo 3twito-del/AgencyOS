@@ -18,6 +18,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Integration.Operations;
 
+// NOT-SOURCE-READ: Reads the dump file the drill itself produced, in order to damage
+// it. The backup scripts it locates are executed, not read as evidence.
+
 /// <summary>
 /// The drill: back AgencyOS up, destroy it, bring it back, and check what returned.
 /// </summary>

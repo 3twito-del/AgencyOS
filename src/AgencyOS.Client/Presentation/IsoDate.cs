@@ -12,11 +12,10 @@ namespace AgencyOS.Client.Presentation;
 /// "04/06/2026" and "06/04/2026".
 /// </para>
 /// <para>
-/// The Windows <c>IsoDateConverter</c> writes what a row shows through this, and
-/// <see cref="RowLabel"/> writes what the row announces through it too, so the two
-/// channels cannot format one date two ways. It lives here rather than in the
-/// converter so that a test can run it: a formatter only the WinUI assembly could
-/// execute is one the parity gate would have to copy.
+/// The Windows <c>IsoDateConverter</c> writes what a row shows through this. It lives
+/// here rather than in the converter so that a test can run it: a formatter only the
+/// WinUI assembly could execute is one the operational parity gate would have to copy.
+/// <see cref="RowLabel"/> does not use it: rows announce no dates at present.
 /// </para>
 /// <para>
 /// An instant is written in its own offset, not converted to local time. That is

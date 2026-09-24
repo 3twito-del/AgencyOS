@@ -5,6 +5,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Reviewer;
 
+// NOT-SOURCE-READ: Reads the log file each test captures itself, to check what the
+// bounded capture kept. Nothing it reads is the product's source.
+
 /// <summary>
 /// Controls for the capture policy that exists because the audit filled a disk.
 /// </summary>

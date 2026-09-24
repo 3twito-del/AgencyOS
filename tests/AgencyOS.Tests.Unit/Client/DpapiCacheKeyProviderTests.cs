@@ -5,6 +5,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Unit.Client;
 
+// NOT-SOURCE-READ: Reads the key file the provider under test has just written, to
+// check that it is protected rather than stored in the clear.
+
 /// <summary>
 /// The key provider the shipped client actually uses.
 /// </summary>
