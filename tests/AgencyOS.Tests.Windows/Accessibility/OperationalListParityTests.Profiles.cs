@@ -858,6 +858,115 @@ public sealed partial class OperationalListParityTests
         Assert.Equal(155, said.Length);
     }
 
+    /// <summary>
+    /// A payment with no reference, over the budget, keeps every other fact whole
+    /// (the absent-yielding-value reproduction).
+    /// </summary>
+    /// <remarks>
+    /// At <c>ae9017e</c> the absent reference was not spoken, so the profile found no
+    /// yielding part and cut the whole row to 160: the status and the received date
+    /// went. With nothing that may yield, D5 keeps every fact that remains.
+    /// </remarks>
+    [Fact]
+    public void AnAbsentReferenceCostsNoOtherPaymentFact()
+    {
+        PaymentResponse row = Payment(payer: LegalPayer, reference: null);
+        string said = PaymentSaid(row);
+
+        AssertEveryPaymentFact(said, LegalPayer);
+        Assert.DoesNotContain("External reference", said, StringComparison.Ordinal);
+        Assert.DoesNotContain("…", said, StringComparison.Ordinal);
+        Assert.Equal(
+            "Payer: Northgate Pictures International Film Distribution and Production Holdings Limited, "
+                + "240,000.00 GBP, 90,000.00 GBP allocated, 150,000.00 GBP unapplied, Partially allocated, "
+                + "Received: 2026-09-01",
+            said);
+        Assert.Equal(199, said.Length);
+        Assert.Equal(6, said.Split(", ").Length);
+
+        foreach (string hidden in (string[])["Harrowgate", "BankTransfer", "Bank transfer", "Barclays", "Ben Okafor", "First tranche", "Inbound", "2026-09-02"])
+        {
+            Assert.DoesNotContain(hidden, said, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>A payment with no reference that fits says everything else, within 160.</summary>
+    [Fact]
+    public void AnAbsentReferenceThatFitsIsSaidWhole()
+    {
+        string said = PaymentSaid(Payment(reference: null));
+
+        AssertEveryPaymentFact(said, "Northgate Pictures");
+        Assert.DoesNotContain("External reference", said, StringComparison.Ordinal);
+        Assert.DoesNotContain("…", said, StringComparison.Ordinal);
+        Assert.Equal(135, said.Length);
+    }
+
+    /// <summary>
+    /// Where a row's yielding value may be absent and is, no other fact is cut to fit
+    /// the budget.
+    /// </summary>
+    /// <remarks>
+    /// Only yielding fields declared nullable are blanked, so no invalid domain state is
+    /// built. Every other settable text is lengthened past the budget; with nothing that
+    /// may yield, every remaining scan fact must stay whole.
+    /// </remarks>
+    [Fact]
+    public void AnAbsentYieldingValueCutsNoOtherScanFact()
+    {
+        List<string> lost = [];
+        int exercised = 0;
+        NullabilityInfoContext nullability = new();
+
+        foreach ((Entry entry, RowProfile profile) in Profiled())
+        {
+            RowField yielding = profile.Fields.Single(x => x.Yields);
+            object row = Sentinels.Build(RowType(entry));
+            PropertyInfo? absent = row.GetType().GetProperty(yielding.Path, BindingFlags.Public | BindingFlags.Instance);
+
+            if (absent is null
+                || absent.PropertyType != typeof(string)
+                || !absent.CanWrite
+                || nullability.Create(absent).WriteState != NullabilityState.Nullable)
+            {
+                continue;
+            }
+
+            absent.SetValue(row, null);
+
+            foreach (PropertyInfo property in row.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.PropertyType == typeof(string) && x.CanWrite && x != absent))
+            {
+                if (property.GetValue(row) is string { Length: > 0 } value)
+                {
+                    property.SetValue(row, value + " " + string.Join(" ", Enumerable.Repeat("long", 30)));
+                }
+            }
+
+            string announced = Announce(entry, row);
+            List<Shown> primary = [.. Primaries(entry)];
+            exercised++;
+
+            if (announced.Contains('…', StringComparison.Ordinal))
+            {
+                lost.Add($"{Key(entry.File, entry.Template)}: cut with its yielding {yielding.Path} absent: '{announced}'");
+            }
+
+            foreach (Shown shown in primary.Where(x => FieldFor(profile, x) != yielding
+                && !(yielding.RoleFrom is not null && x.Path == yielding.RoleFrom)))
+            {
+                if (Coverage.Check(row, shown, primary, announced) is { } reason)
+                {
+                    lost.Add($"{Key(entry.File, entry.Template)}: {reason}");
+                }
+            }
+        }
+
+        // The payment reference is the canonical anchor; it must be among them.
+        Assert.True(exercised > 0 && Profiled().Any(x => x.Profile.Id == "Payment"));
+        Assert.True(lost.Count == 0, string.Join("; ", lost));
+    }
+
     /// <summary>Every profile lets exactly one field yield: none falls back to cutting the row.</summary>
     [Fact]
     public void EveryProfileLetsExactlyOneFieldYield()

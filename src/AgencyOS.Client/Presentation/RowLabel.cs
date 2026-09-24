@@ -288,9 +288,19 @@ public static class RowLabel
         string whole = string.Join(", ", parts.Select(x => x.Text));
         int yielding = parts.FindIndex(x => x.Field.Yields);
 
-        if (whole.Length <= MaximumLength || yielding < 0)
+        if (whole.Length <= MaximumLength)
         {
             return Shorten(whole);
+        }
+
+        // The field this profile lets yield is absent from this row, so every part
+        // that remains is a scan fact that may not. Shortening the whole would cut
+        // the last of them - a payment with no reference lost its status and date
+        // - so the row keeps them all and runs past 160 (D5). Nothing is said for
+        // the absent value.
+        if (yielding < 0)
+        {
+            return whole.Trim();
         }
 
         Spoken yields = parts[yielding];

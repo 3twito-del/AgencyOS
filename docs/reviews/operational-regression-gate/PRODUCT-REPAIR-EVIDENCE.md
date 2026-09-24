@@ -448,9 +448,11 @@ at `4245c7a` and is superseded here.
   - `Amount`, `Allocated` and `Unapplied`;
   - `Status`;
   - `ReceivedOn`.
-- **Canonical bounds.** Control Room gives 300 for the payer name and 200 for the external
-  reference. In the persistence mappings, `payer_name` is 300 and the `external_reference`
-  columns are 500.
+- **Canonical bounds.** The business input limits are set by the domain write path in
+  `Payment`: 300 for the payer name (`Ensure.OptionalMax(payerName, …, 300)`) and 200 for
+  the external reference (`Ensure.OptionalMax(externalReference, …, 200)`). The wider
+  `external_reference` storage columns (500) are capacity only. They do not replace the
+  domain invariant and are not the business limit.
 
 **Pre-fix, reproduced against the unchanged `4245c7a` product code.** Every case failed on a
 missing PRIMARY value, not on length:
@@ -634,3 +636,140 @@ These are local evidence only. C3 and C9 are not claimed. There was no API, doma
 schema, migration, persistence, OpenAPI, workflow or Reviewer-infrastructure change. The
 contract stays at 17, the schema stays at `20260909072201_AiResultClassification`, and there
 is no Build 96.
+
+## 12. D5 absent-yielding-value closure
+
+### Control Room review of `ae9017e`
+
+Control Room accepted the following from `ae9017e` as candidate work:
+- the unified `Fragment` rule;
+- the task and prediction D5 behaviour;
+- the rewrite of `RolesTooLongForTheBudgetStillProduceAWellFormedRow`, which is not a
+  weakening. It still proves a well-formed name, the subject, assignee, priority and due date
+  whole, a recognisable title, and excess over 160 only where required. It is unchanged here.
+
+It found one remaining sibling in the same mechanism. This is not a census and not a new
+decision: D5 governs it. Section 11 also presented the payment bounds as storage widths; that
+is corrected in place. The business limits are the domain's: 300 for the payer name and 200
+for the reference.
+
+### The path
+
+`RowLabel.Profiled` speaks only the fields that hold a value: `Say` returns null for an absent
+one, and `OfType<Spoken>()` drops it. When the row's yielding field is absent, nothing among
+the spoken parts is marked `Yields`. So `parts.FindIndex(x => x.Field.Yields)` returned -1,
+and the old guard `whole.Length <= MaximumLength || yielding < 0` sent an over-budget row to
+`Shorten(whole)`. That cut the last of the remaining facts, every one of which is a scan fact
+that may not yield.
+
+### Reproduction, before any fix, against the unchanged `ae9017e` product code
+
+`AnAbsentReferenceCostsNoOtherPaymentFact` has the 82-character legal payer, no external
+reference (`PaymentResponse.ExternalReference` is nullable), the usual amounts, "Partially
+allocated" and 2026-09-01. At `ae9017e` it announced:
+
+> `Payer: Northgate Pictures International Film Distribution and Production Holdings Limited, 240,000.00 GBP, 90,000.00 GBP allocated, 150,000.00 GBP unapplied,…`
+
+The status and the received date were lost to the 160 cut.
+
+The mechanism guard `AnAbsentYieldingValueCutsNoOtherScanFact` failed on the same code for 5
+templates:
+
+| Template | Absent yielding field |
+| --- | --- |
+| `FinancePage#PaymentList` | `ExternalReference` |
+| `CommunicationsPage#MessageList` | `Subject` |
+| `ContractsPage#MoneyObligationList` | `Description` |
+| `ContractsPage#NoticeList` | `Summary` |
+| `DealsPage#OfferList` | `Summary` |
+
+How far those failures reach:
+- Payment is the canonical legal case.
+- For the three contract, deal and notice rows, the guard reaches the budget only by
+  lengthening their domain tokens, so it proves the mechanism, not a legal reproduction.
+- The guard blanks only yielding fields declared nullable, so it builds no invalid domain
+  state. It lengthens the other text fields synthetically; it is not a census of optional
+  fields.
+
+### The fix
+
+This is the only change to `RowLabel.Profiled`:
+
+```csharp
+if (whole.Length <= MaximumLength)
+{
+    return Shorten(whole);   // A: fits - unchanged
+}
+
+if (yielding < 0)
+{
+    return whole.Trim();     // C: nothing may yield - every remaining fact whole (D5)
+}
+
+// B: the yielding value is present - the unchanged ae9017e Fragment rule
+```
+
+The D5 basis: with the yielding value absent, every remaining value is a non-yielding PRIMARY,
+and none may be cut to meet the 160 target. So the name keeps them all. That is the direct
+application of D5, not a new exception, and there is no fixed cap. Nothing is said for the
+absent value: no placeholder and no reference is invented. No channel is added for a value
+that does not exist.
+
+### Results
+
+| Case | Announced name | Length |
+| --- | --- | --- |
+| A. Absent reference, over budget (`AnAbsentReferenceCostsNoOtherPaymentFact`) | `Payer: Northgate Pictures International Film Distribution and Production Holdings Limited, 240,000.00 GBP, 90,000.00 GBP allocated, 150,000.00 GBP unapplied, Partially allocated, Received: 2026-09-01` | **199** |
+| B. Absent reference, fits (`AnAbsentReferenceThatFitsIsSaidWhole`) | `Payer: Northgate Pictures, 240,000.00 GBP, 90,000.00 GBP allocated, 150,000.00 GBP unapplied, Partially allocated, Received: 2026-09-01` | **135**, within 160 |
+
+In case A:
+- There are exactly six segments, all whole, with no ellipsis.
+- No "External reference" segment is invented.
+- No hidden payment field is announced.
+- The name runs past 160 only because those six facts are complete.
+
+`AnAbsentYieldingValueCutsNoOtherScanFact` now passes for every profiled template whose
+yielding field is nullable.
+
+What is unchanged:
+- The Payment names with a reference present: 155, 169 and 233.
+- The Receivable and Commission D4/D5 controls: 158, 156, 216 and 169.
+- The task and prediction D5 controls.
+
+The live-proof accounting is unchanged:
+- the two Finance overflow channels remain **PRIMARY OVERFLOW — LIVE PROOF PENDING**;
+- the ordinary yielding values remain **PRIMARY FULL-VALUE DESCENDANT — LIVE PROOF PENDING**
+  where they are truncated;
+- all 18 secondary channels remain **LIVE PROOF PENDING**.
+
+PRIMARY uncovered is 0 and SECONDARY unwired is 0. The frozen population is unchanged, and
+the hidden-value collision controls pass.
+
+### Negative control
+
+With the gate green, one local, uncommitted mutation was made: case C was restored to
+`return Shorten(whole);`, the old behaviour for `yielding < 0`. The focused suite then failed
+2 of 422:
+- `AnAbsentReferenceCostsNoOtherPaymentFact`: the row cut to `…150,000.00 GBP unapplied,…`,
+  losing the status and the received date.
+- `AnAbsentYieldingValueCutsNoOtherScanFact`: it named the rows cut with their yielding value
+  absent.
+
+`RowLabel.cs` was restored from the copy taken before the mutation. It is byte-identical
+(SHA-256 `142616f55317fc624439b36f5081913d691143c9444e7df4df241252ffdecc25`), and the gates
+below ran on the restored tree.
+
+### Local gates
+
+| Gate | Result |
+| --- | --- |
+| Focused `OperationalListParityTests` | 422 passed |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4091 passed, including the task and forecast tests, `ValueParityTests` and the source-reading rule |
+| `test-windows` | 1806 passed |
+| `test-reviewer` | 163 passed |
+
+These are local evidence only. C3 and C9 are not claimed. No XAML and no `RowProfiles` changed.
+There was no API, domain, contract, schema, migration, persistence, OpenAPI, workflow or
+Reviewer-infrastructure change. The contract stays at 17, the schema stays at
+`20260909072201_AiResultClassification`, and there is no Build 96.
