@@ -194,10 +194,192 @@ public sealed class SignedClientTalentProfileTests
     }
 
     /// <summary>
+    /// A talent read still in flight is not said as a failed one, and does not offer Create.
+    /// </summary>
+    /// <remarks>
+    /// Held deterministically on a gate. At <c>218c6fe</c> the signed client's state was
+    /// one "unknown" for both "not read yet" and "the read failed", so while the read was
+    /// still running the surface said it could not be checked.
+    /// </remarks>
+    [Fact]
+    public async Task AReadInFlight_IsNotSaidAsFailed()
+    {
+        FakeAgencyOsApi api = new();
+        ProspectResponse prospect = Prospect("Ada Reyes");
+        TaskCompletionSource gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        api.Prospects.Add(prospect);
+        api.TalentReadGates[prospect.PersonId] = gate;
+
+        ProspectsViewModel viewModel = new(api);
+
+        await viewModel.LoadAsync();
+
+        Task<RepresentationResponse?> converting = viewModel.ConvertAsync(
+            viewModel.Prospects[0], new DateOnly(2026, 9, 24), Guid.NewGuid(), ["Film"]);
+
+        // Signed; the talent read is outstanding.
+        Assert.False(converting.IsCompleted);
+        Assert.Equal(prospect.PersonId, viewModel.Signed?.PersonId);
+
+        ProfileNotice during = Assert.IsType<ProfileNotice>(viewModel.ProfileNotice);
+
+        Assert.Equal(TalentProfileState.Checking, viewModel.ProfileState);
+        Assert.Equal("Checking whether Ada Reyes already has a talent profile.", during.Message);
+        Assert.DoesNotContain("could not be checked", during.Message, StringComparison.Ordinal);
+        Assert.False(during.IsError);
+        Assert.False(viewModel.CanCreateTalentProfile);
+
+        gate.SetResult();
+
+        Assert.NotNull(await converting);
+        Assert.Equal(TalentProfileState.Absent, viewModel.ProfileState);
+        Assert.True(viewModel.CanCreateTalentProfile);
+    }
+
+    /// <summary>
+    /// A newly assigned signed client is NotChecked until a read starts, and says so
+    /// without claiming a failure or an absence.
+    /// </summary>
+    [Fact]
+    public async Task ANewlySignedClient_IsNotChecked_UntilARead()
+    {
+        FakeAgencyOsApi api = new();
+
+        api.Prospects.Add(Prospect("Ada Reyes", "Converted"));
+
+        ProspectsViewModel viewModel = new(api) { OpenOnly = false };
+
+        await viewModel.LoadAsync();
+
+        viewModel.Selected = viewModel.Prospects[0];
+
+        Assert.Equal(TalentProfileState.NotChecked, viewModel.ProfileState);
+        Assert.False(viewModel.CanCreateTalentProfile);
+
+        ProfileNotice notice = Assert.IsType<ProfileNotice>(viewModel.ProfileNotice);
+
+        Assert.Equal("Ada Reyes is a client. Whether they have a talent profile has not been checked yet.", notice.Message);
+        Assert.False(notice.IsError);
+    }
+
+    /// <summary>A read that finds the profile makes it Present, and Create is not offered.</summary>
+    [Fact]
+    public async Task ASuccessfulRead_IsPresent()
+    {
+        FakeAgencyOsApi api = new();
+        ProspectResponse converted = Prospect("Ada Reyes", "Converted");
+
+        api.Prospects.Add(converted);
+        await api.CreateTalentProfileAsync(new CreateTalentProfileRequest(converted.PersonId, "Established"));
+
+        ProspectsViewModel viewModel = new(api) { OpenOnly = false };
+
+        await viewModel.LoadAsync();
+
+        viewModel.Selected = viewModel.Prospects[0];
+        await viewModel.CheckTalentProfileAsync();
+
+        Assert.Equal(TalentProfileState.Present, viewModel.ProfileState);
+        Assert.False(viewModel.CanCreateTalentProfile);
+        Assert.Equal("Ada Reyes has a talent profile and appears in Talent.", viewModel.ProfileNotice?.Message);
+    }
+
+    /// <summary>
+    /// Where the read could not answer, Create stays offered; if a profile existed after
+    /// all, the server's refusal makes the state Present and nothing is duplicated.
+    /// </summary>
+    [Fact]
+    public async Task FromUnavailable_AConflictResolvesToPresent_WithoutADuplicate()
+    {
+        (FakeAgencyOsApi api, ProspectsViewModel viewModel, ProspectResponse prospect) = await SignAsync();
+
+        await api.CreateTalentProfileAsync(new CreateTalentProfileRequest(prospect.PersonId, "Established"));
+
+        api.NextFailure = new AgencyOsApiException(HttpStatusCode.ServiceUnavailable, "Unavailable");
+        await viewModel.CheckTalentProfileAsync();
+
+        Assert.Equal(TalentProfileState.Unavailable, viewModel.ProfileState);
+        Assert.True(viewModel.CanCreateTalentProfile);
+
+        Assert.True(await viewModel.CreateTalentProfileAsync("Unknown"));
+
+        Assert.Equal(TalentProfileState.Present, viewModel.ProfileState);
+        Assert.Equal("Established", Assert.Single(api.Talent).CareerStage);
+    }
+
+    /// <summary>A refused create changes neither Absent nor Unavailable into anything else.</summary>
+    [Fact]
+    public async Task ARefusedCreate_KeepsTheStateItHad()
+    {
+        (FakeAgencyOsApi api, ProspectsViewModel viewModel, _) = await SignAsync();
+
+        Assert.Equal(TalentProfileState.Absent, viewModel.ProfileState);
+
+        api.Failures.Enqueue(new AgencyOsApiException(HttpStatusCode.Forbidden, "Permission denied"));
+        await viewModel.CreateTalentProfileAsync("Unknown");
+
+        Assert.Equal(TalentProfileState.Absent, viewModel.ProfileState);
+
+        api.NextFailure = new AgencyOsApiException(HttpStatusCode.Forbidden, "Permission denied");
+        await viewModel.CheckTalentProfileAsync();
+
+        Assert.Equal(TalentProfileState.Unavailable, viewModel.ProfileState);
+
+        api.Failures.Enqueue(new AgencyOsApiException(HttpStatusCode.InternalServerError, "Failed"));
+        await viewModel.CreateTalentProfileAsync("Unknown");
+
+        Assert.Equal(TalentProfileState.Unavailable, viewModel.ProfileState);
+        Assert.Empty(api.Talent);
+    }
+
+    /// <summary>
+    /// A read started for one client cannot overwrite the state of the client the
+    /// operator selected after it.
+    /// </summary>
+    [Fact]
+    public async Task AnOlderRead_CannotOverwriteANewerClient()
+    {
+        FakeAgencyOsApi api = new();
+        ProspectResponse first = Prospect("Ada Reyes", "Converted");
+        ProspectResponse second = Prospect("Bo Ferreira", "Converted");
+        TaskCompletionSource gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        api.Prospects.Add(first);
+        api.Prospects.Add(second);
+        api.TalentReadGates[first.PersonId] = gate;
+
+        // The second already has a profile; the first does not.
+        await api.CreateTalentProfileAsync(new CreateTalentProfileRequest(second.PersonId, "Established"));
+
+        ProspectsViewModel viewModel = new(api) { OpenOnly = false };
+
+        await viewModel.LoadAsync();
+
+        viewModel.Selected = viewModel.Prospects.Single(x => x.PersonId == first.PersonId);
+        Task older = viewModel.CheckTalentProfileAsync();
+
+        Assert.Equal(TalentProfileState.Checking, viewModel.ProfileState);
+
+        viewModel.Selected = viewModel.Prospects.Single(x => x.PersonId == second.PersonId);
+        await viewModel.CheckTalentProfileAsync();
+
+        Assert.Equal(TalentProfileState.Present, viewModel.ProfileState);
+
+        // The first read now answers "no profile" - for a client no longer shown.
+        gate.SetResult();
+        await older;
+
+        Assert.Equal(second.PersonId, viewModel.Signed?.PersonId);
+        Assert.Equal(TalentProfileState.Present, viewModel.ProfileState);
+        Assert.False(viewModel.CanCreateTalentProfile);
+    }
+
+    /// <summary>
     /// A talent read that cannot answer leaves the question unknown, never "missing".
     /// </summary>
     [Fact]
-    public async Task AnUnansweredRead_IsUnknown_NotAbsent()
+    public async Task AnUnansweredRead_IsUnavailable_NotAbsent()
     {
         FakeAgencyOsApi api = new();
 
@@ -215,7 +397,7 @@ public sealed class SignedClientTalentProfileTests
 
         await viewModel.CheckTalentProfileAsync();
 
-        Assert.Equal(TalentProfileState.Unknown, viewModel.ProfileState);
+        Assert.Equal(TalentProfileState.Unavailable, viewModel.ProfileState);
         Assert.True(viewModel.CanCreateTalentProfile);
         Assert.Equal(
             "Whether Ada Reyes has a talent profile could not be checked. Create one if they need to appear in Talent.",

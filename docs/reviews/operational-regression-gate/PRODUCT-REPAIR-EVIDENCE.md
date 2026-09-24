@@ -920,3 +920,105 @@ not spliced into a new chain. The new candidate needs, in order:
    one story.
 
 If it passes, the next ALPHA would be Build 96. That build has not been created.
+
+## 14. Decision C: profile-state truth correction
+
+### Control Room review of `218c6fe`
+
+Control Room accepted the core of the decision-C repair at `218c6fe` as candidate work:
+- conversion creates only the representation;
+- the talent profile is an explicit step, on the existing contract-17 endpoint under
+  `Permission.TalentWrite`;
+- the step is offered through the ProfileBar, directly under the "Signed" line;
+- the "Create talent profile…" dialog has a fixed person, Career stage defaulting to Unknown,
+  and Create and Cancel;
+- conversion authorization, `ListTalentAsync` and Talent-engagement semantics are unchanged.
+
+It found one same-surface defect. Section 13 is kept, and so is the failed `f29a2ee` RC.
+
+### The finding
+
+`TalentProfileState.Unknown` meant both "not read yet" and "the read failed or was refused".
+`SetSignedClient` set that state before `ReadProfileStateAsync` finished. `ProfileNotice`
+rendered Unknown as "could not be checked", so the surface could announce a failed check
+while the check was still running.
+
+### Reproduction, before any fix, against the unchanged `218c6fe` product code
+
+`AReadInFlight_IsNotSaidAsFailed` holds the talent read in flight on a
+`TaskCompletionSource` gate in the fake API, with no timing involved. With the read
+outstanding, it failed with:
+
+> Assert.DoesNotContain() Failure: Sub-string found … "…as a talent profile could not be checked."
+
+The full message said at that moment was "Whether Ada Reyes has a talent profile could not be
+checked. Create one if they need to appear in Talent."
+
+### The state model
+
+| State | Meaning | Title / message | Create offered |
+| --- | --- | --- | --- |
+| `NotChecked` | a signed client is known; no read has started | "Talent profile" / "<name> is a client. Whether they have a talent profile has not been checked yet." | no |
+| `Checking` | the talent read is in progress | "Talent profile" / **"Checking whether <name> already has a talent profile."** | no, so it cannot race the read |
+| `Absent` | the talent read answered 404 | "Next: create a talent profile" / "<name> is a client, but does not appear in Talent or in talent pursuits until they have a talent profile." | yes |
+| `Present` | a profile is known to exist | "Talent profile" / "<name> has a talent profile and appears in Talent." | no |
+| `Unavailable` | a read was attempted and failed or was refused | "Talent profile" / **"Whether <name> has a talent profile could not be checked. Create one if they need to appear in Talent."** | yes; the server refuses a duplicate |
+
+How the state moves:
+
+- **Reads.**
+  - Assigning a signed client gives `NotChecked`, and starting the read sets `Checking`.
+  - A read that finds the profile gives `Present`; a 404 gives `Absent`.
+  - A 403, any other API failure or a transport failure gives `Unavailable`. It is never
+    `Absent`.
+- **Stale reads.** Each read carries a generation number. A result is applied only if it is
+  still the latest read and the signed client is unchanged. So an older read cannot overwrite
+  a client the operator selected after it.
+- **Creates.**
+  - Success, or a 409 conflict, gives `Present`, and the create also retires any read still
+    outstanding.
+  - A 403 or any other failure keeps whatever state the client had.
+  - The representation is never touched.
+
+The change is to `RepresentationViewModels.cs` only. There is no XAML, API, contract, schema,
+domain, query, permission or server change.
+
+### Tests (client, deterministic)
+
+| Test | Proves |
+| --- | --- |
+| `AReadInFlight_IsNotSaidAsFailed` | during an in-flight read the state is `Checking`, the message is "Checking whether Ada Reyes already has a talent profile.", it is not an error, and Create is not offered; releasing the read on a 404 gives `Absent` with Create offered |
+| `ANewlySignedClient_IsNotChecked_UntilARead` | `NotChecked` before any read, with the "has not been checked yet" wording and no Create |
+| `ASuccessfulRead_IsPresent` | `Present`, no Create, and "has a talent profile and appears in Talent." |
+| `AnUnansweredRead_IsUnavailable_NotAbsent` | a refused read gives `Unavailable` with the "could not be checked" wording, and Create is still offered |
+| `FromUnavailable_AConflictResolvesToPresent_WithoutADuplicate` | from `Unavailable`, a 409 gives `Present`, and one profile remains |
+| `ARefusedCreate_KeepsTheStateItHad` | a refused create from `Absent` stays `Absent`; a failed create from `Unavailable` stays `Unavailable` |
+| `AnOlderRead_CannotOverwriteANewerClient` | a read held for client A, then client B selected and read `Present`, then A's read released as 404: the state stays B's, `Present` |
+
+The existing decision-C story still passes: convert, no profile, explicit creation, the Talent
+roster, then the talent-engagement subject source. So do refusal, duplicate and selection. The
+Windows structural tests and the three decision-C integration tests are unchanged and pass.
+
+### Negative control
+
+With the gate green, one local, uncommitted mutation was made: `Checking` was rendered with the
+`Unavailable` wording ("… could not be checked …"). Exactly `AReadInFlight_IsNotSaidAsFailed`
+then failed:
+
+> Expected "Checking whether Ada Reyes already has a…", actual "Whether Ada Reyes has a talent profile co…"
+
+The file was restored byte-identical (SHA-256
+`406417c4314a10f11a7e9cdbba68a8da7a7d7b6edad2b53277b23698732aeda5`) and the rerun was green.
+
+### Local gates
+
+| Gate | Result |
+| --- | --- |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4105 passed |
+| `test-windows` | 1820 passed |
+| `test-reviewer` | 163 passed |
+| Decision-C integration tests, on the LAB PostgreSQL 19 cluster | 3 passed (corroboration; not 18.6 authority) |
+
+C3, C7 and C9 are not claimed. The next stage is fresh authoritative CI and PostgreSQL 18.6 on
+the new SHA, and then a fresh RC from the beginning.

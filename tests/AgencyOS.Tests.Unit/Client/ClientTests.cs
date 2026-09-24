@@ -477,15 +477,30 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         return Task.FromResult<IReadOnlyList<TalentSummaryResponse>>([.. matches]);
     }
 
-    public Task<TalentDetailResponse> GetTalentAsync(Guid personId, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Talent reads to hold in flight, by person, until the test completes the gate.
+    /// </summary>
+    /// <remarks>
+    /// Deterministic: a test sees the state while the read is outstanding, and decides
+    /// when and how it ends, with no timing involved. A gate completed with an
+    /// exception ends the read with that exception.
+    /// </remarks>
+    public Dictionary<Guid, TaskCompletionSource> TalentReadGates { get; } = [];
+
+    public async Task<TalentDetailResponse> GetTalentAsync(Guid personId, CancellationToken cancellationToken = default)
     {
+        if (TalentReadGates.TryGetValue(personId, out TaskCompletionSource? gate))
+        {
+            await gate.Task.ConfigureAwait(false);
+        }
+
         Throw();
 
         // As the server does: a person with no talent profile is not found.
         TalentSummaryResponse summary = Talent.FirstOrDefault(x => x.PersonId == personId)
             ?? throw new AgencyOsApiException(System.Net.HttpStatusCode.NotFound, "Not found");
 
-        return Task.FromResult(new TalentDetailResponse(summary, null, null, null, null, DateTimeOffset.UtcNow));
+        return new TalentDetailResponse(summary, null, null, null, null, DateTimeOffset.UtcNow);
     }
 
     public Task<TalentDetailResponse> CreateTalentProfileAsync(

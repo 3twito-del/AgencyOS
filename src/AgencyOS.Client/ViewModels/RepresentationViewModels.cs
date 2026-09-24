@@ -239,16 +239,28 @@ public sealed record SignedClient(Guid PersonId, string DisplayName);
 public sealed record ProfileNotice(string Title, string Message, bool IsError = false, bool IsSuccess = false);
 
 /// <summary>Whether a signed client has a talent profile, as far as a surface knows.</summary>
+/// <remarks>
+/// Five meanings, kept apart because the surface says each differently: a read not
+/// yet started, a read running and a read that failed are all "not established", and
+/// a surface that says one of them while another is true is asserting what it has not
+/// seen. Absent is only ever what the authoritative talent read answered.
+/// </remarks>
 public enum TalentProfileState
 {
-    /// <summary>Not established: not yet read, or the read failed or was refused.</summary>
-    Unknown,
+    /// <summary>A signed client is known; no read has established anything yet.</summary>
+    NotChecked,
+
+    /// <summary>The talent read is in progress.</summary>
+    Checking,
 
     /// <summary>The talent read answered that this person has no profile.</summary>
     Absent,
 
     /// <summary>The person has a talent profile.</summary>
     Present,
+
+    /// <summary>A read was attempted and failed or was refused; existence is unknown.</summary>
+    Unavailable,
 }
 
 /// <summary>
@@ -269,6 +281,7 @@ public sealed class ProspectsViewModel : ViewModelBase
     private ProspectResponse? _selected;
     private SignedClient? _signed;
     private TalentProfileState _profileState;
+    private int _profileRead;
     private string? _profileMessage;
     private bool _profileFailed;
 
@@ -325,19 +338,23 @@ public sealed class ProspectsViewModel : ViewModelBase
     /// <remarks>
     /// Signing a client creates a representation, not a talent profile; they are
     /// separate, and the Talent roster and talent pursuits are built from profiles
-    /// (owner decision C). So the next step after signing is a deliberate one, offered
-    /// until the profile is known to exist. Where that is unknown the action stays
-    /// available: the server refuses a second profile, so offering it cannot make one.
+    /// (owner decision C). So the next step after signing is a deliberate one. It is not
+    /// offered before or while the talent read runs, so it cannot race that read; it is
+    /// offered once the read says there is no profile, and where the read could not
+    /// answer - the server refuses a second profile, so offering it cannot make one.
     /// </remarks>
-    public bool CanCreateTalentProfile => _signed is not null && _profileState != TalentProfileState.Present;
+    public bool CanCreateTalentProfile =>
+        _signed is not null
+        && _profileState is TalentProfileState.Absent or TalentProfileState.Unavailable;
 
     /// <summary>
     /// What the operator is told about the signed client's talent profile, or null
     /// when nobody has been signed here.
     /// </summary>
     /// <remarks>
-    /// Absent is said only when the talent read answered that there is no profile;
-    /// an unread or refused read is said as unknown, never as missing.
+    /// Absent is said only when the talent read answered that there is no profile. A
+    /// read not yet started, one still running and one that failed are each said as
+    /// what they are, and none of them as missing.
     /// </remarks>
     public ProfileNotice? ProfileNotice => (_signed, _profileMessage, _profileState) switch
     {
@@ -350,9 +367,15 @@ public sealed class ProspectsViewModel : ViewModelBase
         ({ } client, null, TalentProfileState.Present) => new ProfileNotice(
             "Talent profile",
             $"{client.DisplayName} has a talent profile and appears in Talent."),
-        ({ } client, null, _) => new ProfileNotice(
+        ({ } client, null, TalentProfileState.Checking) => new ProfileNotice(
+            "Talent profile",
+            $"Checking whether {client.DisplayName} already has a talent profile."),
+        ({ } client, null, TalentProfileState.Unavailable) => new ProfileNotice(
             "Talent profile",
             $"Whether {client.DisplayName} has a talent profile could not be checked. Create one if they need to appear in Talent."),
+        ({ } client, null, _) => new ProfileNotice(
+            "Talent profile",
+            $"{client.DisplayName} is a client. Whether they have a talent profile has not been checked yet."),
     };
 
     /// <summary>Show only pursuits that are still live.</summary>
@@ -475,8 +498,9 @@ public sealed class ProspectsViewModel : ViewModelBase
     /// <summary>Reads whether the signed client already has a talent profile.</summary>
     /// <remarks>
     /// The talent read is the authority on that question: it answers not-found for
-    /// a person with no profile. A refusal or any other failure leaves it unknown,
-    /// never absent - a surface that could not look must not claim there is nothing.
+    /// a person with no profile. While it runs the state is Checking; a refusal or any
+    /// other failure makes it Unavailable, never Absent - a surface that could not look
+    /// must not claim there is nothing.
     /// </remarks>
     public Task CheckTalentProfileAsync(CancellationToken cancellationToken = default) =>
         ReadProfileStateAsync(cancellationToken);
@@ -540,6 +564,12 @@ public sealed class ProspectsViewModel : ViewModelBase
             failed = true;
         }
 
+        if (_profileState == TalentProfileState.Present)
+        {
+            // Established by the command itself; no earlier read may overwrite it.
+            _profileRead++;
+        }
+
         _profileMessage = message;
         _profileFailed = failed;
         RaiseProfileChanged();
@@ -554,6 +584,13 @@ public sealed class ProspectsViewModel : ViewModelBase
             return;
         }
 
+        // Only the latest read for the current client may say anything: an earlier
+        // read, or one for a client the operator has since moved away from, is ignored.
+        int read = ++_profileRead;
+
+        _profileState = TalentProfileState.Checking;
+        RaiseProfileChanged();
+
         TalentProfileState state;
 
         try
@@ -567,11 +604,10 @@ public sealed class ProspectsViewModel : ViewModelBase
         }
         catch (Exception ex) when (ex is AgencyOsApiException or HttpRequestException)
         {
-            state = TalentProfileState.Unknown;
+            state = TalentProfileState.Unavailable;
         }
 
-        // The operator may have moved on while the read was in flight.
-        if (_signed == client)
+        if (read == _profileRead && _signed == client)
         {
             _profileState = state;
             RaiseProfileChanged();
@@ -586,7 +622,8 @@ public sealed class ProspectsViewModel : ViewModelBase
         }
 
         _signed = client;
-        _profileState = TalentProfileState.Unknown;
+        _profileRead++;
+        _profileState = TalentProfileState.NotChecked;
         _profileMessage = null;
         _profileFailed = false;
         RaiseProfileChanged();
