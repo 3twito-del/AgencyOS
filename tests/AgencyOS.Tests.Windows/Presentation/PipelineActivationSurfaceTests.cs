@@ -186,8 +186,8 @@ public sealed class PipelineActivationSurfaceTests
         // Every programmatic filter change is inside the guard.
         foreach (string change in (string[])
             [
-                "Choose(StatusBox, string.Empty);",
-                "Choose(KindBox, string.Empty);",
+                "StatusBox.SelectedItem = AnyStatusItem;",
+                "KindBox.SelectedItem = AnyKindItem;",
                 "AwaitingBox.IsChecked = false;",
                 "SearchBox.Text = string.Empty;",
             ])
@@ -220,6 +220,133 @@ public sealed class PipelineActivationSurfaceTests
         Assert.Contains("SelectRevealed();", Body(code, "private async Task LoadAsync()"), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Reveal selects the "any" items themselves, by name; it does not look them up
+    /// by an empty Tag, and choosing them means no status and no kind filter.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Correcting <c>2d83c8f</c>. <see cref="RevealWidensEveryFilterBeforeItsOneLoad"/>
+    /// proved the guard and the single load, but not that the widening selected
+    /// anything. It found the "any" items by matching an empty Tag, and in the shipped
+    /// client it selected nothing: the fresh release candidate created a Draft, stayed
+    /// on Active, and could not show it. How WinUI represents <c>Tag=""</c> is not
+    /// asserted here; the dependency on it is what is removed.
+    /// </para>
+    /// <para>
+    /// Deterministic and structural. That WinUI then shows "Any status" and the new
+    /// Draft selected is for the next live release candidate.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void RevealSelectsTheAnyItemsByNameNotByAnEmptyTag()
+    {
+        XElement page = XElement.Load(Source("PipelinePage.xaml"));
+
+        foreach ((string box, string item, string content) in (
+            (string, string, string)[])
+            [
+                ("StatusBox", "AnyStatusItem", "Any status"),
+                ("KindBox", "AnyKindItem", "Any kind"),
+            ])
+        {
+            XElement sentinel = Named(page, item);
+
+            // A named item of that box, meaning "any".
+            Assert.Equal("ComboBoxItem", sentinel.Name.LocalName);
+            Assert.Same(Named(page, box), sentinel.Parent);
+            Assert.Equal(content, sentinel.Attribute("Content")?.Value);
+
+            // No Tag at all, so its filter is null however the runtime would have
+            // represented an empty one; and it is the only item without a filter value.
+            Assert.Null(sentinel.Attribute("Tag"));
+            Assert.All(
+                Named(page, box).Elements().Where(x => x != sentinel),
+                x => Assert.False(string.IsNullOrWhiteSpace(x.Attribute("Tag")?.Value)));
+        }
+
+        // The normal default is unchanged: the page opens on Active.
+        XElement selected = Assert.Single(Named(page, "StatusBox").Elements(), x => x.Attribute("IsSelected")?.Value == "True");
+
+        Assert.Equal("Active", selected.Attribute("Tag")?.Value);
+
+        string code = File.ReadAllText(Source("PipelinePage.xaml.cs"));
+        string reveal = Body(code, "public void Reveal(Guid record)");
+
+        Assert.Single(Occurrences(reveal, "StatusBox.SelectedItem = AnyStatusItem;"));
+        Assert.Single(Occurrences(reveal, "KindBox.SelectedItem = AnyKindItem;"));
+
+        // The 2d83c8f lookup is gone from Reveal and from the page.
+        Assert.DoesNotContain("Choose(", reveal, StringComparison.Ordinal);
+        Assert.DoesNotContain("string.Empty)", reveal.Replace("SearchBox.Text = string.Empty;", string.Empty, StringComparison.Ordinal), StringComparison.Ordinal);
+        Assert.DoesNotContain("Tag: string", code, StringComparison.Ordinal);
+
+        // A missing or empty Tag is no filter, so the one load asks for every status
+        // and kind - which includes the Draft just created.
+        string selectedTag = Body(code, "private static string? SelectedTag(ComboBox box)");
+
+        Assert.Contains("(box.SelectedItem as ComboBoxItem)?.Tag as string", selectedTag, StringComparison.Ordinal);
+        Assert.Contains("string.IsNullOrWhiteSpace(tag) ? null : tag", selectedTag, StringComparison.Ordinal);
+
+        string load = Body(code, "private async Task LoadAsync()");
+
+        Assert.Contains("_list.Status = SelectedTag(StatusBox);", load, StringComparison.Ordinal);
+        Assert.Contains("_list.Kind = SelectedTag(KindBox);", load, StringComparison.Ordinal);
+
+        // Creation still reveals and never activates.
+        string create = Body(code, "private async Task CreateAsync()");
+
+        Assert.Contains("Reveal(made.Opportunity.Id)", create, StringComparison.Ordinal);
+        Assert.DoesNotContain("ActivateAsync", create, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The list bar says the pipeline could not be loaded only when it could not; a
+    /// pursuit missing from rows that did load is titled as a failed reveal.
+    /// </summary>
+    /// <remarks>
+    /// Correcting <c>2d83c8f</c>, whose release candidate showed "Could not load the
+    /// pipeline" over a list that had loaded, because the reveal miss reused the bar
+    /// and its fixed title. Structural: the page cannot be built off a UI thread.
+    /// </remarks>
+    [Fact]
+    public void ARevealMissIsNotCalledALoadFailure()
+    {
+        string code = File.ReadAllText(Source("PipelinePage.xaml.cs"));
+
+        Assert.Contains("private const string LoadFailureTitle = \"Could not load the pipeline\";", code, StringComparison.Ordinal);
+        Assert.Contains("private const string RevealFailureTitle = \"Could not reveal the pursuit\";", code, StringComparison.Ordinal);
+
+        // A load failure states its title every time, so it never inherits the reveal's.
+        string render = Body(code, "private void Render()");
+        int title = render.IndexOf("ListError.Title = LoadFailureTitle;", StringComparison.Ordinal);
+        int open = render.IndexOf("ListError.IsOpen = _list.HasError;", StringComparison.Ordinal);
+
+        Assert.True(title >= 0 && open > title, "A load failure is rendered without restating its title.");
+
+        // The unconfigured-server path is a load failure too, and says so.
+        Assert.Contains("ListError.Title = LoadFailureTitle;", Body(code, "private async Task LoadAsync()"), StringComparison.Ordinal);
+
+        // The missing-row path: a failed load keeps its own bar; otherwise the reveal
+        // title, never the load one.
+        string missing = Body(Body(code, "private void SelectRevealed()"), "is not { } row)");
+
+        Assert.Contains("ListError.Title = RevealFailureTitle;", missing, StringComparison.Ordinal);
+        Assert.DoesNotContain("LoadFailureTitle", missing, StringComparison.Ordinal);
+        Assert.DoesNotContain("Could not load", missing, StringComparison.Ordinal);
+
+        int failed = missing.IndexOf("if (_list.HasError)", StringComparison.Ordinal);
+        int reveal = missing.IndexOf("ListError.Title = RevealFailureTitle;", StringComparison.Ordinal);
+
+        Assert.True(failed >= 0 && failed < reveal, "A failed load is reported as a missed reveal.");
+        Assert.Contains("return;", Body(missing, "if (_list.HasError)"), StringComparison.Ordinal);
+
+        // Every place that opens the bar says which failure it is.
+        Assert.Equal(
+            Occurrences(code, "ListError.IsOpen = ").Count,
+            Occurrences(code, "ListError.Title = ").Count);
+    }
+
     private static List<int> Occurrences(string text, string value)
     {
         List<int> found = [];
@@ -244,7 +371,8 @@ public sealed class PipelineActivationSurfaceTests
 
         Assert.True(start >= 0, signature + " is not declared.");
 
-        int open = code.IndexOf('{', start);
+        // After the signature, which may itself contain a pattern's braces.
+        int open = code.IndexOf('{', start + signature.Length);
         int depth = 0;
 
         for (int i = open; i < code.Length; i++)

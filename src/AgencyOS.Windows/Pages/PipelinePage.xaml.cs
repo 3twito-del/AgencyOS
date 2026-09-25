@@ -103,6 +103,7 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
     {
         if (_list is null)
         {
+            ListError.Title = LoadFailureTitle;
             ListError.Message = AppServices.Settings.Describe();
             ListError.IsOpen = true;
             return;
@@ -147,8 +148,13 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
 
         try
         {
-            Choose(StatusBox, string.Empty);
-            Choose(KindBox, string.Empty);
+            // The "any" items by name. Finding them by an empty Tag did not select
+            // anything in the shipped client (the 2d83c8f release candidate stayed on
+            // Active and the new Draft stayed hidden), so nothing here depends on how
+            // an empty Tag reaches the runtime. They carry no Tag, which SelectedTag
+            // reads as no filter.
+            StatusBox.SelectedItem = AnyStatusItem;
+            KindBox.SelectedItem = AnyKindItem;
             AwaitingBox.IsChecked = false;
             SearchBox.Text = string.Empty;
         }
@@ -172,10 +178,21 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
 
         if (_list.Opportunities.FirstOrDefault(x => x.Id == wanted) is not { } row)
         {
-            ListError.Message =
-                "That pursuit is not in the rows loaded here. Search for it by name.";
-            ListError.IsOpen = true;
             _reveal = null;
+
+            // A load that failed is already on the bar under its own title; its rows
+            // say nothing about whether the pursuit exists.
+            if (_list.HasError)
+            {
+                return;
+            }
+
+            // The list did load, so this is not a load failure and must not be titled
+            // as one: only the pursuit asked for is missing from what came back.
+            ListError.Title = RevealFailureTitle;
+            ListError.Message =
+                "The pipeline loaded, but the pursuit asked for is not among its rows. Search for it by name.";
+            ListError.IsOpen = true;
 
             return;
         }
@@ -186,19 +203,11 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         OpportunityList.ScrollIntoView(row);
     }
 
-    private static void Choose(ComboBox box, string tag)
-    {
-        foreach (object item in box.Items)
-        {
-            if (item is ComboBoxItem { Tag: string candidate }
-                && string.Equals(candidate, tag, StringComparison.Ordinal))
-            {
-                box.SelectedItem = item;
+    /// <summary>The list bar's title when the list itself could not be loaded.</summary>
+    private const string LoadFailureTitle = "Could not load the pipeline";
 
-                return;
-            }
-        }
-    }
+    /// <summary>The list bar's title when the list loaded without the pursuit asked for.</summary>
+    private const string RevealFailureTitle = "Could not reveal the pursuit";
 
     private void OnFilterChanged(object sender, RoutedEventArgs e)
     {
@@ -609,6 +618,9 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         // still empty and no longer known.
         ListEmpty.IsOpen = SummaryAuthority.Knows(_list) && _list.IsEmpty;
 
+        // Restated on every render, so a load failure never shows under the title a
+        // missed reveal left behind.
+        ListError.Title = LoadFailureTitle;
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
 

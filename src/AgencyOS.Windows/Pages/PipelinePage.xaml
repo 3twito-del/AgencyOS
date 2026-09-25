@@ -23,7 +23,7 @@
                 <ComboBox x:Name="StatusBox"
                           AutomationProperties.Name="Status" MinWidth="130" SelectionChanged="OnFilterChanged">
                     <ComboBoxItem Content="Active" Tag="Active" IsSelected="True" />
-                    <ComboBoxItem Content="Any status" Tag="" />
+                    <ComboBoxItem x:Name="AnyStatusItem" Content="Any status" />
                     <ComboBoxItem Content="Draft" Tag="Draft" />
                     <ComboBoxItem Content="Paused" Tag="Paused" />
                     <ComboBoxItem Content="Closed" Tag="Closed" />
@@ -32,7 +32,7 @@
 
                 <ComboBox x:Name="KindBox" AutomationProperties.Name="Opportunity kind" PlaceholderText="Any kind" MinWidth="160"
                           SelectionChanged="OnFilterChanged">
-                    <ComboBoxItem Content="Any kind" Tag="" />
+                    <ComboBoxItem x:Name="AnyKindItem" Content="Any kind" />
                     <ComboBoxItem Content="Talent engagement" Tag="TalentEngagement" />
                     <ComboBoxItem Content="Project market" Tag="ProjectMarket" />
                     <ComboBoxItem Content="Package market" Tag="PackageMarket" />

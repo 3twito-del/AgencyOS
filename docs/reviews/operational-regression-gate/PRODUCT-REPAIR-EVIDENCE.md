@@ -1406,3 +1406,188 @@ them.
 C3, C7 and C9 are not claimed. The next accepted SHA needs a fresh CI run and a fresh RC from
 the beginning. No CI, RC or C7, C9, C10, C12 or C14 run was started, and Build 96 has not
 been created.
+
+## 18. The stopped RC on `2d83c8f`, and the post-create reveal correction
+
+### What stood before the RC
+
+Authoritative CI run `36085003821` (#105, `workflow_dispatch`) passed on exactly `2d83c8f`:
+- Unit 4120, Windows 1825 and Reviewer 163, each with 0 failed and 0 skipped;
+- Integration 952 passed, 0 failed and 0 skipped, on PostgreSQL 18.6, with `pg_dump` and
+  `pg_restore` at 18.6;
+- contract 17, schema `20260909072201_AiResultClassification`, OpenAPI 3.1.1 with 264 paths
+  and 188 schemas;
+- all four TLC models green;
+- a release manifest for alpha build 105 on the exact SHA, with 111 artifacts and every hash
+  verified.
+
+The 8 xUnit duplicate-ID discovery messages in `Finance.AllocationTests` were recorded
+separately from the official skip count of 0.
+
+### The fresh final-candidate RC
+
+- **Candidate:** `release -Channel alpha -BuildId 105` from exactly `2d83c8f`. The manifest
+  was verified.
+- **Executable launched:** `AgencyOS.Windows.exe`, SHA-256
+  `9b3ac95bc41745a3a804f97a5d8f1cf71f1949d3d6398acd01ff37eafcd3235a`, matching the manifest.
+- **Backend:** an isolated PostgreSQL 19 beta 3 cluster on 127.0.0.1:5435, using the run's own
+  `pgdata` (live-operator evidence only). The API ran from source at `2d83c8f`, contract 17.
+- **Tenant:** synthetic, `01a0d66e-82b9-774f-837f-e75fea189cda`.
+- **OPERATOR HANDOFF START:** 2026-09-25T02:41:25Z.
+- **Evidence:** `artifacts/reviewer/rc-2d83c8f-20260925/`. It is not committed and is kept as
+  historical evidence.
+
+**Passed live before the stop.** These are historical support only and do not count toward
+the next candidate:
+- **C7 step 1:** Convert to client → Acting → Sign. The page said "Signed. Ines Calloway is now
+  a client, represented for Acting." No talent profile was created automatically.
+- **Decision C:**
+  - The guidance read "Next: create a talent profile".
+  - One Tab reached "Create talent profile…".
+  - The dialog was fixed to the person. Career stage defaulted to "Unknown - not assessed
+    yet".
+  - After an explicit Create, the page said "Talent profile created. Ines Calloway now appears
+    in Talent." A fresh read after relaunch showed the profile as present.
+- **Original C3 row:** visible "Acting" and "2026-09-25". The keyboard-focused row announced
+  "Acting, Starts: 2026-09-25".
+
+**C7 step 2: creation succeeded, the reveal failed.**
+- **The action:** Pipeline, on its normal Active default → New opportunity → "Ines Calloway -
+  Pinewood lead role", Talent engagement, Talent = Ines → Create.
+- **The result:**
+  - The Status filter still read Active.
+  - The list showed only the fixture pursuit, and nothing was selected.
+  - The list bar read "Could not load the pipeline — That pursuit is not in the rows loaded
+    here. Search for it by name." The list had loaded.
+- **Read-only database corroboration:** exactly one new opportunity, Talent engagement,
+  status Draft, not activated.
+- **Manual recovery:** setting Status to Any status by hand showed the exact Draft. That
+  manual filter recovery is excluded by the sealed criteria, and it was **not** accepted as
+  closure.
+- **Where the RC stopped:** before Activate. Accessibility channels A–E, the rest of C7 step 2,
+  and C7 steps 3–5 were not taken. C3, C7 and C9 are not claimed from this run.
+
+### Source cause
+
+- `Reveal` widened the two filters with `Choose(StatusBox, string.Empty)` and
+  `Choose(KindBox, string.Empty)`.
+- `Choose` selected only an item matching `ComboBoxItem { Tag: string candidate }` whose value
+  equalled the empty string. The "Any status" and "Any kind" items were declared `Tag=""`.
+- In the shipped Windows runtime that lookup selected nothing, so the one reveal load ran under
+  Active.
+- What runtime value WinUI gives `Tag=""` is **not** asserted: null, an empty string or
+  anything else. What is proved is narrower: the reveal depended on matching an empty Tag, and
+  that dependency failed live.
+- Section 17's structural ratchet checked that the calls were made inside the guard, not that
+  they selected anything, so it could not see this.
+
+### The correction
+
+It touches `PipelinePage.xaml` and `PipelinePage.xaml.cs` only.
+
+- **Stable sentinels:**
+  - The "Any status" and "Any kind" items are now named `AnyStatusItem` and `AnyKindItem`, and
+    carry no Tag.
+  - While `_widening` is raised, `Reveal` selects them directly with
+    `StatusBox.SelectedItem = AnyStatusItem` and `KindBox.SelectedItem = AnyKindItem`.
+  - Awaiting and Search are cleared as before, all four changes stay inside the guard, and
+    exactly one `LoadAsync()` follows.
+  - `SelectedTag` maps a missing Tag to null. The one load therefore asks for every status and
+    kind, which includes the new Draft, and `SelectRevealed` selects it and scrolls it into
+    view.
+  - The empty-Tag lookup, `Choose`, is removed.
+- **Unchanged:**
+  - The page still opens on Active.
+  - Creation still leaves a Draft and never activates.
+  - Activation and its outcomes (NotSent, Activated, AcceptedNotRefreshed, and refusal through
+    the page's error path) are untouched.
+  - The operator's own filter changes still reload.
+- **Truthful list-bar title:**
+  - `Render` restates "Could not load the pipeline" every time it shows a genuine load
+    failure. So does the unconfigured-server path.
+  - The missing-row path in `SelectRevealed` leaves a failed load to its own bar. Otherwise it
+    titles the bar "Could not reveal the pursuit" and explains "The pipeline loaded, but the
+    pursuit asked for is not among its rows. Search for it by name."
+  - A later load failure cannot inherit the reveal title, because every site that opens the bar
+    sets its title.
+  - It is the same InfoBar; no second one was added.
+
+### Tests
+
+Both are in the Windows suite, in `PipelineActivationSurfaceTests`.
+
+| Test | Proves |
+| --- | --- |
+| `RevealSelectsTheAnyItemsByNameNotByAnEmptyTag` (new) | see below |
+| `ARevealMissIsNotCalledALoadFailure` (new) | see below |
+| `RevealWidensEveryFilterBeforeItsOneLoad` (updated) | the four changes are now the named-sentinel selections plus Awaiting and Search; they stay inside the guard, with one load after it; the handler still honours the guard and still loads otherwise |
+
+`RevealSelectsTheAnyItemsByNameNotByAnEmptyTag` checks:
+- **XAML:** named `AnyStatusItem` and `AnyKindItem` are children of their boxes, with contents
+  "Any status" and "Any kind". Neither has a Tag, and every other item has a non-empty Tag. The
+  default selection is still the Active item.
+- **`Reveal`:** it selects each named item exactly once. Neither `Reveal` nor the page contains
+  `Choose(` or a `Tag: string` lookup.
+- **`SelectedTag`:** it maps a missing or blank Tag to null, and `LoadAsync` feeds it into the
+  status and kind filters.
+- **Creation:** it still reveals and never activates.
+
+`ARevealMissIsNotCalledALoadFailure` checks:
+- the two distinct title constants;
+- `Render` sets the load title before it opens the bar for `HasError`;
+- the unconfigured-server path uses the load title;
+- the missing-row path returns first when the load failed, then uses the reveal title and never
+  the load title;
+- every `ListError.IsOpen =` has a matching `ListError.Title =`.
+
+Both are deterministic and structural. The page cannot be built off a UI thread. That WinUI
+shows "Any status" with the new Draft selected is for the next live RC.
+
+**Against the old mechanism.** With the `2d83c8f` page files swapped in, three tests failed and
+the other four passed:
+- `RevealWidensEveryFilterBeforeItsOneLoad` and `RevealSelectsTheAnyItemsByNameNotByAnEmptyTag`,
+  because the direct selections were absent;
+- `ARevealMissIsNotCalledALoadFailure`, because the title constants were absent.
+
+The fixed files were restored byte-identical.
+
+### Negative controls
+
+Both were local and uncommitted, and each was restored byte-identical. The code-behind SHA-256
+is `f5acd47c181d2b73eaa7d3fed5e166e173907d0773426792d99f1e995bf01fb8`.
+
+1. **Control 1: the old `Choose(StatusBox, string.Empty)` / `Choose(KindBox, string.Empty)`
+   lookup restored.** The two reveal tests failed with "Assert.Single() Failure: The collection
+   was empty", because the direct sentinel selections were gone.
+2. **Control 2: the reveal miss titled `LoadFailureTitle` again.** Exactly
+   `ARevealMissIsNotCalledALoadFailure` failed, because the reveal title was missing from the
+   missing-row path.
+
+### Local gates
+
+These are local results, not authoritative CI.
+
+| Gate | Result |
+| --- | --- |
+| Focused Windows (`PipelineActivationSurfaceTests` + `LoadTimeHandlerTests`) | 101 passed |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4120 passed |
+| `test-windows` | 1827 passed |
+| `test-reviewer` | 163 passed |
+
+### Scope and consequence
+
+There was no server, API, contract (17), DTO, domain, query, schema, migration, permission or
+opportunity-lifecycle change. The view model is unchanged.
+
+These RC observations were not touched:
+- the Contracts "Streamer" role;
+- the signature-date default;
+- the Finance automation IDs;
+- the Client-money context;
+- channels A–E and Narrator.
+
+This is a production change, so the new SHA needs a fresh authoritative CI run on PostgreSQL
+18.6 and a fresh Windows RC from the beginning. The `2d83c8f` live proofs of Decision C, C3 and
+C7 step 1 stay historical and are not spliced into final acceptance. Build 96 has not been
+created.
