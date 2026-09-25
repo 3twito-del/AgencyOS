@@ -99,7 +99,7 @@ public sealed class OpportunityActivationTests
         await detail.LoadAsync(active.Id);
 
         Assert.False(detail.CanActivate);
-        Assert.False(await detail.ActivateAsync());
+        Assert.Equal(OpportunityActivation.NotSent, await detail.ActivateAsync());
         Assert.Empty(api.OpportunityStatusChanges);
     }
 
@@ -120,7 +120,7 @@ public sealed class OpportunityActivationTests
 
         int observed = detail.Opportunity!.Opportunity.Version;
 
-        Assert.True(await detail.ActivateAsync());
+        Assert.Equal(OpportunityActivation.Activated, await detail.ActivateAsync());
 
         (Guid sentTo, ChangeOpportunityStatusRequest request, string? key) = Assert.Single(api.OpportunityStatusChanges);
 
@@ -138,6 +138,68 @@ public sealed class OpportunityActivationTests
         Assert.Single(detail.Targets);
         Assert.False(detail.CanActivate);
         Assert.Single(api.Opportunities);
+    }
+
+    /// <summary>
+    /// The server accepts the activation and the read that follows fails: that is not
+    /// a confirmed activation, not a refusal, and not a reason to send it again.
+    /// </summary>
+    /// <remarks>
+    /// Before this, the re-read ran through the view model's loading handler, which
+    /// reports a failed read rather than throwing it, and activation then returned
+    /// success regardless - so the page announced "is active" over a Draft it had not
+    /// managed to re-read.
+    /// </remarks>
+    [Fact]
+    public async Task AnAcceptedActivation_WhoseRefreshFails_IsNotConfirmedSuccess()
+    {
+        (FakeAgencyOsApi api, Guid id) = await DraftAsync();
+
+        OpportunityDetailViewModel detail = new(api);
+
+        await detail.LoadAsync(id);
+
+        api.NextOpportunityReadFailure = new AgencyOsApiException(HttpStatusCode.ServiceUnavailable, "Unavailable");
+
+        OpportunityActivation outcome = await detail.ActivateAsync();
+
+        // The write happened, once, and the server holds Active.
+        Assert.Single(api.OpportunityStatusChanges);
+        Assert.Equal("Active", Assert.Single(api.Opportunities).Status);
+
+        // It is reported as accepted without a refresh - neither confirmed nor refused.
+        Assert.Equal(OpportunityActivation.AcceptedNotRefreshed, outcome);
+        Assert.NotEqual(OpportunityActivation.Activated, outcome);
+        Assert.True(detail.HasError);
+
+        // The stale Draft still shown is not offered again, and asking again sends nothing.
+        Assert.False(detail.CanActivate);
+        Assert.Equal(OpportunityActivation.NotSent, await detail.ActivateAsync());
+        Assert.Single(api.OpportunityStatusChanges);
+
+        // An ordinary refresh then reads what the server holds.
+        await detail.LoadAsync(id);
+
+        Assert.Equal("Active", detail.Opportunity!.Opportunity.Status);
+        Assert.False(detail.HasError);
+        Assert.False(detail.CanActivate);
+    }
+
+    /// <summary>A cancelled refresh after an accepted activation is not confirmed success either.</summary>
+    [Fact]
+    public async Task AnAcceptedActivation_WhoseRefreshIsCancelled_IsNotConfirmedSuccess()
+    {
+        (FakeAgencyOsApi api, Guid id) = await DraftAsync();
+
+        OpportunityDetailViewModel detail = new(api);
+
+        await detail.LoadAsync(id);
+
+        api.NextOpportunityReadFailure = new TaskCanceledException();
+
+        Assert.Equal(OpportunityActivation.AcceptedNotRefreshed, await detail.ActivateAsync());
+        Assert.Single(api.OpportunityStatusChanges);
+        Assert.False(detail.CanActivate);
     }
 
     /// <summary>

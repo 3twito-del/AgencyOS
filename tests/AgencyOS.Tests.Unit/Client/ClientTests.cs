@@ -1356,6 +1356,13 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
     {
         Throw();
 
+        if (NextOpportunityReadFailure is { } failure)
+        {
+            NextOpportunityReadFailure = null;
+
+            throw failure;
+        }
+
         OpportunitySummaryResponse summary = Opportunities.First(x => x.Id == opportunityId);
 
         return Task.FromResult(new OpportunityDetailResponse(
@@ -1393,6 +1400,12 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
             [],
             DateTimeOffset.UtcNow));
     }
+
+    /// <summary>
+    /// Fails the next pursuit detail read only - not a write - so a test can accept a
+    /// command and then lose the refresh that follows it.
+    /// </summary>
+    public Exception? NextOpportunityReadFailure { get; set; }
 
     /// <summary>Every status change requested, in order, with its idempotency key.</summary>
     public List<(Guid OpportunityId, ChangeOpportunityStatusRequest Request, string? Key)> OpportunityStatusChanges { get; } = [];

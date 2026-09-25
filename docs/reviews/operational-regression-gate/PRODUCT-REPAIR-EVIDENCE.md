@@ -1258,3 +1258,151 @@ touched:
 
 C3, C7 and C9 are not claimed. A production change means the next accepted SHA needs a fresh CI
 run and a fresh RC from the beginning. Build 96 has not been created.
+
+## 17. Activation truth and atomic reveal: correcting `9c51443`
+
+### Control Room's ruling
+
+Control Room accepted the core Draft → Active repair at `9c51443` in principle. It rejected
+promotion of that SHA, for two gaps in the page and view-model code around it. Nothing below
+changes the operator route: the "Activate opportunity" button, which is Draft-only; one
+existing `ChangeOpportunityStatusAsync` call sending exactly "Active", the observed expected
+version and one idempotency key; no auto-activation; no other lifecycle control; and the
+post-create reveal.
+
+### Correcting section 16
+
+Section 16 is kept as written. Two of its statements were unconditional and were not true:
+- **"then reloads the authoritative detail" / "On success the same pursuit is revealed again
+  and says Active".** The reload ran through `ViewModelBase.RunAsync`, which reports a failed
+  or cancelled read rather than throwing it. Activation then returned success whether or not
+  the read had happened. So the page could reveal the pursuit and announce "<name> is
+  active" over a Draft it had failed to re-read.
+- **"`Reveal` widens the filters, reloads, and selects the new pursuit".** It widened them
+  one at a time. Each programmatic change to the status and kind boxes raised
+  `SelectionChanged` → `OnFilterChanged` → a load against a filter still half-widened. That
+  load could complete without the pursuit. `SelectRevealed` would then report it missing and
+  clear `_reveal` before the final, fully widened load arrived.
+
+### Gap A: a failed refresh after an accepted write reported success
+
+**Reproduction, before any fix.** A Draft was loaded. The fake's new read-only hook,
+`NextOpportunityReadFailure`, failed the next detail read with 503. `ActivateAsync()`
+returned `true`. At that moment:
+- the view model still showed Draft;
+- `ErrorMessage` was "Unavailable";
+- the fake server held Active;
+- one status write had been made.
+
+**The correction.**
+- `OpportunityDetailViewModel.ActivateAsync()` now returns an explicit
+  `OpportunityActivation`:
+  - `NotSent`: no Draft was loaded, and nothing was sent.
+  - `Activated`: the server accepted the command, **and** the pursuit was then read back
+    completely.
+  - `AcceptedNotRefreshed`: the server accepted it, and the read that followed failed or was
+    cancelled.
+  - A refusal, including a 409, is still thrown unchanged and reaches the page's existing
+    `Guarded` error path.
+- Whether the read completed is taken from the read itself. The read body was extracted from
+  `LoadAsync` into `ReadAsync`. Activation runs it through the same `RunAsync` and records
+  completion only after its last statement. `RunAsync` itself is unchanged.
+- After an accepted write, the Draft still on screen is marked stale until a complete read.
+  `CanActivate` is false meanwhile, so the button is collapsed and a second call returns
+  `NotSent`. Nothing is sent twice, and nothing is sent with a newer version.
+- **The page:**
+  - It reveals the pursuit and shows "Opportunity activated … is active" **only** for
+    `Activated`.
+  - For `AcceptedNotRefreshed` it shows a warning, "Activation accepted, not refreshed: The
+    server accepted the activation of <name>, but the pursuit could not be refreshed. Refresh
+    before continuing." This is not the refusal style, and it has no reveal, no success
+    notice and no retry.
+
+### Gap B: Reveal was not atomic
+
+**Reproduction, before any fix.** The new structural ratchet
+`RevealWidensEveryFilterBeforeItsOneLoad` was run against the unchanged `9c51443` page. It
+failed with "Reveal does not guard its filter changes."
+
+**The correction.**
+- A page field, `_widening`, is raised in `Reveal` around every programmatic filter change
+  (status, kind, awaiting and search) and lowered in a `finally`.
+- `OnFilterChanged` returns while it is raised. Exactly one `LoadAsync()` follows, against the
+  fully widened filters, and only that load's `SelectRevealed()` settles `_reveal`.
+- An operator's own filter change is unaffected: `_widening` is false outside `Reveal`, so
+  the handler loads as before.
+- `OnFilterChanged` also returns while `_list` is null. The markup's `IsSelected="True"` on
+  the status box's Active item raises the handler during `InitializeComponent`, before the
+  list exists. The repository's `LoadTimeHandlerTests` ratchet (AOS-R002-019) requires that
+  guard of any handler the parser can run. There are no delays and no retries.
+
+### Tests
+
+| Suite | Test | Proves |
+| --- | --- | --- |
+| Client, `OpportunityActivationTests` | `AnAcceptedActivation_WhoseRefreshFails_IsNotConfirmedSuccess` | a Draft is loaded; the write is accepted and the fake holds Active; the next detail read fails. There is exactly one status write, the outcome is `AcceptedNotRefreshed` and not `Activated`, and the error is kept. `CanActivate` is false and a second call sends nothing. An ordinary refresh then reads Active. |
+| Client | `AnAcceptedActivation_WhoseRefreshIsCancelled_IsNotConfirmedSuccess` | the same, when the read is cancelled |
+| Client | the existing tests | now assert `Activated` and `NotSent` explicitly instead of a boolean |
+| Windows, `PipelineActivationSurfaceTests` | `OnlyAConfirmedActivationIsRevealedAndAnnounced` | there is one `_detail.ActivateAsync()` call, inside `Guarded`. No reveal and no "is active" text comes before the `outcome != Activated` return. The accepted-not-refreshed branch warns, returns, and neither reveals, reports an error nor activates again. |
+| Windows | `RevealWidensEveryFilterBeforeItsOneLoad` | see below |
+
+`RevealWidensEveryFilterBeforeItsOneLoad` checks the XAML and the code-behind:
+- **XAML:** status and kind raise `OnFilterChanged` on `SelectionChanged`. The awaiting box
+  raises it on `Click` only, with no `Checked` or `Unchecked`. The search box has no
+  `TextChanged`.
+- **`Reveal`:** all four programmatic filter changes sit between `_widening = true` and a
+  `finally` that lowers it. There is exactly one `LoadAsync()`, and it comes after the guard
+  is lowered.
+- **The handler:** it returns while the guard is up and loads otherwise.
+- **The guard and the reveal:** the guard is raised and lowered nowhere else, and
+  `SelectRevealed()` is called only from the completed load.
+
+This is structural, not live. The page cannot be built off a UI thread. That WinUI raises
+`SelectionChanged` synchronously for a programmatic selection, and so inside the guard, is
+platform behaviour and is not executed here. Live discoverability remains for the next RC.
+
+The fake gained one read-specific hook, `NextOpportunityReadFailure`. It fails only the next
+`GetOpportunityAsync`, never a write.
+
+### Negative controls
+
+Both were local and uncommitted, and each was restored.
+
+1. **Control A: `ActivateAsync` returns `Activated` whatever the refresh did.**
+   - Exactly the two new client tests failed.
+   - The view model was restored byte-identical, SHA-256
+     `33e732a6eba6ee4c56addf50f7a01ebcb3ec88d8a5cde274d95f6dc232ffa2ff`.
+2. **Control B: the suppression is removed from `OnFilterChanged`.**
+   - `RevealWidensEveryFilterBeforeItsOneLoad` failed with "The filter handler ignores the
+     reveal guard."
+   - The page was restored byte-identical, SHA-256
+     `3746ae9d784de3af3ac2a403a4277b121d35689c3c393b8716fdd8cb2648dda4`.
+
+### Local gates
+
+| Gate | Result |
+| --- | --- |
+| Focused client (Opportunity and Pipeline) | 85 passed |
+| Focused Windows (`PipelineActivationSurfaceTests`) | 5 passed |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4120 passed |
+| `test-windows` | 1825 passed |
+| `test-reviewer` | 163 passed |
+
+The first `test-windows` run failed on exactly one test, `LoadTimeHandlerTests` for
+`PipelinePage.xaml`: the parser-run handler reached `_widening` without a null guard. The
+`_list is null` guard above is the repository's convention for that case, and the ratchet
+was not changed. The rerun passed.
+
+No PostgreSQL run was made: no server, SQL or migration path changed.
+
+### Scope
+
+There was no server, API, contract (17), DTO, domain, schema, migration or permission change.
+The production changes are `src/AgencyOS.Client/ViewModels/OpportunityViewModels.cs` and
+`src/AgencyOS.Windows/Pages/PipelinePage.xaml.cs`. The tests and the fake changed alongside
+them.
+
+C3, C7 and C9 are not claimed. The next accepted SHA needs a fresh CI run and a fresh RC from
+the beginning. No CI, RC or C7, C9, C10, C12 or C14 run was started, and Build 96 has not
+been created.

@@ -122,6 +122,18 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
     /// <summary>The record another workspace asked this page to open on.</summary>
     private Guid? _reveal;
 
+    /// <summary>
+    /// Set while <see cref="Reveal"/> widens the filters, so the selection changes it
+    /// makes do not each start a load of their own.
+    /// </summary>
+    /// <remarks>
+    /// Setting the status and kind boxes raises their SelectionChanged. Each used to
+    /// start a load against a half-widened filter; that load could finish without the
+    /// pursuit, and <see cref="SelectRevealed"/> would then report it missing and drop
+    /// the request before the fully widened load arrived.
+    /// </remarks>
+    private bool _widening;
+
     /// <inheritdoc />
     /// <remarks>
     /// The filters are widened first, because an operator arriving from a project
@@ -131,12 +143,22 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
     public void Reveal(Guid record)
     {
         _reveal = record;
+        _widening = true;
 
-        Choose(StatusBox, string.Empty);
-        Choose(KindBox, string.Empty);
-        AwaitingBox.IsChecked = false;
-        SearchBox.Text = string.Empty;
+        try
+        {
+            Choose(StatusBox, string.Empty);
+            Choose(KindBox, string.Empty);
+            AwaitingBox.IsChecked = false;
+            SearchBox.Text = string.Empty;
+        }
+        finally
+        {
+            _widening = false;
+        }
 
+        // One load, against the filters in their final widened state; it alone
+        // settles the reveal.
         _ = LoadAsync();
     }
 
@@ -178,7 +200,17 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         }
     }
 
-    private void OnFilterChanged(object sender, RoutedEventArgs e) => _ = LoadAsync();
+    private void OnFilterChanged(object sender, RoutedEventArgs e)
+    {
+        // Raised by the parser as well, for the status box's starting selection, before
+        // the list exists; and by Reveal while it widens, which loads once afterwards.
+        if (_list is null || _widening)
+        {
+            return;
+        }
+
+        _ = LoadAsync();
+    }
 
     private void OnSearchSubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) =>
         _ = LoadAsync();
@@ -279,8 +311,11 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
     /// <remarks>
     /// The view model sends the existing status command and reloads what the server
     /// holds; a refusal is shown as the domain's own sentence and changes nothing
-    /// here. On success the pursuit is revealed again, so the row and its standing
-    /// both say Active rather than the Draft the operator last saw.
+    /// here. Only when the server accepted it and the pursuit was then read back is it
+    /// revealed again and announced as active, so the row and its standing both say
+    /// Active rather than the Draft the operator last saw. When the command was
+    /// accepted but that read failed, the page says so and asks for a refresh: it
+    /// does not claim Active, does not call it a refusal, and sends nothing again.
     /// </remarks>
     private async Task ActivateAsync()
     {
@@ -290,12 +325,21 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         }
 
         Guid id = opportunity.Opportunity.Id;
-        bool activated = false;
+        OpportunityActivation outcome = OpportunityActivation.NotSent;
 
-        await Guarded(async () => activated = await _detail.ActivateAsync().ConfigureAwait(true))
+        await Guarded(async () => outcome = await _detail.ActivateAsync().ConfigureAwait(true))
             .ConfigureAwait(true);
 
-        if (!activated)
+        if (outcome == OpportunityActivation.AcceptedNotRefreshed)
+        {
+            DetailWarning(
+                "Activation accepted, not refreshed",
+                $"The server accepted the activation of {opportunity.Opportunity.Name}, but the pursuit could not be refreshed. Refresh before continuing.");
+
+            return;
+        }
+
+        if (outcome != OpportunityActivation.Activated)
         {
             return;
         }
@@ -509,6 +553,15 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         DetailBar.Title = title;
         DetailBar.Message = message;
         DetailBar.Severity = InfoBarSeverity.Informational;
+        DetailBar.IsOpen = true;
+    }
+
+    /// <summary>Says something happened that the page could not then confirm.</summary>
+    private void DetailWarning(string title, string message)
+    {
+        DetailBar.Title = title;
+        DetailBar.Message = message;
+        DetailBar.Severity = InfoBarSeverity.Warning;
         DetailBar.IsOpen = true;
     }
 
