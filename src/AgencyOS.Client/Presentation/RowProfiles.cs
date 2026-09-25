@@ -146,6 +146,14 @@ public static class RowProfiles
         Profile("OutboundDesk", Headline("Subject"), Text("MailboxAddress"), Token("State")),
 
         // Contracts
+        // A long title yields and is offered whole on the row; counterparty, status
+        // and kind are said whole (owner decision D5, the ca6ee24 release candidate).
+        Profile(
+            "ContractSummary",
+            Overflowing("Title", "Contract"),
+            Party("CounterpartyDisplayName"),
+            Token("Status"),
+            Token("Kind")),
         Profile(
             "ContractVersion",
             Text("VersionNumber", "Version number"),
@@ -211,7 +219,7 @@ public static class RowProfiles
             "Payment",
             Party("PayerDisplayName"),
             Headline("ExternalReference", "External reference"),
-            Money("Amount"),
+            Money("Amount", "amount"),
             Money("Allocated", "allocated"),
             Money("Unapplied", "unapplied"),
             Token("Status"),
@@ -260,6 +268,12 @@ public static class RowProfiles
         Profile("Pitch", Headline("TargetDisplayName", "Target"), Token("Outcome")),
         Profile("OpportunityHistory", Headline("Summary"), Text("TargetDisplayName", "Target")),
         Profile("Project", Headline("Title"), Token("Stage"), Token("Type")),
+        // The project's view of the same summaries: it shows no kind, so says none.
+        Profile(
+            "ProjectContract",
+            Overflowing("Title", "Contract"),
+            Party("CounterpartyDisplayName"),
+            Token("Status")),
         Profile("ProjectAttachment", Headline("DisplayName"), Text("RoleType", "Role type"), Token("Status")),
         Profile("ProjectCompany", Headline("CompanyName"), Text("Capacity")),
         Profile("SourceProperty", Headline("Title"), Text("AttributedCreator", "Attributed creator")),

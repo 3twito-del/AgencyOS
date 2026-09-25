@@ -223,8 +223,9 @@ public sealed partial class OperationalListParityTests
             }
         }
 
-        // The Receivable and Commission contract titles.
-        Assert.Equal(2, checkedFields);
+        // The Receivable and Commission contract titles, and the contract summaries'
+        // titles on the Contracts and Projects lists (the ca6ee24 release candidate).
+        Assert.Equal(4, checkedFields);
     }
 
     /// <summary>A profiled row says nothing its template hides.</summary>
@@ -780,7 +781,7 @@ public sealed partial class OperationalListParityTests
         string[] segments = said.Split(", ");
 
         Assert.Contains("Payer: " + payer, segments);
-        Assert.Contains("240,000.00 GBP", segments);
+        Assert.True(SaysInRole(said, "240,000.00 GBP", "amount"), said);
         Assert.True(SaysInRole(said, "90,000.00 GBP", "allocated"), said);
         Assert.True(SaysInRole(said, "150,000.00 GBP", "unapplied"), said);
         Assert.Contains(status, segments);
@@ -806,15 +807,15 @@ public sealed partial class OperationalListParityTests
         Assert.Equal("BACS-2026-0…", Fragment(said, "External reference: ", BankReference));
         Assert.Equal(
             "Payer: Northgate Pictures International Film Distribution and Production Holdings Limited, "
-                + "External reference: BACS-2026-0…, 240,000.00 GBP, 90,000.00 GBP allocated, "
+                + "External reference: BACS-2026-0…, 240,000.00 GBP amount, 90,000.00 GBP allocated, "
                 + "150,000.00 GBP unapplied, Partially allocated, Received: 2026-09-01",
             said);
-        Assert.Equal(233, said.Length);
+        Assert.Equal(240, said.Length);
 
-        // Past 160 only by what the fragment needs: the other facts alone take 199.
+        // Past 160 only by what the fragment needs: the other facts alone take 206.
         string rest = string.Join(", ", said.Split(", ").Where(x => !x.StartsWith("External reference: ", StringComparison.Ordinal)));
 
-        Assert.Equal(199, rest.Length);
+        Assert.Equal(206, rest.Length);
         Assert.Equal(rest.Length + 2 + "External reference: ".Length + MinimumFragment, said.Length);
 
         // Nothing hidden joined it.
@@ -834,7 +835,8 @@ public sealed partial class OperationalListParityTests
     /// </summary>
     /// <remarks>
     /// The ordinary payer, three amounts, "Partially allocated" and the received date
-    /// take 135 characters, leaving 3 for the reference behind its role.
+    /// take 142 characters (each amount says its role since the ca6ee24 release
+    /// candidate), so the reference keeps only its minimum recognisable fragment.
     /// </remarks>
     [Fact]
     public void TheRealisticPaymentKeepsItsReference()
@@ -843,19 +845,19 @@ public sealed partial class OperationalListParityTests
 
         AssertEveryPaymentFact(said, "Northgate Pictures");
         Assert.Equal("BACS-2026-0…", Fragment(said, "External reference: ", BankReference));
-        Assert.Equal(169, said.Length);
+        Assert.Equal(176, said.Length);
     }
 
     /// <summary>A payment whose whole phrase fits says it whole, within 160.</summary>
     [Fact]
     public void APaymentThatFitsIsSaidWhole()
     {
-        string said = PaymentSaid(Payment(reference: "BACS-0917", status: "Received"));
+        string said = PaymentSaid(Payment(reference: "BACS-17", status: "Received"));
 
         AssertEveryPaymentFact(said, "Northgate Pictures", "Received");
-        Assert.Contains("External reference: BACS-0917", said.Split(", "));
+        Assert.Contains("External reference: BACS-17", said.Split(", "));
         Assert.DoesNotContain("…", said, StringComparison.Ordinal);
-        Assert.Equal(155, said.Length);
+        Assert.Equal(160, said.Length);
     }
 
     /// <summary>
@@ -878,10 +880,10 @@ public sealed partial class OperationalListParityTests
         Assert.DoesNotContain("…", said, StringComparison.Ordinal);
         Assert.Equal(
             "Payer: Northgate Pictures International Film Distribution and Production Holdings Limited, "
-                + "240,000.00 GBP, 90,000.00 GBP allocated, 150,000.00 GBP unapplied, Partially allocated, "
+                + "240,000.00 GBP amount, 90,000.00 GBP allocated, 150,000.00 GBP unapplied, Partially allocated, "
                 + "Received: 2026-09-01",
             said);
-        Assert.Equal(199, said.Length);
+        Assert.Equal(206, said.Length);
         Assert.Equal(6, said.Split(", ").Length);
 
         foreach (string hidden in (string[])["Harrowgate", "BankTransfer", "Bank transfer", "Barclays", "Ben Okafor", "First tranche", "Inbound", "2026-09-02"])
@@ -899,7 +901,7 @@ public sealed partial class OperationalListParityTests
         AssertEveryPaymentFact(said, "Northgate Pictures");
         Assert.DoesNotContain("External reference", said, StringComparison.Ordinal);
         Assert.DoesNotContain("…", said, StringComparison.Ordinal);
-        Assert.Equal(135, said.Length);
+        Assert.Equal(142, said.Length);
     }
 
     /// <summary>

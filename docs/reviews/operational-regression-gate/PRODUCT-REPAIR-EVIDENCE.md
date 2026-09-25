@@ -1591,3 +1591,158 @@ This is a production change, so the new SHA needs a fresh authoritative CI run o
 18.6 and a fresh Windows RC from the beginning. The `2d83c8f` live proofs of Decision C, C3 and
 C7 step 1 stay historical and are not spliced into final acceptance. Build 96 has not been
 created.
+
+## 19. The RC on `ca6ee24`, and its two accessibility findings
+
+### What the RC proved
+
+The fresh final-candidate RC on `ca6ee24` ran on:
+- exactly `ca6ee24` (alpha build 106);
+- executable `AgencyOS.Windows.exe`, SHA-256
+  `1eda02e31be821c2243159edd2567b5d5a693c040892cdb83eef95de1f494dda`, matching the manifest;
+- an isolated LAB PostgreSQL 19 cluster;
+- a tenant bootstrapped with an alpha/106 release policy.
+
+Its evidence is in `artifacts/reviewer/rc-ca6ee24-20260925/`. It is not committed and is kept
+as historical evidence.
+
+It proved, live and through the Windows client:
+- **Decision C:** Sign created no talent profile. The page then offered "Next: create a talent
+  profile", and the profile was created explicitly.
+- **The original C3 row:** "Acting, Starts: 2026-09-25".
+- **The Pipeline post-create reveal:** with no manual recovery, the filters widened to Any
+  status and Any kind, and the new Draft was selected.
+- **Explicit Draft → Active:** on the same id, with no duplicate.
+- **The complete C7 business chain:**
+  - represent;
+  - target to Interested, then a deal, an offer and its acceptance;
+  - a contract, a version, two parties, approval, and both signatures, reaching Executed;
+  - a 185,000.00 USD obligation, an Agency receivable, a 100,000.00 USD payment allocated
+    against it, leaving 85,000.00 USD outstanding;
+  - the next action in the deal and in Command Center.
+
+Narrator's own speech was captured for the accessibility channels:
+- **A:** the whole row Name was read.
+- **B:** the complete version Notes were read.
+- **C:** the complete receivable ContractTitle was read.
+- **D:** the complete ExternalReference was read.
+- **E:** the complete DetailedNotes were read, after the expander was opened.
+
+For B and C, Narrator's advanced-information command reported none. Narrator reached the
+complete values by same-row descendant traversal. That is how Narrator read them; it is not a
+failure of those channels.
+
+### Why the RC is not the final pass
+
+The final D1/C9 gate was not met, for two reasons.
+
+**A. A long contract row lost its compact primary facts.**
+- The row visibly showed a long title, "Counterparty: A24", "Executed" and "Long form".
+- Its Name ended "…first negotiation on sequels, Counterparty:…". The counterparty value, the
+  status and the kind were gone.
+- The cause: `ContractsPage.xaml#ContractList` was unprofiled, so the inferred `RowLabel`
+  shortened the whole assembled sentence. The title comes first, so it spent the budget.
+- The frozen accounting classes all four values as PRIMARY. Owner decision D5 holds that the
+  160-character target does not outrank them.
+- `ProjectsPage.xaml#ProjectContractList` lists the same `ContractSummaryResponse` through the
+  same unprofiled label, showing title, counterparty and status. It is the one same-mechanism
+  sibling in the frozen catalog.
+
+**B. The payment's amount had no role.**
+- Narrator said "240,000.00 GBP" beside "… allocated" and "… unapplied".
+- The `Payment` profile declared `Money("Amount")` with no role.
+
+### Reproduction, before any fix
+
+The new tests in `OperationalListParityTests.Contracts.cs` announce real
+`ContractSummaryResponse` and `PaymentResponse` rows through each template's own announcement
+and help text. Run against unchanged `ca6ee24` source, five failed:
+- **The Contracts list:** it said "Autumn slate lead role - long-form performer servi…,
+  loan-out undertaking and first negotiation on sequ…, Counterparty:…". There was no
+  "Counterparty: A24", no "Executed" and no "Long form".
+- **The Projects contract list:** the same loss.
+- **A short contract row:** it had no role on its title.
+- **The Payment row:** "240,000.00 GBP" had no role. This failed both the role test and the
+  swap test.
+
+### The repair
+
+It is presentation and accessibility only. It uses the existing D4/D5 profile model; the
+global inferred `RowLabel` is unchanged.
+
+- **`ContractSummary` profile:**
+  - `Overflowing("Title", "Contract")`, `Party("CounterpartyDisplayName")`, `Token("Status")`
+    and `Token("Kind")`.
+  - The ContractList template names it and binds `AutomationProperties.HelpText` to `Title`.
+- **`ProjectContract` profile:**
+  - The same, without Kind, because that template shows no kind.
+  - ProjectContractList names it and binds `HelpText` to `Title`.
+- **`Payment` profile:** `Money("Amount", "amount")`, spoken "240,000.00 GBP amount".
+- No primary fact is reclassified, and no compact fact is capped. The frozen accounting is
+  unchanged.
+
+The resulting Names, produced by the mechanism and pinned by the tests:
+- **Contracts list (149 characters):** "Contract: Autumn slate lead role - long-form performer
+  services agreement with A24 including rider, loan-out…, Counterparty: A24, Executed, Long form".
+  The whole title is on the same row's help text.
+- **Projects contract list (160 characters):** "Contract: Autumn slate lead role - long-form
+  performer services agreement with A24 including rider, loan-out undertaking and first…,
+  Counterparty: A24, Executed". It has no kind, and the whole title is on its help text.
+- **Payment:** "…, 240,000.00 GBP amount, 90,000.00 GBP allocated, 150,000.00 GBP unapplied, …".
+  The ExternalReference yield and its same-row full value are unchanged.
+
+### Ratchets updated honestly
+
+- `EveryOverflowIsOfferedWholeOnTheSameRow` now expects 4 structurally wired overflows, up from
+  2: the Receivable and Commission contract titles, plus the two contract-summary titles.
+- The Payment tests assert the amount's role through the shared helper, and their pinned
+  strings gain " amount".
+- The lengths moved by exactly 7:
+  - 169 → 176;
+  - 233 → 240, with the other facts 199 → 206;
+  - 199 → 206;
+  - 135 → 142.
+- "A payment that fits is said whole" would have reached 162 characters. Its reference is
+  shortened to "BACS-17", so it still genuinely fits at 160, rather than the assertion being
+  loosened.
+
+### Negative controls
+
+Both were local and uncommitted, and each was restored byte-identical.
+
+1. **The Contracts list back on the unprofiled path.** The realistic contract test failed:
+   there was no "Counterparty: A24", and the row ended "Counterparty:…". The short-row,
+   overflow-count and every-profile-used ratchets failed with it.
+   `ContractsPage.xaml` SHA-256 is
+   `6d2810b084dcbbc3b159f2b92139352cc6d1c364fb12a58faac2b0f944950d70`.
+2. **`Money("Amount")` restored.** Every payment test failed at the "240,000.00 GBP amount"
+   role assertion, and so did the swap test. `RowProfiles.cs` SHA-256 is
+   `e3d63b57ee622d970c5fa2b818cf934eb51b4130ced2c8d02c262264e463d3ef`.
+
+### Local gates
+
+These are local results, not authoritative CI.
+
+| Gate | Result |
+| --- | --- |
+| Focused `OperationalListParityTests` | 427 passed |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4120 passed |
+| `test-windows` | 1832 passed |
+| `test-reviewer` | 163 passed |
+
+### Scope
+
+There was no API, contract, DTO, server, domain, schema, migration, query, permission, workflow
+or business-behaviour change.
+
+These earlier RC observations are recorded only and were not touched:
+- the Deals page not selecting a newly opened deal;
+- the Command Center empty "About" line;
+- the "Streamer" role;
+- the signature-date default;
+- the Finance automation IDs;
+- the Client-money context.
+
+The new SHA needs a fresh authoritative CI run on PostgreSQL 18.6 and a fresh RC. The `ca6ee24`
+live evidence remains historical support.

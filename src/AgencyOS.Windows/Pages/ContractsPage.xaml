@@ -72,7 +72,7 @@
                       SelectionChanged="OnContractSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=ContractSummary}" AutomationProperties.HelpText="{Binding Title}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
