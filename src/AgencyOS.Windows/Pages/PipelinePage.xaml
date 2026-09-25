@@ -104,6 +104,13 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button x:Name="NewButton" Content="New opportunity" Click="OnNewClick" />
+                    <!--
+                        A pursuit is created as a Draft, and only an Active one accepts
+                        market activity. Shown for a Draft only; the server decides.
+                    -->
+                    <Button x:Name="ActivateButton" Content="Activate opportunity"
+                            AutomationProperties.Name="Activate opportunity"
+                            Click="OnActivateClick" Visibility="Collapsed" />
                     <Button x:Name="AddTargetButton" Content="Add target" Click="OnAddTargetClick"
                             IsEnabled="False" />
                     <Button x:Name="SubmissionButton" Content="Record submission"

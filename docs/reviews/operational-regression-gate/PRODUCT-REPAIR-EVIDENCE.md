@@ -1108,3 +1108,153 @@ passed. The file was restored byte-identical (SHA-256
 There was no XAML, API, contract, schema, migration, domain, query, permission or workflow
 change. C3, C7 and C9 are not claimed. The next stage is fresh authoritative CI and
 PostgreSQL 18.6 on the new SHA.
+
+## 16. The stopped RC on `2d2b46a`, and the Draft → Active operator route
+
+### What stood before the RC
+
+Authoritative CI run `36073239552` (#104, `workflow_dispatch`) passed on exactly `2d2b46a`.
+Its totals were:
+- Unit 4110, Windows 1820, Reviewer 163;
+- Integration 952 passed, 0 failed and 0 skipped, on PostgreSQL 18.6 with `pg_dump` and
+  `pg_restore` at 18.6;
+- contract 17, schema `20260909072201_AiResultClassification`, OpenAPI 3.1.1 with 264 paths
+  and 188 schemas;
+- TLC green, and a release manifest of 111 artifacts.
+
+The 8 xUnit duplicate-ID discovery messages in `Finance.AllocationTests` were recorded
+separately from the official skip count of 0.
+
+### The fresh final-candidate RC: stopped before the operator handoff
+
+- **Candidate:** `release -Channel alpha -BuildId 104` from exactly `2d2b46a`. The manifest
+  was verified: version 0.1.0, alpha, build 104, commit `2d2b46a…`, contract 17, schema as
+  above, and 111 artifacts with every hash checked.
+  - `AgencyOS.Windows.exe` SHA-256
+    `7a0d16ccda9d97f98fde428b6e0d05025a9bb7f3b1147c771876b2c58e0c7aee`, matching the manifest.
+  - `AgencyOS.Windows.dll` SHA-256
+    `73a6064d15a5cd6de7faece5f9e1d5e8819e9b451bf981093d3ed616b8b62bce`.
+- **Backend:** a private PostgreSQL 19 beta 3 cluster on 127.0.0.1:5435, whose
+  `data_directory` was the run's own `pgdata`. The API ran from source at `2d2b46a`.
+- **Tenant:** synthetic, `01a0d5e6-0135-7bcc-809e-0489ced4f4c6`.
+- **Evidence:** in `artifacts/reviewer/rc-2d2b46a-20260925/`, not committed.
+
+The pre-handoff route mapping of the C7 steps found that step 2 had no Windows operator route.
+The RC stopped there, as its sealed section 4 required, **before OPERATOR HANDOFF START**. No
+C3, accessibility-channel or C7 live evidence was taken or is claimed from it. That stop, like
+the `f29a2ee` RC stop, is kept as historical evidence.
+
+### The canonical blocker
+
+- **Draft by default:** `Opportunity.Create(...)` sets `Draft` (`Opportunity.cs:365`).
+- **The allowed transition:** `Draft → Active` is in the transition table, alongside
+  `Draft → Cancelled` (`Opportunity.cs:224-226`).
+- **Active-only market activity:** `MarketActiveStatuses = { Active }`
+  (`Opportunity.cs:209-210`). `RequireMarketActive` refuses a Draft with "This opportunity is
+  still a draft. Activate it before recording market activity." (`Opportunity.cs:630-638`).
+  Target moves call it, and opening a deal needs an Active pursuit (`DealCommands.cs:281-286`)
+  and a target at Interested or Advanced (`Deal.cs:233-238`).
+- **The endpoint already existed in contract 17:**
+  `POST /api/v1/organizations/{organizationId}/opportunities/{opportunityId}/status`,
+  requiring `Permission.OpportunitiesWrite` (`M6Endpoints.cs:206-237`).
+  `ChangeOpportunityStatusRequest(Status, ExpectedVersion, OccurredOn?, Outcome?, Reason?)`.
+- **So did the client method:** `IAgencyOsApi.ChangeOpportunityStatusAsync`.
+- **What was missing:** no Windows page, dialog, palette command or view model called it.
+- **The sibling defect:** the Pipeline list defaults to the Active filter, and `CreateAsync`
+  discarded the created record and reloaded under that filter, so the new Draft vanished the
+  moment it was made.
+
+### Reproduction, before any fix
+
+`PipelineActivationSurfaceTests` was run against the unchanged `2d2b46a` sources. All three
+tests failed:
+- no `ActivateButton` existed ("Sequence contains no matching element");
+- nothing in `RenderDetail` or any handler offered or invoked activation;
+- `CreateAsync` neither kept the created pursuit nor revealed it.
+
+### The repair
+
+It is bounded, and it touches the Windows client and the client view model only.
+
+- **`OpportunityDetailViewModel`:**
+  - `CanActivate` is true only for a loaded pursuit whose status is `Draft`.
+  - `ActivateAsync()` sends the existing `ChangeOpportunityStatusAsync(id,
+    new ChangeOpportunityStatusRequest("Active", <observed version>), <key made once>)` and
+    then reloads the authoritative detail.
+  - A refusal, including a version conflict, is thrown to the caller unchanged. Nothing
+    locally claims Active, and nothing retries with a newer version.
+- **Pipeline page:**
+  - "Activate opportunity" is an ordinary button on the existing action row, beside New
+    opportunity and Move target. Its accessible name is "Activate opportunity". It is
+    collapsed unless the selected pursuit is a Draft.
+  - It runs through the page's existing `Guarded` convention, so a refusal shows the
+    domain's own sentence.
+  - On success the same pursuit is revealed again and says Active. A notice reads
+    "Opportunity activated: <name> is active. Targets can now be moved and negotiations
+    opened."
+  - `CreateAsync` keeps the created pursuit and calls the page's existing
+    `Reveal(created.Opportunity.Id)`. That widens the filters, reloads, and selects the new
+    pursuit, still a Draft, with Activate offered.
+  - Creation never activates. The normal Active default of the list is unchanged.
+
+Only Draft → Active is exposed: there is no pause, resume, close, cancel or reopen control.
+There was no server, API, contract, DTO, domain, schema, migration, permission or deal-semantic
+change.
+
+### Tests
+
+| Suite | Test | Proves |
+| --- | --- | --- |
+| Client, `OpportunityActivationTests` | `ACreatedPursuit_IsADraft_AndIsNotActivated` | creation leaves a Draft and sends no status change |
+| Client | `TheActiveDefault_HidesANewDraft_AndWideningShowsIt` | the list's Active default hides the new Draft; widening the status, as the page's reveal does, shows it as a Draft |
+| Client | `ALoadedDraft_OffersActivation` | a loaded Draft offers activation |
+| Client | `AnActivePursuit_IsNotOfferedActivation` | an Active pursuit is not offered it, and nothing is sent |
+| Client | `Activation_SendsActiveWithTheObservedVersion_AndReloadsTheSamePursuit` | exactly one request through the existing method, Status "Active", the observed version and a key; then the reload shows the same id, now Active, version + 1, standing "Active - …", targets kept, and no second pursuit |
+| Client | `AConflict_IsNotSuccess_AndIsNotRetried` | a 409 is thrown; there is one request only; the state stays Draft |
+| Client | `ARefusal_LeavesTheDraftAsItWas` | a 403 leaves the Draft as it was |
+| Client | `ActivationUnblocksMarketActivityOnTheSamePursuit` | a Draft's target move is refused with the domain's sentence; after the operator activates the pursuit, the same target moves Approved → Contacted → Interested, the stage a negotiation opens from |
+| Windows, `PipelineActivationSurfaceTests` | `TheActionIsAnOrdinaryNamedButtonOnTheActionRow` | the button is on the same row as New opportunity and Move target, collapsed by default, and not taken out of the tab order |
+| Windows | `TheActionIsOfferedForADraftAndActivatesThroughTheViewModel` | the button is shown for a Draft only and runs the view model's activation through `Guarded` |
+| Windows | `CreationRevealsTheDraftAndDoesNotActivateIt` | creation reveals the created pursuit and never calls activation |
+
+The unit fake now refuses a stale expected version (409) and a target move on a Draft (400,
+with the domain's sentence), as the server does. The existing Opportunity and Pipeline client
+tests still pass: 83 in all.
+
+### Negative controls
+
+With the gate green, two local, uncommitted mutations were made, one after the other, and each
+restored.
+
+1. **`ActivateAsync` returns before sending the command.**
+   - The four activation tests failed.
+   - The story test failed at the first target move with the Draft refusal, 400 "Invalid
+     request" with the "still a draft" detail. The pursuit stayed a Draft, and the story
+     could not reach market activity.
+   - The view model was restored byte-identical (SHA-256
+     `82c77ca30f4f92720fce5d2e6e0d1362258558c3be2e86df63426ab7d75201fe`), and the rerun was 8
+     of 8.
+2. **`CreateAsync` reverts to reloading without revealing the created pursuit.**
+   - Exactly `CreationRevealsTheDraftAndDoesNotActivateIt` failed.
+   - The page was restored byte-identical (SHA-256
+     `985367c550bcc4b99317b90387794ce43caa59b94096f71c6e00ba308b786d4d`).
+
+### Local gates
+
+| Gate | Result |
+| --- | --- |
+| `build` | 0 warnings, 0 errors |
+| `test-unit` | 4118 passed |
+| `test-windows` | 1823 passed |
+| `test-reviewer` | 163 passed |
+| `OpportunityTests` on the LAB PostgreSQL 19 cluster | 17 passed (corroboration only, not 18.6 authority); they already drive the existing endpoint from Draft to Active before market activity |
+
+The other route observations from the stopped RC are not part of this repair and were not
+touched:
+- the client-money receivable context;
+- the "Streamer" party role;
+- the signature-date interaction;
+- the unnamed Finance automation IDs.
+
+C3, C7 and C9 are not claimed. A production change means the next accepted SHA needs a fresh CI
+run and a fresh RC from the beginning. Build 96 has not been created.

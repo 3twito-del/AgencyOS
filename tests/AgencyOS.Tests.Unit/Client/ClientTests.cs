@@ -1394,15 +1394,29 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
             DateTimeOffset.UtcNow));
     }
 
+    /// <summary>Every status change requested, in order, with its idempotency key.</summary>
+    public List<(Guid OpportunityId, ChangeOpportunityStatusRequest Request, string? Key)> OpportunityStatusChanges { get; } = [];
+
     public Task ChangeOpportunityStatusAsync(
         Guid opportunityId,
         ChangeOpportunityStatusRequest request,
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
+        OpportunityStatusChanges.Add((opportunityId, request, idempotencyKey));
+
         Submit(idempotencyKey);
 
         int index = Opportunities.FindIndex(x => x.Id == opportunityId);
+
+        // As the server does: the version the caller saw must still be current.
+        if (index >= 0 && Opportunities[index].Version != request.ExpectedVersion)
+        {
+            throw new AgencyOsApiException(
+                System.Net.HttpStatusCode.Conflict,
+                "Version conflict",
+                "Somebody else changed this opportunity. Reload it and try again.");
+        }
 
         if (index >= 0)
         {
@@ -1461,6 +1475,17 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         CancellationToken cancellationToken = default)
     {
         Submit(idempotencyKey);
+
+        // As the server does: market activity needs an Active pursuit.
+        Guid? owner = Targets.FirstOrDefault(x => x.Value.Any(t => t.Id == targetId)).Key;
+
+        if (Opportunities.FirstOrDefault(x => x.Id == owner) is { Status: "Draft" })
+        {
+            throw new AgencyOsApiException(
+                System.Net.HttpStatusCode.BadRequest,
+                "Invalid request",
+                "This opportunity is still a draft. Activate it before recording market activity.");
+        }
 
         foreach (List<OpportunityTargetResponse> targets in Targets.Values)
         {

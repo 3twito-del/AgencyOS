@@ -211,7 +211,56 @@ public sealed class OpportunityDetailViewModel : ViewModelBase
             OnPropertyChanged(nameof(OpenTargets));
             OnPropertyChanged(nameof(Overdue));
             OnPropertyChanged(nameof(Standing));
+            OnPropertyChanged(nameof(CanActivate));
         }, cancellationToken);
+
+    /// <summary>
+    /// Gets a value indicating whether the loaded pursuit is a Draft the operator can activate.
+    /// </summary>
+    /// <remarks>
+    /// A pursuit is created as a Draft, and only an Active one accepts market
+    /// activity - moving a target, opening a negotiation. The fresh final-candidate
+    /// RC at <c>2d2b46a</c> stopped because nothing in the Windows client took that
+    /// step. This offers exactly Draft to Active and nothing else; any other
+    /// lifecycle change is not what the operator was blocked on.
+    /// </remarks>
+    public bool CanActivate => Opportunity is { Opportunity.Status: "Draft" };
+
+    /// <summary>
+    /// Activates the loaded Draft pursuit, then reloads what the server now holds.
+    /// </summary>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>Whether the activation was sent.</returns>
+    /// <remarks>
+    /// The existing status command, with the version the operator was shown and a key
+    /// made before the one attempt; the server decides whether the change is legal.
+    /// A refusal - a version conflict included - is thrown to the caller unchanged,
+    /// and nothing here pretends the pursuit is Active: the loaded state stays as the
+    /// server last described it. There is no retry with a newer version.
+    /// </remarks>
+    public async Task<bool> ActivateAsync(CancellationToken cancellationToken = default)
+    {
+        if (Opportunity is not { } detail || !CanActivate)
+        {
+            return false;
+        }
+
+        OpportunitySummaryResponse pursuit = detail.Opportunity;
+
+        await _api
+            .ChangeOpportunityStatusAsync(
+                pursuit.Id,
+                new ChangeOpportunityStatusRequest("Active", pursuit.Version),
+                Guid.CreateVersion7().ToString("N", CultureInfo.InvariantCulture),
+                cancellationToken)
+            .ConfigureAwait(true);
+
+        await LoadAsync(pursuit.Id, cancellationToken).ConfigureAwait(true);
+
+        OnPropertyChanged(nameof(CanActivate));
+
+        return true;
+    }
 
     private static void Replace<T>(ObservableCollection<T> target, IReadOnlyList<T> source)
     {

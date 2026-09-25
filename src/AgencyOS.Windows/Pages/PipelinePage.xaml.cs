@@ -197,6 +197,8 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
 
     private void OnNewClick(object sender, RoutedEventArgs e) => _ = CreateAsync();
 
+    private void OnActivateClick(object sender, RoutedEventArgs e) => _ = ActivateAsync();
+
     private void OnAddTargetClick(object sender, RoutedEventArgs e) => _ = AddTargetAsync();
 
     private void OnRecordSubmissionClick(object sender, RoutedEventArgs e) => _ = RecordSubmissionAsync();
@@ -251,10 +253,58 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
             return;
         }
 
-        await Guarded(() => api.CreateOpportunityAsync(dialog.ToRequest(), Guid.NewGuid().ToString("N")))
+        OpportunityDetailResponse? created = null;
+
+        await Guarded(async () =>
+                created = await api.CreateOpportunityAsync(dialog.ToRequest(), Guid.NewGuid().ToString("N"))
+                    .ConfigureAwait(true))
             .ConfigureAwait(true);
 
-        await LoadAsync().ConfigureAwait(true);
+        // The new pursuit is a Draft, and the list defaults to Active: reloading
+        // as it was would hide exactly what the operator just made. Reveal widens
+        // the filters and selects it, still a Draft, where Activate is offered.
+        if (created is { } made)
+        {
+            Reveal(made.Opportunity.Id);
+        }
+        else
+        {
+            await LoadAsync().ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Activates the selected Draft pursuit, and shows the same pursuit, now Active.
+    /// </summary>
+    /// <remarks>
+    /// The view model sends the existing status command and reloads what the server
+    /// holds; a refusal is shown as the domain's own sentence and changes nothing
+    /// here. On success the pursuit is revealed again, so the row and its standing
+    /// both say Active rather than the Draft the operator last saw.
+    /// </remarks>
+    private async Task ActivateAsync()
+    {
+        if (_detail?.Opportunity is not { } opportunity || !_detail.CanActivate)
+        {
+            return;
+        }
+
+        Guid id = opportunity.Opportunity.Id;
+        bool activated = false;
+
+        await Guarded(async () => activated = await _detail.ActivateAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        if (!activated)
+        {
+            return;
+        }
+
+        Reveal(id);
+
+        DetailNotice(
+            "Opportunity activated",
+            $"{opportunity.Opportunity.Name} is active. Targets can now be moved and negotiations opened.");
     }
 
     private async Task AddTargetAsync()
@@ -530,6 +580,7 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         SubmissionButton.IsEnabled = loaded && hasTarget;
         PitchButton.IsEnabled = loaded && hasTarget;
         StageButton.IsEnabled = loaded && hasTarget;
+        ActivateButton.Visibility = _detail.CanActivate ? Visibility.Visible : Visibility.Collapsed;
 
         if (_detail.Opportunity is not { } opportunity)
         {
