@@ -4,13 +4,70 @@
 
 The ledger of candidate changes to canonical state.
 
-- **Entries are append-only.** An entry is never edited to change what it said, and never deleted.
+- **Delta identity and substantive content are append-only.** A delta is never deleted, reused,
+  or rewritten into a different claim. Only the lifecycle metadata defined below may advance, and
+  only according to [`CANONICAL-STATE-PROTOCOL.md`](CANONICAL-STATE-PROTOCOL.md).
 - **Rejected deltas stay recorded**, with the reason.
 - **A published correction never deletes an earlier entry.** It is a new entry that points at the
   entry it corrects.
 - **This ledger does not itself override [`CURRENT-STATE.md`](CURRENT-STATE.md).** A delta is
   `PUBLISHED` only when it is also reflected there and the other publication conditions hold
   (protocol section 8).
+
+## Substantive content and lifecycle metadata
+
+### Substantive content (immutable once recorded)
+
+The Delta ID, `Detected`, `Sources` (the evidence anchors), `Prior claim`, `Candidate/new claim`,
+`Claimed transition`, `Scope`, `Evidence`, `Conflicts`, `Authority required`, `What changes if
+accepted`, `Supersedes`, `Unchanged`, `Open / unresolved questions` and `Forbidden implications`
+are never silently rewritten. A correction to any of them is a new delta that points to the
+earlier one. The earlier claim is never edited into agreement.
+
+### Lifecycle metadata (advances only through the protocol)
+
+- **`Status`** moves forward only:
+  - `PENDING_ADJUDICATION → ACCEPTED`, or `PENDING_ADJUDICATION → REJECTED`;
+  - `ACCEPTED → PUBLISHED`.
+
+  There is no backward transition. A `REJECTED` delta is never later converted into an accepted
+  one; that needs a new delta.
+- **`Adjudication`**, if first recorded as pending, is filled in exactly once with the
+  authoritative adjudication for the status transition, and is immutable after that.
+- **`Published`**: `Pending` is replaced exactly once, during sealing, by the UTC remote-readback
+  timestamp of the publication-basis commit. It does not record the SHA or readback time of the
+  sealing commit.
+- **`Publication receipt`**: `Pending` is replaced exactly once, during sealing, by the
+  publication-basis commit it names. It is immutable after that.
+
+## Publication-basis commit
+
+**Publication-basis commit:** the final pre-seal commit whose repository tree contains the accepted
+delta, the complete intended `CURRENT-STATE.md`, and every applicable decision record in the exact
+form adjudicated for publication, and whose contents have been verified by remote readback from
+the canonical branch.
+
+- A delta may span more than one preparatory or content commit.
+- A delta's receipt names the final publication-basis commit only. It need not list the earlier
+  preparatory commits.
+- The later sealing commit does not need to contain or name its own SHA.
+- A delta becomes `PUBLISHED` only after the sealing commit is itself pushed and read back from the
+  canonical remote (protocol section 8).
+
+### Delta receipts and decision receipts
+
+Decision receipts are governed by [`DECISIONS.md`](DECISIONS.md). A decision's receipt names that
+decision's own first content-bearing publication commit. A delta's receipt names the final
+publication-basis commit for the whole state transition. The two may legitimately name different
+commits.
+
+For `DELTA-20260928-001`:
+- the four migrated decision entries first appeared in `388534de2920cd4fe25074efdfb37b26b12bda23`,
+  so their receipts will name `388534d`, once a fresh remote readback of it is verified;
+- the delta's receipt will name the pre-seal commit that adds this section. Its tree holds all four
+  decisions, the delta, the final `CURRENT-STATE.md` candidate including the NG-4 authorization
+  boundary, and this clarification. The receipt is not written until that commit has been pushed
+  and verified by remote readback.
 
 The first delta recorded under this protocol is `DELTA-20260928-001` (under *Entries* below).
 State changes before it are recorded in the prior durable sources the protocol names; they are not

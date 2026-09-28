@@ -135,6 +135,10 @@ speculative plugin infrastructure or vertical leakage into the core.**
 
 NG-4 research/design has not begun as part of this migration.
 
+**Authorization boundary:** "NEXT" identifies sequence, not authorization. Neither Operational
+Closure/M4 nor `DELTA-20260928-001` authorizes NG-4 work. Starting NG-4 research/design requires
+its own explicit authorization or decision under AgencyOS governance.
+
 ## Latest accepted delta
 
 `DELTA-20260928-001`: ACCEPTED — PUBLICATION PENDING.
