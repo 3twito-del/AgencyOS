@@ -106,11 +106,11 @@ Publication receipt:
 
 ## DELTA-20260928-001
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-28T22:18:49Z
 
-Published: Pending
+Published: 2026-09-28T23:15:18Z
 
 Sources:
 - `docs/control-room/CANONICAL-STATE-PROTOCOL.md` (published at `1d4c136`).
@@ -201,4 +201,4 @@ Forbidden implications: This migration does **not**:
 - authorize implementation, schema, API or domain changes;
 - make the candidate state `PUBLISHED` before the publication protocol completes.
 
-Publication receipt: Pending
+Publication receipt: 4092094d803577a79bcd74d0e122a384843787be on origin/operational-regression-gate; remote readback verified 2026-09-28T23:15:18Z

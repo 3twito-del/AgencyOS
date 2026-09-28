@@ -9,10 +9,10 @@ This ledger is **not** a replacement for ADRs (`docs/adr/`), which keep their go
 **not** a list of every technical conclusion. It holds decisions whose authority, or whose
 correction chain, must stay reconstructable without any conversation.
 
-**Migration status.** The first controlled migration, `DELTA-20260928-001`, adds four
-pre-protocol decisions (`DECISION-20260928-001` to `-004`, under *Entries* below). It is
-`ACCEPTED`, with publication pending. Each entry's receipt stays `Pending` until publication is
-sealed. No other historical decision is reconstructed here, and no other ID has been assigned.
+**Migration status.** The first controlled migration, `DELTA-20260928-001`, is published. It
+added four pre-protocol decisions (`DECISION-20260928-001` to `-004`, under *Entries* below), and
+their publication receipts are sealed. No other historical decision is reconstructed here, and no
+other ID has been assigned.
 Operational-closure decisions remain governed by
 [`docs/reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md`](../reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md).
 
@@ -270,7 +270,7 @@ Open:
 Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Control Room
 instruction. Claude is the recorder, not the authority.
 
-Publication receipt: Pending
+Publication receipt: 388534de2920cd4fe25074efdfb37b26b12bda23 on origin/operational-regression-gate; remote readback verified 2026-09-28T23:15:18Z
 
 ## DECISION-20260928-002
 
@@ -322,7 +322,7 @@ Open:
 Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Control Room
 instruction. Claude is the recorder, not the authority.
 
-Publication receipt: Pending
+Publication receipt: 388534de2920cd4fe25074efdfb37b26b12bda23 on origin/operational-regression-gate; remote readback verified 2026-09-28T23:15:18Z
 
 ## DECISION-20260928-003
 
@@ -384,7 +384,7 @@ Open:
 Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Control Room
 instruction. Claude is the recorder, not the authority.
 
-Publication receipt: Pending
+Publication receipt: 388534de2920cd4fe25074efdfb37b26b12bda23 on origin/operational-regression-gate; remote readback verified 2026-09-28T23:15:18Z
 
 ## DECISION-20260928-004
 
@@ -466,4 +466,4 @@ Open:
 Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Control Room
 instruction. Claude is the recorder, not the authority.
 
-Publication receipt: Pending
+Publication receipt: 388534de2920cd4fe25074efdfb37b26b12bda23 on origin/operational-regression-gate; remote readback verified 2026-09-28T23:15:18Z

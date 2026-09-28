@@ -1,15 +1,15 @@
 # AgencyOS current canonical state
 
-**Status:** CANDIDATE MIGRATION — NOT CURRENT UNTIL DELTA-20260928-001 IS PUBLISHED
+**Status:** CURRENT
 
 **Protocol:** [CANONICAL-STATE-PROTOCOL.md](CANONICAL-STATE-PROTOCOL.md)
 
-> **Under CANONICAL-STATE-PROTOCOL.md, this candidate does not supersede the existing substantive
-> authorities until the migration delta is PUBLISHED.** Until then, operational closure and release
-> identity are read from
-> [`docs/reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md`](../reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md),
-> and the migration is recorded in [`CANONICAL-DELTAS.md`](CANONICAL-DELTAS.md) as
-> `DELTA-20260928-001` (`ACCEPTED`, publication pending).
+Canonical bootstrap state published by `DELTA-20260928-001`
+([`CANONICAL-DELTAS.md`](CANONICAL-DELTAS.md)). Specialised authorities retain their governed
+scope, including
+[`docs/reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md`](../reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md)
+for operational closure. This file states current position; it does not replace their evidence or
+history.
 
 Decision records: [`DECISIONS.md`](DECISIONS.md).
 
@@ -139,6 +139,7 @@ NG-4 research/design has not begun as part of this migration.
 Closure/M4 nor `DELTA-20260928-001` authorizes NG-4 work. Starting NG-4 research/design requires
 its own explicit authorization or decision under AgencyOS governance.
 
-## Latest accepted delta
+## Latest published delta
 
-`DELTA-20260928-001`: ACCEPTED — PUBLICATION PENDING.
+`DELTA-20260928-001`: PUBLISHED — publication basis 4092094d803577a79bcd74d0e122a384843787be;
+verified 2026-09-28T23:15:18Z.
