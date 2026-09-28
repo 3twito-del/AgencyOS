@@ -9,9 +9,12 @@ This ledger is **not** a replacement for ADRs (`docs/adr/`), which keep their go
 **not** a list of every technical conclusion. It holds decisions whose authority, or whose
 correction chain, must stay reconstructable without any conversation.
 
-**No decisions have been migrated under this protocol yet.** The first controlled migration is
-Phase 2. Historical decisions are not reconstructed here, and no ID has been assigned to any of
-them.
+**Migration status.** The first controlled migration, `DELTA-20260928-001`, adds four
+pre-protocol decisions (`DECISION-20260928-001` to `-004`, under *Entries* below). It is
+`ACCEPTED`, with publication pending. Each entry's receipt stays `Pending` until publication is
+sealed. No other historical decision is reconstructed here, and no other ID has been assigned.
+Operational-closure decisions remain governed by
+[`docs/reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md`](../reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md).
 
 ---
 
@@ -127,7 +130,9 @@ New entries use `DECISION-YYYYMMDD-NNN`: the date the decision was made, followe
 three-digit sequence number for that date, starting at `001`.
 
 IDs are never reused. They are not reconstructed or fabricated for historical decisions. Phase 2
-decides how migrated decisions are identified.
+decides how migrated decisions are identified. In `DELTA-20260928-001` a migrated pre-protocol
+decision takes an ID dated by its actual decision date, and its `Evidence / provenance` states that
+the ID was assigned during migration and did not exist on that date.
 
 ## Decision versus delta
 
@@ -195,3 +200,270 @@ Open:
 Recorded by:
 Publication receipt:
 ```
+
+---
+
+# Entries
+
+Migration provenance common to the four entries below: each durable Decision ID was assigned
+during Phase 2 migration (`DELTA-20260928-001`). The underlying decision or adjudication was made
+on 2026-09-28, before this decision ledger existed. The IDs do not imply that they existed on that
+date.
+
+## DECISION-20260928-001
+
+Status: ACTIVE
+
+Date: 2026-09-28
+
+Authority: CONTROL_ROOM
+
+Question: What is the stable representation primitive across materially different representation
+verticals, and which parts of Build-97 "Representation" are universal versus Film/TV-specific?
+
+Decision: The NG-1 definition is accepted:
+
+> A Representation Mandate is an effective-dated, bounded representational appointment or
+> authority connecting the agency to a concrete principal-capable represented subject. It defines
+> what the agency is authorized to represent or pursue, including relevant capacities, matters,
+> works/assets/interests, markets or territories and mandate conditions where applicable;
+> preserves the authority provenance, attributable internal responsibility and history; and
+> remains distinct from the subject's profile, the legal instrument, underlying ownership/right
+> validity, rights grants, transaction participation, and economic entitlement.
+
+- The mandate is the stronger proved primitive.
+- A separately persisted umbrella "Representation" relationship remains unproved, and may instead
+  be a derived roll-up.
+
+Scope: Governs next-generation representation architecture. It does **not**:
+- approve schema;
+- approve a persistence shape;
+- make territory mandatory;
+- make exclusivity mandatory;
+- define a universal commission formula;
+- make Work/IP a represented subject;
+- decide whether the umbrella Representation is persisted or derived.
+
+Evidence / provenance:
+- The Control Room's terminal NG-1 adjudication of 2026-09-28, following Build-97 source
+  inspection and bounded cross-vertical falsification.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`.
+- Claude research reports were evidence inputs only. The decision is the Control Room's.
+- This durable Decision ID was assigned during Phase 2 migration; the underlying
+  decision/adjudication was made on 2026-09-28 before the decision ledger existed.
+
+Consequences: NG-1 is closed. Future architecture must preserve mandate-level bounded authority
+and lifecycle.
+
+Supersedes: None
+
+Unchanged: Build-97's implemented Representation model, schema and behaviour. No product change
+follows from this decision.
+
+Open:
+- persisted versus derived umbrella Representation;
+- qualifying clienthood;
+- how work/object coverage is implemented;
+- delegated and sub-agency authority topology;
+- exact commission placement.
+
+Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Control Room
+instruction. Claude is the recorder, not the authority.
+
+Publication receipt: Pending
+
+## DECISION-20260928-002
+
+Status: ACTIVE
+
+Date: 2026-09-28
+
+Authority: OWNER
+
+Question: Approve for NG-2 the conceptual represented-subject family "Person + Group +
+Organization", with Work/IP as mandate object by default and not first-class represented subject
+at this stage?
+
+Decision: The Owner explicitly approved the subject family. Its canonical next-generation wording
+is **"Person + Group + External Organization"**, and Work/IP is a mandate object by default and is
+not a first-class represented subject at this stage.
+
+The wording differs from the question as asked. Build-97 "Organization" is the tenant/security
+boundary, so the next-generation conceptual external-business subject is called External
+Organization until implementation terminology is decided. This is a terminology correction by the
+Control Room, not a change to what the Owner approved.
+
+Scope: Conceptual architecture only. It does **not**:
+- create a "Subject" table;
+- create an "Entity";
+- rename Build-97 "Organization";
+- decide whether Build-97 "Company" is exactly the future External Organization implementation;
+- exclude future evidence that may justify Estate/Trust, or IP as a subject, later.
+
+Evidence / provenance:
+- Explicit Owner approval on 2026-09-28 (NG-OD1).
+- The Control Room's terminology correction from "Organization" to "External Organization", to
+  avoid colliding with the Build-97 tenant "Organization".
+- This durable Decision ID was assigned during Phase 2 migration; the underlying
+  decision/adjudication was made on 2026-09-28 before the decision ledger existed.
+
+Consequences: NG-2 may test identity and reference architecture against these three concrete
+subject kinds.
+
+Supersedes: None
+
+Unchanged: Build-97 "Organization" remains the tenant/security boundary.
+
+Open:
+- Company versus External Organization implementation;
+- Estate/Trust;
+- IP as a subject, if later evidence requires it.
+
+Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Control Room
+instruction. Claude is the recorder, not the authority.
+
+Publication receipt: Pending
+
+## DECISION-20260928-003
+
+Status: ACTIVE
+
+Date: 2026-09-28
+
+Authority: CONTROL_ROOM
+
+Question: How should the three represented-subject kinds be referenced without collapsing them
+into a speculative universal Entity/Party abstraction or losing referential and tenant integrity?
+
+Decision:
+
+> Represented subjects form a local, closed, semantically typed reference family over
+> "Person | Group | External Organization". A reference preserves the concrete subject kind and
+> stable concrete identity; canonical persistence must structurally enforce referenced-subject
+> existence and same-tenant containment for the supported kind. The abstraction is local to
+> contexts where a principal-capable represented subject is semantically valid and does not widen
+> unrelated reference families. Historical references remain anchored to the original subject and
+> do not automatically follow successors.
+
+Also accepted:
+- no global "SubjectId";
+- no generic "Entity";
+- no shared "Party" row is justified;
+- no opaque raw "(kind, Guid)" as canonical represented-subject truth;
+- different modules may legitimately have different typed reference families;
+- a future kind requires an explicit, reviewed addition.
+
+Scope: The architecture boundary only. The exact storage mapping is deferred. No specific table,
+EF mapping or API union has been selected.
+
+Evidence / provenance:
+- The Control Room's NG-2A and NG-2B adjudications of 2026-09-28.
+- Build-97 precedents: `RelationshipEndpoint` (ADR-0011); `OpportunitySubjectRef` (ADR-0020);
+  wide typed link arcs; and ADR-0019, a deliberate validator-only exception that is not adopted
+  for represented-subject authority truth. The wide link arcs do not invalidate ADR-0011.
+- Claude research reports were evidence inputs only.
+- This durable Decision ID was assigned during Phase 2 migration; the underlying
+  decision/adjudication was made on 2026-09-28 before the decision ledger existed.
+
+Consequences: NG-2 is closed. NG-3 may reason about commerce using a stable subject boundary
+without designing Group persistence.
+
+Supersedes: None
+
+Unchanged: DECISION-20260928-002's subject family. The Build-97 reference mechanisms and ADR-0011,
+ADR-0019 and ADR-0020 are unchanged.
+
+Open:
+- Company versus External Organization implementation;
+- Group persistence;
+- the successor/predecessor model;
+- Person reconciliation and deduplication;
+- the exact storage mapping;
+- a retention/deletion mechanism that prevents orphaned historical truth.
+
+Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Control Room
+instruction. Claude is the recorder, not the authority.
+
+Publication receipt: Pending
+
+## DECISION-20260928-004
+
+Status: ACTIVE
+
+Date: 2026-09-28
+
+Authority: CONTROL_ROOM
+
+Question: What commercial concepts between representation authority and accounting settlement are
+irreducible core facts, and is the commercial model a linear pipeline or a non-linear structure?
+
+Decision:
+
+> The next-generation commercial model is a HYBRID: semantic layers connected by optional, causal
+> and historical graph relationships. A mandatory linear pipeline is falsified.
+
+Layer boundaries:
+1. Representation authority
+2. Market activity
+3. Commercial negotiation
+4. Legal truth
+5. Economic truth
+6. Collection/billing
+7. Cash application
+8. Accounting projection
+
+Accepted conclusions:
+- pursuit/Opportunity is an optional precursor or context, not a universal mandatory parent;
+- a commercial arrangement/deal is distinct from a proposal/offer;
+- an agreement snapshot is distinct from legal instrument truth;
+- a legal instrument is distinct from a rights grant;
+- a legal/operational obligation is distinct from a receivable;
+- an invoice is optional and distinct from a receivable;
+- a payment is distinct from its allocation/application;
+- the ledger/accounting does not replace upstream commercial or legal truth;
+- commercial activity needs conceptual mandate lineage;
+- amount determination is a strong core capability where a real obligation starts contingent,
+  formula-based or unquantified;
+- agency commission/fee entitlement is a representation-economics capability;
+- a generic universal "EconomicEntitlement" super-concept is not justified;
+- "DealKind" and term vocabularies are vertical-specific rather than neutral core.
+
+Scope: A commercial architecture decomposition. It does **not**:
+- approve schema;
+- approve a generic Transaction entity;
+- approve generic JSON terms;
+- approve a universal rights ontology;
+- approve a universal "Settlement" primitive;
+- define the vertical-extension mechanism;
+- begin Music architecture.
+
+Evidence / provenance:
+- The Control Room's terminal NG-3 adjudication of 2026-09-28.
+- Build-97 source inspection across Deal, Offer, Contract, RightsGrant, MonetaryObligation,
+  Commission, Receivable, Invoice, Payment and Ledger (product commit
+  `b3f41bfd68e81ab42da899671f58e01f0988d3d2`).
+- Bounded Film/TV ↔ live-music falsification.
+- The Claude report was evidence only, not authority.
+- This durable Decision ID was assigned during Phase 2 migration; the underlying
+  decision/adjudication was made on 2026-09-28 before the decision ledger existed.
+
+Consequences: NG-3 is closed. The next architecture stage is NG-4, Vertical Extension
+Architecture.
+
+Supersedes: None
+
+Unchanged: Build-97's implemented commercial, legal and finance model. DECISION-20260928-001 to
+-003 are unchanged.
+
+Open:
+- the exact commercial-to-mandate cardinality;
+- the exact agreement-snapshot representation;
+- the exact amount-determination record;
+- one legal instrument covering several arrangements;
+- the future commission model;
+- the exact ledger integration.
+
+Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Control Room
+instruction. Claude is the recorder, not the authority.
+
+Publication receipt: Pending
