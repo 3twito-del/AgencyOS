@@ -249,11 +249,23 @@
                               AutomationProperties.Name="History" SelectionMode="None" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=OpportunityHistory}">
-                                    <TextBlock Text="{Binding Summary}" />
-                                    <TextBlock Text="{Binding TargetDisplayName}" Opacity="0.7"
+                                <!-- When it happened is part of what happened (BF-03). -->
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=OpportunityHistory}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="170" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="{Binding OccurredAt}"
+                                               Opacity="0.6"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
-                                </StackPanel>
+
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Summary}" />
+                                        <TextBlock Text="{Binding TargetDisplayName}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+                                </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>

@@ -185,8 +185,13 @@ public static class RowProfiles
         Profile("NoticeRequirement", Headline("Description"), Text("DueOn", "Due")),
         Profile("Notice", Headline("Summary"), Token("Direction"), Text("OccurredOn")),
 
+        // An activity row says what happened, who recorded it, what kind of entry it
+        // is and when it happened - the instant the row shows (BF-03).
+        Profile("ContractHistory", Headline("Summary"), Party("ActorDisplayName"), Token("Kind"), Text("OccurredAt")),
+
         // Deals
         Profile("Offer", Text("Sequence", "Sequence"), Token("Direction"), Headline("Summary"), Token("Status")),
+        Profile("DealHistory", Headline("Summary"), Party("ActorDisplayName"), Token("Kind"), Text("OccurredAt")),
         Profile(
             "TermComparison",
             Headline("DisplayName"),
@@ -266,7 +271,7 @@ public static class RowProfiles
         Profile("OpportunitySubject", Headline("DisplayName"), Text("Detail")),
         Profile("Submission", Headline("TargetDisplayName", "Target"), Text("Subject")),
         Profile("Pitch", Headline("TargetDisplayName", "Target"), Token("Outcome")),
-        Profile("OpportunityHistory", Headline("Summary"), Text("TargetDisplayName", "Target")),
+        Profile("OpportunityHistory", Headline("Summary"), Text("TargetDisplayName", "Target"), Text("OccurredAt")),
         Profile("Project", Headline("Title"), Token("Stage"), Token("Type")),
         // The project's view of the same summaries: it shows no kind, so says none.
         Profile(

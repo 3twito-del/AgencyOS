@@ -674,11 +674,31 @@
                               AutomationProperties.Name="History" SelectionMode="None" Padding="4">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}" AutomationProperties.HelpText="{Binding Detail}">
-                                    <TextBlock Text="{Binding Summary}" />
-                                    <TextBlock Text="{Binding Detail}" Opacity="0.7"
+                                <!-- When it happened is part of what happened (BF-03). -->
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=ContractHistory}" AutomationProperties.HelpText="{Binding Detail}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="170" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="150" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="{Binding OccurredAt}"
+                                               Opacity="0.6"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
-                                </StackPanel>
+
+                                    <!-- Who recorded it and what kind of entry it is were announced and never shown; the row now shows what it says. -->
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Summary}" />
+                                        <TextBlock Text="{Binding Detail}" Opacity="0.7"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <TextBlock Text="{Binding Converter={StaticResource Party}, ConverterParameter=ActorDisplayName}" Opacity="0.55"
+                                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="2" Text="{Binding Kind, Converter={StaticResource DisplayLabel}}" Opacity="0.6"
+                                               HorizontalAlignment="Right"
+                                               Style="{StaticResource CaptionTextBlockStyle}" />
+                                </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>

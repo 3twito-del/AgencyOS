@@ -217,6 +217,26 @@ public sealed class ContractDetailViewModel : ViewModelBase
     public ContractVersionResponse? LatestVersion =>
         Versions.OrderByDescending(x => x.VersionNumber).FirstOrDefault();
 
+    /// <summary>Whether the page offers the reconciliation of the newest draft.</summary>
+    /// <remarks>
+    /// <para>
+    /// Offered when there is a draft to compare and either its terms are visible or
+    /// the contract's own summary says the draft differs from what was agreed. No
+    /// visible term rows cannot tell a draft that records no terms from a caller
+    /// who may not read them, so it is not treated as either: a C10 draft recording
+    /// none of the three agreed terms counted three MissingFromContract differences,
+    /// truly, and hid the one comparison that names them (BF-02).
+    /// </para>
+    /// <para>
+    /// This does not decide who may read the comparison. The server refuses it
+    /// without <c>contracts.terms.read</c> and <c>deals.economics.read</c>, and the
+    /// reconciliation surface shows that refusal as a refusal.
+    /// </para>
+    /// </remarks>
+    public bool CanReconcile =>
+        LatestVersion is not null
+        && (HasTerms || Contract?.Contract.UnresolvedDifferenceCount > 0);
+
     /// <summary>The parties whose signature the agreement still needs.</summary>
     public IReadOnlyList<ContractPartyResponse> OutstandingSignatories =>
         [.. Parties.Where(x => x.IsRequiredSignatory && !x.HasSigned)];
@@ -377,6 +397,7 @@ public sealed class ContractDetailViewModel : ViewModelBase
             OnPropertyChanged(nameof(HasTerms));
             OnPropertyChanged(nameof(HasEconomics));
             OnPropertyChanged(nameof(LatestVersion));
+            OnPropertyChanged(nameof(CanReconcile));
             OnPropertyChanged(nameof(OutstandingSignatories));
             OnPropertyChanged(nameof(AcceptsNewVersions));
             OnPropertyChanged(nameof(AcceptsSignatures));
@@ -516,6 +537,15 @@ public sealed class ReconciliationViewModel : ViewModelBase
         CancellationToken cancellationToken = default) =>
         RunAsync(async token =>
         {
+            // Whatever was compared before is not this comparison. A refusal must
+            // not leave an earlier one on screen under it, reading as this answer.
+            Reconciliation = null;
+            _loaded = false;
+            Apply();
+            OnPropertyChanged(nameof(IsFaithful));
+            OnPropertyChanged(nameof(DifferenceCount));
+            OnPropertyChanged(nameof(Summary));
+
             ReconciliationResponse result = await _api
                 .ReconcileContractVersionAsync(contractId, versionId, token)
                 .ConfigureAwait(true);

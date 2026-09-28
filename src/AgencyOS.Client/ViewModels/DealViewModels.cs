@@ -308,7 +308,9 @@ public sealed class DealDetailViewModel : ViewModelBase
                 .GetDealHistoryAsync(dealId, token)
                 .ConfigureAwait(true);
 
-            Replace(History, history);
+            // In the server's order. Only what the row shows beneath the summary is
+            // written for a person; the record the server holds is unchanged (BF-03).
+            Replace(History, [.. history.Select(x => x with { Detail = DealActivityLine.Detail(x, detail.Offers) })]);
 
             _loaded = true;
 
