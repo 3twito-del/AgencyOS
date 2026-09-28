@@ -111,6 +111,18 @@ and must not be rewritten into having said something it did not say at the time.
 Until Phase 2 migration is adjudicated and published, `CURRENT-STATE.md` is a bootstrap shell and
 does not supersede the substantive contents of the sources below it (see that file).
 
+### Control Room artifacts
+
+- `docs/control-room/CURRENT-STATE.md`: the active, concise current state. It stays the first
+  current-state bootstrap source.
+- `docs/control-room/CANONICAL-DELTAS.md`: the chronological ledger of state transitions.
+- `docs/control-room/DECISIONS.md`: the durable authority for explicit Owner decisions and Control
+  Room adjudications migrated or recorded under this protocol, and for their correction chains.
+  It is authoritative for the content and history of the decisions it records. `CURRENT-STATE.md`
+  cites them and does not restate them differently.
+
+Specialised records and ADRs keep their governed scope.
+
 ### Prior and specialised durable sources
 
 These keep their authority for their governed scope and are neither deleted nor rewritten by this
@@ -181,7 +193,7 @@ An alert is a request for adjudication. It is never an adjudication.
 Publication is atomic at the semantic level. A delta is `PUBLISHED` only when all of these hold:
 1. the accepted delta is recorded in `CANONICAL-DELTAS.md`;
 2. `CURRENT-STATE.md` is advanced to reflect it;
-3. the decision record is updated, where one applies;
+3. the decision record in `docs/control-room/DECISIONS.md` is updated, where one applies;
 4. the correction chain (section 5) is preserved;
 5. the repository publication is verified: the commit is on the canonical remote branch, and its
    contents are read back from the remote.

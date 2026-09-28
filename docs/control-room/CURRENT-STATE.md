@@ -38,7 +38,9 @@ Not yet migrated.
 
 ## Owner decisions
 
-Not yet migrated.
+Durable decision ledger: [`DECISIONS.md`](DECISIONS.md).
+
+No active decisions have been migrated into it yet. Phase 2 migration is pending.
 
 ## Evidence limitations
 
