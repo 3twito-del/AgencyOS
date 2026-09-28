@@ -34,6 +34,45 @@ earlier one. The earlier claim is never edited into agreement.
   one; that needs a new delta.
 - **`Adjudication`**, if first recorded as pending, is filled in exactly once with the
   authoritative adjudication for the status transition, and is immutable after that.
+- **`Seal authorizations`** is append-only history, used by future staged transitions under
+  [`CANONICAL-PUBLISHER-CONTRACT.md`](CANONICAL-PUBLISHER-CONTRACT.md):
+
+  ```
+  Pending → first immutable record → further immutable records appended as required
+  ```
+
+  - It starts as `Seal authorizations: Pending`. The first durable authorization replaces
+    `Pending` with a collection holding one record, and the field never returns to `Pending`.
+  - A later authorization is appended as a new record. No record is edited or deleted, and every
+    record survives publication.
+  - A record is appended only after the semantic basis it names has been verified by remote
+    readback, and before the seal.
+  - Each record contains at least:
+    - a record identifier;
+    - the scope `AUTHORIZE_SEAL_ONLY`;
+    - the authority class (`CONTROL_ROOM` or `OWNER`);
+    - the Delta ID;
+    - the verified semantic-basis SHA;
+    - the Git-blob SHA-256 of the staged `CURRENT-STATE.next.md`;
+    - the Git-blob SHA-256 of the canonical `PUBLICATION-PAYLOAD.json`;
+    - the authorization time in UTC;
+    - a durable authority or adjudication reference;
+    - the recorder's identity.
+
+    It has no confidence value. The record syntax is defined in the contract, section 5.2.
+  - A record binds only its own semantic basis and digests. It stops binding if that basis is
+    replaced, or if a bound digest or staged byte changes. It is never carried forward to a new
+    basis, which needs a new record.
+  - Re-authorization is only for the same accepted semantic delta. If any substantive field of
+    the delta changes, that is not re-authorization: it needs a new correction delta.
+  - The ledger records that a seal authorization exists. The publisher may mechanically verify
+    the record's presence, authority class, Delta ID, basis SHA, digests and the structure of its
+    reference. It never decides whether the authority was substantively right. A chat transcript
+    alone is not a durable seal authorization.
+  - The field and its records are lifecycle metadata. They are excluded, as a whole block, from a
+    delta's substantive digest (contract section 5.4).
+  - The field applies to future staged transitions only. `DELTA-20260928-001` predates it, has no
+    such field, and is not rewritten.
 - **`Published`**: `Pending` is replaced exactly once, during sealing, by the UTC remote-readback
   timestamp of the publication-basis commit. It does not record the SHA or readback time of the
   sealing commit.
@@ -53,6 +92,32 @@ the canonical branch.
 - The later sealing commit does not need to contain or name its own SHA.
 - A delta becomes `PUBLISHED` only after the sealing commit is itself pushed and read back from the
   canonical remote (protocol section 8).
+
+### Staged transitions under Self-Update V1
+
+For a future staged transition under
+[`CANONICAL-PUBLISHER-CONTRACT.md`](CANONICAL-PUBLISHER-CONTRACT.md), the definition above is
+narrowed as follows.
+
+The final pre-seal publication-basis tree contains:
+- the accepted delta;
+- the applicable decision records;
+- `docs/control-room/pending/<DELTA-ID>/CURRENT-STATE.next.md`;
+- `docs/control-room/pending/<DELTA-ID>/PUBLICATION-PAYLOAD.json`;
+- the durable `Seal authorizations` history;
+- the still-active, previously published `CURRENT-STATE.md`.
+
+In such a transition:
+- `CURRENT-STATE.next.md` is the complete intended replacement for the active current state.
+  Nothing under `docs/control-room/pending/` is canonical current state.
+- The active `CURRENT-STATE.md` stays authoritative until the seal has been pushed and read back
+  from the remote. At the seal, the exact verified staged bytes are promoted.
+- The final publication basis is the latest valid authorization commit: the commit that appends
+  the one record binding the remote-verified semantic basis (contract sections 4 and 5).
+
+`DELTA-20260928-001` was a bootstrap migration published under the definition above before these
+rules existed. Its candidate content was held in `CURRENT-STATE.md` itself, which was not yet the
+active authority. That remains its historical record.
 
 ### Delta receipts and decision receipts
 
@@ -97,6 +162,7 @@ Evidence:
 Conflicts:
 Authority required:
 Adjudication:
+Seal authorizations: Pending
 Supersedes:
 Unchanged:
 Open:

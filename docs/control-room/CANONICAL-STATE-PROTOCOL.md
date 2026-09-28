@@ -120,6 +120,8 @@ does not supersede the substantive contents of the sources below it (see that fi
   Room adjudications migrated or recorded under this protocol, and for their correction chains.
   It is authoritative for the content and history of the decisions it records. `CURRENT-STATE.md`
   cites them and does not restate them differently.
+- `docs/control-room/CANONICAL-PUBLISHER-CONTRACT.md`: the normative execution contract for
+  publishing already-adjudicated canonical transitions. It confers no semantic decision authority.
 
 Specialised records and ADRs keep their governed scope.
 
