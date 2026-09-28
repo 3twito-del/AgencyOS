@@ -82,7 +82,7 @@ F-02, so sixteen independent root mechanisms).
 | **M1 — Operational Regression Gate** | Prove C3, C7 and C9 on one final candidate: the regression gate implemented and green, and a real-Windows release candidate proving the core journey and announced/visible parity. | **COMPLETE** (build 96, `691e32f`) |
 | **M2 — Genuine Blind Takeover** | Prove C10: a fresh, isolated operator with no repository or builder context answers "where do we stand" from the Windows UI alone, and any product failure it exposes is repaired and proved on the affected journey. | **COMPLETE** (section 4) |
 | **M3 — Owner Residual Acceptance and Feature-Freeze Exit** | Owner acceptance of C12 and C14, then a release gate on the exact closure commit: authoritative CI, a qualifying exact-SHA Nightly, a verified manifest and an annotated tag. | **COMPLETE** with the build-97 release gate (section 1) |
-| **M4 — Project Self-Sufficiency** | A fresh Control Room Project reconstructs this state from durable sources alone, so the external setup chat is no longer needed. | **NOT YET COMPLETE** |
+| **M4 — Project Self-Sufficiency** | A fresh Control Room Project reconstructs this state from durable sources alone, so the external setup chat is no longer needed. | **COMPLETE** (2026-09-28). A fresh ChatGPT Control Room Project reconstructed the operative AgencyOS state from durable sources alone, without external setup-chat context, and the Control Room adjudicated the test PASS. It established that the durable current-state record is self-sufficient; it was not a new re-audit of historical evidence |
 
 ## 4. C10 terminal chain
 
@@ -244,9 +244,16 @@ tenant. It does not say that the wider AgencyOS vision in `docs/00_VISION.md` is
 
 ## 11. Next permitted action
 
-**M4 — fresh ChatGPT Project self-sufficiency test**
+**None pending.** The operational-ALPHA closure sequence M1–M4 is complete, and no further closure
+work is pending.
 
-No further product closure work is permitted without fresh contradictory evidence.
+- Closed criteria, stages and F-IDs stay closed unless fresh contradictory canonical evidence or a
+  genuine future operational failure appears.
+- M4's completion authorizes nothing further. Future product or next-generation design work needs
+  its own explicit authorization or decision.
+- The external setup chat is no longer required as an authority source for reconstructing current
+  AgencyOS state. This file and the sources in section 14 are sufficient. No evidence or historical
+  file has been deleted.
 
 ## 12. Forbidden now
 
@@ -291,6 +298,6 @@ On the AgencyOS host (git-ignored):
 - `artifacts/operational-alpha/reality-closure/`
 - `artifacts/reviewer/c10-*`
 
-Owner and Control Room dispositions (C10 PROVED; C12 and C14 accepted; D1–D4 wording; the residual
+Owner and Control Room dispositions (C10 PROVED; C12 and C14 accepted; D1–D5 wording; the residual
 list; the stage definitions; the boundary) are recorded here on the owner's instruction of
 2026-09-28.
