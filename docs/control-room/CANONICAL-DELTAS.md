@@ -62,12 +62,15 @@ publication-basis commit for the whole state transition. The two may legitimatel
 commits.
 
 For `DELTA-20260928-001`:
-- the four migrated decision entries first appeared in `388534de2920cd4fe25074efdfb37b26b12bda23`,
-  so their receipts will name `388534d`, once a fresh remote readback of it is verified;
-- the delta's receipt will name the pre-seal commit that adds this section. Its tree holds all four
-  decisions, the delta, the final `CURRENT-STATE.md` candidate including the NG-4 authorization
-  boundary, and this clarification. The receipt is not written until that commit has been pushed
-  and verified by remote readback.
+- the four migrated decision receipts name `388534de2920cd4fe25074efdfb37b26b12bda23`, the
+  decisions' first content-bearing publication commit, with remote readback verified at
+  2026-09-28T23:15:18Z;
+- the delta's receipt names `4092094d803577a79bcd74d0e122a384843787be`, the verified
+  publication-basis commit, whose tree holds all four decisions, the delta, the final
+  `CURRENT-STATE.md` including the NG-4 authorization boundary, and this section's rules. Its
+  remote readback was verified at 2026-09-28T23:15:18Z;
+- the sealing commit is `1a64ba4035f0453864ad5e7143e24b00da6e535c`, and the final sealed state was
+  read back from the canonical remote at 2026-09-28T23:16:52Z.
 
 The first delta recorded under this protocol is `DELTA-20260928-001` (under *Entries* below).
 State changes before it are recorded in the prior durable sources the protocol names; they are not

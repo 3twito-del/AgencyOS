@@ -105,8 +105,8 @@ not duplicated here.
 
 ## Evidence limitations
 
-- The NG-1 to NG-3 decisions were made before this durable Control Room ledger existed, and are
-  being migrated now under the published protocol.
+- The NG-1 to NG-3 decisions were made before this durable Control Room ledger existed, and were
+  migrated into it by the published `DELTA-20260928-001`.
 - The migration preserves the prior adjudications. It is not a new research pass.
 - Exact implementation details intentionally remain open where listed above.
 - Build 97 remains the product baseline being inspected. No next-generation architecture is
