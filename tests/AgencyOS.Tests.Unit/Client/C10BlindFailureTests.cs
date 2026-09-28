@@ -466,3 +466,52 @@ public sealed class DealActivityDetailTests
             offerId,
             "Review Owner");
 }
+
+/// <summary>
+/// BF-02 follow-up: the command labelled "Review differences" reads and never writes.
+/// </summary>
+/// <remarks>
+/// The command now tells the operator it is a read-only comparison that does not change
+/// the contract. That sentence is only true while the path it invokes is a read: this
+/// drives the real client call the command's view model makes and records every request
+/// that leaves it.
+/// </remarks>
+public sealed class ReviewDifferencesReadOnlyTests
+{
+    [Fact]
+    public async Task ReviewingDifferencesSendsOneReadAndNothingElse()
+    {
+        Recorder recorder = new();
+        using HttpClient http = new(recorder);
+        AgencyOsApiClient api = new(http, new AgencyOsSession(new Uri("http://127.0.0.1:5199/"), Guid.NewGuid(), "c10-owner"));
+        Guid contract = Guid.NewGuid();
+        Guid version = Guid.NewGuid();
+
+        ReconciliationViewModel view = new(api);
+
+        await view.LoadAsync(contract, version);
+
+        HttpRequestMessage request = Assert.Single(recorder.Requests);
+
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.EndsWith($"/contracts/{contract}/versions/{version}/reconciliation", request.RequestUri!.AbsolutePath, StringComparison.Ordinal);
+        Assert.Equal(3, view.Lines.Count);
+    }
+
+    private sealed class Recorder : HttpMessageHandler
+    {
+        public List<HttpRequestMessage> Requests { get; } = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Requests.Add(request);
+
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = System.Net.Http.Json.JsonContent.Create(
+                    ReconciliationReachTests.ThreeMissing(),
+                    options: new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)),
+            });
+        }
+    }
+}

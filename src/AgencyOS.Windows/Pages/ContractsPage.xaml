@@ -155,7 +155,14 @@
                     <AppBarButton x:Name="NewButton" Label="New contract" Click="OnNewClick" />
                     <AppBarButton x:Name="VersionButton" Label="Record version"
                                   Click="OnRecordVersionClick" IsEnabled="False" />
-                    <AppBarButton x:Name="ReconcileButton" Label="Reconcile"
+                    <!--
+                        Named for what it does: it opens a comparison and records nothing.
+                        "Reconcile" read as an act that changes the contract, and a blind
+                        operator working read-only declined to press it (BF-02).
+                    -->
+                    <AppBarButton x:Name="ReconcileButton" Label="Review differences"
+                                  AutomationProperties.HelpText="Read-only comparison. Shows how this draft differs from the agreed terms. Does not change the contract."
+                                  ToolTipService.ToolTip="Read-only comparison. Shows how this draft differs from the agreed terms. Does not change the contract."
                                   Click="OnReconcileClick" IsEnabled="False" />
                     <AppBarButton x:Name="PartyButton" Label="Add party"
                                   Click="OnAddPartyClick" IsEnabled="False" />
@@ -258,9 +265,9 @@
                                 changed term is a problem is a legal question about
                                 a document AgencyOS has not read (ADR-0022).
                             -->
-                            <InfoBar Severity="Informational" IsOpen="True" IsClosable="False"
+                            <InfoBar x:Name="ComparisonNote" Severity="Informational" IsOpen="True" IsClosable="False"
                                      Title="What differs, not what matters"
-                                     Message="This shows how the draft differs from the terms that were agreed. It does not say whether a difference is acceptable: that is a legal judgement." />
+                                     Message="This shows how the draft differs from the terms that were agreed. It is a read-only comparison and does not change the contract. It does not say whether a difference is acceptable: that is a legal judgement." />
 
                             <InfoBar x:Name="ReconcileError" Severity="Error" IsOpen="False"
                                      IsClosable="False" />
@@ -271,7 +278,7 @@
                                 <TextBlock x:Name="ReconcileCaption" Opacity="0.75"
                                            VerticalAlignment="Center"
                                            Style="{StaticResource CaptionTextBlockStyle}"
-                                           Text="Reconcile a version to see what the draft did to what was agreed." />
+                                           Text="Review differences to compare the draft with the agreed terms. This comparison does not change the contract." />
                             </StackPanel>
 
                             <Grid ColumnSpacing="10" Padding="4,2">

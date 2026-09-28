@@ -210,3 +210,79 @@ M3 as first written was an **equivalent mutant**, and survived: the `_answered i
 - **Authoritative CI** (GitHub Actions, PostgreSQL 18.6) has not run on the repair commit. It was not dispatched.
 - **A fresh blind retest** of the affected journeys (People search, contract reconciliation, Activity chronology) has not run.
 - No release candidate, build 97, C12, C14 or Freeze Exit work has been done.
+
+## 11. BF-02 follow-up: the command did not say it was read-only
+
+This section was added after the affected blind rerun on `967e8e4`. It is a correction to the section-4 repair of BF-02. It does not add a new repair of the reconciliation itself.
+
+### Status before the correction
+
+- **Code.** The functional repair is in `967e8e4` (section 4). Authoritative CI run #108 (ID `36371030038`) passed on it.
+- **Live rerun.** The affected blind rerun (evidence in git-ignored `artifacts/reviewer/c10-rerun-967e8e4-20260928T0546Z/`) went as follows:
+  - The fresh operator reached the contract and saw "3 term(s) differ".
+  - It found the command **enabled**; its UIA dump shows `Button | Reconcile`.
+  - It **declined to press it**: "records a reconciliation against the contract. That writes, so I did not press it."
+  - Nothing in the UI said that the action writes. Nothing said that it does not.
+  - Under its read-only instruction, the operator reasonably did not invoke it, and the three differences stayed uninspected.
+- **Builder check.** After the seal, the builder sent the reconciliation `GET` itself. It returned the three `MissingFromContract` lines (140,000.00 GBP, First position, 2027-02-01), and the database write counter was unchanged. That shows the path is read-only. It is **not** operator capability, and it is not counted as proof of it.
+
+### The correction: presentation only, `ContractsPage`
+
+| Surface | Before | After |
+| --- | --- | --- |
+| Command label | `Reconcile` | `Review differences` |
+| Command `AutomationProperties.HelpText` and `ToolTipService.ToolTip` | none | "Read-only comparison. Shows how this draft differs from the agreed terms. Does not change the contract." |
+| Comparison tab caption, before a comparison is shown (XAML and code-behind) | "Reconcile a version to see what the draft did to what was agreed." | "Review differences to compare the draft with the agreed terms. This comparison does not change the contract." |
+| Comparison tab standing note, always open (so it is also visible after activation) | "…differs from the terms that were agreed. It does not say whether…" | "…differs from the terms that were agreed. It is a read-only comparison and does not change the contract. It does not say whether…" |
+
+**The statement is true.** The command still calls `OnReconcileClick` → `ReconcileAsync` → `ReconciliationViewModel.LoadAsync` → `GET …/contracts/{id}/versions/{versionId}/reconciliation`. That endpoint only reads, and the server enforces `contracts.read`, `contracts.terms.read` and `deals.economics.read`.
+
+**What did not change:**
+
+- the endpoint, the API contract, the schema, the domain and the permissions;
+- `UnresolvedDifferenceCount`, `MissingFromContract`, and the comparison values;
+- the palette command's name and the internal method names;
+- BF-01 and BF-03.
+
+### Pre-fix failure (production unmodified at `967e8e4`)
+
+- **Failed:** `C10BlindFailureSurfaceTests.TheDraftComparisonCommandSaysItOnlyCompares`.
+  - Expected `"Review differences"`, actual `"Reconcile"`.
+  - The command had no `HelpText` and no `ToolTip` attribute.
+- **Failed:** `C10BlindFailureSurfaceTests.TheComparisonSurfaceSaysItChangesNothing`.
+  - Expected "Review differences to compare the draft w…", actual "Reconcile a version to see what the draft…".
+- **Passed on the baseline, as a guard:** `ReviewDifferencesReadOnlyTests.ReviewingDifferencesSendsOneReadAndNothingElse`.
+  - It drives the real `AgencyOsApiClient` through the view model with a recording HTTP handler.
+  - Exactly one request leaves: an HTTP `GET` to `…/reconciliation`. Three lines are rendered.
+  - It protects the truth of the new wording. It is not a reproduction.
+
+### After the fix
+
+- The two surface tests pass.
+- The GET guard passes.
+- The existing 10 `ReconciliationReachTests` still pass. They cover reach, the three `MissingFromContract` rows, refusal, stale-comparison clearing and the ordinary comparison.
+
+### Negative controls
+
+Each was a temporary mutation of `ContractsPage.xaml`. Each was restored byte-identically, and the diff hash was the same before and after the run.
+
+| # | Mutation | Caught by |
+| --- | --- | --- |
+| N1 | Label restored to `Reconcile` | `TheDraftComparisonCommandSaysItOnlyCompares` |
+| N2 | The read-only `HelpText` removed | `TheDraftComparisonCommandSaysItOnlyCompares` |
+| N3 | "read-only comparison and does not change the contract" removed from the standing note | `TheComparisonSurfaceSaysItChangesNothing` |
+
+### Local regression
+
+| Gate | Result |
+| --- | --- |
+| Build | 0 warnings, 0 errors |
+| Unit | 4145 passed / 0 failed / 0 skipped (4144 + 1) |
+| Windows | 1846 passed / 0 failed / 0 skipped (1844 + 2) |
+| Reviewer | 163 passed / 0 failed / 0 skipped |
+| Contract | OpenAPI 3.1.1; 264 paths; 188 schemas |
+
+### Still to be proved
+
+- Authoritative CI on the correction commit.
+- One targeted, fresh, isolated operator proof of this BF-02 journey only.

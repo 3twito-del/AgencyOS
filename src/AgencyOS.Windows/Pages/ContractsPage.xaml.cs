@@ -1304,7 +1304,7 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget, IRecord
         ReconcileError.Message = _reconciliation.ErrorMessage ?? string.Empty;
 
         ReconcileCaption.Text = _reconciliation.Reconciliation is null
-            ? "Reconcile a version to see what the draft did to what was agreed."
+            ? "Review differences to compare the draft with the agreed terms. This comparison does not change the contract."
             : _reconciliation.Summary;
     }
 
