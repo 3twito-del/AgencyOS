@@ -843,3 +843,80 @@ Forbidden implications: This delta does **not**:
 - make Claude an architecture authority.
 
 Publication receipt: 88fe45c91d8704b18ea98fab739877322c787655 on origin/operational-regression-gate; remote readback verified 2026-09-29T20:44:33Z
+
+## DELTA-20260929-007
+
+Status: ACCEPTED
+
+Detected: 2026-09-29T20:45:19Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `ad16ebf66886edc0610b248b20b53fc2af50c1d9` on `operational-regression-gate`, the seal of `DELTA-20260929-006`.
+- `docs/control-room/DECISIONS.md` at that SHA, containing the published `DECISION-20260929-004`.
+- The Control Room's locked NG-5 Scope-Lock question and its finding on the `DECISION-20260929-004` Question field.
+
+Prior claim: NG-5 is CLOSED under `DECISION-20260929-004` with the correct zero-or-one architecture, but `DECISION-20260929-004`'s Question field used a shortened normalization rather than the exact locked NG-5 question.
+
+Candidate/new claim: NG-5 remains CLOSED with exactly the same architecture, now governed by `DECISION-20260929-005`, which preserves the exact locked Question and supersedes `DECISION-20260929-004` solely for this correction-chain purpose.
+
+Claimed transition: NG-5 CLOSED / architecture unchanged / question provenance normalized → NG-5 CLOSED / architecture unchanged / exact locked question durably preserved.
+
+Scope: Canonical correction-chain publication only. The NG-5 architecture is unchanged. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `ad16ebf66886edc0610b248b20b53fc2af50c1d9` (`Publish DELTA-20260929-006`), with `DELTA-20260929-006` PUBLISHED and `DECISION-20260929-004` ACTIVE and sealed to `443624084ea3a6d3b33f49d15b5549b5350b46dc`;
+  - the published `DECISION-20260929-004` Question omits "lineage roles where more than one mandate participates" and phrases the precursor clause as "whether optional pre-arrangement commercial facts need independent mandate lineage of their own", whereas the locked question reads "only where necessary to preserve pre-arrangement authority provenance, must optional Market Activity / Opportunity / Proposal context carry direct mandate lineage of its own?".
+- Protocol fact: Publisher V1.1 cannot alter the bytes of a pushed staged new decision through a replacement semantic basis (that would be `SEMANTIC_CHANGE_REQUIRES_NEW_DELTA`), and the published decision's substantive content is immutable except for its lifecycle `Status:` line (`DECISIONS.md`, *Immutability of entry content*).
+- Control Room adjudication: the Adjudication field below.
+
+Conflicts: None in the architecture. The only corrected conflict is the durable Question wording of `DECISION-20260929-004`.
+
+Authority required:
+- `CONTROL_ROOM`, for the correction adjudication;
+- machine-verifiable fact, for repository and publication facts;
+- no Owner decision is required. This remains a Control Room correction, not a new product choice.
+
+Adjudication: The Control Room found that `DECISION-20260929-004` carried the correct terminal NG-5 architecture but recorded a shortened normalization of the locked NG-5 question. It ACCEPTS `DECISION-20260929-005` as the corrected durable decision: it carries the exact locked Question, restates the architecture of `DECISION-20260929-004` without change of meaning, and supersedes it solely to preserve question provenance. The zero-or-one architecture, the H0–H3 disposition and every implementation boundary are unchanged. The correction becomes canonical only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-005` is added as the governing durable NG-5 decision.
+- `DECISION-20260929-004` moves from ACTIVE to SUPERSEDED by `DECISION-20260929-005`; no other field of it changes, and its publication receipt stays as sealed.
+- `CURRENT-STATE.md` cites `DECISION-20260929-005` for NG-5, and its latest published delta becomes `DELTA-20260929-007`.
+- No architecture conclusion changes.
+
+Supersedes: `DECISION-20260929-004`, solely for the correction-chain purpose above.
+
+Unchanged:
+- The NG-5 zero-or-one architecture and the H0–H3 disposition.
+- NG-5 remains CLOSED.
+- The exact commercial ↔ mandate cardinality remains closed.
+- NG-1 through NG-4 and their decisions.
+- `DECISION-20260929-003` as the Owner authorization for NG-5 research/design.
+- The deferred questions listed as Open in `DECISION-20260929-005`.
+- Build 97 and all implementation behavior.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-6 remains unauthorized and not begun.
+
+Open / unresolved questions:
+- The deferred items listed as Open in `DECISION-20260929-005`, which are the same as in `DECISION-20260929-004`.
+- None of these blocks the correction.
+
+Forbidden implications: This delta does **not**:
+- reopen NG-5;
+- change zero-or-one cardinality;
+- change H0–H3 disposition;
+- authorize implementation;
+- authorize schema/API/domain expansion;
+- authorize migrations;
+- change commission architecture;
+- authorize NG-6.
+
+Publication receipt: Pending

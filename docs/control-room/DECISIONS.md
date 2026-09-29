@@ -749,3 +749,87 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is the recorder/executor only, not the authority.
 
 Publication receipt: 443624084ea3a6d3b33f49d15b5549b5350b46dc on origin/operational-regression-gate; remote readback verified 2026-09-29T20:44:33Z
+
+## DECISION-20260929-005
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: CONTROL_ROOM
+
+Question: What is the minimum neutral-core semantic lineage contract between Representation Mandate(s) and Commercial Arrangement(s), including allowed cardinality, lineage roles where more than one mandate participates, temporal/historical anchoring, and the semantics of a commercial fact for which no valid mandate can be established; and, only where necessary to preserve pre-arrangement authority provenance, must optional Market Activity / Opportunity / Proposal context carry direct mandate lineage of its own?
+
+Decision: NG-5 — Mandate–Commercial Lineage Architecture is terminally accepted as a conceptual architecture stage:
+1. The neutral-core mandate-to-commercial-arrangement contract is **ZERO OR ONE**. Each Commercial Arrangement has conceptual direct lineage to zero or one Representation Mandate. From the other direction, one Representation Mandate may govern or provide lineage for any number of Commercial Arrangements. This is a semantic architecture decision only; it does not select a database relation, FK, persistence strategy, API shape or implementation mechanism.
+2. When a valid Representation Mandate is established for a Commercial Arrangement, the lineage is to the specific historical Mandate relevant to that Arrangement's authority provenance. It must not be silently re-derived from the current Representation/Mandate, from represented-subject identity alone, or from a later successor relationship. A later mandate does not rewrite the historical lineage of an earlier commercial fact.
+3. Zero mandate lineage is a legitimate Commercial Arrangement state. AgencyOS must be able to record a real commercial fact without fabricating agency authority. Semantic absence must distinguish an affirmative conclusion that no valid mandate is established for the fact from authority provenance that is unknown, unresolved or not yet established. This decision does not fix final enum names or persistence mechanics.
+4. Market Activity / Opportunity / Proposal / Offer or another pre-arrangement commercial-negotiation fact may carry its own zero-or-one Representation Mandate lineage when the authority provenance of that fact is independently material. Such lineage is fact-local. It is not automatically inherited from a later Commercial Arrangement, and a later Arrangement must not retroactively rewrite an earlier fact's mandate provenance. The capability is optional: NG-5 does not make Opportunity or Proposal universal mandatory parents.
+5. Successive representation must preserve historical provenance. If commercial activity occurred under Mandate A and a later commercial fact occurred under Mandate B, each fact remains anchored to the mandate relevant to that fact. Post-termination commission rights, tail commissions, renewal commissions, management commissions or other economic consequences do not by themselves create an additional Commercial-Arrangement mandate lineage. Representation authority remains distinct from economic entitlement under `DECISION-20260928-001` and `DECISION-20260928-004`.
+6. Multiple represented principals, several agents around one project, or one legal instrument containing several performers do not by themselves justify several Representation Mandates on one Commercial Arrangement. A legal instrument may cover several Commercial Arrangements; that question remains mechanically deferred from NG-3. A multi-client project or multi-musician instrument therefore must not be used as automatic justification for a raw many-to-many mandate/arrangement model.
+7. A several-mandate, role-typed Commercial Arrangement relation is NOT justified in the present neutral core. It is reconsidered only if future concrete evidence proves a case in which: one canonical Commercial Arrangement remains indivisible after valid semantic decomposition; the apparent multiplicity is not merely several represented principals, several arrangements under one instrument, transaction participation, legal-party structure or economic-entitlement provenance; and limiting the Arrangement to one mandate lineage would lose materially correct authority provenance. That is the explicit H3 reconsideration trigger.
+8. Hypothesis disposition:
+   - H0 — derive-only / no direct Commercial-Arrangement mandate relation: REJECTED.
+   - H1 — exactly one mandate lineage for every Commercial Arrangement: REJECTED.
+   - H2 — zero or one mandate lineage: ACCEPTED as the current minimum neutral-core contract.
+   - H3 — several role-differentiated mandate lineages: NOT JUSTIFIED NOW; retained only as the reconsideration case described in 7.
+9. The deferred items listed under Open are not decided by NG-5.
+10. No product code, migrations, schema/API/domain expansion, repair of Build-97 RepresentationId/FK weaknesses, commission redesign, generic Entity/Party/SubjectId/Transaction abstraction, universal JSON/property bags, universal role vocabularies, universal rules engine, runtime plugins or NG-6 work is approved by this decision.
+
+Scope: The same conceptual NG-5 mandate/commercial lineage architecture only. This correction changes durable question/provenance fidelity, not architecture. It does **not** implement the design, select persistence, schema, API or interface mechanics, or approve product code, migrations or NG-6.
+
+Evidence / provenance:
+- Correction chain: `DECISION-20260929-004` carried the correct terminal architecture, but its Question field was a shortened normalization of the locked Scope-Lock question: it omitted the clause on lineage roles where more than one mandate participates and weakened the precursor-lineage qualifier.
+- The Control Room identified that publication-record defect before treating NG-5 closure as terminally clean.
+- Publisher V1.1 does not permit changing the bytes of a pushed staged decision through a replacement basis, so the correction is preserved through this new decision and `DELTA-20260929-007` rather than by rewriting history.
+- All NG-5A/NG-5B evidence and the substantive architecture adjudication recorded in `DECISION-20260929-004` remain unchanged; that evidence is restated below.
+- `DECISION-20260928-001`: Representation Mandate is effective-dated bounded authority and remains distinct from transaction participation and economic entitlement.
+- `DECISION-20260928-002` and `DECISION-20260928-003`: the represented-subject family and typed subject reference boundary.
+- `DECISION-20260928-004`: the commercial model is a hybrid graph; Opportunity is optional; commercial activity requires conceptual mandate lineage; the exact commercial-to-mandate cardinality was explicitly left open.
+- `DECISION-20260929-002`: the NG-4 vertical extension architecture.
+- `DECISION-20260929-003`: the Owner authorization for NG-5 research/design only.
+- Build-97 source baseline at product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2` and the NG-5A source inspection: Build 97 does not provide enforceable ordinary commercial-chain mandate lineage, while downstream finance carries caller-supplied RepresentationId values without proving the future semantic contract.
+- WGA Franchise Agreement and Rider W (2021 forms), https://www.wga.org/uploadedfiles/employers_agents/agencies/franchise-agreement-2021.pdf and https://www.wga.org/uploadedfiles/employers_agents/agencies/rider-w-2021.pdf: Rider W §3.C.1, §3.C.2.b, §3.C.4 and §3.C.5 on post-termination contracts, renewals and improvements; Franchise Agreement §3.B.5.a–c on concurrent representation and project contexts.
+- American Federation of Musicians Booking Agent Agreement, https://www.afm.org/wp-content/uploads/2019/09/AFM-Booking-Agent-Agreement.pdf: §6(d) on effectiveness of exclusive retaining arrangements; §12(a) on rebooking attribution; §13(d) on termination of representational authority while preserving specified prior economic consequences; Schedule 1(A)(III) on the separate approved Personal Management Agreement commission.
+- AFM Form L-1, https://nashvillemusicians.org/sites/default/files/AFM%20L1.pdf: the multi-musician contract structure and clause 7 concerning participating musicians and their agent or agents.
+- Marathon Entertainment, Inc. v. Blasi, 42 Cal.4th 974 (2008), used narrowly for the distinction between real entertainment/employment facts and unlawful/unlicensed procurement; it is not a ruling about AgencyOS arrangement cardinality.
+- Control Room corrections to the NG-5B research report: commission-tail evidence proves historical/economic provenance but must not be conflated with multiple arrangement-authority lineages; AFM booking plus personal-management commission does not prove that one Commercial Arrangement requires two mandate lineages; a multi-musician L-1 instrument does not prove one multi-mandate Commercial Arrangement because one instrument may cover several arrangements; WGA §3.B.5.c does not itself prove that the same principal simultaneously crossed writer and rights-holder authority scopes in one event; H2 being unfalsified after valid decomposition is the reason it is the minimum accepted neutral-core contract, not a reason to expand to H3.
+- Claude research reports were evidence inputs only. The decision is the Control Room's.
+
+Consequences:
+- NG-5 remains CLOSED.
+- No architecture conclusion changes.
+- `DECISION-20260929-005` becomes the governing durable NG-5 decision after publication.
+- The exact commercial ↔ mandate cardinality remains closed.
+- H3 retains exactly the same reconsideration trigger, Decision item 7.
+
+Supersedes: DECISION-20260929-004
+
+Unchanged:
+- The complete semantic Decision of `DECISION-20260929-004`, restated above without change of meaning.
+- Build 97 and all implementation behavior.
+- NG-1 through NG-4 and their decisions, `DECISION-20260928-001` to `-004` and `DECISION-20260929-002`.
+- `DECISION-20260929-003` as the Owner authorization that allowed NG-5 research/design.
+- All deferred questions listed under Open.
+- No product implementation.
+- No schema, API or domain expansion.
+- No NG-6 authorization.
+
+Open:
+- Persisted versus derived umbrella Representation.
+- Mandate scope/exclusivity/territory placement mechanics.
+- Delegated/sub-agency topology.
+- Exact persistence/schema/API/interface mapping.
+- Exact agreement-snapshot representation.
+- Exact amount-determination record.
+- Exact multi-arrangement-instrument implementation.
+- Commission model and exact commission placement.
+- Ledger integration.
+- Company ↔ External Organization implementation.
+- Group persistence.
+- Successor mechanics beyond the historical-lineage invariant already decided.
+- NG-6 title, scope or authorization.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is the recorder/executor only, not the authority.
+
+Publication receipt: Pending
