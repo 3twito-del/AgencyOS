@@ -589,7 +589,17 @@ Authority required:
 
 Adjudication: The Control Room independently reviewed the NG-4A through NG-4E/F evidence and correction chain, re-verified the canonical branch and the decisive Build-97 source anchors, attempted terminal falsification, and ACCEPTS the semantic architecture described by `DECISION-20260929-002` as sufficient to close NG-4 once this publication reaches P7. No genuine Owner-reserved ambiguity remains. The accepted architecture includes the narrowings recorded in `DECISION-20260929-002`: Build-97 aggregate and technique shapes are precedents rather than invariants; C3 bridges require explicit reviewed expansion and zero-core-touch extensibility is not required; no durable finding category is approved; definition history is required without selecting a version or storage mechanism; and runtime plugins are not justified under current evidence.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260929-004
+  Semantic basis: a715e511cfa43dfc00a349f844d81ab6f7402314
+  CURRENT-STATE.next.md blob SHA-256: cc0df33a94585842ed4b00ac629cb534bf117151847a6d9f24a47a18f57af8ac
+  PUBLICATION-PAYLOAD.json blob SHA-256: 77351990fde195334babc370a15262919399e9a60300eb39e28895c848ed509f
+  Authorized: 2026-09-29T18:46:27Z
+  Reference: Adjudication of DELTA-20260929-004
+  Recorded by: Claude
 
 What changes if accepted:
 - `DECISION-20260929-002` is added as the durable NG-4 architecture decision.
