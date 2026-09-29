@@ -63,11 +63,11 @@ The closure register is not duplicated here.
 | NG-2 Subject Model & Boundary | CLOSED | `DECISION-20260928-003` |
 | NG-3 Commercial Chain Decomposition | CLOSED | `DECISION-20260928-004` |
 | NG-4 Vertical Extension Architecture | CLOSED | `DECISION-20260929-002` |
-| NG-5 | AUTHORIZED | `DECISION-20260929-003` |
+| NG-5 Mandate–Commercial Lineage Architecture | CLOSED | `DECISION-20260929-004` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
-Owner authorization for NG-5 research/design is `DECISION-20260929-003`. The authorization is research/design only. The exact NG-5 title and bounded substantive question remain to be established by the Control Room. No implementation, product code, schema/API/domain expansion or NG-6 authorization follows.
+NG-5 is CLOSED under `DECISION-20260929-004` after terminal Control Room architecture adjudication: each Commercial Arrangement has conceptual direct lineage to zero or one Representation Mandate, anchored to the specific historical mandate relevant to that fact's authority provenance; pre-arrangement facts may carry optional fact-local lineage; a several-mandate, role-typed relation is not justified now and is retained only as an explicit reconsideration trigger. `DECISION-20260929-003` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-6 authorization follows.
 
 ## Closed architecture decisions
 
@@ -76,6 +76,7 @@ Owner authorization for NG-5 research/design is `DECISION-20260929-003`. The aut
 - Typed represented-subject boundary: `DECISION-20260928-003`.
 - Hybrid commercial decomposition: `DECISION-20260928-004`.
 - Vertical Extension Architecture: `DECISION-20260929-002`.
+- Mandate–Commercial Lineage Architecture: `DECISION-20260929-004`.
 
 The decision text is in [`DECISIONS.md`](DECISIONS.md) and is not restated here.
 Operational-closure-specific decisions remain governed by the specialised closure record and are
@@ -97,7 +98,6 @@ not duplicated here.
 - exact storage and retention mechanics.
 
 **Commercial**
-- commercial ↔ mandate cardinality;
 - the agreement snapshot;
 - the amount-determination record;
 - multi-arrangement instruments;
@@ -108,10 +108,6 @@ not duplicated here.
 - exact persistence, schema, API, interface and module mechanics remain deferred;
 - any new C3 kind referenced by a shared/core role requires explicit reviewed bridge expansion;
 - Work/IP promotion to core remains evidence-triggered and is not decided merely by cross-vertical use.
-
-**NG-5**
-- the exact NG-5 title remains to be established;
-- the exact bounded NG-5 research/design question remains to be established before substantive research.
 
 ## Owner decisions
 
@@ -131,8 +127,8 @@ not duplicated here.
   implemented.
 - NG-4 is a conceptual architecture decision; no next-generation implementation exists, and exact
   implementation mechanics remain unselected.
-- NG-5 is authorized for research/design but no substantive NG-5 architecture research has yet
-  been completed or canonically accepted.
+- NG-5 is a conceptual architecture decision; no next-generation implementation exists, and exact
+  implementation mechanics remain unselected.
 
 ## Forbidden work
 
@@ -151,15 +147,13 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**The Control Room must define the exact bounded NG-5 research/design question and scope before substantive Claude research begins.**
+**Obtain explicit Owner authorization before beginning any post-NG-5 stage, including NG-6.**
 
-Once that scope is explicit, NG-5 research/design may proceed under `DECISION-20260929-003`.
-
-Until separately authorized:
-- do not implement NG-4 or NG-5 architecture;
-- do not expand product/schema/API/domain boundaries;
-- do not begin NG-6.
+Until such authorization is PUBLISHED:
+- do not begin NG-6 research/design;
+- do not implement the NG-4 or NG-5 architecture;
+- do not expand product/schema/API/domain boundaries.
 
 ## Latest published delta
 
-`DELTA-20260929-005`: PUBLISHED — Owner authorization for NG-5 research/design only under `DECISION-20260929-003`; the exact NG-5 research question remains to be defined; no implementation, schema/API/domain or NG-6 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260929-006`: PUBLISHED — NG-5 Mandate–Commercial Lineage Architecture closed under `DECISION-20260929-004` on the zero-or-one semantic contract; no implementation, schema/API/domain or NG-6 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
