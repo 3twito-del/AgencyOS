@@ -930,3 +930,91 @@ Forbidden implications: This delta does **not**:
 - authorize NG-6.
 
 Publication receipt: f1a648784999251485b1de71482ad8307dee740f on origin/operational-regression-gate; remote readback verified 2026-09-29T21:20:43Z
+
+## DELTA-20260929-008
+
+Status: ACCEPTED
+
+Detected: 2026-09-29T22:23:00Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner authorization recorded as `DECISION-20260929-006`.
+- The Control Room Scope Lock recorded as `DECISION-20260929-007`.
+- Canonical branch state `bd52078ec030cfab5399c3f18cc4a24104195b60` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+
+Prior claim: NG-5 is CLOSED under `DECISION-20260929-005`. No post-NG-5 stage, including NG-6, is authorized. NG-6 has no authorized title or bounded question.
+
+Candidate/new claim: The Owner has authorized NG-6 — Commercial Arrangement–Legal Instrument Composition Architecture for research/design only under `DECISION-20260929-006`. The Control Room has established the exact bounded Scope Lock under `DECISION-20260929-007`. Once this delta reaches PUBLISHED, NG-6 research/design may begin, the first substantive work is NG-6A, no implementation, schema, API, domain or migration authority follows, and NG-7 remains unauthorized.
+
+Claimed transition: NG-6 UNAUTHORIZED / NOT BEGUN → NG-6 AUTHORIZED FOR RESEARCH/DESIGN ONLY / SCOPE LOCKED.
+
+Scope: Governance authorization and scope-lock publication only. This transition performs no NG-6 research/design itself and makes no architecture conclusion. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable canonical repository state: HEAD `bd52078ec030cfab5399c3f18cc4a24104195b60` (`Publish DELTA-20260929-007`); `CURRENT-STATE.md` there records NG-5 as CLOSED under `DECISION-20260929-005`, requires explicit Owner authorization before any post-NG-5 stage including NG-6, and lists "the agreement snapshot" and "multi-arrangement instruments" as open Commercial questions.
+- Published governance: `DECISION-20260928-004` left the exact Agreement Snapshot representation and one Legal Instrument covering several Arrangements open; `DECISION-20260929-005` closed mandate-to-commercial lineage and kept the legal-instrument composition question deferred.
+- Explicit Owner decision: recorded, with the Owner's exact response, as `DECISION-20260929-006`.
+- Control Room Scope Lock: recorded as `DECISION-20260929-007`; no new external/domain research was performed in creating it.
+- No product-code, schema, API, domain or migration change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `OWNER`, for the NG-6 stage authorization;
+- `CONTROL_ROOM`, for the exact Scope Lock;
+- machine-verifiable fact, for repository and publication facts.
+
+Adjudication: The Owner explicitly approved the Control Room's question whether to define NG-6 around Commercial Arrangement–Legal Instrument Composition Architecture for research/design only, by replying “מאשר.” The Control Room normalizes that approval narrowly as authorization for NG-6 research/design only, and establishes the exact bounded Scope Lock recorded in `DECISION-20260929-007` before any substantive NG-6 research. No implementation, schema, API, domain or migration authority is inferred. The authorization and Scope Lock become canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-006` becomes the durable Owner authorization for NG-6 research/design.
+- `DECISION-20260929-007` becomes the durable NG-6 Scope Lock.
+- `CURRENT-STATE.md` records NG-6 Commercial Arrangement–Legal Instrument Composition Architecture as AUTHORIZED under `DECISION-20260929-006`, with its Scope Lock in `DECISION-20260929-007`.
+- The open Agreement Snapshot and multi-arrangement-instrument questions are preserved as the subject of NG-6, not resolved.
+- The exact next bounded action becomes beginning NG-6A — Canonical & Build-97 Legal-Composition Baseline.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that no post-NG-5 stage, including NG-6, is authorized. It supersedes no Decision ID.
+
+Unchanged:
+- Operational Closure remains terminal.
+- Self-Update V1 remains terminal.
+- NG-1 through NG-5 remain CLOSED.
+- `DECISION-20260929-005` remains the governing NG-5 architecture decision.
+- Build 97 released product identity.
+- Every unrelated deferred question.
+- All forbidden generic abstractions and boundaries already established.
+- No product change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-7 remains unauthorized and not begun.
+
+Open / unresolved questions:
+- The final NG-6 architecture conclusion, including the evidence and adjudication of L0–L3 and S0–S2.
+- Any genuinely underdetermined case within the locked question.
+- Any genuine Owner-reserved ambiguity found by the bounded research.
+- All questions explicitly excluded by `DECISION-20260929-007`.
+
+Forbidden implications: This delta does **not**:
+- reopen NG-5;
+- implement NG-4, NG-5 or NG-6;
+- approve schema/API/domain expansion;
+- approve migrations;
+- decide Arrangement↔Legal Instrument cardinality;
+- decide Agreement Snapshot persistence or representation;
+- approve many-to-many composition;
+- create a generic Contract/Transaction/Entity/Party abstraction;
+- approve a universal rights ontology;
+- decide amount determination;
+- decide commission architecture;
+- decide ledger integration;
+- authorize NG-7;
+- make Claude a semantic authority.
+
+Publication receipt: Pending

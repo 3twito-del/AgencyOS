@@ -833,3 +833,291 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is the recorder/executor only, not the authority.
 
 Publication receipt: 353961b2097be8429b308d103215f52c6db1af63 on origin/operational-regression-gate; remote readback verified 2026-09-29T21:20:43Z
+
+## DECISION-20260929-006
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: OWNER
+
+Question: Should AgencyOS begin NG-6 — Commercial Arrangement–Legal Instrument Composition Architecture for research/design only, while implementation and product/schema/API/domain expansion remain unauthorized?
+
+Decision: The Owner explicitly approves beginning **NG-6 — Commercial Arrangement–Legal Instrument Composition Architecture for research/design only**.
+
+Owner response: “מאשר.”
+
+The response is normalized only in the context in which it was given: the Control Room had asked whether the Owner approved defining NG-6 around Commercial Arrangement–Legal Instrument Composition Architecture for research/design only. The Owner's accompanying request about when to send a new-chat handoff is not additional semantic product authority.
+
+Scope:
+- Authorizes NG-6 research and design only after this decision and its accompanying canonical transition are fully PUBLISHED.
+- Allows bounded evidence gathering, canonical/source inspection, primary-source domain research, falsification and conceptual architecture analysis within the Control Room Scope Lock recorded in `DECISION-20260929-007`.
+- Does not authorize implementation.
+- Does not authorize product-code changes.
+- Does not authorize schema, API or domain expansion.
+- Does not authorize migrations.
+- NG-7 and any later stage remain unauthorized.
+- Does not pre-approve the eventual NG-6 architecture conclusion.
+- Any genuine Owner-reserved product/strategy ambiguity discovered by NG-6 returns to the Owner.
+
+Evidence / provenance:
+- Explicit Owner approval in the Control Room conversation on 2026-09-29.
+- The immediately preceding Control Room question asked whether the Owner approved defining NG-6 around Commercial Arrangement–Legal Instrument Composition Architecture for research/design only.
+- The Owner replied: “מאשר.”
+- `docs/control-room/CURRENT-STATE.md` at `bd52078ec030cfab5399c3f18cc4a24104195b60` states that explicit Owner authorization is required before any post-NG-5 stage, including NG-6.
+- `DECISION-20260929-005` and `DELTA-20260929-007` canonically close NG-5 and leave NG-6 unauthorized.
+- Claude is recorder/executor only and is not decision authority.
+
+Consequences:
+- Once the accompanying delta is PUBLISHED, NG-6 research/design may begin under `DECISION-20260929-007`'s exact Scope Lock.
+- No implementation authority follows.
+- The first bounded substantive work is NG-6A — Canonical & Build-97 Legal-Composition Baseline.
+
+Supersedes: None
+
+Unchanged:
+- Operational Closure remains terminal.
+- Self-Update V1 remains terminal.
+- NG-1 through NG-5 remain CLOSED.
+- `DECISION-20260929-005` remains the governing NG-5 architecture decision.
+- Build 97 remains the released product identity.
+- No product behavior changes.
+- No schema/API/domain expansion.
+- No implementation.
+- All questions outside the NG-6 Scope Lock remain deferred.
+- NG-7 remains unauthorized.
+
+Open:
+- The final NG-6 architecture conclusion.
+- Any genuine Owner-reserved ambiguity found by the bounded research.
+- All questions explicitly excluded by `DECISION-20260929-007`.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction normalized by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
+
+## DECISION-20260929-007
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: CONTROL_ROOM
+
+Question: What exact bounded research/design question, falsification boundary and exit criteria govern NG-6 under DECISION-20260929-006?
+
+Decision: NG-6 is scope-locked as:
+
+**NG-6 — Commercial Arrangement–Legal Instrument Composition Architecture**
+
+**BOUND QUESTION**
+
+What is the minimum neutral-core semantic contract among Commercial Arrangement(s), Agreement Snapshot(s), and Legal Instrument(s), including whether a Commercial Arrangement may exist before or without a governing Legal Instrument; the allowed Arrangement↔Legal Instrument cardinality in both directions, including amendment, replacement and supplemental instruments and one instrument covering more than one Arrangement; the temporal/historical anchoring required so later instruments do not silently rewrite earlier commercial or legal truth; and what Agreement Snapshot canonically represents without collapsing it into proposal/offer, Legal Instrument, rights-grant, economic-obligation or payment truth?
+
+**IN SCOPE**
+
+1. The semantic distinction among:
+   - Commercial Arrangement;
+   - Agreement Snapshot;
+   - Legal Instrument.
+2. Whether a Commercial Arrangement may exist:
+   - before a governing Legal Instrument exists;
+   - while an instrument is unexecuted/incomplete;
+   - or without a formal governing instrument.
+3. Arrangement ↔ Legal Instrument cardinality in BOTH directions.
+4. One Commercial Arrangement affected over time by:
+   - an original instrument;
+   - amendment;
+   - restatement;
+   - replacement;
+   - supplemental instrument;
+   - side letter, rider or schedule where evidence shows it has independent legal significance.
+5. One Legal Instrument covering more than one apparent Commercial Arrangement.
+6. The decomposition question: when one real-world document/event appears to contain several commercial relationships, determine whether neutral truth is:
+   - one Arrangement;
+   - several related Arrangements;
+   - or underdetermined by current evidence.
+7. Historical/temporal anchoring sufficient to prevent:
+   - a later amendment from silently rewriting prior commercial truth;
+   - a replacement instrument from erasing prior legal truth;
+   - current legal state from being substituted for historical state.
+8. The semantic role of Agreement Snapshot:
+   - what commercial truth it represents;
+   - whether it is canonical truth or only a derived presentation;
+   - what historical meaning must remain resolvable;
+   - without choosing persistence or aggregate shape.
+9. Rights grants, options, obligations and economic facts only as boundary tests necessary to prove they remain distinct from Arrangement / Snapshot / Instrument truth.
+
+**OUT OF SCOPE**
+
+Do NOT solve or select:
+- exact persistence;
+- database tables or FKs;
+- EF mappings;
+- schema;
+- API payloads;
+- interfaces/classes/module layout;
+- document storage;
+- e-signature infrastructure;
+- signature workflow;
+- clause extraction;
+- document AI;
+- approval workflow;
+- template-management architecture;
+- a general legal-enforceability engine;
+- jurisdiction-wide legal compliance architecture;
+- a universal rights ontology;
+- exact rights-grant implementation;
+- amount-determination persistence;
+- commission model or commission placement;
+- receivables;
+- invoices;
+- payments;
+- allocations;
+- ledger/accounting integration;
+- mandate scope/exclusivity/territory mechanics;
+- delegated/sub-agency topology;
+- Company ↔ External Organization implementation;
+- Group persistence;
+- product implementation;
+- migrations;
+- NG-7.
+
+Do not reopen NG-1 through NG-5 absent genuine contradictory canonical evidence.
+
+**GOVERNING DISTINCTIONS TO PRESERVE**
+
+Preserve all previously closed distinctions:
+- proposal/offer ≠ Commercial Arrangement;
+- Agreement Snapshot ≠ Legal Instrument truth;
+- Legal Instrument ≠ Rights Grant;
+- legal/operational obligation ≠ receivable;
+- payment ≠ allocation/application;
+- ledger/accounting ≠ upstream commercial/legal truth;
+- subject identity ≠ representation authority;
+- representation authority ≠ economic entitlement;
+- one real-world document ≠ automatically one Commercial Arrangement;
+- several represented people ≠ automatically one multi-principal Arrangement;
+- one Legal Instrument covering several facts does not automatically justify a generic many-to-many abstraction.
+
+**FALSIFICATION MODELS**
+
+Test these candidate models. Do not select a winner before evidence.
+- L0 — COLLAPSE: Commercial Arrangement and Legal Instrument can be treated as the same semantic fact; Agreement Snapshot need not be independently meaningful.
+- L1 — OPTIONAL ONE-TO-ONE: A Commercial Arrangement exists independently and may have zero or one governing Legal Instrument; each Legal Instrument belongs to exactly one Commercial Arrangement.
+- L2 — ONE-ARRANGEMENT / MULTI-INSTRUMENT HISTORY: A Commercial Arrangement exists independently and may relate to multiple Legal Instruments over time, but every Legal Instrument belongs to exactly one Commercial Arrangement.
+- L3 — COMPOSITION: A Commercial Arrangement may relate to multiple Legal Instruments, and a Legal Instrument may cover multiple Commercial Arrangements. If evidence supports this, determine what semantic differentiation/history is required and do not default to a raw many-to-many relation.
+
+A model is not falsified merely because a more flexible model is convenient. Before accepting evidence for L3, challenge whether the correct neutral decomposition is several Arrangements under one Legal Instrument.
+
+**AGREEMENT-SNAPSHOT AXIS**
+
+Independently test:
+- S0 — Agreement Snapshot is only a derived/presentation view and needs no independently meaningful canonical commercial semantics.
+- S1 — Agreement Snapshot represents canonical agreed commercial terms distinct from Legal Instrument truth, but one current semantic state is sufficient.
+- S2 — historical Agreement Snapshot semantics are required because commercial terms can change or be superseded without permitting later state to rewrite earlier commercial truth.
+
+Do not interpret S1 or S2 as a storage/versioning decision.
+
+**REQUIRED FALSIFICATION CASES**
+
+Test, where evidence exists:
+1. Arrangement before governing instrument.
+2. Commercially or legally meaningful bargain without a formal executed instrument.
+3. One Arrangement followed by amendment/restatement/replacement.
+4. Main agreement plus side letter/rider/schedule with independently material legal effect.
+5. One document/instrument covering several engagements, principals or apparent commercial arrangements.
+6. Decomposition challenge for that multi-arrangement document.
+7. Negotiated/agreed commercial terms differing from the later executed instrument.
+8. A later instrument changing only part of the relationship while historical prior truth must remain explainable.
+9. A superseded/terminated instrument whose historical relation must remain intact.
+10. Rights/option/obligation provisions embedded in an instrument without making those downstream facts identical to the instrument itself.
+
+**RESEARCH BOUNDARY**
+
+Use exactly TWO vertical contexts for cross-vertical falsification:
+- A. Film/TV representation — reference vertical.
+- B. Live music / artist booking representation — contrast vertical.
+
+Do not add a third vertical merely for confidence or breadth. If an important case remains unproved after those two, mark it UNPROVED or UNDERDETERMINED. Do not silently broaden the stage.
+
+**BUILD-97 DISCIPLINE**
+
+Pin Build-97 source evidence to `b3f41bfd68e81ab42da899671f58e01f0988d3d2`. Do not assume:
+- Build-97 Deal == canonical Commercial Arrangement;
+- Build-97 Contract == future canonical Legal Instrument;
+- Build-97 ContractVersion/Offer/RightsGrant shapes, if present, are universal future architecture.
+
+Inspect them as predecessor evidence only. Later product code is not Build-97 source evidence.
+
+**SUBSTAGES**
+
+- NG-6A — Canonical & Build-97 Legal-Composition Baseline: factual only; inspect governing decisions and Build-97 commercial/legal topology; identify what is persisted, derived, coupled or absent; no architecture verdict.
+- NG-6B — Cross-Vertical Composition Falsification: Film/TV + live music/booking; primary-source evidence preferred; test L0–L3 and S0–S2; no implementation design.
+- NG-6C — Control Room Architecture Adjudication: Control Room synthesizes the minimum surviving neutral-core semantic contract; challenge unnecessary generality; preserve all closed NG-1–NG-5 distinctions; decide CLOSED / genuine OWNER DECISION REQUIRED / one targeted residual correction.
+- NG-6D — OPTIONAL ONLY IF NEEDED: at most one focused evidence prompt for a concrete unresolved contradiction; not automatic; no third-vertical census.
+
+**PROMPT BUDGET**
+
+Initial substantive research/design budget: approximately 3–4 Claude prompts. Publication/execution prompts do not count as substantive research prompts.
+
+**OWNER-DECISION RULE**
+
+Do not send ordinary architecture questions to the Owner merely because several implementation shapes are possible. Owner decision is required only if bounded evidence leaves genuine surviving product/strategy alternatives within Owner-reserved authority. A contradiction with a closed decision is a correction-chain event, not an Owner preference poll.
+
+**EXIT CRITERIA**
+
+NG-6 is READY TO CLOSE only when all are true:
+1. Arrangement / Agreement Snapshot / Legal Instrument semantic boundaries are clear.
+2. The semantics of an Arrangement before/without a governing instrument are clear.
+3. Arrangement→Instrument cardinality is clear.
+4. Instrument→Arrangement cardinality is clear.
+5. Amendment/restatement/replacement history semantics are clear.
+6. Multi-arrangement-instrument decomposition is clear enough to reject unexplained raw many-to-many modeling.
+7. Agreement Snapshot's neutral-core semantic role is clear.
+8. Historical truth cannot be silently rewritten by later instruments or snapshots.
+9. Rights-grant and economic facts remain distinct.
+10. The contract survives Film/TV and live-music evidence or limitations are explicitly bounded.
+11. No unexplained conflict with NG-1 through NG-5 remains.
+12. Exact persistence/schema/API/interface/storage mechanics remain unselected.
+13. All unrelated deferred questions remain explicitly deferred.
+
+NG-6 becomes CLOSED only after terminal Control Room adjudication is canonically PUBLISHED. Green tests, Claude confidence or a research report cannot close the stage.
+
+Scope: Conceptual NG-6 research/design governance only. No implementation authority.
+
+Evidence / provenance:
+- `DECISION-20260928-004` established the hybrid commercial architecture and explicitly left open: exact Agreement Snapshot representation; one Legal Instrument covering several Arrangements.
+- `DECISION-20260929-005` closed mandate-to-commercial lineage while preserving the legal-instrument composition question as deferred.
+- `docs/control-room/CURRENT-STATE.md` at `bd52078ec030cfab5399c3f18cc4a24104195b60` still lists Agreement Snapshot and multi-arrangement instruments as open Commercial questions.
+- `DECISION-20260929-006` supplies Owner authority for NG-6 research/design.
+- The Control Room established this bounded Scope Lock before any substantive NG-6 research.
+- No new external/domain research was performed in creating this Scope Lock.
+
+Consequences:
+- Once `DELTA-20260929-008` is fully PUBLISHED, NG-6A may begin.
+- The Scope Lock must not be reopened merely because research reveals interesting adjacent questions.
+- Adjacent defects/questions are recorded but do not broaden NG-6 automatically.
+- No implementation follows.
+
+Supersedes: None
+
+Unchanged:
+- NG-1 through NG-5 architecture decisions.
+- Operational Closure.
+- Self-Update V1.
+- Build 97 product identity and behavior.
+- All unrelated deferred questions.
+- No product/schema/API/domain/migration authority.
+- NG-7 remains unauthorized.
+
+Open:
+- The evidence and final adjudication of L0–L3.
+- The evidence and final adjudication of S0–S2.
+- Any genuinely underdetermined case within the locked question.
+- The exact implementation mechanics, which remain deferred even after NG-6 architecture closure.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
