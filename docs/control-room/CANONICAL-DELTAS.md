@@ -969,7 +969,17 @@ Authority required:
 
 Adjudication: The Owner explicitly approved the Control Room's question whether to define NG-6 around Commercial Arrangement–Legal Instrument Composition Architecture for research/design only, by replying “מאשר.” The Control Room normalizes that approval narrowly as authorization for NG-6 research/design only, and establishes the exact bounded Scope Lock recorded in `DECISION-20260929-007` before any substantive NG-6 research. No implementation, schema, API, domain or migration authority is inferred. The authorization and Scope Lock become canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20260929-008
+  Semantic basis: 575ad86afea73d962c51a0348bfe774dd0f643e4
+  CURRENT-STATE.next.md blob SHA-256: f2466157806d6b64243d08d6958b249e836a2e5bd92d791f2ad260b138526519
+  PUBLICATION-PAYLOAD.json blob SHA-256: c19365faacb088fcb5f0c35d3be673fc36e2d76c761674b6ef9b30eb92c7deb5
+  Authorized: 2026-09-29T22:31:43Z
+  Reference: Adjudication of DELTA-20260929-008
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260929-006` becomes the durable Owner authorization for NG-6 research/design.
