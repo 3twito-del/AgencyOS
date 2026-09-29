@@ -740,3 +740,96 @@ Forbidden implications: This delta does **not**:
 - imply Owner approval of an as-yet-unwritten implementation plan.
 
 Publication receipt: 4d5f6ad421b4a6630e35cdc8abc493dba80c43c9 on origin/operational-regression-gate; remote readback verified 2026-09-29T19:17:36Z
+
+## DELTA-20260929-006
+
+Status: ACCEPTED
+
+Detected: 2026-09-29T20:26:52Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `fc4ae8555fd4b8f7b91b7e2f9ab9f550e3a640f9` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, whose `src/` and `docs/adr/` are byte-identical at that SHA.
+- The bounded NG-5 research chain NG-5A and NG-5B, adjudicated by the Control Room and recorded as `DECISION-20260929-004`.
+
+Prior claim: NG-5 is AUTHORIZED for research/design under `DECISION-20260929-003`; its exact title and bounded question remain to be established; the exact commercial ↔ mandate cardinality is an open question.
+
+Candidate/new claim: NG-5 — Mandate–Commercial Lineage Architecture has reached a terminal conceptual architecture conclusion under `DECISION-20260929-004`: each Commercial Arrangement has conceptual direct lineage to zero or one Representation Mandate; established lineage is to the specific historical mandate relevant to the fact's authority provenance and is never silently re-derived; zero lineage is a legitimate state that distinguishes "no valid mandate established" from "provenance unknown or unresolved"; pre-arrangement facts may carry optional fact-local zero-or-one lineage; a several-mandate, role-typed relation is not justified now and is retained only as the explicit H3 reconsideration trigger. NG-5 becomes CLOSED only when this transition is PUBLISHED. Product code, implementation, schema/API/domain expansion and NG-6 remain unauthorized.
+
+Claimed transition: NG-5 AUTHORIZED / RESEARCH-DESIGN OPEN → NG-5 MANDATE–COMMERCIAL LINEAGE ARCHITECTURE CLOSED.
+
+Scope: Canonical publication of the Control Room's terminal NG-5 architecture adjudication only. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `fc4ae8555fd4b8f7b91b7e2f9ab9f550e3a640f9` (`Publish DELTA-20260929-005`), with `DECISION-20260929-003` ACTIVE and `DELTA-20260929-005` PUBLISHED;
+  - `CURRENT-STATE.md` there lists "commercial ↔ mandate cardinality" as an open question.
+- Build-97 source evidence (NG-5A, product commit `b3f41bf`):
+  - the ordinary commercial chain Opportunity → target → Deal → Offer → Contract → MonetaryObligation carries no representation or mandate reference; the Deal's subject is read through the opportunity (ADR-0021);
+  - `commission_rules`, `commission_entitlements` and `receivables` carry caller-supplied `representation_id` values with no foreign key (`src/AgencyOS.Infrastructure/Persistence/Migrations/20260908071739_FinanceLedgerAndCommissions.cs`; `src/AgencyOS.Application/Finance/CommissionCommands.cs`).
+- External domain evidence (NG-5B):
+  - WGA Rider W 2021 §3.C.1, §3.C.2.b, §3.C.4, §3.C.5 and WGA Franchise Agreement 2021 §3.B.5.a–c (https://www.wga.org/uploadedfiles/employers_agents/agencies/rider-w-2021.pdf; https://www.wga.org/uploadedfiles/employers_agents/agencies/franchise-agreement-2021.pdf);
+  - AFM Booking Agent Agreement §6(d), §12(a), §13(d) and Schedule 1(A)(III) (https://www.afm.org/wp-content/uploads/2019/09/AFM-Booking-Agent-Agreement.pdf);
+  - AFM Form L-1 clause 7 (https://nashvillemusicians.org/sites/default/files/AFM%20L1.pdf);
+  - Marathon Entertainment, Inc. v. Blasi, 42 Cal.4th 974 (2008), used narrowly for the distinction between real entertainment/employment facts and unlawful/unlicensed procurement.
+- Control Room semantic adjudication: the Adjudication field below, recorded as `DECISION-20260929-004`.
+
+Conflicts: None that survive adjudication. The correction chain is preserved:
+- commission-tail evidence proves historical/economic provenance but is not conflated with multiple arrangement-authority lineages;
+- AFM booking plus personal-management commission does not prove that one Commercial Arrangement requires two mandate lineages;
+- a multi-musician L-1 instrument does not prove one multi-mandate Commercial Arrangement, because one instrument may cover several arrangements;
+- WGA §3.B.5.c does not itself prove that the same principal simultaneously crossed writer and rights-holder authority scopes in one event;
+- H2 being unfalsified after valid decomposition is the reason it is the minimum accepted neutral-core contract, not a reason to expand to H3.
+
+Authority required:
+- `CONTROL_ROOM`, for the semantic architecture adjudication and stage completion;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required. `DECISION-20260929-003` remains the Owner authorization provenance that allowed NG-5 research/design.
+
+Adjudication: The Control Room independently reviewed the NG-5A source baseline and the NG-5B cross-vertical falsification evidence, applied the corrections recorded under Conflicts, and ACCEPTS the zero-or-one Mandate–Commercial Arrangement lineage contract described by `DECISION-20260929-004` as the minimum neutral-core semantic contract, sufficient to close NG-5 once this publication reaches P7. H0 and H1 are rejected, H2 is accepted, and H3 is not justified now and is retained only as the explicit reconsideration trigger. No genuine Owner-reserved ambiguity remains.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-004` is added as the durable NG-5 architecture decision.
+- `CURRENT-STATE.md` records NG-5 Mandate–Commercial Lineage Architecture as CLOSED.
+- The open question "commercial ↔ mandate cardinality" is closed by `DECISION-20260929-004`, and the stale NG-5 title/question open items are removed.
+- The next bounded action becomes obtaining explicit Owner authorization before beginning any post-NG-5 stage, including NG-6.
+- No implementation authority follows.
+
+Supersedes: The current-state claims that NG-5's title and bounded question remain to be established and that the commercial ↔ mandate cardinality is open. It supersedes no prior Decision ID.
+
+Unchanged:
+- Build 97 released product identity and all implementation behavior.
+- Operational Closure remains terminal.
+- Self-Update V1 remains terminal.
+- NG-1 through NG-4 remain CLOSED; `DECISION-20260928-001` to `-004` and `DECISION-20260929-002` remain in force.
+- `DECISION-20260929-003` remains the Owner authorization that allowed NG-5 research/design.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-6 remains unauthorized and not begun.
+
+Open / unresolved questions:
+- The deferred items listed as Open in `DECISION-20260929-004` remain open.
+- None of these blocks NG-5 closure.
+
+Forbidden implications: This delta does **not**:
+- authorize product implementation;
+- authorize schema/API/domain expansion;
+- authorize migrations;
+- authorize NG-6;
+- select a database relation, FK, persistence strategy or API shape;
+- require a mandate for every Commercial Arrangement;
+- make Opportunity or Proposal a universal mandatory parent;
+- approve a raw many-to-many mandate/arrangement model;
+- approve a generic Entity, Party, SubjectId or Transaction;
+- repair Build-97 RepresentationId/FK weaknesses;
+- redesign commission;
+- make Claude an architecture authority.
+
+Publication receipt: Pending
