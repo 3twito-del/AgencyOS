@@ -354,11 +354,11 @@ Publication receipt: 5f88fbe1a046b8c5ee303dafb2a83e48a0965529 on origin/operatio
 
 ## DELTA-20260929-002
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-29T14:37:00Z
 
-Published: Pending
+Published: 2026-09-29T15:18:09Z
 
 Sources:
 - Canonical branch state `3331ea0481304385ad199d1cdf5317cb02997d91`.
@@ -441,4 +441,4 @@ Forbidden implications: This delta does **not**:
 - reopen operational closure;
 - alter any prior architecture decision.
 
-Publication receipt: Pending
+Publication receipt: 6aa7444350ea382fe1800009f5ef7c235063c662 on origin/operational-regression-gate; remote readback verified 2026-09-29T15:18:09Z

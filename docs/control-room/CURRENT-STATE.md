@@ -48,10 +48,10 @@ The closure register is not duplicated here.
 
 ## Self-Update V1
 
-- **Detector:** IMPLEMENTED — read-only canonical evidence detector with local Canonical Alert rendering.
-- **Publisher:** IMPLEMENTED — payload v1.1, fixture-validated and exact-commit CI-verified at `c12190961aa1dfe8cfa2658db69b308d969bcc10` by CI run `36532575195` (#110, `workflow_dispatch`, success).
-- **Real canonical dogfood:** `DELTA-20260929-001` is the bounded first real Publisher transition. If and only if that delta reaches `PUBLISHED` through successful P7 remote readback, this statement records the real canonical dogfood as PASS. Before P7, staged text is non-authoritative.
-- **Terminal acceptance:** PENDING CONTROL ROOM REVIEW of the Publisher receipt and post-publication whole-surface consistency. NG-4 remains not authorized and has not begun.
+- **Detector:** IMPLEMENTED — read-only canonical evidence detector with local Canonical Alert rendering; post-dogfood alert/state semantics hardened at `3331ea0481304385ad199d1cdf5317cb02997d91` and exact-commit CI-verified by run `36581526345` (#111, `workflow_dispatch`, success).
+- **Publisher:** IMPLEMENTED — payload v1.1, fixture-validated, real canonical dogfood verified by `DELTA-20260929-001`, and post-dogfood hardened at `3331ea0481304385ad199d1cdf5317cb02997d91` with exact-commit CI run `36581526345` (#111, success).
+- **Real canonical dogfood:** PASS — `DELTA-20260929-001` reached `PUBLISHED_VERIFIED` through P7 remote readback; a later R7 `resume` re-read the sealed remote and changed nothing.
+- **Terminal acceptance:** COMPLETE — Control Room terminal review on 2026-09-29 accepted Self-Update V1 after the real-dogfood findings were repaired and whole-surface consistency was verified. Bounded accepted residual limitations are recorded in `DELTA-20260929-002`. NG-4 remains not authorized and has not begun.
 
 ## Next-generation stage
 
@@ -137,16 +137,12 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**NG-4 — Vertical Extension Architecture: determine how evidence-backed vertical vocabularies,
-policies, typed terms and workflows extend the stable representation/commercial core without
-speculative plugin infrastructure or vertical leakage into the core.**
+**Obtain explicit Owner authorization for NG-4 — Vertical Extension Architecture.**
 
-NG-4 research/design has not begun as part of this migration.
+NG-4 remains NEXT but not authorized and has not begun. The authorization decision must be made and published through AgencyOS governance before any NG-4 research/design starts.
 
-**Authorization boundary:** "NEXT" identifies sequence, not authorization. Neither Operational
-Closure/M4 nor `DELTA-20260928-001` authorizes NG-4 work. Starting NG-4 research/design requires
-its own explicit authorization or decision under AgencyOS governance.
+**Authorization boundary:** completing Self-Update V1 does not authorize NG-4. No architecture research, design or implementation begins from `DELTA-20260929-002` alone.
 
 ## Latest published delta
 
-`DELTA-20260929-001`: PUBLISHED — first real Canonical Publisher dogfood; terminal Self-Update V1 acceptance remains pending Control Room review. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260929-002`: PUBLISHED — Self-Update V1 terminal acceptance COMPLETE; bounded residual limitations accepted; NG-4 remains NEXT but not authorized. See `CANONICAL-DELTAS.md` for the publication receipt.
