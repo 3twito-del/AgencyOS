@@ -309,7 +309,17 @@ Authority required:
 
 Adjudication: The Control Room accepted `DELTA-20260929-001` on 2026-09-29 as the bounded first real canonical Publisher dogfood transition. The candidate may become current only if the Publisher reaches `PUBLISHED` through successful P7 remote readback. Successful publication establishes dogfood PASS but does not by itself close Self-Update V1; terminal acceptance requires a separate Control Room review. NG-4 remains not authorized.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260929-001
+  Semantic basis: ee745bd1983a03d74d2c70394ed2d2ffe02f3a49
+  CURRENT-STATE.next.md blob SHA-256: 492a6a6b2356fdeef393ba7bf9fe49269e4d357d74a027de91436e7684be8ba2
+  PUBLICATION-PAYLOAD.json blob SHA-256: 19fe8a51190c4eb13cb99c995a3ffd9069f9c67b5e4cb26202ff21fcc9d5a19a
+  Authorized: 2026-09-29T12:24:51Z
+  Reference: Adjudication of DELTA-20260929-001
+  Recorded by: Claude
 
 What changes if accepted: `CURRENT-STATE.md` gains the Self-Update V1 status section and advances its latest-published-delta reference to `DELTA-20260929-001`. This ledger records the dogfood transition and its eventual publication receipt.
 
