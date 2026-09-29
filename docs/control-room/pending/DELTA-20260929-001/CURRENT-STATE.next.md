@@ -29,9 +29,10 @@ Decision records: [`DECISIONS.md`](DECISIONS.md).
 | Qualifying Nightly | run `36427576682`, #58, `nightly.yml`, `workflow_dispatch`, exactly `b3f41bf`, success |
 | Release record | `docs/releases/ALPHA-0.1.0-build-97.md` |
 
-Every later commit on `operational-regression-gate` is documentation and does not change the
-released product identity. Check with `git diff --stat b3f41bf..operational-regression-gate`:
-every path is under `docs/`. Full detail: closure state section 1.
+Commits after Build 97 include Control Room documentation and Self-Update V1 engineering tooling,
+tests and CI wiring outside `docs/`; they do not change the released Build 97 product identity.
+In `b3f41bf..operational-regression-gate`, no path under `src/` changed. Full release-identity
+evidence remains governed by closure state section 1.
 
 ## Operational closure
 
