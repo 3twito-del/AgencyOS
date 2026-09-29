@@ -933,11 +933,11 @@ Publication receipt: f1a648784999251485b1de71482ad8307dee740f on origin/operatio
 
 ## DELTA-20260929-008
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-29T22:23:00Z
 
-Published: Pending
+Published: 2026-09-29T22:33:04Z
 
 Sources:
 - Explicit Owner authorization recorded as `DECISION-20260929-006`.
@@ -1027,4 +1027,4 @@ Forbidden implications: This delta does **not**:
 - authorize NG-7;
 - make Claude a semantic authority.
 
-Publication receipt: Pending
+Publication receipt: 76d00b056831e62905575cef112203bb7cc58756 on origin/operational-regression-gate; remote readback verified 2026-09-29T22:33:04Z
