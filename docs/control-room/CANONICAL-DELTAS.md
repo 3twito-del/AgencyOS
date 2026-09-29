@@ -271,3 +271,73 @@ Forbidden implications: This migration does **not**:
 - make the candidate state `PUBLISHED` before the publication protocol completes.
 
 Publication receipt: 4092094d803577a79bcd74d0e122a384843787be on origin/operational-regression-gate; remote readback verified 2026-09-28T23:15:18Z
+
+## DELTA-20260929-001
+
+Status: ACCEPTED
+
+Detected: 2026-09-29T08:50:00Z
+
+Published: Pending
+
+Sources:
+- Canonical Publisher implementation commit `c12190961aa1dfe8cfa2658db69b308d969bcc10` on `operational-regression-gate`.
+- CI run `36532575195` (#110, `workflow_dispatch`), success on exactly `c12190961aa1dfe8cfa2658db69b308d969bcc10`.
+- `docs/control-room/CANONICAL-PUBLISHER-CONTRACT.md`, `CANONICAL-PUBLISHER.md` and `CANONICAL-STATE-PROTOCOL.md` at `c12190961aa1dfe8cfa2658db69b308d969bcc10`.
+
+Prior claim: The canonical current state does not yet record Self-Update V1 implementation status or a real Canonical Publisher dogfood result. The Publisher governance documents state that the Publisher is implemented and fixture-validated, but first real canonical use is pending.
+
+Candidate/new claim: The Detector/local Alert renderer and Canonical Publisher are implemented. The Publisher is fixture-validated and exact-commit CI-verified at `c12190961aa1dfe8cfa2658db69b308d969bcc10`. This delta is the bounded first real canonical Publisher transition. If and only if this delta reaches `PUBLISHED` through successful P7 remote readback, that publication establishes the first real canonical Publisher dogfood as PASS. Self-Update V1 terminal acceptance remains pending separate Control Room review.
+
+Claimed transition: SELF-UPDATE V1 PUBLISHER — IMPLEMENTED / FIXTURE-VALIDATED / REAL CANONICAL USE PENDING → FIRST REAL CANONICAL DOGFOOD PASS IF PUBLISHED; TERMINAL ACCEPTANCE PENDING.
+
+Scope: Canonical Self-Update V1 infrastructure status only. The Publisher transition may change only the current-state and delta-ledger surfaces plus its non-authoritative pending staging files. No product behavior, schema, API, domain model, Owner decision, next-generation architecture or NG-4 work is changed or authorized.
+
+Evidence:
+- Remote source inspection verifies the Phase 3C Publisher implementation at `c12190961aa1dfe8cfa2658db69b308d969bcc10`.
+- CI #110 / run `36532575195` completed successfully on exactly that SHA, including the canonical-infrastructure test gate.
+- The dogfood-PASS portion of the candidate is mechanically gated by this delta itself reaching `PUBLISHED` only after Publisher P7 remote readback. Until then it remains accepted/unpublished staged text and is not current canonical state.
+
+Conflicts:
+- The Publisher governance/status documents currently say first real canonical use is pending. That is true before this dogfood.
+- Because Publisher V1.1 hard-forbids the canonical-state protocol and this transition intentionally does not rewrite implementation-status prose outside its narrow state/ledger scope, successful P7 may leave descriptive status wording elsewhere requiring a separately adjudicated descriptive correction before terminal Phase 3D acceptance. This delta does not claim that whole-surface terminal cleanup is already complete.
+
+Authority required:
+- machine-verifiable fact, for repository identity and CI;
+- `CONTROL_ROOM`, for the bounded dogfood semantic transition and interpretation of what successful P7 establishes.
+- No Owner decision is required.
+
+Adjudication: The Control Room accepted `DELTA-20260929-001` on 2026-09-29 as the bounded first real canonical Publisher dogfood transition. The candidate may become current only if the Publisher reaches `PUBLISHED` through successful P7 remote readback. Successful publication establishes dogfood PASS but does not by itself close Self-Update V1; terminal acceptance requires a separate Control Room review. NG-4 remains not authorized.
+
+Seal authorizations: Pending
+
+What changes if accepted: `CURRENT-STATE.md` gains the Self-Update V1 status section and advances its latest-published-delta reference to `DELTA-20260929-001`. This ledger records the dogfood transition and its eventual publication receipt.
+
+Supersedes: The pre-dogfood operational-status claim that first real Canonical Publisher use is pending. It does not supersede any prior delta, decision, release identity, closure finding or architecture decision.
+
+Unchanged:
+- ALPHA 0.1.0 build 97 and its released product identity remain unchanged.
+- Operational closure remains terminal.
+- NG-1, NG-2 and NG-3 remain closed.
+- NG-OD1 remains approved.
+- NG-4 remains NEXT but not authorized and not begun.
+- No product code, schema, API, domain model or runtime behavior changes.
+- No Owner decision changes.
+- The existing open architecture questions remain open.
+
+Open / unresolved questions:
+- Whether the real dogfood publication receipt and post-publication readback are sufficient for terminal Phase 3D / Self-Update V1 acceptance.
+- Any descriptive same-surface wording corrections revealed by successful real dogfood.
+- Watcher, scheduler, webhook and alert transport remain unimplemented and are not required by this transition.
+
+Forbidden implications: This delta does **not**:
+- close Self-Update V1 before separate Control Room terminal review;
+- authorize NG-4 research or design;
+- authorize next-generation implementation;
+- modify product code, schema, API or domain boundaries;
+- grant semantic authority to the Detector or Publisher;
+- infer Owner approval;
+- claim that staged or ACCEPTED state is current before P7;
+- claim that all post-dogfood descriptive wording is already corrected.
+
+Publication receipt: Pending
