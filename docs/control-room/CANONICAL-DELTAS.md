@@ -650,3 +650,83 @@ Forbidden implications: This delta does **not**:
 - reopen Operational Closure.
 
 Publication receipt: e4c396903f886b73174ed9a88ea6dbbfdf5e9149 on origin/operational-regression-gate; remote readback verified 2026-09-29T18:48:47Z
+
+## DELTA-20260929-005
+
+Status: ACCEPTED
+
+Detected: 2026-09-29T18:54:37Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner authorization recorded as `DECISION-20260929-003`.
+- Canonical branch state `66af408aced50ccd14bfc913f0fe81754b72864b` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+- The published `DECISION-20260929-002` and `DELTA-20260929-004`.
+
+Prior claim: NG-4 is CLOSED under `DECISION-20260929-002`. NG-5 is unauthorized and not begun. The exact next bounded action is obtaining explicit Owner authorization before beginning NG-5 or another post-NG-4 stage.
+
+Candidate/new claim: The Owner has explicitly authorized NG-5 research/design to begin under `DECISION-20260929-003`. The authorization is research/design only. NG-5's exact canonical title and bounded substantive question remain to be established by the Control Room before substantive research begins. Product code, implementation, schema/API/domain expansion, migrations and later stages remain unauthorized.
+
+Claimed transition: NG-5 NOT AUTHORIZED / NOT BEGUN → AUTHORIZED FOR RESEARCH/DESIGN ONLY.
+
+Scope: Governance authorization only. This transition performs no NG-5 research/design itself and makes no architecture conclusion.
+
+Evidence:
+- Machine-verifiable canonical repository state: HEAD `66af408aced50ccd14bfc913f0fe81754b72864b` (`Publish DELTA-20260929-004`); `CURRENT-STATE.md` there records NG-4 as CLOSED under `DECISION-20260929-002`, NG-5 as unauthorized and not begun, and an exact next bounded action requiring explicit Owner authorization before NG-5.
+- Published governance: `DECISION-20260929-002` (ACTIVE) and `DELTA-20260929-004` (PUBLISHED) closed NG-4 and left NG-5 unauthorized.
+- Explicit Owner decision: recorded, with the Owner's exact response, as `DECISION-20260929-003`.
+- No product-code, schema, API, domain or migration change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `OWNER`, for the authorization to begin NG-5 research/design;
+- `CONTROL_ROOM`, for faithful normalization and publication planning;
+- machine-verifiable fact, for repository and publication evidence.
+
+Adjudication: The Owner explicitly approved the Control Room's binary authorization question by replying “לאשר.” The Control Room normalizes that approval narrowly as authorization for NG-5 research/design only, because the question concerned beginning the next post-NG-4 stage including NG-5 research/design and did not request implementation authority. The exact NG-5 title and bounded question remain open. No implementation, schema, API or domain authority is inferred. The authorization becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-003` becomes the durable Owner authorization for NG-5 research/design.
+- `CURRENT-STATE.md` records NG-5 as AUTHORIZED rather than unauthorized/not begun.
+- The exact next bounded action becomes Control Room definition of the bounded NG-5 research/design question before substantive Claude research.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that NG-5 is unauthorized and may not begin without Owner authorization. It supersedes no Decision ID.
+
+Unchanged:
+- NG-4 remains CLOSED under `DECISION-20260929-002`.
+- All earlier architecture decisions remain in force.
+- Operational Closure remains terminal.
+- Self-Update V1 remains terminal.
+- No product change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- No NG-6 authorization.
+- NG-4 deferred questions remain deferred.
+
+Open / unresolved questions:
+- The exact NG-5 canonical title.
+- The exact NG-5 bounded substantive question.
+- NG-5 substages and substantive prompt budget.
+- All previously deferred questions not explicitly resolved by a future stage.
+
+Forbidden implications: This delta does **not**:
+- begin substantive NG-5 research by itself;
+- define an NG-5 architecture conclusion;
+- authorize implementation;
+- authorize product-code changes;
+- authorize schema/API/domain expansion;
+- authorize migrations;
+- authorize NG-6;
+- reopen NG-4;
+- modify DECISION-20260929-002;
+- imply that Claude may define NG-5's scope on its own;
+- imply Owner approval of an as-yet-unwritten implementation plan.
+
+Publication receipt: Pending

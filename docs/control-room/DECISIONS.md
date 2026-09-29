@@ -619,3 +619,59 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is the recorder, not the authority.
 
 Publication receipt: a715e511cfa43dfc00a349f844d81ab6f7402314 on origin/operational-regression-gate; remote readback verified 2026-09-29T18:48:47Z
+
+## DECISION-20260929-003
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: OWNER
+
+Question: Should the next post-NG-4 stage, including NG-5 research/design, be authorized to begin, while implementation and product/schema/API/domain expansion remain unauthorized?
+
+Decision: The Owner explicitly approves beginning **NG-5 research/design** as the next post-NG-4 stage.
+
+Owner response: “לאשר.”
+
+- The authorization is research/design only.
+- NG-5's exact canonical title and bounded substantive question have not yet been established.
+- The Control Room must establish that bounded question before issuing substantive NG-5 Claude research work.
+- No implementation follows from this authorization.
+
+Scope:
+- Authorization to begin NG-5 research/design only.
+- The NG-4 architecture is not modified, and NG-4 is not reopened or implemented.
+- No schema, API or domain expansion, no product code, no migrations and no NG-6 or later stage is approved by this decision.
+
+Evidence / provenance:
+- The Owner's explicit approval on 2026-09-29. The Control Room asked: “האם לאשר התחלה של שלב post-NG-4 הבא, כולל NG-5 research/design, או להשאירו בלתי מורשה?” The Owner replied: “לאשר.”
+- `docs/control-room/CURRENT-STATE.md` at `66af408aced50ccd14bfc913f0fe81754b72864b`, whose exact next bounded action requires explicit Owner authorization before beginning any post-NG-4 stage, including NG-5.
+- `DECISION-20260929-002` and `DELTA-20260929-004`, which canonically closed NG-4 while leaving NG-5 unauthorized.
+- Claude is the recorder/executor only and is not a decision authority.
+
+Consequences:
+- Once the accompanying delta is PUBLISHED, NG-5 research/design may begin.
+- The Control Room may define the exact bounded NG-5 research question and then issue research prompts under this authorization.
+- Implementation remains separately unauthorized.
+
+Supersedes: None
+
+Unchanged:
+- Operational Closure remains terminal.
+- Self-Update V1 remains terminal.
+- NG-1 through NG-4 remain CLOSED as already published.
+- `DECISION-20260929-002` remains the governing NG-4 architecture decision.
+- All NG-4 residual/deferred questions remain as published.
+- Build 97 product identity remains unchanged.
+- No product, schema, API, domain or runtime behaviour changes.
+
+Open:
+- The exact NG-5 title.
+- The exact bounded NG-5 substantive research/design question.
+- The prompt budget and substages for NG-5.
+- All questions already left deferred by NG-4.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction normalized by the Control Room. Claude is the recorder, not the decision authority.
+
+Publication receipt: Pending
