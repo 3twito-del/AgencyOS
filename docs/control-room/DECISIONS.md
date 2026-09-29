@@ -467,3 +467,62 @@ Recorded by: Claude (Claude Code, AgencyOS executor), Phase 2A migration, on Con
 instruction. Claude is the recorder, not the authority.
 
 Publication receipt: 388534de2920cd4fe25074efdfb37b26b12bda23 on origin/operational-regression-gate; remote readback verified 2026-09-28T23:15:18Z
+
+## DECISION-20260929-001
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: OWNER
+
+Question: Should AgencyOS begin NG-4 — Vertical Extension Architecture now, and if so, what scope of work is authorized?
+
+Decision: The Owner explicitly authorizes the start of **NG-4 — Vertical Extension Architecture for research and design only**. This authorization does **not** include product code, schema/API/domain expansion, NG-5, or implementation.
+
+Scope:
+- Authorizes NG-4 research and design after this decision is canonically PUBLISHED.
+- Allows evidence gathering, source inspection, falsification, architecture analysis and design work within NG-4.
+- Does not authorize implementation of any resulting design.
+- Does not authorize product-code changes.
+- Does not authorize schema, API or domain expansion.
+- Does not authorize NG-5.
+- Does not pre-approve any architecture conclusion reached during NG-4.
+- Any genuine Owner-reserved ambiguity discovered during NG-4 returns to the Owner.
+
+Evidence / provenance:
+- Explicit Owner instruction to the AgencyOS Control Room on 2026-09-29:
+  “אני מאשר להתחיל את NG-4 — Vertical Extension Architecture, למחקר ותכנון בלבד. האישור אינו כולל קוד מוצר, schema/API/domain expansion, NG-5 או implementation.”
+- `docs/control-room/CURRENT-STATE.md` at `c629c5bbd01e597be0518a553fc012b6e670110a` records NG-4 as NEXT, not authorized and not begun, and requires explicit Owner authorization before NG-4 starts.
+- The Control Room normalized the Owner instruction into this decision without broadening its scope.
+- Claude is the recorder/executor only and is not a decision authority.
+
+Consequences:
+- Once this decision and its accompanying canonical delta are fully PUBLISHED, NG-4 research/design may begin.
+- The next bounded work becomes NG-4 research/design under this decision.
+- No implementation authority follows from this decision.
+
+Supersedes: None
+
+Unchanged:
+- Self-Update V1 remains COMPLETE.
+- Operational Closure remains COMPLETE and terminal.
+- Build 97 remains the released product identity.
+- NG-1, NG-2 and NG-3 remain CLOSED.
+- `DECISION-20260928-002` remains ACTIVE.
+- No product, schema, API or domain behavior changes.
+- NG-5 remains not begun.
+- All existing architecture questions remain unresolved except the authorization-to-start question answered here.
+
+Open:
+- The NG-4 extension mechanism.
+- Core-versus-vertical boundaries.
+- Vertical contribution categories and contracts.
+- Multi-vertical composition.
+- Film/TV reference architecture.
+- Cross-vertical falsification.
+- Any Owner-reserved architecture ambiguity discovered by NG-4.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction normalized by the Control Room. Claude is the recorder, not the authority.
+
+Publication receipt: Pending

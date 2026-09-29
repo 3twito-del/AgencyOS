@@ -442,3 +442,86 @@ Forbidden implications: This delta does **not**:
 - alter any prior architecture decision.
 
 Publication receipt: 6aa7444350ea382fe1800009f5ef7c235063c662 on origin/operational-regression-gate; remote readback verified 2026-09-29T15:18:09Z
+
+## DELTA-20260929-003
+
+Status: ACCEPTED
+
+Detected: 2026-09-29T16:12:24Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner authorization recorded as `DECISION-20260929-001`.
+- Canonical branch state `c629c5bbd01e597be0518a553fc012b6e670110a`.
+- `docs/control-room/CURRENT-STATE.md` at that SHA.
+- `docs/control-room/DECISIONS.md` and `CANONICAL-STATE-PROTOCOL.md` at that SHA.
+- The Owner instruction of 2026-09-29 quoted verbatim in `DECISION-20260929-001`.
+
+Prior claim: Self-Update V1 is COMPLETE. NG-4 — Vertical Extension Architecture is NEXT, but it is not authorized and has not begun. The exact next bounded action is obtaining explicit Owner authorization before NG-4 research/design starts. The published `CURRENT-STATE.md` states NG-4's authorization status in two places: the Next-generation stage records NG-4 as NEXT and not authorized, and the Self-Update V1 terminal-acceptance bullet carries the clause "NG-4 remains not authorized and has not begun."
+
+Candidate/new claim: The Owner has explicitly authorized NG-4 — Vertical Extension Architecture for research and design only. Once this transition is PUBLISHED, NG-4 research/design may begin under `DECISION-20260929-001`. Product code, schema/API/domain expansion, NG-5 and implementation remain unauthorized. The Self-Update V1 section no longer acts as a second current-status authority for NG-4: it records only the historical boundary that completing Self-Update V1 did not itself authorize NG-4. Current NG-4 authorization is governed by the Next-generation stage and `DECISION-20260929-001`.
+
+Claimed transition: NG-4 NEXT / NOT AUTHORIZED → AUTHORIZED FOR RESEARCH AND DESIGN ONLY.
+
+Scope: Governance authorization only. This delta publishes the Owner decision and advances canonical current state to reflect that NG-4 research/design may begin after publication. It performs no NG-4 research/design itself and changes no product, schema, API or domain implementation.
+
+Evidence:
+- The Owner explicitly authorized NG-4 research/design on 2026-09-29.
+- The exact Owner wording is preserved in `DECISION-20260929-001`.
+- The previously published `CURRENT-STATE.md` requires explicit Owner authorization before NG-4 starts.
+- No product-code, schema, API or domain change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `OWNER`, for the authorization to begin NG-4 research/design;
+- `CONTROL_ROOM`, for faithful normalization of the Owner decision into canonical state;
+- machine-verifiable fact, for repository identity and publication evidence.
+
+Adjudication: The Owner explicitly approved starting NG-4 — Vertical Extension Architecture for research and design only, excluding product code, schema/API/domain expansion, NG-5 and implementation. The Control Room accepts this exact bounded decision for canonical publication without broadening it. The authorization becomes current only if this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-001` becomes the durable Owner authorization for NG-4 research/design.
+- `CURRENT-STATE.md` records NG-4 as AUTHORIZED rather than merely NEXT/unapproved.
+- The stale NG-4 authorization-status clause inside `Self-Update V1` is replaced by a boundary statement: Self-Update V1 itself did not authorize NG-4; current authorization is governed by the Next-generation stage and its cited Owner decision.
+- The exact next bounded action becomes beginning NG-4 research/design under the published Owner decision.
+
+Supersedes:
+- The current-state claim that NG-4 is not authorized.
+- The stale NG-4 current-status clause in the `Self-Update V1` terminal-acceptance bullet.
+- It supersedes no earlier Decision ID.
+
+Unchanged:
+- Self-Update V1 remains COMPLETE.
+- The evidence and accepted residuals of Self-Update V1 remain unchanged.
+- Only its stale NG-4 current-status clause changes.
+- Operational Closure remains terminal.
+- Build 97 remains the product baseline.
+- NG-1, NG-2 and NG-3 remain CLOSED.
+- NG-OD1 / `DECISION-20260928-002` remains ACTIVE.
+- No product code changes.
+- No schema, API or domain expansion.
+- No implementation.
+- NG-5 remains unauthorized and not begun.
+- No NG-4 architecture conclusion has yet been made.
+
+Open / unresolved questions:
+- Every substantive NG-4 architecture question remains open.
+- The extension mechanism is undecided.
+- The Film/TV reference architecture is not yet designed.
+- Cross-vertical falsification has not yet occurred.
+- Any later Owner-reserved ambiguity remains unresolved until separately decided.
+
+Forbidden implications: This delta does **not** mean:
+- NG-4 architecture is already decided.
+- product implementation is approved.
+- schema/API/domain expansion is approved.
+- NG-5 may begin.
+- any future NG-4 recommendation is pre-approved.
+- Claude has Owner authority.
+- publication of this authorization itself constitutes NG-4 research/design completion.
+
+Publication receipt: Pending
