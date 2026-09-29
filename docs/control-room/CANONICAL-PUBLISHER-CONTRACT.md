@@ -1,6 +1,6 @@
 # AgencyOS canonical publisher contract
 
-**Status:** NORMATIVE CONTRACT — IMPLEMENTED ([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)); FIXTURE-VALIDATED, REAL CANONICAL DOGFOOD PENDING
+**Status:** NORMATIVE CONTRACT — IMPLEMENTED ([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)); FIXTURE-VALIDATED; REAL CANONICAL DOGFOOD VERIFIED
 
 **Governed by:** [CANONICAL-STATE-PROTOCOL.md](CANONICAL-STATE-PROTOCOL.md). Where this contract
 and the protocol disagree, the protocol wins, and this contract is corrected. The delta lifecycle
@@ -16,11 +16,17 @@ The publisher executes accepted state. **It never decides that state should be a
 never seals without a durable seal authorization bound to the exact bytes it promotes.**
 
 The Canonical Publisher is implemented in `tools/AgencyOS.Canonical.Publisher`
-([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)). It has been validated only against disposable
-fixture repositories, and has not yet been used on the real canonical branch. This document
-remains the normative rule it implements. The read-only Canonical Detector and its local Canonical
-Alert renderer are implemented separately ([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). No
-watcher, scheduler, webhook, alert transport or sender, or workflow store exists.
+([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)) and validated against disposable fixture
+repositories. On the canonical branch, `DELTA-20260929-001` then exercised `stage`, a replacement
+semantic basis, `authorize`, P5–P7 and an R7 `resume`. The final publication basis is
+`5f88fbe1a046b8c5ee303dafb2a83e48a0965529`, and the seal commit is
+`11935ff83f15d715ff9cee48c1514f43456fe0dd`. That real dogfood exposed hardening findings after
+publication, which the current implementation addresses (CANONICAL-PUBLISHER.md section 8). It
+gives the publisher no semantic authority. Self-Update V1 terminal acceptance is a separate
+Control Room state decision. This document remains the normative rule the publisher implements.
+The read-only Canonical Detector and its local Canonical Alert renderer are implemented separately
+([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). No watcher, scheduler, webhook, alert transport
+or sender, or workflow store exists.
 
 ---
 
@@ -457,11 +463,58 @@ The Control Room classifies the change in the payload. The publisher then checks
 - nothing under `pending/` changed;
 - the paths are inside `paths.allowed`.
 
+Its authority is checked like a semantic payload's. Every `authority.adjudication_references`
+entry must be one of the three durable forms of section 5.2 and must resolve at the pre-correction
+head, by the same resolution semantic staging uses. So must every governing decision. A missing,
+malformed or unresolved reference is `AUTHORITY_MISSING` in P0, before any write.
+
 It runs P0 → P1 → P2 → P3 → P4 and ends there, with `CORRECTION_VERIFIED`. It uses no staging
 and no seal. Because it has no Delta ID, it has no staging directory. Its payload is supplied to
-the run and returned in the receipt, and the correction commit itself is the durable record. It
-is **not** a state transition and needs no delta (protocol section 2). If a check fails, the change
-is not descriptive. If a transition is pending, the correction invalidates its basis (section 4).
+the run and returned in the receipt. It is **not** a state transition and needs no delta (protocol
+section 2). If a check fails, the change is not descriptive. If a transition is pending, the
+correction invalidates its basis (section 4).
+
+**The correction commit is the durable record** because its message carries the exact accepted
+payload, and nothing else:
+
+```
+Apply a descriptive canonical correction
+
+AgencyOS-Correction-Contract: agencyos-canonical-publisher/v1.1
+AgencyOS-Correction-Payload-SHA256: <SHA-256 of the payload bytes>
+AgencyOS-Correction-Payload-Base64: <standard padded Base64 of the exact payload bytes, one line>
+```
+
+- The Base64 value decodes byte for byte to the canonical payload given to the run. The bytes hash
+  to the recorded SHA-256 and parse under the v1.1 parser as a `DESCRIPTIVE_CORRECTION`. So the
+  classification, authority classes and adjudication references can be reconstructed from the
+  repository alone.
+- The publisher generates no semantic data for the record. The correction's file diff remains the
+  evidence of what changed.
+- In P3 the local commit object must reconstruct the payload before it is pushed. In P4, after
+  the remote head is confirmed to be the correction commit and every corrected blob matches, the
+  commit object at that remote head must reconstruct the exact payload. Otherwise the result is
+  `REMOTE_BASIS_MISMATCH`, never `CORRECTION_VERIFIED`.
+- This record is provenance, not workflow state: section 10's recovery truth is unchanged.
+
+**Payload size bound.** The V1.1 `correct` command carries the exact canonical correction payload
+in the commit's metadata. So this implementation accepts a `DESCRIPTIVE_CORRECTION` payload of at
+most 18,000 canonical bytes, counted as the exact RFC 8785 payload bytes supplied to the run. An
+18,000-byte payload is accepted and a larger one is `PRECONDITION_DRIFT`.
+- The refusal happens in P0, after the authority checks and before any working-tree, index, commit
+  or push mutation.
+- The bound is an implementation transport and safety limit of the current record mechanism. It is
+  not a Git format limit, not a governance rule and not semantic authority.
+- It gives no permission to truncate, split or omit the accepted payload. The publisher never
+  stores only part of a payload: it records the whole payload or refuses the correction.
+- It applies only to `DESCRIPTIVE_CORRECTION`. Semantic publication payloads are staged as files
+  under `pending/`, and this bound does not apply to them.
+- A future publisher revision may change the transport mechanism or the bound only through an
+  explicit change that aligns this contract and the implementation. Neither the v1.1 payload
+  schema nor its contract identifier depends on it.
+
+Corrections committed before this rule, such as `dfbd7ba0ef2fb7e02f6dfd94e4e4c0c56b98ee2e`, carry
+no such record. Their provenance is recorded in CANONICAL-PUBLISHER.md section 8.
 
 ## 8. Machine-verifiable versus semantic
 

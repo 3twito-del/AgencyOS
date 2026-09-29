@@ -190,11 +190,16 @@ internal static class PacketWriter
         };
     }
 
-    internal static string CurrentClaim(CanonicalSnapshot? baseline) =>
-        baseline is null
+    /// <summary>
+    /// The canonical state as the repository holds it at <paramref name="snapshot"/>. The alert
+    /// passes the end of the range, because a range that publishes a new CURRENT-STATE.md
+    /// makes the baseline's copy superseded, not current.
+    /// </summary>
+    internal static string CurrentClaim(CanonicalSnapshot? snapshot) =>
+        snapshot is null
             ? Facts.Unknown
             : string.Create(CultureInfo.InvariantCulture,
-                $"quoted from the repository: CURRENT-STATE.md at {baseline.Commit[..12]} (blob SHA-256 {Short(baseline.CurrentStateBlobSha256)}): status line \"{baseline.CurrentStateStatusLine}\"; latest delta line \"{baseline.LatestDeltaLine}\".");
+                $"quoted from the repository at the end of the range: CURRENT-STATE.md at {snapshot.Commit[..12]} (blob SHA-256 {Short(snapshot.CurrentStateBlobSha256)}): status line \"{snapshot.CurrentStateStatusLine}\"; latest delta line \"{snapshot.LatestDeltaLine}\".");
 
     internal static string RecommendedAction(DetectionReport report) =>
         report.Result == Results.ReviewRequired

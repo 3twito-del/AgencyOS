@@ -168,6 +168,13 @@ internal sealed class Repository
         }
     }
 
+    /// <summary>The raw commit object: its headers, a blank line and the exact message bytes.</summary>
+    public byte[] CommitObject(string revision)
+    {
+        GitResult commit = Git("cat-file", "commit", revision);
+        return commit.Succeeded ? commit.Output : throw Drift($"The commit object {revision} could not be read.");
+    }
+
     public bool ObjectExists(string revision, string path) =>
         Git("cat-file", "-e", revision + ":" + path).ExitCode == 0;
 

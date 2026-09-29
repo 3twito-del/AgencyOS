@@ -34,17 +34,29 @@ public sealed class LedgerParserTests
     private static LedgerEntry Delta001() =>
         ParsedLedger.Parse(Published("CANONICAL-DELTAS.md"), LedgerKind.Deltas).Entry("DELTA-20260928-001")!;
 
+    private static IReadOnlyList<string> EntryHeadings(string ledger, string prefix) =>
+        [.. ledger[ledger.IndexOf("\n# Entries\n", StringComparison.Ordinal)..].Split('\n')
+            .Where(x => x.StartsWith($"## {prefix}-2", StringComparison.Ordinal))
+            .Select(x => x[3..])];
+
     private static string Digest(string entryText) =>
         ParsedLedger.Parse("# Entries\n\n" + entryText, LedgerKind.Deltas).Entries[0].InvariantDigest();
 
     [Fact]
     public void TheRealLedgerParsesOnlyAfterEntriesAndNeverReadsTheTemplate()
     {
-        ParsedLedger deltas = ParsedLedger.Parse(Published("CANONICAL-DELTAS.md"), LedgerKind.Deltas);
-        ParsedLedger decisions = ParsedLedger.Parse(Published("DECISIONS.md"), LedgerKind.Decisions);
+        string deltaText = Published("CANONICAL-DELTAS.md");
+        string decisionText = Published("DECISIONS.md");
+        ParsedLedger deltas = ParsedLedger.Parse(deltaText, LedgerKind.Deltas);
+        ParsedLedger decisions = ParsedLedger.Parse(decisionText, LedgerKind.Decisions);
 
-        Assert.Equal(["DELTA-20260928-001"], deltas.Entries.Select(x => x.Id));
-        Assert.Equal(4, decisions.Entries.Count);
+        // Exactly the entry headings after "# Entries", in order, and never the template. The
+        // ledgers grow with every publication, so no fixed list of IDs is asserted here.
+        Assert.Equal(EntryHeadings(deltaText, "DELTA"), deltas.Entries.Select(x => x.Id));
+        Assert.Equal(EntryHeadings(decisionText, "DECISION"), decisions.Entries.Select(x => x.Id));
+        Assert.Equal("DELTA-20260928-001", deltas.Entries[0].Id);
+        Assert.DoesNotContain(deltas.Entries, x => x.Id.Contains("YYYYMMDD", StringComparison.Ordinal));
+        Assert.NotEmpty(decisions.Entries);
 
         foreach (LedgerEntry entry in deltas.Entries)
         {
@@ -57,6 +69,20 @@ public sealed class LedgerParserTests
         }
 
         Assert.Null(Delta001().Field(LedgerKind.SealAuthorizations));
+    }
+
+    [Fact]
+    public void TheFirstRealPublisherDeltaKeepsItsAcceptedDigestAndBinding()
+    {
+        LedgerEntry dogfood = ParsedLedger.Parse(Published("CANONICAL-DELTAS.md"), LedgerKind.Deltas).Entry("DELTA-20260929-001")!;
+        LedgerRules.ValidateDelta(dogfood, requireSealAuthorizations: true);
+        SealRecord record = Assert.Single(LedgerRules.SealRecords(dogfood));
+
+        Assert.Equal("4a96859219f5962f5ace5823168c5218351e9217fa6e1ddced90fcb0d64663c4", dogfood.InvariantDigest());
+        Assert.Equal("PUBLISHED", dogfood.HeaderValue(LedgerKind.Status));
+        Assert.Equal("SA-1", record.Record);
+        Assert.Equal("ee745bd1983a03d74d2c70394ed2d2ffe02f3a49", record.SemanticBasis);
+        Assert.StartsWith("5f88fbe1a046b8c5ee303dafb2a83e48a0965529 on origin/operational-regression-gate;", dogfood.HeaderValue(LedgerKind.PublicationReceipt), StringComparison.Ordinal);
     }
 
     [Fact]

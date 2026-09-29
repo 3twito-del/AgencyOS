@@ -38,7 +38,7 @@ internal static class AlertWriter
         text.Append("AGENCYOS CANONICAL ALERT\n\n");
         text.Append($"Delta / observation: {report.ObservationId} | Delta ID: {Lifecycle.DeltaIdNotAllocated} | lifecycle state: {Lifecycle.Observed}\n");
         text.Append($"Trigger: {report.Commits.Items.Count} commit(s) in {report.Range.BaselineSha}..{report.Range.ObservedSha} changed {paths.Count} path(s); canonical-relevant categories: {categories}\n");
-        text.Append($"Current canonical state: {PacketWriter.CurrentClaim(report.Baseline)}\n");
+        text.Append($"Current canonical state: {PacketWriter.CurrentClaim(report.Observed)}\n");
         text.Append("Candidate change: UNDETERMINED. The detector observed the changes below; it does not state what they mean.\n");
         text.Append("Evidence anchors:\n");
         text.Append($"  - range {report.Range.BaselineSha}..{report.Range.ObservedSha} on {report.Range.Branch} (observed from {report.Range.ObservedResolvedFrom})\n");

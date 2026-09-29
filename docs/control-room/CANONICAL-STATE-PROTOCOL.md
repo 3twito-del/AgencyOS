@@ -3,11 +3,14 @@
 **Status:** normative · **Date:** 2026-09-29
 
 This protocol governs how evidence about AgencyOS becomes canonical current state. It defines
-rules. A read-only canonical detector and a local Canonical Alert renderer exist
-([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). The Canonical Publisher is implemented and has
-been validated against fixture repositories ([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)).
-Its first use on the real canonical branch is still pending. No watcher, scheduler, webhook or
-alert transport exists. All automation remains governed by this document.
+rules. A read-only canonical detector and a local Canonical Alert renderer are implemented
+([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). The Canonical Publisher is implemented
+([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)). It completed its first real canonical
+publication, `DELTA-20260929-001`, through P7 remote readback, and a later R7 run verified it again
+without mutation. Semantic authority remains external to both tools. No watcher, scheduler,
+webhook or alert transport exists. Whether Self-Update V1 is terminally accepted is governed by
+`CURRENT-STATE.md` and subsequent Control Room adjudication, not by this document. All automation
+remains governed by this document.
 
 > Evidence may be detected automatically.
 > Semantic state transitions require the authority appropriate to the claim.

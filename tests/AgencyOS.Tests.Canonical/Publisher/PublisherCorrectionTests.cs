@@ -9,10 +9,10 @@ namespace AgencyOS.Tests.Canonical.Publisher;
 /// </summary>
 public sealed class PublisherCorrectionTests
 {
-    private const string Before = "NG-4 is NEXT and not authorized.";
-    private const string After = "NG-4 is NEXT; it is not authorized.";
+    internal const string Before = "NG-4 is NEXT and not authorized.";
+    internal const string After = "NG-4 is NEXT; it is not authorized.";
 
-    private static PayloadBuilder Correction(PublisherFixture fixture, string path = PublisherFixture.CurrentState, string before = Before, string after = After)
+    internal static PayloadBuilder Correction(PublisherFixture fixture, string path = PublisherFixture.CurrentState, string before = Before, string after = After)
     {
         PayloadBuilder payload = new(fixture)
         {

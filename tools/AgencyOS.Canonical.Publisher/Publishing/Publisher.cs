@@ -1165,6 +1165,12 @@ internal sealed partial class Publisher
 
         CheckStaticScope(payload, [.. payload.Corrections.Select(x => x.Path).Distinct(StringComparer.Ordinal)]);
         CheckAuthorityPresence(payload);
+        CheckAuthorityReferences(payload, head, deltas, decisions);
+
+        if (payload.Bytes.Length > CorrectionRecord.MaxPayloadBytes)
+        {
+            throw Drift($"The correction payload is {payload.Bytes.Length} bytes; its commit can carry it as the durable record only up to {CorrectionRecord.MaxPayloadBytes}.");
+        }
 
         foreach (string pending in _repo.PendingDirectories(head))
         {
@@ -1228,8 +1234,9 @@ internal sealed partial class Publisher
             throw Drift("The corrected CURRENT-STATE.md does not have the digest current_state.next_sha256.");
         }
 
-        // P3 and P4.
-        string commit = _repo.Commit("Apply a descriptive correction");
+        // P3 and P4. The commit carries the exact accepted payload as its durable record.
+        string commit = _repo.Commit(CorrectionRecord.Message(payload));
+        RequireCorrectionRecord(payload, commit);
         _repo.Fetch();
 
         if (_repo.RemoteHead(payload.Branch) != head)
@@ -1252,12 +1259,34 @@ internal sealed partial class Publisher
             }
         }
 
+        RequireCorrectionRecord(payload, remote);
+
         _receipt.SemanticBasisSha = commit;
         Record(changes);
         _receipt.Result = Results.CorrectionVerified;
         _receipt.NextRequiredAction = _repo.PendingDirectories(head).Count == 0
             ? "None."
             : "Control Room: the pending transition needs a replacement semantic basis and a new seal authorization.";
+    }
+
+    /// <summary>
+    /// The commit object at <paramref name="revision"/> must reconstruct exactly the payload
+    /// this run was given, and carry it in exactly the fixed message (contract section 7.3).
+    /// </summary>
+    private void RequireCorrectionRecord(Payload payload, string revision)
+    {
+        byte[] commitObject = _repo.CommitObject(revision);
+        Payload? recorded = CorrectionRecord.Reconstruct(commitObject, out string reason);
+
+        if (recorded is null)
+        {
+            throw new PublisherFailure(FailureClasses.RemoteBasisMismatch, $"The correction commit at {revision} is not a durable correction record: {reason}.");
+        }
+
+        if (!recorded.Bytes.AsSpan().SequenceEqual(payload.Bytes))
+        {
+            throw new PublisherFailure(FailureClasses.RemoteBasisMismatch, $"The correction commit at {revision} records payload {recorded.Sha256}, not the payload {payload.Sha256} this run applied.");
+        }
     }
 
     // ------------------------------------------------------------------ state predicates

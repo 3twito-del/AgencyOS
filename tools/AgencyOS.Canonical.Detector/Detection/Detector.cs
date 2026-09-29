@@ -684,7 +684,7 @@ internal sealed partial class Detector
 
         if (flags["control_room_staging_changed"] == Facts.Yes)
         {
-            questions.Add($"Does the staging at {PathsIn(PathClassifier.ControlRoomStaging)} belong to an accepted transition?");
+            questions.Add($"Do the staging changes at {PathsIn(PathClassifier.ControlRoomStaging)} match the expected lifecycle of an accepted transition?");
         }
 
         if (flags["product_code_changed"] == Facts.Yes)
