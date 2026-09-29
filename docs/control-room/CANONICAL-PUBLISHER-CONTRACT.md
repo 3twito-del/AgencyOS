@@ -15,15 +15,19 @@ deterministic steps, and adds the authority gate and staging that the steady sta
 The publisher executes accepted state. **It never decides that state should be accepted, and it
 never seals without a durable seal authorization bound to the exact bytes it promotes.**
 
-No executable publisher, detector, watcher, scheduler, alert sender or workflow store exists. This
-document defines what one must do when it is built.
+No executable Canonical Publisher exists yet. This document defines what one must do when it is
+built. The read-only Canonical Detector and its local Canonical Alert renderer are implemented
+separately ([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). No watcher, scheduler, webhook,
+alert transport or sender, or workflow store exists.
 
 ---
 
 ## 1. Position in the cycle
 
 ```
-Detector ──► candidate evidence packet ──► Canonical Alert ──► Control Room / Owner adjudication
+Detector ──► OBSERVED evidence packet ──► Canonical Alert ──► Control Room normalization / adjudication
+                                                                          │
+                                   protocol-complete candidate delta or decision, as applicable
                                                                           │
       ┌──────────────── Publisher Receipt ◄── Publisher ◄── Accepted Publication Payload
       ▼                                          ▲
@@ -32,7 +36,7 @@ Detector ──► candidate evidence packet ──► Canonical Alert ──►
 
 | Interface | Producer | Consumer | Carries | Never carries |
 | --- | --- | --- | --- | --- |
-| Candidate evidence packet | Detector | Control Room, via the alert | Observed facts and anchors; a candidate delta in `PENDING_ADJUDICATION` form (protocol section 6) | Any `ACCEPTED` state |
+| Observation evidence packet | Detector | Control Room, via the alert | Observed facts and evidence anchors in an `OBSERVED` packet, with a temporary observation ID and no permanent Delta ID. Control Room normalization allocates the permanent Delta ID and creates the protocol section 6 `PENDING_ADJUDICATION` candidate. | Any `PENDING_ADJUDICATION`, `ACCEPTED` or `PUBLISHED` state; a Delta ID |
 | Canonical Alert | Detector | Control Room | The protocol section 7 alert shape | An adjudication (protocol section 7: an alert is never one) |
 | Accepted Publication Payload | Control Room (Owner where required), executed by Claude | Publisher | Section 3 | Anything the adjudication did not cover |
 | Seal authorization record | Control Room or Owner, recorded by Claude | Publisher | Section 5 | Any semantic change |

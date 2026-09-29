@@ -1,10 +1,12 @@
 # AgencyOS canonical state protocol
 
-**Status:** normative · **Phase:** 1, protocol foundation only · **Date:** 2026-09-29
+**Status:** normative · **Date:** 2026-09-29
 
 This protocol governs how evidence about AgencyOS becomes canonical current state. It defines
-rules. It implements nothing: there is no watcher, alert sender, scheduled job or publisher yet,
-and any future automation must obey this document.
+rules. A read-only canonical detector and a local Canonical Alert renderer exist
+([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). No watcher, scheduler, webhook or alert
+transport exists, and no Canonical Publisher is implemented. All automation remains governed by
+this document.
 
 > Evidence may be detected automatically.
 > Semantic state transitions require the authority appropriate to the claim.
@@ -108,8 +110,8 @@ When sources disagree about the **current** state:
 **A newer source wins only for the scope it actually governs.** Historical evidence is preserved,
 and must not be rewritten into having said something it did not say at the time.
 
-Until Phase 2 migration is adjudicated and published, `CURRENT-STATE.md` is a bootstrap shell and
-does not supersede the substantive contents of the sources below it (see that file).
+The Phase 2 canonical migration is published. `CURRENT-STATE.md` is the active first current-state
+bootstrap authority. The earlier bootstrap-shell condition is historical.
 
 ### Control Room artifacts
 
@@ -122,6 +124,9 @@ does not supersede the substantive contents of the sources below it (see that fi
   cites them and does not restate them differently.
 - `docs/control-room/CANONICAL-PUBLISHER-CONTRACT.md`: the normative execution contract for
   publishing already-adjudicated canonical transitions. It confers no semantic decision authority.
+- `docs/control-room/CANONICAL-DETECTOR.md`: the implemented read-only detector. It records
+  repository evidence as `OBSERVED` packets and renders Canonical Alerts locally. It confers no
+  semantic decision authority.
 
 Specialised records and ADRs keep their governed scope.
 
@@ -151,6 +156,15 @@ corrects. It never edits the earlier entry into agreement.
 
 ## 6. Candidate delta contract
 
+**Observation versus candidate.** Detector output stays `OBSERVED`, with a temporary observation
+ID. It is not yet a candidate delta. It becomes one only through Control Room normalization:
+1. the Control Room inspects the evidence;
+2. it decides whether a candidate delta is warranted;
+3. it allocates the permanent Delta ID;
+4. it completes the fields below.
+
+Only then is it `PENDING_ADJUDICATION`. No automated component performs this normalization.
+
 A candidate delta in `PENDING_ADJUDICATION` must state:
 
 | Field | Content |
@@ -170,14 +184,18 @@ A candidate delta in `PENDING_ADJUDICATION` must state:
 | Unresolved questions | What acceptance would leave open |
 | Forbidden implications | What acceptance must not be read as meaning |
 
-## 7. Alert contract (future; not implemented in this phase)
+## 7. Alert contract
 
-When a candidate delta needs adjudication, a future alert to the Control Room takes this shape:
+When an observation or a candidate delta needs the Control Room's attention, an alert takes this
+shape. The detector renders it locally for an `OBSERVED` item: the first field names the
+observation ID, `Delta ID: NOT_ALLOCATED` and the lifecycle state `OBSERVED`. Once the Control
+Room has created a candidate delta, an alert may name its Delta ID. Alert transport and delivery
+are not implemented.
 
 ```
 AGENCYOS CANONICAL ALERT
 
-Delta:
+Delta / observation:
 Trigger:
 Current canonical state:
 Candidate change:

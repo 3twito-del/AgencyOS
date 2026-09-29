@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Deterministic tests for the canonical state detector.
+
+    Every scenario runs against a throwaway git repository the test builds in a
+    temporary directory, with fixed author, committer and dates, so the commit
+    SHAs and the detector's output are the same on every run. Nothing here reads
+    or changes the AgencyOS repository's own history. The one exception is
+    PayloadBoundaryTests, which reads the published publisher contract to learn
+    the payload shape the detector must never produce.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../tools/AgencyOS.Canonical.Detector/AgencyOS.Canonical.Detector.csproj" />
+  </ItemGroup>
+
+</Project>
