@@ -351,3 +351,84 @@ Forbidden implications: This delta does **not**:
 - claim that all post-dogfood descriptive wording is already corrected.
 
 Publication receipt: 5f88fbe1a046b8c5ee303dafb2a83e48a0965529 on origin/operational-regression-gate; remote readback verified 2026-09-29T12:30:01Z
+
+## DELTA-20260929-002
+
+Status: ACCEPTED
+
+Detected: 2026-09-29T14:37:00Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `3331ea0481304385ad199d1cdf5317cb02997d91`.
+- CI run `36581526345` (#111, `workflow_dispatch`), success on exactly `3331ea0481304385ad199d1cdf5317cb02997d91`.
+- Published real-dogfood delta `DELTA-20260929-001`, whose seal is `11935ff83f15d715ff9cee48c1514f43456fe0dd` and whose final publication basis is `5f88fbe1a046b8c5ee303dafb2a83e48a0965529`.
+- `docs/control-room/CANONICAL-STATE-PROTOCOL.md`, `CANONICAL-PUBLISHER-CONTRACT.md`, `CANONICAL-PUBLISHER.md` and `CANONICAL-DETECTOR.md` at `3331ea0481304385ad199d1cdf5317cb02997d91`.
+- Remote source inspection of the hardened Detector and Publisher at `3331ea0481304385ad199d1cdf5317cb02997d91`.
+
+Prior claim: Self-Update V1 has an implemented Detector/local Alert renderer and an implemented Canonical Publisher. Real canonical dogfood is PASS, and post-dogfood hardening is published and exact-commit CI-verified, but `CURRENT-STATE.md` still records terminal acceptance as PENDING CONTROL ROOM REVIEW.
+
+Candidate/new claim: Self-Update V1 is terminally COMPLETE. The Detector/local Alert renderer and Publisher v1.1 are implemented; the Publisher is fixture-validated; `DELTA-20260929-001` proves the real P7/R7 path; the findings exposed by that dogfood are repaired at `3331ea0481304385ad199d1cdf5317cb02997d91`; exact-commit CI #111 succeeds; whole-surface Control Room review found no remaining unexplained Self-Update V1 gap. The bounded residual limitations listed below are explicitly accepted and do not block completion.
+
+Claimed transition: SELF-UPDATE V1 TERMINAL ACCEPTANCE PENDING → COMPLETE.
+
+Scope: Canonical Self-Update V1 terminal-state publication only. This delta changes no product behavior, product identity, schema, API, domain model, architecture decision or Owner decision. It does not begin or authorize NG-4.
+
+Evidence:
+- `DELTA-20260929-001` is PUBLISHED with one `SA-1` record binding semantic basis `ee745bd1983a03d74d2c70394ed2d2ffe02f3a49`; its publication receipt names `5f88fbe1a046b8c5ee303dafb2a83e48a0965529`.
+- The dogfood seal `11935ff83f15d715ff9cee48c1514f43456fe0dd` passed P7, and R7 subsequently returned `PUBLISHED_VERIFIED` without mutation.
+- Post-dogfood hardening commit `3331ea0481304385ad199d1cdf5317cb02997d91` repairs H3D-001, H3D-002, H3D-003 and the real-ledger regression exposed by dogfood.
+- H3D-001: descriptive corrections now resolve authority/adjudication references mechanically before mutation.
+- H3D-002: future descriptive-correction commits durably carry and remotely re-verify the complete exact accepted payload.
+- H3D-003: Canonical Alert current-state wording uses the observed/end-of-range state, and the staging question is direction-neutral.
+- Publisher v1.1's 18,000-byte descriptive-correction transport bound is aligned across implementation, normative contract, documentation and tests.
+- CI #111 / run `36581526345` succeeded on exactly `3331ea0481304385ad199d1cdf5317cb02997d91`, including build, unit, Windows, reviewer, canonical infrastructure, API-contract, version-metadata, formal/TLC, release-artifact and manifest-verification steps, plus the PostgreSQL integration job.
+- Source and governance readback at `3331ea0481304385ad199d1cdf5317cb02997d91` agree and do not claim terminal acceptance ahead of this delta.
+
+Conflicts: None remain for Self-Update V1 terminal acceptance. The historical `dfbd7ba0ef2fb7e02f6dfd94e4e4c0c56b98ee2e` descriptive correction predates H3D-002 and therefore does not embed its original accepted payload; its exact correction diff, classification, authority, payload digest and durable reference are recorded in the Publisher correction chain and were independently verified. History is not rewritten.
+
+Authority required:
+- machine-verifiable fact, for repository identity, CI and lifecycle evidence;
+- `CONTROL_ROOM`, for the terminal Self-Update V1 evidence adjudication and acceptance of the bounded residual limitations.
+- No Owner decision is required because this transition does not alter product, architecture, schema, API or domain boundaries.
+
+Adjudication: The Control Room completed terminal review on 2026-09-29 at `3331ea0481304385ad199d1cdf5317cb02997d91` and ACCEPTED Self-Update V1 as terminally complete, subject only to this exact delta reaching `PUBLISHED` through successful Publisher P7 remote readback. The Control Room explicitly accepts the bounded residual limitations listed in this delta. This adjudication does not authorize NG-4.
+
+Seal authorizations: Pending
+
+What changes if accepted: `CURRENT-STATE.md` records Self-Update V1 terminal acceptance as COMPLETE, records the hardened Detector/Publisher evidence and real dogfood PASS, advances Latest published delta to `DELTA-20260929-002`, and makes the next bounded action explicit Owner authorization for NG-4 rather than NG-4 work itself.
+
+Supersedes: The Self-Update V1 terminal-acceptance-PENDING claim in `CURRENT-STATE.md`. It does not supersede `DELTA-20260929-001`; that delta remains the published real-dogfood evidence.
+
+Unchanged:
+- ALPHA 0.1.0 build 97 and its released product identity remain unchanged.
+- Operational closure remains terminal.
+- NG-1, NG-2 and NG-3 remain closed.
+- NG-OD1 remains approved.
+- NG-4 remains NEXT, not authorized and not begun.
+- No product code, schema, API, domain model or runtime behavior changes.
+- No Owner decision changes.
+- Detector and Publisher retain zero semantic decision authority.
+- The existing next-generation architecture questions remain open.
+
+Open / unresolved questions:
+- None block Self-Update V1 terminal acceptance.
+- No watcher, scheduler, webhook, alert transport or workflow store exists; these are accepted outside the Self-Update V1 terminal requirement.
+- Detector does not collect CI/Nightly results or historical tag movement; external authoritative verification remains required when those facts matter.
+- One real canonical Publisher transition plus fixture coverage does not prove every possible future repository or remote failure mode.
+- Historical correction `dfbd7ba0ef2fb7e02f6dfd94e4e4c0c56b98ee2e` predates durable full-payload correction records; its bounded correction chain is accepted.
+- `DESCRIPTIVE_CORRECTION` payloads in Publisher v1.1 are limited to 18,000 canonical bytes by the documented transport mechanism.
+
+Forbidden implications: This delta does **not**:
+- authorize NG-4 research, design or implementation;
+- create an Owner decision;
+- modify product code, schema, API or domain boundaries;
+- grant semantic authority to the Detector or Publisher;
+- claim that automation can judge whether evidence is sufficient;
+- claim that one dogfood transition proves all future failure modes;
+- require a watcher, scheduler, webhook or transport for Self-Update V1 acceptance;
+- reopen operational closure;
+- alter any prior architecture decision.
+
+Publication receipt: Pending
