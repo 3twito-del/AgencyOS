@@ -881,7 +881,17 @@ Authority required:
 
 Adjudication: The Control Room found that `DECISION-20260929-004` carried the correct terminal NG-5 architecture but recorded a shortened normalization of the locked NG-5 question. It ACCEPTS `DECISION-20260929-005` as the corrected durable decision: it carries the exact locked Question, restates the architecture of `DECISION-20260929-004` without change of meaning, and supersedes it solely to preserve question provenance. The zero-or-one architecture, the H0–H3 disposition and every implementation boundary are unchanged. The correction becomes canonical only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260929-007
+  Semantic basis: 353961b2097be8429b308d103215f52c6db1af63
+  CURRENT-STATE.next.md blob SHA-256: 03a0ac873c8464042b7515c2a995dd03f10ffd7ee0eac629b315e52cbeb0fc0e
+  PUBLICATION-PAYLOAD.json blob SHA-256: 7623f795fd25b774fc8d63088367a7d606f60a68cf55951148469072376a7170
+  Authorized: 2026-09-29T20:50:48Z
+  Reference: Adjudication of DELTA-20260929-007
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260929-005` is added as the governing durable NG-5 decision.
