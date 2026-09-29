@@ -688,7 +688,17 @@ Authority required:
 
 Adjudication: The Owner explicitly approved the Control Room's binary authorization question by replying “לאשר.” The Control Room normalizes that approval narrowly as authorization for NG-5 research/design only, because the question concerned beginning the next post-NG-4 stage including NG-5 research/design and did not request implementation authority. The exact NG-5 title and bounded question remain open. No implementation, schema, API or domain authority is inferred. The authorization becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20260929-005
+  Semantic basis: 37c90ad75b8795d140af4bb70cc90791957cf69f
+  CURRENT-STATE.next.md blob SHA-256: 48a5133fbdad47d1aa24967541699969c8189dc1ac5699359e833229bd29fe27
+  PUBLICATION-PAYLOAD.json blob SHA-256: 79c33af2dd2dfe2980bc3045ae34cf80773812714df4cb53163a2e4eb8f142a0
+  Authorized: 2026-09-29T19:16:41Z
+  Reference: DECISION-20260929-003
+  Recorded by: Claude
 
 What changes if accepted:
 - `DECISION-20260929-003` becomes the durable Owner authorization for NG-5 research/design.
