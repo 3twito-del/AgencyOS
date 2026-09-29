@@ -395,7 +395,17 @@ Authority required:
 
 Adjudication: The Control Room completed terminal review on 2026-09-29 at `3331ea0481304385ad199d1cdf5317cb02997d91` and ACCEPTED Self-Update V1 as terminally complete, subject only to this exact delta reaching `PUBLISHED` through successful Publisher P7 remote readback. The Control Room explicitly accepts the bounded residual limitations listed in this delta. This adjudication does not authorize NG-4.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260929-002
+  Semantic basis: 611997f9a80e673e8a71a90cea930ab7eeb05813
+  CURRENT-STATE.next.md blob SHA-256: e782c027e959b5830f9ecaeb9a73eca1e15d5c1d216176115ac4283ca966c2fc
+  PUBLICATION-PAYLOAD.json blob SHA-256: 9d782fb218480e539ef04fe16826e14e707c8af69e9085dfefbc959ef8cbb87f
+  Authorized: 2026-09-29T15:12:43Z
+  Reference: Adjudication of DELTA-20260929-002
+  Recorded by: Claude
 
 What changes if accepted: `CURRENT-STATE.md` records Self-Update V1 terminal acceptance as COMPLETE, records the hardened Detector/Publisher evidence and real dogfood PASS, advances Latest published delta to `DELTA-20260929-002`, and makes the next bounded action explicit Owner authorization for NG-4 rather than NG-4 work itself.
 
