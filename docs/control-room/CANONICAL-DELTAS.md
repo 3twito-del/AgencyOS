@@ -791,7 +791,17 @@ Authority required:
 
 Adjudication: The Control Room independently reviewed the NG-5A source baseline and the NG-5B cross-vertical falsification evidence, applied the corrections recorded under Conflicts, and ACCEPTS the zero-or-one Mandate–Commercial Arrangement lineage contract described by `DECISION-20260929-004` as the minimum neutral-core semantic contract, sufficient to close NG-5 once this publication reaches P7. H0 and H1 are rejected, H2 is accepted, and H3 is not justified now and is retained only as the explicit reconsideration trigger. No genuine Owner-reserved ambiguity remains.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260929-006
+  Semantic basis: 443624084ea3a6d3b33f49d15b5549b5350b46dc
+  CURRENT-STATE.next.md blob SHA-256: 73b00c18d1a4eabf32848e473810e8dbc8a3748ec7231784558ec4b3eda5abeb
+  PUBLICATION-PAYLOAD.json blob SHA-256: 5f2dd7de8c046ed10a7b4dba5585ae390af30bde7042e179215058da16d411f9
+  Authorized: 2026-09-29T20:40:39Z
+  Reference: Adjudication of DELTA-20260929-006
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260929-004` is added as the durable NG-5 architecture decision.
