@@ -481,7 +481,17 @@ Authority required:
 
 Adjudication: The Owner explicitly approved starting NG-4 — Vertical Extension Architecture for research and design only, excluding product code, schema/API/domain expansion, NG-5 and implementation. The Control Room accepts this exact bounded decision for canonical publication without broadening it. The authorization becomes current only if this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20260929-003
+  Semantic basis: d4a3d9ad8b2611aa42c676b9ba09e733af8635a6
+  CURRENT-STATE.next.md blob SHA-256: 6009b81f95a901688a73a280963290ee3ceea7832e0c7aca0aadbda6e9c8cb1b
+  PUBLICATION-PAYLOAD.json blob SHA-256: e446180b1974bfadd2908200ce38dd0d5fb8e33531c31c5332cca7c733c445da
+  Authorized: 2026-09-29T16:31:49Z
+  Reference: DECISION-20260929-001
+  Recorded by: Claude
 
 What changes if accepted:
 - `DECISION-20260929-001` becomes the durable Owner authorization for NG-4 research/design.
