@@ -846,11 +846,11 @@ Publication receipt: 88fe45c91d8704b18ea98fab739877322c787655 on origin/operatio
 
 ## DELTA-20260929-007
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-29T20:45:19Z
 
-Published: Pending
+Published: 2026-09-29T21:20:43Z
 
 Sources:
 - Canonical branch state `ad16ebf66886edc0610b248b20b53fc2af50c1d9` on `operational-regression-gate`, the seal of `DELTA-20260929-006`.
@@ -929,4 +929,4 @@ Forbidden implications: This delta does **not**:
 - change commission architecture;
 - authorize NG-6.
 
-Publication receipt: Pending
+Publication receipt: f1a648784999251485b1de71482ad8307dee740f on origin/operational-regression-gate; remote readback verified 2026-09-29T21:20:43Z

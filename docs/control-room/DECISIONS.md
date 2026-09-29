@@ -678,7 +678,7 @@ Publication receipt: 37c90ad75b8795d140af4bb70cc90791957cf69f on origin/operatio
 
 ## DECISION-20260929-004
 
-Status: ACTIVE
+Status: SUPERSEDED by DECISION-20260929-005
 
 Date: 2026-09-29
 
@@ -832,4 +832,4 @@ Open:
 
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is the recorder/executor only, not the authority.
 
-Publication receipt: Pending
+Publication receipt: 353961b2097be8429b308d103215f52c6db1af63 on origin/operational-regression-gate; remote readback verified 2026-09-29T21:20:43Z

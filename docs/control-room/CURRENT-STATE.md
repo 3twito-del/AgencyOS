@@ -63,11 +63,11 @@ The closure register is not duplicated here.
 | NG-2 Subject Model & Boundary | CLOSED | `DECISION-20260928-003` |
 | NG-3 Commercial Chain Decomposition | CLOSED | `DECISION-20260928-004` |
 | NG-4 Vertical Extension Architecture | CLOSED | `DECISION-20260929-002` |
-| NG-5 Mandate–Commercial Lineage Architecture | CLOSED | `DECISION-20260929-004` |
+| NG-5 Mandate–Commercial Lineage Architecture | CLOSED | `DECISION-20260929-005` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
-NG-5 is CLOSED under `DECISION-20260929-004` after terminal Control Room architecture adjudication: each Commercial Arrangement has conceptual direct lineage to zero or one Representation Mandate, anchored to the specific historical mandate relevant to that fact's authority provenance; pre-arrangement facts may carry optional fact-local lineage; a several-mandate, role-typed relation is not justified now and is retained only as an explicit reconsideration trigger. `DECISION-20260929-003` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-6 authorization follows.
+NG-5 is CLOSED under `DECISION-20260929-005` after terminal Control Room architecture adjudication: each Commercial Arrangement has conceptual direct lineage to zero or one Representation Mandate, anchored to the specific historical mandate relevant to that fact's authority provenance; pre-arrangement facts may carry optional fact-local lineage; a several-mandate, role-typed relation is not justified now and is retained only as an explicit reconsideration trigger. `DECISION-20260929-003` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-6 authorization follows.
 
 ## Closed architecture decisions
 
@@ -76,7 +76,7 @@ NG-5 is CLOSED under `DECISION-20260929-004` after terminal Control Room archite
 - Typed represented-subject boundary: `DECISION-20260928-003`.
 - Hybrid commercial decomposition: `DECISION-20260928-004`.
 - Vertical Extension Architecture: `DECISION-20260929-002`.
-- Mandate–Commercial Lineage Architecture: `DECISION-20260929-004`.
+- Mandate–Commercial Lineage Architecture: `DECISION-20260929-005`.
 
 The decision text is in [`DECISIONS.md`](DECISIONS.md) and is not restated here.
 Operational-closure-specific decisions remain governed by the specialised closure record and are
@@ -156,4 +156,4 @@ Until such authorization is PUBLISHED:
 
 ## Latest published delta
 
-`DELTA-20260929-006`: PUBLISHED — NG-5 Mandate–Commercial Lineage Architecture closed under `DECISION-20260929-004` on the zero-or-one semantic contract; no implementation, schema/API/domain or NG-6 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260929-007`: PUBLISHED — NG-5 question/provenance correction: `DECISION-20260929-005` preserves the exact locked NG-5 question and supersedes `DECISION-20260929-004` with NO architecture change; no implementation, schema/API/domain or NG-6 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
