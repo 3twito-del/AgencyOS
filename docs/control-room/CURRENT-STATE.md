@@ -46,6 +46,13 @@ evidence remains governed by closure state section 1.
 Authority: [`docs/reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md`](../reviews/AGENCYOS-CANONICAL-CLOSURE-STATE.md).
 The closure register is not duplicated here.
 
+## Self-Update V1
+
+- **Detector:** IMPLEMENTED — read-only canonical evidence detector with local Canonical Alert rendering.
+- **Publisher:** IMPLEMENTED — payload v1.1, fixture-validated and exact-commit CI-verified at `c12190961aa1dfe8cfa2658db69b308d969bcc10` by CI run `36532575195` (#110, `workflow_dispatch`, success).
+- **Real canonical dogfood:** `DELTA-20260929-001` is the bounded first real Publisher transition. If and only if that delta reaches `PUBLISHED` through successful P7 remote readback, this statement records the real canonical dogfood as PASS. Before P7, staged text is non-authoritative.
+- **Terminal acceptance:** PENDING CONTROL ROOM REVIEW of the Publisher receipt and post-publication whole-surface consistency. NG-4 remains not authorized and has not begun.
+
 ## Next-generation stage
 
 | Stage | Status | Decision |
@@ -142,5 +149,4 @@ its own explicit authorization or decision under AgencyOS governance.
 
 ## Latest published delta
 
-`DELTA-20260928-001`: PUBLISHED — publication basis 4092094d803577a79bcd74d0e122a384843787be;
-verified 2026-09-28T23:15:18Z.
+`DELTA-20260929-001`: PUBLISHED — first real Canonical Publisher dogfood; terminal Self-Update V1 acceptance remains pending Control Room review. See `CANONICAL-DELTAS.md` for the publication receipt.

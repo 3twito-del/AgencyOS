@@ -274,11 +274,11 @@ Publication receipt: 4092094d803577a79bcd74d0e122a384843787be on origin/operatio
 
 ## DELTA-20260929-001
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-29T08:50:00Z
 
-Published: Pending
+Published: 2026-09-29T12:30:01Z
 
 Sources:
 - Canonical Publisher implementation commit `c12190961aa1dfe8cfa2658db69b308d969bcc10` on `operational-regression-gate`.
@@ -350,4 +350,4 @@ Forbidden implications: This delta does **not**:
 - claim that staged or ACCEPTED state is current before P7;
 - claim that all post-dogfood descriptive wording is already corrected.
 
-Publication receipt: Pending
+Publication receipt: 5f88fbe1a046b8c5ee303dafb2a83e48a0965529 on origin/operational-regression-gate; remote readback verified 2026-09-29T12:30:01Z
