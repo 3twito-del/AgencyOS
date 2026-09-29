@@ -526,3 +526,96 @@ Open:
 Recorded by: Claude (AgencyOS executor), on explicit Owner instruction normalized by the Control Room. Claude is the recorder, not the authority.
 
 Publication receipt: d4a3d9ad8b2611aa42c676b9ba09e733af8635a6 on origin/operational-regression-gate; remote readback verified 2026-09-29T16:36:37Z
+
+## DECISION-20260929-002
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: CONTROL_ROOM
+
+Question: Has NG-4 — Vertical Extension Architecture reached a terminal architecture conclusion, and if so what core/vertical extension boundary governs future design?
+
+Decision: NG-4 is terminally accepted as a conceptual architecture stage. The accepted architecture is a **compiled modular monolith + bounded vertical semantic contexts + category-differentiated composition contracts + explicit role-local typed bridges where a shared/core role must reference a vertical-owned object**. It is conceptual architecture only and approves no product implementation, storage mapping, schema, API, class/interface shape, migration, module/package layout or NG-5 work.
+
+Governing conclusions:
+- The neutral core remains the single owner of the shared representation, commercial, legal, economic and cash truth established by NG-1 to NG-3.
+- Verticals extend it through the contribution categories C1–C6 under bounded semantic ownership; N1 and N2 are consumers/translators only.
+- Cross-context references to vertical-owned C3 objects use explicit role-local typed bridges; each newly admissible kind is an explicit reviewed expansion.
+- Core invariants cannot be relaxed by vertical rules.
+- One resulting core fact has one canonical owner and no competing determination writers.
+- Definition meaning and history remain resolvable without selecting one code, data or version-storage mechanism.
+- No single VerticalId and no universal generic extension abstraction is approved.
+- Film/TV proves the model can express a sophisticated first vertical without defining universality.
+- Exact implementation remains unauthorized and deferred.
+
+A. Neutral core boundary. The neutral core owns: represented-subject identity and the typed subject boundary; representation-mandate authority, effective dating and history; the neutral semantic boundaries of market activity, commercial arrangement, proposal/offer, legal truth, economic truth, collection/billing, cash application and accounting projection; canonical identities for the shared commercial, legal and economic facts those decisions established; money/currency truth; obligations, receivables, payments and allocations; neutral amount-determination and representation commission/fee capabilities; and the composition contracts required for vertical semantics to participate without duplicating shared truth. This does not make every current Build-97 aggregate or technique a permanent neutral-core mechanism: exact Build-97 offer immutability and derived-accepted-offer mechanics are precedents, not the invariant; exact Build-97 Representation statuses and state machine are not promoted; exact Build-97 amount-kind enums and storage are not promoted; exact Build-97 RightsGrant, ContractOption and DeadlineRule aggregate and mechanism shapes are not made universal by NG-4. The already-decided distinctions are preserved: offer/proposal != arrangement; agreement snapshot != legal instrument; legal instrument != recorded rights grant; obligation != receivable; payment != allocation.
+
+B. Vertical contribution taxonomy.
+- C1 — Vertical Vocabulary: controlled vertical meaning such as kind, role, capacity, medium, category or event anchor.
+- C2 — Vertical Typed Term: a typed value-shaped vertical fact associated with a commercial, legal or economic host whose shared identity remains owned by the core.
+- C3 — Vertical Domain Object: a vertical-owned identity-bearing object whose independent identity, reference, history or lifecycle has been earned; never a generic extension bag.
+- C4 — Admissibility / Constraint Rule: a context-scoped rule governing whether a canonical action or assertion is semantically admissible.
+- C5 — Determination Rule: a context-scoped rule or explicit rule composition that derives a material result whose canonical truth remains owned by the proper core fact.
+- C6 — External Normative / Reference Dataset: externally authored, source-identified, effective-dated facts materially used by vertical rules.
+- N1 — vertical-aware query/projection: consumer only, never semantic owner.
+- N2 — integration adapter: translator into owned semantics, never semantic owner.
+- No seventh durable "finding" category is proven by current evidence.
+
+C. Definition contract (C1/C2). Semantic authority belongs to the vertical context. Definition identity must be stable, authority-scoped and independent of display labels. Historical instances must retain resolvable original meaning; changed meaning may require a new identity or another explicit historical-version mechanism, and NG-4 does not mandate a Version field or one storage strategy. Material instance value, currency, unit and basis must remain historically interpretable where applicable. Display metadata may evolve without changing business identity when meaning is unchanged. Definitions needed by clients and queries must be published through an authoritative runtime/canonical distribution surface; the server/runtime may be that authoritative publication and distribution surface, while the vertical remains the semantic authority for C1, C2, C4 and C5, and for C6 the external source owns the external meaning and effective regime. Clients are not independent semantic authorities.
+
+D. C3 contract. C3 objects remain vertical-owned. When a core or shared semantic role legitimately needs to reference a vertical-owned C3 object, the bridge is local to that role; the reference is semantically typed; it preserves stable concrete identity; referenced existence must be enforceable; same-tenant containment must be preserved; history remains anchored to the original object; and every newly admissible kind is an explicit reviewed expansion of that shared composition contract. Vertical modules cannot self-register arbitrary C3 kinds without a core/shared-contract change, and zero-core-touch extensibility is not required. Entity, Party, SubjectId, a universal (VerticalId, Kind, Id) and a generic object store are not used. A vertical concept is promoted into neutral core only when evidence shows that its identity or lifecycle itself is vertical-neutral shared truth across contexts; cross-vertical use alone is insufficient for promotion. Work/IP remains a mandate object by default under DECISION-20260928-002, and NG-4 does not promote Work/IP to a represented subject or universal core entity.
+
+E. C4 contract. Core invariants apply first and cannot be relaxed by a vertical. Vertical C4 constraints are context-scoped and may narrow admissibility. Where a canonical assertion participates in several relevant contexts, incompatible required constraints cannot be silently overridden. External occurrence or evidence, canonical domain assertion or state, admissibility of a canonical operation, and optional derived or advisory information are distinct. The claim that every real-world fact must be recorded with a finding is rejected: ADR-0040 is the counterexample, because real unsigned-but-binding transactions may exist while collectible obligations are still refused under the model. No generic durable compliance-finding primitive is approved.
+
+F. C5 contract. The resulting core fact has one canonical semantic owner and one authoritative determination path. Multiple rules or inputs may participate only through explicit composition semantics such as composition, cap, floor or precedence. Independent competing writers of the same canonical fact are not allowed. A vertical term is not itself money owed. C5 may consume vertical terms, core facts and C6 reference data; the resulting obligation, entitlement or money truth remains in its proper core owner. Historical explanation must retain sufficient attribution to the applicable rule, regime and reference data; NG-4 does not select the exact persistence record for that attribution. Build-97 evidence is preserved: commission calculation takes one MonetaryObligation amount as its basis, and SpecificTerm currently requires and stores a term-code qualifier that does not select the monetary basis in the commission kernel.
+
+G. C6 contract. The external source is authority for its published content and effective period. AgencyOS may hold a faithful ingested, versioned representation with provenance. The vertical rule owns its interpretation and use. The resulting canonical domain fact remains owned by core. Exact ingestion infrastructure is not selected.
+
+H. Client / API / query contract. Clients and projections must not become competing definition authorities. Definitions needed for rendering, selection or querying are published as descriptors. Unknown definitions must remain distinguishable from absence and must not be guessed. Core and client code may understand only neutral metadata actually required by neutral capabilities, such as typed value shape, money/currency and security/economic classification where those capabilities consume them; no generic metadata/tag ontology is created. Build-97 hard-coded client vocabulary and enum-name API coupling are implementation leakage, not the future architecture. Exact future API payloads are deferred.
+
+I. Cross-vertical composition. There is no single VerticalId on a represented subject, mandate, arrangement or legal instrument. One shared fact may participate in several vertical contexts. Shared identities and money remain single-owner facts. Similar labels in different verticals do not imply semantic identity. Cross-vertical reports consume shared core truth and enrich it with vertical semantics when definitions are understood.
+
+J. Deployment. Under present evidence AgencyOS remains a compiled modular monolith with bounded semantic contexts. A bounded context does not imply a separate process or database. Runtime plugins and dynamic loading are not justified by current evidence; this does not claim they can never be justified by future independent-release or runtime requirements.
+
+K. Film/TV reference-vertical proof. Film/TV survives decontamination. Film/TV-specific concepts — DealKind members; Film/TV term codes and units; Project, Package and ProjectRole semantics; the SourceProperty description; subject requirements; party-role vocabulary; rights vocabularies; vertical obligation categories; vertical deadline anchors — do not need to define neutral-core vocabulary. They can be represented through C1–C6 and role-local bridges while preserving one shared arrangement, legal, economic and cash truth. SourceProperty(Book) is not proven to be the same canonical identity as a future Literary Work; a future Literary Work may remain literary-owned and be referenced through an explicit bridge; promotion of Work identity to core requires separate evidence that the identity or lifecycle itself is neutral shared truth.
+
+L. Correction chain. Rejected: central vertical enums as the universal extension point; one VerticalId per core aggregate; vertical-specific duplicate Deal, Contract or Payment truth; generic JSON/property bags; global Entity, Party or SubjectId; a generic Transaction; a universal rights ontology; a mega lifecycle; a universal registry owning C1–C6; a universal rules-as-data behavioural engine; mandatory separate-process bounded contexts; a runtime plugin framework under current evidence; K4-versus-K5 as a code-versus-data architecture fork; pure vertical-owned C2 instances; "record every real event with a non-blocking finding"; unrestricted or self-registering C3 kind contribution; zero-core-touch extensibility as a required property. Survives locally: bounded semantic contexts inside the monolith; typed C1/C2 descriptor catalogues; runtime publication of descriptors; vertical-owned C3 objects; explicit role-local typed bridges; typed neutral comparison/reconciliation capabilities; evidence-triggered future promotion from vertical to core.
+
+Scope: Conceptual next-generation architecture only. It does **not** implement the design, and it gives no approval for schema, API, domain expansion, storage mappings, migrations or product code. NG-5 stays unauthorized. It supersedes none of NG-1, NG-2 or NG-3, and Operational Closure is not reopened.
+
+Evidence / provenance:
+- The published governing decisions `DECISION-20260928-001` to `-004` and `DECISION-20260929-001` in `docs/control-room/DECISIONS.md`.
+- Build-97 source evidence at product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`; `src/` and `docs/adr/` are byte-identical at canonical HEAD `85918d6680f4d5c432827d080a01ccf8fc3f646e`.
+- The bounded NG-4 source/domain falsification chain (NG-4A to NG-4E/F), adjudicated by the Control Room and recorded in `DELTA-20260929-004`.
+- Claude research reports were evidence inputs only. The decision is the Control Room's.
+
+Consequences:
+- NG-4 may be marked CLOSED once `DELTA-20260929-004` reaches PUBLISHED.
+- Future vertical design must preserve this boundary.
+- Any implementation or schema/API/domain expansion still requires separate future authority.
+- NG-5 remains unauthorized and not begun.
+
+Supersedes: None
+
+Unchanged:
+- All governing NG-1 to NG-3 decisions, `DECISION-20260928-001` to `-004`.
+- `DECISION-20260929-001`'s bounded authorization.
+- Build 97 product identity.
+- Operational Closure.
+- Self-Update V1.
+- The deferred questions listed under Open.
+
+Open:
+- A newly referenceable C3 kind may require explicit reviewed expansion of a shared composition contract.
+- Exact persistence, schema, API, interface and module mechanics remain deferred.
+- Cross-vertical mandate-lineage reporting depends on the already-deferred commercial ↔ mandate cardinality.
+- Work/IP promotion remains unresolved until its identity/lifecycle earns neutral-core status.
+- Film/TV-specific guild schedule content was not directly researched; the C6 architecture itself was sufficiently established by bounded cross-vertical evidence.
+- Previously deferred core questions remain deferred: persisted vs derived umbrella Representation; qualifying clienthood; delegated/sub-agency authority topology; exact commission placement/model; Company ↔ External Organization implementation; Group persistence; successor/predecessor semantics; Person reconciliation; exact subject storage/retention mechanics; commercial ↔ mandate cardinality; agreement snapshot; exact amount-determination record; multi-arrangement legal instruments; scope/exclusivity/territory placement; ledger integration.
+- None of these blocks NG-4 architecture closure.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is the recorder, not the authority.
+
+Publication receipt: Pending

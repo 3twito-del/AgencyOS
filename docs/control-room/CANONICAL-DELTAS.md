@@ -535,3 +535,108 @@ Forbidden implications: This delta does **not** mean:
 - publication of this authorization itself constitutes NG-4 research/design completion.
 
 Publication receipt: 593b5b93312f0b85cfad78d1b0311acb9abe3f64 on origin/operational-regression-gate; remote readback verified 2026-09-29T16:36:37Z
+
+## DELTA-20260929-004
+
+Status: ACCEPTED
+
+Detected: 2026-09-29T18:25:00Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `85918d6680f4d5c432827d080a01ccf8fc3f646e` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md`, `CANONICAL-DELTAS.md` and `CANONICAL-STATE-PROTOCOL.md` at that SHA.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, whose `src/` and `docs/adr/` are byte-identical at that SHA.
+- The bounded NG-4 research chain NG-4A to NG-4E/F, adjudicated by the Control Room and recorded as `DECISION-20260929-002`.
+
+Prior claim: NG-4 — Vertical Extension Architecture is AUTHORIZED for research/design under `DECISION-20260929-001`, but no NG-4 architecture conclusion is yet canonical; the extension mechanism and core-versus-vertical boundary remain open.
+
+Candidate/new claim: NG-4 has reached a terminal conceptual architecture conclusion under `DECISION-20260929-002`. The accepted architecture is the bounded compiled-monolith / vertical-semantic-context / category-differentiated-composition architecture, with explicit role-local typed bridges where a shared/core role must reference a vertical-owned object, as defined in `DECISION-20260929-002`. NG-4 becomes CLOSED only when this transition is PUBLISHED. Product implementation, schema/API/domain expansion and NG-5 remain unauthorized.
+
+Claimed transition: NG-4 AUTHORIZED / RESEARCH-DESIGN OPEN → CLOSED.
+
+Scope: Canonical publication of the Control Room's terminal NG-4 architecture adjudication only.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `85918d6680f4d5c432827d080a01ccf8fc3f646e` (`Publish DELTA-20260929-003`), with `DECISION-20260929-001` ACTIVE and `DELTA-20260929-003` PUBLISHED;
+  - `git diff b3f41bf..85918d6 -- src docs/adr` is empty, so every Build-97 anchor below is released product source.
+- Source and ADR evidence (Build 97):
+  - Film/TV vocabulary sits in core-looking types: `src/AgencyOS.Domain/Deals/Deal.cs:26` (`DealKind`, "Broad enough for film and television"), `Deals/DealTerms.cs:44`/`:105` (term units and codes), `Legal/ContractParty.cs:18`, `Legal/RightsGrant.cs:26`/`:75`/`:103`, `Finance/MonetaryObligation.cs:25`, `Legal/DeadlineRule.cs` (`OnFirstRelease`).
+  - `Deal` requires Opportunity and target (`Deal.cs:268`, `:271`), an implementation accident relative to `DECISION-20260928-004`.
+  - Contract terms mirror deal terms by integer (`Legal/ContractTerms.cs:13`); reconciliation compares typed terms on a shared code (`src/AgencyOS.Deals.Rules/Reconciliation.fs`; ADR-0022 §6).
+  - Role-local typed reference precedents: `Relationships/RelationshipEndpoint.cs:27` (ADR-0011) and `Opportunities/OpportunitySubject.cs:47` (ADR-0020); ADR-0019's validator-only raw identifier is the anti-precedent; `Opportunity.cs:328` shows subject-kind requirements placed in core.
+  - `Projects/SourceProperty.cs` is "an underlying property … as described", not a rights record.
+  - Commission takes one `MonetaryObligation` amount as its basis (`src/AgencyOS.Application/Finance/CommissionCommands.cs:176`); `SpecificTerm` requires and stores a term code (`src/AgencyOS.Finance.Rules/Commission.fs:125`; `Finance/Commission.cs:132`) that does not select the basis; one governing rule, "two in force at once is refused rather than resolved" (ADR-0023 §6).
+  - ADR-0040 §5 ("Unsigned-but-binding is not modelled, and is not proxied") and its rejected "allow and warn" alternative.
+  - A code-declared term catalogue is published at runtime through `GET /deal-terms` (`src/AgencyOS.Api/Endpoints/M7Endpoints.cs:605`); the API parses enum names (`M7Endpoints.cs:143`); the Windows client hard-codes vocabulary (`src/AgencyOS.Windows/Dialogs/RecordMonetaryObligationDialog.xaml:47`).
+  - ADR-0037 §1 keeps a compiled modular monolith; no dynamic assembly loading exists in `src/`.
+- Control Room semantic adjudication: the Adjudication field below, recorded as `DECISION-20260929-002`.
+
+Conflicts: None that survive adjudication. The correction chain is preserved rather than reproduced:
+- the earlier claim that every real-world fact must be recordable with a non-blocking finding was falsified by ADR-0040 and is not adopted;
+- the earlier claim that vertical modules can contribute members to a closed reference family at build time was unproved; the accepted contract is an explicit reviewed bridge expansion;
+- cross-vertical use alone was rejected as grounds for promoting a C3 object to core; SourceProperty(Book) is not proven to share identity with a future Literary Work;
+- the earlier assumption that gross-compensation commission sums vertical term rows was corrected; the basis is one `MonetaryObligation` amount;
+- the K4-versus-K5 code/data fork was a false dichotomy; semantic authority, historical resolution and runtime publication are separate axes;
+- bounded contexts inside the monolith and a typed C1/C2 descriptor catalogue were not rejected; only their strawman forms were.
+
+Authority required:
+- `CONTROL_ROOM`, for the semantic terminal adjudication and stage completion;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required. `DECISION-20260929-001` remains the Owner authorization that allowed NG-4 research/design.
+
+Adjudication: The Control Room independently reviewed the NG-4A through NG-4E/F evidence and correction chain, re-verified the canonical branch and the decisive Build-97 source anchors, attempted terminal falsification, and ACCEPTS the semantic architecture described by `DECISION-20260929-002` as sufficient to close NG-4 once this publication reaches P7. No genuine Owner-reserved ambiguity remains. The accepted architecture includes the narrowings recorded in `DECISION-20260929-002`: Build-97 aggregate and technique shapes are precedents rather than invariants; C3 bridges require explicit reviewed expansion and zero-core-touch extensibility is not required; no durable finding category is approved; definition history is required without selecting a version or storage mechanism; and runtime plugins are not justified under current evidence.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-002` is added as the durable NG-4 architecture decision.
+- `CURRENT-STATE.md` records NG-4 as CLOSED.
+- The extension-mechanism and core-versus-vertical question is replaced by the accepted architecture plus bounded residuals.
+- The next bounded action becomes obtaining explicit Owner authorization before beginning NG-5 or any other post-NG-4 stage.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that NG-4 architecture remains undecided/open. It supersedes no prior Decision ID.
+
+Unchanged:
+- Build 97 released product identity.
+- Operational Closure remains COMPLETE and terminal.
+- Self-Update V1 remains COMPLETE and terminal.
+- NG-1, NG-2 and NG-3 remain CLOSED.
+- `DECISION-20260928-001` to `-004` remain in force.
+- `DECISION-20260929-001` remains the historical Owner authorization that allowed NG-4 research/design.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- NG-5 remains unauthorized and not begun.
+- The deferred core questions remain deferred.
+
+Open / unresolved questions:
+- A newly referenceable C3 kind may require explicit reviewed expansion of a shared composition contract.
+- Exact persistence, schema, API, interface and module mechanics remain deferred.
+- Cross-vertical mandate-lineage reporting depends on the already-deferred commercial ↔ mandate cardinality.
+- Work/IP promotion remains unresolved until its identity/lifecycle earns neutral-core status.
+- Film/TV-specific guild schedule content was not directly researched; the C6 architecture itself was sufficiently established by bounded cross-vertical evidence.
+- Previously deferred core questions remain deferred: persisted vs derived umbrella Representation; qualifying clienthood; delegated/sub-agency authority topology; exact commission placement/model; Company ↔ External Organization implementation; Group persistence; successor/predecessor semantics; Person reconciliation; exact subject storage/retention mechanics; commercial ↔ mandate cardinality; agreement snapshot; exact amount-determination record; multi-arrangement legal instruments; scope/exclusivity/territory placement; ledger integration.
+- None of these blocks NG-4 closure.
+
+Forbidden implications: This delta does **not**:
+- authorize product implementation;
+- authorize schema/API/domain expansion;
+- authorize NG-5;
+- approve a generic Entity, Party, SubjectId or Transaction;
+- approve generic JSON terms;
+- approve a universal rights ontology;
+- approve a mega lifecycle;
+- approve a universal rules engine or C1–C6 registry;
+- approve runtime plugins under current evidence;
+- require zero-core-touch extension;
+- promote Work/IP to represented subject or universal core identity;
+- make exact Build-97 offer/rights/option/deadline/state-machine/storage mechanisms universal;
+- require a particular definition Version field or persistence design;
+- make Claude an architecture authority;
+- reopen Operational Closure.
+
+Publication receipt: Pending
