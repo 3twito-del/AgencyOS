@@ -242,18 +242,18 @@ function Invoke-TestReviewer {
     if ($LASTEXITCODE -ne 0) { throw "Reviewer tests failed." }
 }
 
-# Runs only the integration suite. Builds just this project's dependency graph,
-# which excludes the WinUI client, so it runs on a non-Windows agent too.
+# Runs the canonical-infrastructure gate: the tests of the read-only canonical state
+# detector and of the canonical publisher (docs/control-room/CANONICAL-DETECTOR.md,
+# CANONICAL-PUBLISHER.md). They build throwaway git repositories and bare remotes in a
+# temporary directory, and need no desktop, database or network. Engineering tooling:
+# no release publishes either tool.
 function Invoke-TestCanonical {
-    # The canonical state detector (docs/control-room/CANONICAL-DETECTOR.md). Its tests
-    # build throwaway git repositories in a temporary directory and need no desktop,
-    # database or network. Engineering tooling: no release publishes it.
     $project = Join-Path $root "tests/AgencyOS.Tests.Canonical/AgencyOS.Tests.Canonical.csproj"
     $config = Get-Configuration "Debug"
-    Write-Section "Canonical Detector Tests ($config)"
+    Write-Section "Canonical Detector and Publisher Tests ($config)"
 
     dotnet test $project --nologo -c $config @(Get-MetadataArgs)
-    if ($LASTEXITCODE -ne 0) { throw "Canonical detector tests failed." }
+    if ($LASTEXITCODE -ne 0) { throw "Canonical detector and publisher tests failed." }
 }
 
 function Invoke-TestIntegration {

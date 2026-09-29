@@ -1,6 +1,6 @@
 # AgencyOS canonical publisher contract
 
-**Status:** NORMATIVE DESIGN CONTRACT — IMPLEMENTATION NOT YET PRESENT
+**Status:** NORMATIVE CONTRACT — IMPLEMENTED ([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)); FIXTURE-VALIDATED, REAL CANONICAL DOGFOOD PENDING
 
 **Governed by:** [CANONICAL-STATE-PROTOCOL.md](CANONICAL-STATE-PROTOCOL.md). Where this contract
 and the protocol disagree, the protocol wins, and this contract is corrected. The delta lifecycle
@@ -15,10 +15,12 @@ deterministic steps, and adds the authority gate and staging that the steady sta
 The publisher executes accepted state. **It never decides that state should be accepted, and it
 never seals without a durable seal authorization bound to the exact bytes it promotes.**
 
-No executable Canonical Publisher exists yet. This document defines what one must do when it is
-built. The read-only Canonical Detector and its local Canonical Alert renderer are implemented
-separately ([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). No watcher, scheduler, webhook,
-alert transport or sender, or workflow store exists.
+The Canonical Publisher is implemented in `tools/AgencyOS.Canonical.Publisher`
+([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)). It has been validated only against disposable
+fixture repositories, and has not yet been used on the real canonical branch. This document
+remains the normative rule it implements. The read-only Canonical Detector and its local Canonical
+Alert renderer are implemented separately ([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). No
+watcher, scheduler, webhook, alert transport or sender, or workflow store exists.
 
 ---
 
@@ -112,9 +114,8 @@ The payload cannot contain its own digest, and it does not.
 
 | Key | Content |
 | --- | --- |
-| `contract` | `"agencyos-canonical-publisher/v1"` |
+| `contract` | `"agencyos-canonical-publisher/v1.1"` (see *Version* below) |
 | `mode` | `"PUBLISH_NEW_DELTA"`, `"ADVANCE_EXISTING_DELTA"` or `"DESCRIPTIVE_CORRECTION"` |
-| `stop_after` | `"BASIS"` or `"SEAL"` (section 6). It controls continuation only; it never weakens the authority gate. |
 | `delta_id` | `"DELTA-YYYYMMDD-NNN"`, or `"None"` in `DESCRIPTIVE_CORRECTION` |
 | `branch` | The canonical branch, for example `"operational-regression-gate"` |
 | `expected_start_sha` | The full SHA the remote must be at when this semantic basis is built. For a replacement basis (section 4) this is the head it is built on. |
@@ -123,17 +124,20 @@ The payload cannot contain its own digest, and it does not.
 | `authority.owner_decision_applies` | `true` or `false`. `true` requires `OWNER` Decision IDs in `authority.governing_decision_ids`. |
 | `authority.governing_decision_ids` | The Decision IDs the transition relies on |
 | `current_state.prior_sha256` | Digest of the active `CURRENT-STATE.md` at `expected_start_sha` |
-| `current_state.next_sha256` | Digest of `CURRENT-STATE.next.md` |
-| `current_state.changes` | Each `{ "section", "claim" }` that changes, with the claim's full new text |
-| `current_state.unchanged` | Each `{ "section", "claim" }` that must survive byte-for-byte. At minimum this is the release identity and every claim the transition does not name. |
+| `current_state.next_sha256` | Digest of `CURRENT-STATE.next.md`. In `DESCRIPTIVE_CORRECTION`, the digest of the corrected `CURRENT-STATE.md`, which equals `prior_sha256` when that file is not corrected. |
+| `current_state.next_text` | The complete, exact text that becomes `CURRENT-STATE.next.md`: UTF-8, LF line endings, ending in exactly one LF. Its committed blob's SHA-256 must equal `next_sha256`. The publisher never synthesises it from the claims. `"None"` in `DESCRIPTIVE_CORRECTION`. |
+| `current_state.changes` | Each `{ "section", "claim" }` that changes, with the claim's full new text. `section` is the exact text after a `## ` heading, or `""` for the text before the first heading. The claim must appear within that section. |
+| `current_state.unchanged` | Each `{ "section", "claim" }` that must survive byte-for-byte, in the same section of both the active and the staged state. At minimum this is the release identity and every claim the transition does not name. The two claims lists are validation assertions, independent of `next_text`. |
 | `delta.kind` | `"new"` or `"existing"` |
 | `delta.substantive_sha256` | The delta's publication-invariant digest (section 5.4) |
-| `decisions.new` | The Decision IDs added in the semantic basis, each `Status: ACTIVE` and receipt `Pending` |
+| `delta.entry_text` | The complete, exact delta entry for the semantic basis, ending in exactly one LF. It runs from the `## DELTA-…` heading to the last line, and is in its pre-seal lifecycle state: `Status: ACCEPTED`, a populated `Adjudication`, `Seal authorizations: Pending` or the earlier records preserved, `Published: Pending`, `Publication receipt: Pending`. The publisher inserts or replaces exactly this entry and never writes delta prose. Its digest must equal `substantive_sha256`. `"None"` in `DESCRIPTIVE_CORRECTION`. |
+| `decisions.new_entries` | Each `{ "id", "entry_text" }`: a decision added in the semantic basis, with its complete, exact entry text (`Status: ACTIVE`, receipt `Pending`). The publisher inserts exactly these bytes and never writes decision prose from an ID. |
 | `decisions.status_changes` | Each `{ "id", "status" }` earlier-entry change (`SUPERSEDED by …` / `REVOKED by …`), applied at the seal |
 | `decisions.receipts_to_seal` | Each `{ "id", "content_bearing" }`, where `content_bearing` is a full SHA or `"SEMANTIC_BASIS"` for a decision first added in this transition |
 | `provenance_prose` | Each `{ "path", "before", "after" }`: an exact prose replacement allowed at the seal, outside any entry, or empty |
+| `corrections` | For `DESCRIPTIVE_CORRECTION`: `[{ "path", "before", "after" }]`, exact replacements the Control Room classified as descriptive. Each `before` must occur exactly once in its file, or the run stops with `PRECONDITION_DRIFT`; there is no fuzzy matching and no prose synthesis. A correction may not change a delta or decision entry, lifecycle metadata, or anything under `pending/`. An empty array in every other mode. It is distinct from `provenance_prose`, which applies only at the seal of a semantic transition. |
 | `paths.allowed` | The exact paths the transition may change |
-| `paths.forbidden` | Always includes `src/`, `tests/`, `.github/`, `scripts/`, the protocol, the closure state, `docs/releases/` and `docs/adr/`, unless an adjudication names one |
+| `paths.forbidden` | Always includes the V1.1 hard-forbidden set: `src/`, `tests/`, `.github/`, `scripts/`, the protocol, the closure state, `docs/releases/` and `docs/adr/`. Publisher V1.1 never changes these, whatever the payload's authority: neither `CONTROL_ROOM` nor `OWNER` overrides them, and there is no exception field. A transition that genuinely needs one stops with `SCOPE_VIOLATION`, or `PRODUCT_BOUNDARY_VIOLATION` for `src/`. It needs a separately governed publication or a future contract revision. This is a V1 safety boundary, not a claim that such changes can never be authorized. |
 | `flags.product_code_change` | Always `false` under this contract. `true` is `PRODUCT_BOUNDARY_VIOLATION`. |
 | `flags.schema_change`, `flags.api_change`, `flags.domain_expansion` | `true` requires `authority.owner_decision_applies: true` |
 
@@ -141,6 +145,25 @@ The payload cannot contain its own digest, and it does not.
 requiring `CONTROL_ROOM` or `OWNER` authority without a durable reference.** A payload whose only
 authority is `MACHINE_VERIFIABLE_FACT` may publish only machine-verifiable facts (protocol section
 3.1).
+
+**Self-materialising.** Every byte of semantic text the publisher writes comes verbatim from one
+of these fields:
+- `current_state.next_text`;
+- `delta.entry_text`;
+- `decisions.new_entries`;
+- `provenance_prose`;
+- `corrections`.
+
+The publisher derives only hashes, commit SHAs, readback times, the next `SA-n` record number and
+the paths this contract fixes. A new entry is appended at the end of its ledger, after one blank
+line. An existing entry is replaced in place.
+
+**Version.** `v1.1` adds the exact-text fields above and removes `stop_after`. `v1` carried IDs
+and digests but not the bytes needed to materialise them, and was never implemented. Where a run
+stops is now fixed by the command (section 6), not by the payload. A payload that names any other
+version is refused as `PRECONDITION_DRIFT`; it is never read as this one. So is a payload with any
+member this table does not list, `stop_after` included: unknown members are refused, never
+ignored.
 
 ## 4. Publication bases
 
@@ -199,7 +222,7 @@ prose, or another non-substantive publication issue.
 
 The publisher checks mechanically that these are identical to the previous semantic basis:
 - the delta's `delta.substantive_sha256`;
-- the byte content of every entry in `decisions.new`.
+- the byte content of every entry in `decisions.new_entries`.
 
 If either differs, it stops with `SEMANTIC_CHANGE_REQUIRES_NEW_DELTA`. That covers any change to the
 claim, scope, evidence, authority requirement, adjudication, open questions or forbidden
@@ -251,7 +274,12 @@ Seal authorizations:
 - `Record` is `SA-1`, `SA-2`, … within the delta, increasing by one per record and never reused.
 - `Scope` is always `AUTHORIZE_SEAL_ONLY`. The record lets the publisher promote exactly the
   bound bytes, and nothing else.
-- `Authority` is `CONTROL_ROOM` or `OWNER`, as the governed transition requires.
+- `Authority` is `OWNER` when the governed transition requires Owner authority, meaning
+  `authority.owner_decision_applies` or an `OWNER` class. Otherwise it is `CONTROL_ROOM`. That
+  includes a transition accepted as `MACHINE_VERIFIABLE_FACT` only: every semantic-state promotion
+  requires a durable seal authorization, and none bypasses the gate. The record permits execution
+  of bytes already accepted. It is not a new semantic adjudication, and the publisher never
+  creates one.
 - `Reference` is durable and takes one of three forms:
   - a Decision ID present in `DECISIONS.md`;
   - `<repository path>@<full SHA>`, resolving in the repository;
@@ -290,7 +318,12 @@ seal advances lifecycle fields. It is computed from a deterministic parse:
 1. **Entry.** Entries are parsed only after the ledger's `# Entries` heading, so the template is
    never read as an entry. A delta entry starts at its `## DELTA-…` heading. It ends before the
    next line that begins with `#`, before the next line that is exactly `---`, or at the end of
-   the file.
+   the file. The trailing blank lines immediately before that structural boundary are ledger
+   separators and belong to no entry, so the entry ends at its last non-blank line. Blank lines
+   between non-blank lines inside the entry stay part of their field blocks, and no whitespace
+   inside retained content is normalised. Appending an entry therefore never changes the digest
+   of the one before it. The heading line is part of the entry and lies in no excluded block, so
+   it is included in the digest.
 2. **Field header.** A line is a field header only if it starts at column 0 with one of the
    ledger's field names, followed by `:`. The field names are the substantive and lifecycle
    fields listed in `CANONICAL-DELTAS.md`, in the spellings its template and entries use
@@ -329,13 +362,18 @@ Each phase passes or stops. **A stop is never repaired by inference.**
 | **P6 Publish seal** | Fetch; confirm the remote is still the final basis; commit once; normal fast-forward push. | The remote was the final basis just before the push, and the push was accepted without force. |
 | **P7 Final readback** | Fetch; read every changed path from the remote. | The remote head is the sealing SHA; the remote blobs equal the sealed tree; `pending/<DELTA-ID>/` is absent. Record `seal_readback_utc`. **Only now is the transition `PUBLISHED`** (protocol section 8). |
 
-**`stop_after`.**
-- `BASIS` ends the run at the hold.
-- `SEAL` lets the same run continue from the hold to P4A and on to P7, but only once an
-  authorization for the just-verified semantic basis is supplied, and P4A has appended, pushed
-  and read back its record.
+**Command boundaries.** A seal authorization names the semantic-basis SHA, which exists only
+after P4. So where a run stops is fixed by the command:
+- **`stage`** runs P0 → P1 → P2 → P3 → P4 and always stops at the mandatory hold, with
+  `BASIS_VERIFIED_AWAITING_SEAL`. It never enters P4A.
+- **`authorize`** takes an explicit, durable seal authorization bound to the verified semantic
+  basis, and runs or resumes P4A → P5 → P6 → P7 unless a failure stops it. It starts only from a
+  state compatible with R2, R3 or R4. There is no V1 rest state between a successful P4A and P5.
+- **`resume`** derives R0–R7 from repository evidence and continues only along the permitted
+  route. It never infers an authorization.
+- **`correct`** runs the descriptive-correction path (section 7.3).
 
-Either way, **P5 is never entered before P4A has passed.**
+**P5 is never entered before P4A has passed.**
 
 **Pre-seal corrections** are made through a replacement semantic basis (section 4). A local commit
 that was never pushed may be amended, but only on authorization. A pushed commit is never amended.
@@ -364,7 +402,7 @@ Each is machine-checkable:
    Otherwise the failure is `SEMANTIC_CHANGE_REQUIRES_NEW_DELTA`.
 5. **Other entries:** every other delta entry is byte-identical to `expected_start_sha`.
 6. **Decision immutability:** every earlier decision entry is byte-identical. New entries are
-   exactly those in `decisions.new`. On a replacement basis they are byte-identical to the
+   exactly those in `decisions.new_entries`. On a replacement basis they are byte-identical to the
    previous basis; otherwise the failure is `SEMANTIC_CHANGE_REQUIRES_NEW_DELTA`.
 7. **Authorization history:** existing records are byte-identical to the previous basis, and none
    is added in a semantic basis.
@@ -450,14 +488,14 @@ Every failure stops the run. **No failure is retried automatically.** A retry is
 
 | Failure | Raised in | Repository may already be mutated? | Delta state after | Evidence returned to Control Room |
 | --- | --- | --- | --- | --- |
-| `PRECONDITION_DRIFT` | P0; any resume | No | Unchanged | Expected against actual branch, heads, tree, pending directories and digests; any unparseable artifact |
+| `PRECONDITION_DRIFT` | P0; P2; any resume | No | Unchanged | Expected against actual branch, heads, tree, pending directories and digests; any unparseable artifact; or staged accepted text that contains an exact phrase its own delta lists under `Forbidden implications`. That is a mechanical self-contradiction, checked by exact match only. |
 | `AUTHORITY_MISSING` | P0, P2 | No | Unchanged | The claimed class; the missing reference |
-| `SEAL_AUTHORIZATION_INVALID` | P4A, P5 | Possibly: a semantic basis, or an authorization commit, may be on the remote | `ACCEPTED`, not published; every record kept | The records; each binding check that failed; any intervening commits |
-| `SEMANTIC_CHANGE_REQUIRES_NEW_DELTA` | P2 on a replacement basis | Working tree only | `ACCEPTED`, not published; unchanged | The previous and new digests; the changed decision entries |
+| `SEAL_AUTHORIZATION_INVALID` | P2, P4A, P5 | Possibly: a semantic basis, or an authorization commit, may be on the remote | `ACCEPTED`, not published; every record kept | The records; each binding check that failed; any intervening commits. At P2 it is raised when an existing record is edited, deleted, reordered or otherwise rewritten. Appending a record is legal only in P4A. |
+| `SEMANTIC_CHANGE_REQUIRES_NEW_DELTA` | P2, on an initial or a replacement basis | Working tree only | `ACCEPTED`, not published; unchanged | The mutated entry and its first differing line. Raised when the delta's digest differs from the payload's or from the previous basis's; when an earlier, immutable delta or decision entry changes outside a permitted lifecycle operation; or when a new decision differs from the previous basis. |
 | `SCOPE_VIOLATION` | P0, P2 | Working tree only; nothing committed or pushed | Unchanged | The offending paths |
 | `PRODUCT_BOUNDARY_VIOLATION` | P0, P2 | Working tree only | Unchanged | The product paths or flags |
-| `REMOTE_BASIS_MISMATCH` | P3, P4, P4A | Yes: a basis may be on the remote | `ACCEPTED`, not published | The remote head; a blob diff against the expected basis |
-| `REMOTE_MOVED_BEFORE_SEAL` | P6 | Yes: the bases are on the remote; the seal is local only | `ACCEPTED`, not published; the latest record no longer binds (section 4) | The new remote head and its commits since the final basis |
+| `REMOTE_BASIS_MISMATCH` | P3, P4, P4A; any resume | Yes: a basis may be on the remote | `ACCEPTED`, not published | The remote head; a blob diff against the expected basis. It is also raised when the remote has moved past the semantic basis that a proposed authorization names, before that authorization has become the final basis. |
+| `REMOTE_MOVED_BEFORE_SEAL` | P6; any resume | Yes: the bases are on the remote; the seal is local only | `ACCEPTED`, not published; the latest record no longer binds (section 4) | The new remote head and its commits since the final basis. Reserved for movement after the final authorization basis exists and before P6 pushes the seal. |
 | `SUBSTANTIVE_MUTATION_DURING_SEAL` | P5 | Local only; the seal is not committed | `ACCEPTED`, not published | The byte diff outside section 7.2 |
 | `FINAL_READBACK_MISMATCH` | P7 | Yes: the seal is on the remote | **Not `PUBLISHED`**, whatever the file says | The remote head; a blob diff against the sealed tree |
 
@@ -602,10 +640,10 @@ This contract does not implement or authorize:
 - how pending state is represented without touching the active `CURRENT-STATE.md` (section 2);
 - where the V1 payload is stored, and in what form (sections 2 and 3.1).
 
-**Still open (implementation-level only):**
-- the implementation language;
-- the exact CLI syntax;
+**Implementation-level choices**, made in [CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md): the
+implementation language (C#, `net10.0`) and the CLI syntax. Still open:
 - whether detection begins with polling or webhooks;
 - log formatting beyond the normative receipt.
 
-No normative prerequisite remains. The only thing needed before first use is an implementation.
+No normative prerequisite remains. First use on the real canonical branch is a separate,
+adjudicated step.

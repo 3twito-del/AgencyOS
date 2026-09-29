@@ -4,9 +4,10 @@
 
 This protocol governs how evidence about AgencyOS becomes canonical current state. It defines
 rules. A read-only canonical detector and a local Canonical Alert renderer exist
-([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). No watcher, scheduler, webhook or alert
-transport exists, and no Canonical Publisher is implemented. All automation remains governed by
-this document.
+([CANONICAL-DETECTOR.md](CANONICAL-DETECTOR.md)). The Canonical Publisher is implemented and has
+been validated against fixture repositories ([CANONICAL-PUBLISHER.md](CANONICAL-PUBLISHER.md)).
+Its first use on the real canonical branch is still pending. No watcher, scheduler, webhook or
+alert transport exists. All automation remains governed by this document.
 
 > Evidence may be detected automatically.
 > Semantic state transitions require the authority appropriate to the claim.
@@ -124,6 +125,8 @@ bootstrap authority. The earlier bootstrap-shell condition is historical.
   cites them and does not restate them differently.
 - `docs/control-room/CANONICAL-PUBLISHER-CONTRACT.md`: the normative execution contract for
   publishing already-adjudicated canonical transitions. It confers no semantic decision authority.
+- `docs/control-room/CANONICAL-PUBLISHER.md`: the implemented publisher that executes that contract.
+  It confers no semantic decision authority.
 - `docs/control-room/CANONICAL-DETECTOR.md`: the implemented read-only detector. It records
   repository evidence as `OBSERVED` packets and renders Canonical Alerts locally. It confers no
   semantic decision authority.

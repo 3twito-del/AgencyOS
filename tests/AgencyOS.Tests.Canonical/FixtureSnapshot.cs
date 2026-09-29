@@ -2,9 +2,9 @@ using System.Security.Cryptography;
 
 namespace AgencyOS.Tests.Canonical;
 
-// NOT-SOURCE-READ: Hashes every file in a throwaway git repository that the test built
-// itself, including its .git directory, to prove the detector changed none of it. It
-// reads nothing from the AgencyOS repository.
+// NOT-SOURCE-READ: Hashes and reads files in throwaway git repositories that the tests
+// built themselves, including their .git directories, to prove a run changed none of
+// them or to show a working-tree file's bytes. It reads nothing from the AgencyOS repository.
 
 /// <summary>A byte-exact fingerprint of a directory tree.</summary>
 internal static class FixtureSnapshot
@@ -20,4 +20,7 @@ internal static class FixtureSnapshot
 
         return files;
     }
+
+    /// <summary>A working-tree file's exact bytes, which line-end conversion may have altered.</summary>
+    public static byte[] Bytes(string path) => File.ReadAllBytes(path);
 }

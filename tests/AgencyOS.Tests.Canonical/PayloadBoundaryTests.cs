@@ -25,7 +25,7 @@ namespace AgencyOS.Tests.Canonical;
 /// </remarks>
 public sealed partial class PayloadBoundaryTests
 {
-    private const string PublisherContract = "agencyos-canonical-publisher/v1";
+    private const string PublisherContract = "agencyos-canonical-publisher/v1.1";
 
     private static string RepositoryRoot
     {

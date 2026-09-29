@@ -1,14 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Deterministic tests for the canonical state detector.
+    Deterministic tests for the canonical state infrastructure: the read-only
+    detector and the publisher. Run by scripts/Invoke-AgencyOS.ps1 test-canonical.
 
-    Every scenario runs against a throwaway git repository the test builds in a
-    temporary directory, with fixed author, committer and dates, so the commit
-    SHAs and the detector's output are the same on every run. Nothing here reads
-    or changes the AgencyOS repository's own history. The one exception is
-    PayloadBoundaryTests, which reads the published publisher contract to learn
-    the payload shape the detector must never produce.
+    Every detector scenario runs against a throwaway git repository built in a
+    temporary directory with fixed author, committer and dates. Every publisher
+    scenario runs against a throwaway bare "origin" and clones of it, so that each
+    push, fetch and remote readback is real. Nothing here pushes to, or changes,
+    the AgencyOS repository. The only reads of the repository itself are
+    declared SOURCE-PROOF: the published contract (for the payload shape) and the
+    published ledgers (for the parser).
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -23,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../tools/AgencyOS.Canonical.Detector/AgencyOS.Canonical.Detector.csproj" />
+    <ProjectReference Include="../../tools/AgencyOS.Canonical.Publisher/AgencyOS.Canonical.Publisher.csproj" />
   </ItemGroup>
 
 </Project>
