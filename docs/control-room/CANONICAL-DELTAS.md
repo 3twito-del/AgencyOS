@@ -653,11 +653,11 @@ Publication receipt: e4c396903f886b73174ed9a88ea6dbbfdf5e9149 on origin/operatio
 
 ## DELTA-20260929-005
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-29T18:54:37Z
 
-Published: Pending
+Published: 2026-09-29T19:17:36Z
 
 Sources:
 - Explicit Owner authorization recorded as `DECISION-20260929-003`.
@@ -739,4 +739,4 @@ Forbidden implications: This delta does **not**:
 - imply that Claude may define NG-5's scope on its own;
 - imply Owner approval of an as-yet-unwritten implementation plan.
 
-Publication receipt: Pending
+Publication receipt: 4d5f6ad421b4a6630e35cdc8abc493dba80c43c9 on origin/operational-regression-gate; remote readback verified 2026-09-29T19:17:36Z
