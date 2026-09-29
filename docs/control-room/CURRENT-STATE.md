@@ -62,9 +62,9 @@ The closure register is not duplicated here.
 | NG-OD1 Subject-family decision | APPROVED | `DECISION-20260928-002` |
 | NG-2 Subject Model & Boundary | CLOSED | `DECISION-20260928-003` |
 | NG-3 Commercial Chain Decomposition | CLOSED | `DECISION-20260928-004` |
-| **NG-4 Vertical Extension Architecture** | **AUTHORIZED** | `DECISION-20260929-001` |
+| NG-4 Vertical Extension Architecture | CLOSED | `DECISION-20260929-002` |
 
-NG-4 research/design is authorized under `DECISION-20260929-001` and may begin once this authorization transition is PUBLISHED. This publication itself does not perform NG-4 research/design. Product code, schema/API/domain expansion, NG-5 and implementation remain unauthorized.
+NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows. NG-5 remains unauthorized and not begun.
 
 ## Closed architecture decisions
 
@@ -72,6 +72,7 @@ NG-4 research/design is authorized under `DECISION-20260929-001` and may begin o
 - Subject family (Person + Group + External Organization): `DECISION-20260928-002`.
 - Typed represented-subject boundary: `DECISION-20260928-003`.
 - Hybrid commercial decomposition: `DECISION-20260928-004`.
+- Vertical Extension Architecture: `DECISION-20260929-002`.
 
 The decision text is in [`DECISIONS.md`](DECISIONS.md) and is not restated here.
 Operational-closure-specific decisions remain governed by the specialised closure record and are
@@ -101,7 +102,9 @@ not duplicated here.
 - ledger integration.
 
 **Vertical architecture**
-- the extension mechanism itself. This is NG-4's subject and remains undecided.
+- exact persistence, schema, API, interface and module mechanics remain deferred;
+- any new C3 kind referenced by a shared/core role requires explicit reviewed bridge expansion;
+- Work/IP promotion to core remains evidence-triggered and is not decided merely by cross-vertical use.
 
 ## Owner decisions
 
@@ -118,6 +121,8 @@ not duplicated here.
 - Exact implementation details intentionally remain open where listed above.
 - Build 97 remains the product baseline being inspected. No next-generation architecture is
   implemented.
+- NG-4 is a conceptual architecture decision; no next-generation implementation exists, and exact
+  implementation mechanics remain unselected.
 
 ## Forbidden work
 
@@ -136,14 +141,13 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**Begin NG-4 — Vertical Extension Architecture research/design under `DECISION-20260929-001`.**
+**Obtain explicit Owner authorization before beginning any post-NG-4 stage, including NG-5.**
 
-The authorized scope is research/design only.
-
-Do not write product code, expand schema/API/domain boundaries, begin NG-5 or implement the resulting architecture under this authorization.
-
-Any genuine Owner-reserved ambiguity discovered during NG-4 returns to the Owner for a separate decision.
+Until such authorization is PUBLISHED:
+- do not begin NG-5 research/design;
+- do not implement the NG-4 architecture;
+- do not expand product/schema/API/domain boundaries from NG-4.
 
 ## Latest published delta
 
-`DELTA-20260929-003`: PUBLISHED — Owner authorization for NG-4 research/design only; NG-4 may begin under `DECISION-20260929-001`; product code, schema/API/domain expansion, NG-5 and implementation remain unauthorized. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260929-004`: PUBLISHED — NG-4 terminal architecture closure under `DECISION-20260929-002`; no implementation, schema/API/domain or NG-5 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.

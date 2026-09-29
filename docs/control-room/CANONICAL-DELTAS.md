@@ -538,11 +538,11 @@ Publication receipt: 593b5b93312f0b85cfad78d1b0311acb9abe3f64 on origin/operatio
 
 ## DELTA-20260929-004
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-29T18:25:00Z
 
-Published: Pending
+Published: 2026-09-29T18:48:47Z
 
 Sources:
 - Canonical branch state `85918d6680f4d5c432827d080a01ccf8fc3f646e` on `operational-regression-gate`.
@@ -649,4 +649,4 @@ Forbidden implications: This delta does **not**:
 - make Claude an architecture authority;
 - reopen Operational Closure.
 
-Publication receipt: Pending
+Publication receipt: e4c396903f886b73174ed9a88ea6dbbfdf5e9149 on origin/operational-regression-gate; remote readback verified 2026-09-29T18:48:47Z
