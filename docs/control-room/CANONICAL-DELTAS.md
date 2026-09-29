@@ -445,11 +445,11 @@ Publication receipt: 6aa7444350ea382fe1800009f5ef7c235063c662 on origin/operatio
 
 ## DELTA-20260929-003
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-29T16:12:24Z
 
-Published: Pending
+Published: 2026-09-29T16:36:37Z
 
 Sources:
 - Explicit Owner authorization recorded as `DECISION-20260929-001`.
@@ -534,4 +534,4 @@ Forbidden implications: This delta does **not** mean:
 - Claude has Owner authority.
 - publication of this authorization itself constitutes NG-4 research/design completion.
 
-Publication receipt: Pending
+Publication receipt: 593b5b93312f0b85cfad78d1b0311acb9abe3f64 on origin/operational-regression-gate; remote readback verified 2026-09-29T16:36:37Z

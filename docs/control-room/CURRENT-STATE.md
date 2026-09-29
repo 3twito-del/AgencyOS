@@ -51,7 +51,7 @@ The closure register is not duplicated here.
 - **Detector:** IMPLEMENTED — read-only canonical evidence detector with local Canonical Alert rendering; post-dogfood alert/state semantics hardened at `3331ea0481304385ad199d1cdf5317cb02997d91` and exact-commit CI-verified by run `36581526345` (#111, `workflow_dispatch`, success).
 - **Publisher:** IMPLEMENTED — payload v1.1, fixture-validated, real canonical dogfood verified by `DELTA-20260929-001`, and post-dogfood hardened at `3331ea0481304385ad199d1cdf5317cb02997d91` with exact-commit CI run `36581526345` (#111, success).
 - **Real canonical dogfood:** PASS — `DELTA-20260929-001` reached `PUBLISHED_VERIFIED` through P7 remote readback; a later R7 `resume` re-read the sealed remote and changed nothing.
-- **Terminal acceptance:** COMPLETE — Control Room terminal review on 2026-09-29 accepted Self-Update V1 after the real-dogfood findings were repaired and whole-surface consistency was verified. Bounded accepted residual limitations are recorded in `DELTA-20260929-002`. NG-4 remains not authorized and has not begun.
+- **Terminal acceptance:** COMPLETE — Control Room terminal review on 2026-09-29 accepted Self-Update V1 after the real-dogfood findings were repaired and whole-surface consistency was verified. Bounded accepted residual limitations are recorded in `DELTA-20260929-002`. Completing Self-Update V1 did not itself authorize NG-4; current NG-4 authorization is governed by the Next-generation stage and its cited Owner decision.
 
 ## Next-generation stage
 
@@ -62,9 +62,9 @@ The closure register is not duplicated here.
 | NG-OD1 Subject-family decision | APPROVED | `DECISION-20260928-002` |
 | NG-2 Subject Model & Boundary | CLOSED | `DECISION-20260928-003` |
 | NG-3 Commercial Chain Decomposition | CLOSED | `DECISION-20260928-004` |
-| **NG-4 Vertical Extension Architecture** | **NEXT** | — |
+| **NG-4 Vertical Extension Architecture** | **AUTHORIZED** | `DECISION-20260929-001` |
 
-NG-4 has not begun under this migration work.
+NG-4 research/design is authorized under `DECISION-20260929-001` and may begin once this authorization transition is PUBLISHED. This publication itself does not perform NG-4 research/design. Product code, schema/API/domain expansion, NG-5 and implementation remain unauthorized.
 
 ## Closed architecture decisions
 
@@ -105,11 +105,10 @@ not duplicated here.
 
 ## Owner decisions
 
-- Next-generation: `DECISION-20260928-002` (the represented-subject family) in
-  [`DECISIONS.md`](DECISIONS.md).
-- Operational closure: the Owner decisions in force (D1–D5, Decision C and the others) are in
-  closure state section 6, and the residual acceptance (C12, C14) in section 5. They are not
-  migrated here.
+- Next-generation:
+  - `DECISION-20260928-002`: represented-subject family.
+  - `DECISION-20260929-001`: Owner authorization to begin NG-4 — Vertical Extension Architecture for research/design only; it does not authorize product code, schema/API/domain expansion, NG-5 or implementation.
+- Operational closure: the Owner decisions in force (D1–D5, Decision C and the others) are in closure state section 6, and the residual acceptance (C12, C14) in section 5. They are not migrated here.
 
 ## Evidence limitations
 
@@ -137,12 +136,14 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**Obtain explicit Owner authorization for NG-4 — Vertical Extension Architecture.**
+**Begin NG-4 — Vertical Extension Architecture research/design under `DECISION-20260929-001`.**
 
-NG-4 remains NEXT but not authorized and has not begun. The authorization decision must be made and published through AgencyOS governance before any NG-4 research/design starts.
+The authorized scope is research/design only.
 
-**Authorization boundary:** completing Self-Update V1 does not authorize NG-4. No architecture research, design or implementation begins from `DELTA-20260929-002` alone.
+Do not write product code, expand schema/API/domain boundaries, begin NG-5 or implement the resulting architecture under this authorization.
+
+Any genuine Owner-reserved ambiguity discovered during NG-4 returns to the Owner for a separate decision.
 
 ## Latest published delta
 
-`DELTA-20260929-002`: PUBLISHED — Self-Update V1 terminal acceptance COMPLETE; bounded residual limitations accepted; NG-4 remains NEXT but not authorized. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260929-003`: PUBLISHED — Owner authorization for NG-4 research/design only; NG-4 may begin under `DECISION-20260929-001`; product code, schema/API/domain expansion, NG-5 and implementation remain unauthorized. See `CANONICAL-DELTAS.md` for the publication receipt.
