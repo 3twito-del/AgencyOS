@@ -1556,7 +1556,17 @@ Authority required:
 
 Adjudication: The Control Room independently reviewed the NG-8A Build-97 predecessor baseline and the NG-8B two-vertical falsification evidence, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual semantic architecture recorded as `DECISION-20260930-004`: C0 rejected; C1 rejected; C2 accepted with refinement; C3 rejected; no Owner-reserved ambiguity remains; no NG-8B2 is required. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260930-003
+  Semantic basis: 3672ed2fd127c36c855708cc0964739685d30c6d
+  CURRENT-STATE.next.md blob SHA-256: 8ee57fc16509b95019302997a177e87cf7c52f30accc41ac49a3dd8e4365c8d8
+  PUBLICATION-PAYLOAD.json blob SHA-256: 888cad791e19477b8f077e77ccc346596c1e1a864ebe1e74bef35660506687a8
+  Authorized: 2026-09-30T15:32:41Z
+  Reference: Adjudication of DELTA-20260930-003
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260930-004` is added as the durable NG-8 architecture decision.
