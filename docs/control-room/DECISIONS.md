@@ -1935,3 +1935,187 @@ Open: None within this correspondence-policy scope.
 Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
 
 Publication receipt: ace4f9890488516da49be163d482f65fab7c21fb on origin/operational-regression-gate; remote readback verified 2026-09-30T07:51:52Z
+
+## DECISION-20260930-004
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: CONTROL_ROOM
+
+Question: What is the minimum neutral-core semantic architecture for agency commission / representation-economics claims: what makes such a claim true, how it derives authority from representation and arrangement-specific source facts, how it relates to represented-party Amount Determinations, how its historical determination/earning/payability/collection truth is preserved, what cardinalities are justified, and where its boundary lies relative to Receivable, Invoice, Payment, Allocation and accounting — under the exact NG-8 Scope Lock of DECISION-20260930-002?
+
+Decision: NG-8 — Agency Commission & Representation-Economics Claim Architecture is terminally adjudicated as follows.
+
+**A. REPRESENTATION-ECONOMICS CLAIM**
+
+A Representation-Economics Claim is a historical agency-side economic claim arising under a specific representation-authority lineage and source-defined commission/fee terms, concerning one Commercial Arrangement and one independently meaningful commission treatment. It preserves:
+- why the agency-side claimant has the claim;
+- its historical representation-authority/source provenance;
+- the represented-party economic basis on which it depends;
+- the method by which the claim amount is or will be determined;
+- source-defined conditions affecting existence, earning/accrual, payability or continuation;
+- historical changes that affect the claim.
+
+It does not itself assert universal legal enforceability. This is semantic architecture only; it does not require a persisted entity/table.
+
+**B. RULE / TERMS ARE DISTINCT FROM CLAIM**
+
+Commission/fee rules or terms are reusable/source-bound semantics such as rate or method, defined basis, exclusions, caps/floors, timing conditions and tail/post-termination conditions. A claim is the concrete historical economic position arising when source-defined claim-creating facts are satisfied. Therefore:
+- a rule may exist without a claim;
+- a rule may generate zero or many claims;
+- a claim may survive termination of the active representation relationship;
+- later rule changes do not silently rewrite prior claims.
+
+**C. SOURCE / AUTHORITY**
+
+Each claim must preserve its historical representation-authority lineage. Its source provenance may be composite and may include:
+- Representation Mandate / representation agreement;
+- guild, union or franchise terms;
+- statute/regulation;
+- Commercial Arrangement or engagement-specific terms;
+- later qualifying events such as option exercise, rebooking, performance/completion, receipt, waiver, settlement, forfeiture or similar source-defined facts.
+
+Known source provenance remains historically anchored and must not dynamically repoint. Unknown or unresolved provenance remains unknown/unresolved. No universal precedence rule among all source classes is selected; precedence is source-defined.
+
+**D. CLAIM MAY EXIST BEFORE QUANTIFICATION**
+
+Claim existence is distinct from amount determination. A claim may be unquantified; contingent; or based on a known percentage/method while future represented-party values are not yet realized. Unknown amount is never zero. Build-97's inability to create an entitlement before a represented-party obligation is quantified is a predecessor limitation, not a neutral-core invariant.
+
+**E. NO UNIVERSAL CLAIM LIFECYCLE**
+
+The neutral core must preserve distinctions among:
+1. claim authority/existence;
+2. amount determinability;
+3. source-defined earned/accrued condition, where meaningful;
+4. source-defined payable/due condition;
+5. operational collectible/Receivable recording;
+6. collected cash.
+
+There is no universal ordering or mandatory enum lifecycle across these facts. "Earned" is not a mandatory universal neutral-core state.
+
+**F. CARDINALITY**
+
+Current neutral-core cardinality:
+- a representation-authority lineage may govern zero or more commission/fee rules or term sets over time;
+- a rule/term set may generate zero or more Representation-Economics Claims;
+- a Commercial Arrangement may have zero or more Representation-Economics Claims;
+- each Representation-Economics Claim is scoped to exactly one Commercial Arrangement in the present neutral-core contract;
+- each claim is anchored to exactly one agency-side representation-authority lineage / claimant;
+- one represented-party economic component may participate in zero, one or several distinct claims when different claimants or representation-authority lineages legitimately exist;
+- a single claim may depend on one or more represented-party Amount Determinations only when those determinations jointly form one source-defined basis under one independently meaningful commission treatment;
+- where claimant, authority, rate/method, exclusions, lifecycle conditions or source-defined treatment differ, separate claims remain separate.
+
+No multi-Arrangement claim is justified in the current neutral core. A representation-level retainer or fee not tied to a Commercial Arrangement is not proved by the bounded evidence and is not forced into this claim contract.
+
+**G. GOVERNING TRUTH**
+
+There is no universal governing date. A claim preserves source-defined governing fact(s), which may include procurement/substantial negotiation, contract or engagement formation, option exercise, service/performance completion, rebooking, receipt, termination-relative conditions, or another source-defined event. Payment/receipt may govern payability in some sources but is not a universal determinant of claim identity, claimant, historical rule or claim existence. Later recalculation must not silently substitute a current date/rule for historical governing source truth.
+
+**H. CLAIM-SIDE AMOUNT DETERMINATION**
+
+Representation-Economics Claim reuses the NG-7 Amount Determination semantic capability. The claim-side amount determination is distinct from the represented-party Amount Determination(s) that form its economic basis. Supported semantic shapes are inherited where source evidence requires them, including fixed/charge, percentage × identified/defined basis, contingent/unquantified method, later realization and repeated realizations/payable increments. No commission-specific formula DSL is selected.
+
+**I. BASIS / EXCLUSIONS / CAPS / FLOORS**
+
+Commission basis is not merely an untyped number. The source may define included economic components, excluded components, rate, cap, floor/minimum-retention rule and other qualifying conditions. These facts must remain semantically distinguishable where evidenced. No universal neutral-core taxonomy of every commission exclusion/cap/floor is selected.
+
+**J. HISTORY / CHANGE**
+
+Renegotiation, representation termination, new claimant, adjustment, waiver, reduction, forfeiture, settlement, correction, recalculation or supersession must not silently rewrite earlier claim truth. As applicable, preserve prior claim state, later event/source, resulting new amount/state, and correction/adjustment/supersession relationship. Correction is not original truth. Waiver/reduction is not merely recalculation. A later claim is not silent mutation of an earlier claim. The persistence/event/version mechanism remains unselected.
+
+**K. CURRENCY / BASIS PROVENANCE**
+
+The claim must preserve: the original represented-party basis and its definition; the original basis currency; the claim/result currency; and conversion provenance if currencies differ. Unknown currency must not be guessed. No FX engine or accounting conversion policy is selected.
+
+**L. RECEIVABLE / INVOICE BOUNDARY**
+
+Representation-Economics Claim is distinct from Receivable and Invoice. A claim may exist before any Receivable or Invoice. Receivable is a downstream operational fact recording a crystallized/collectible amount according to the product's finance workflow. Invoice is an optional billing artifact. The exact claim-to-Receivable cardinality is not selected.
+
+**M. PAYMENT / ALLOCATION BOUNDARY**
+
+Payment is cash movement. Allocation/Application is the association/application of cash to a downstream claim/Receivable or other supported finance fact. Collection may satisfy a source-defined condition of a commission claim, but payment does not create or prove the claim's historical authority. Build-97's allocation-time commission earning/posting convention is not promoted to a neutral-core invariant.
+
+**N. ACCOUNTING BOUNDARY**
+
+Ledger/accounting revenue recognition is a downstream projection. A Representation-Economics Claim is not an accounting revenue fact. No neutral-core revenue-recognition policy is selected.
+
+**O. CLAIMANT / PAYER**
+
+The claim's beneficiary/claimant is the agency-side representative under its historical representation-authority lineage. The payer/source of funds may differ. Therefore: beneficiary identity ≠ payer identity ≠ source of funds.
+
+**P. HYPOTHESIS DISPOSITIONS**
+
+- C0 — DERIVED ONLY: REJECTED. The evidence rejects collapse to rule + represented-party Amount Determination alone because claim-specific historical facts such as claimant lineage, procurement/tail, waiver/reduction/forfeiture and timing conditions must remain meaningful. This rejection is semantic only. It does NOT require a dedicated persisted table/entity.
+- C1 — ONE CURRENT ENTITLEMENT: REJECTED. Concurrent/tailing claims, multiple claimants, component-specific treatments and historical change cannot be truthfully represented by one mutable current entitlement.
+- C2 — HISTORICAL REPRESENTATION-ECONOMICS CLAIM: ACCEPTED WITH REFINEMENT. Accepted form: a historically anchored, arrangement-scoped, claimant-specific Representation-Economics Claim for one independently meaningful commission treatment, with source-defined authority and conditions, one-or-more represented-party economic basis components where they genuinely form one defined basis, distinct claim-side Amount Determination semantics, and source-specific earning/payability/collection milestones rather than a universal lifecycle.
+- C3 — GENERIC MONETARY CLAIM: REJECTED. Commission, represented-party compensation, Receivable and Payment have materially different authority, beneficiary and lifecycle semantics. Shared calculation semantics remain provided through Amount Determination. No universal MonetaryClaim or EconomicEntitlement is created.
+
+**Q. BUILD-97 PREDECESSOR DISPOSITION**
+
+Build-97 remains a useful predecessor, particularly for: first-class CommissionRule and CommissionEntitlement separation; effective-dated historical rule rows; the contract-specific override concept; calculated snapshots; recalculation by supersession rather than overwrite; separate downstream finance facts.
+
+Its limitations are not neutral-core invariants, including: client-scoped rule resolution despite RepresentationId; weak representation-authority anchoring; governing-date fallback to calculation date; one-obligation-only basis; SpecificTerm without executed source-term selection; post-quantification-only claim creation; adjustment/collection inconsistency; per-allocation cumulative over-recognition risk; weak commission-reversal linkage; currency/projection losses. These are predecessor findings only. This decision does not authorize their repair.
+
+**R. EVIDENCE BOUNDARY**
+
+- NG-8A: exact Build-97 source inspection.
+- NG-8B: exactly two verticals — Film/TV representation; live music / artist booking.
+- No third vertical was required. No NG-8B2 was required.
+
+**S. CORRECTION CHAIN**
+
+The complete NG-8 correction chain is preserved:
+1. effective dating does not itself guarantee historically correct governing-rule selection;
+2. Build-97 rule selection is client-scoped despite recorded RepresentationId;
+3. adjustments are not fully integrated into downstream commission/revenue truth;
+4. SpecificTerm lacks executed source-term resolution;
+5. GrossCompensation executes against one obligation, not aggregate gross;
+6. the per-allocation cap is not cumulative entitlement protection;
+7. allocation reversal was not proved to reverse related commission revenue;
+8. a claim may exist before the represented-party amount is finally quantified;
+9. claimant/beneficiary does not imply the represented party is always the payer;
+10. payment date is not a universal governing date;
+11. one commission rule per client is not a neutral invariant;
+12. the NG-8B proposition that "one claim tied to exactly one Amount Determination" was empirically falsified was too strong; the corrected rule permits one claim to depend on one or more represented-party Amount Determinations only where they form one source-defined basis under one independently meaningful commission treatment;
+13. C0 rejection establishes independent claim semantics, not a mandatory persisted claim entity/table.
+
+**T. TERMINAL STATUS**
+
+NG-8 is CLOSED upon successful canonical publication of this decision. No Owner-reserved ambiguity remains within the NG-8 Scope Lock. No NG-8B2 is required.
+
+Scope: Conceptual semantic architecture only. This decision does NOT authorize implementation; persistence design; schema; API; domain-code expansion; migrations; a claim-calculation engine; Receivable/payment/ledger implementation; or NG-9 research/design.
+
+Evidence / provenance:
+- `DECISION-20260930-002` as the Owner-approved NG-8 Scope Lock.
+- `DECISION-20260930-003` as the recursive correspondence contract.
+- `DECISION-20260930-001` as the NG-7 Amount Determination basis.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`; NG-8A exact source inspection.
+- NG-8B bounded Film/TV + live-music evidence.
+- Control Room terminal NG-8C adjudication on 2026-09-30.
+- Claude reports are evidence inputs only. Claude is not architecture authority.
+
+Consequences:
+- Upon publication, NG-8 becomes CLOSED.
+- C0 rejected; C1 rejected; C2 accepted with refinement; C3 rejected.
+- Representation-Economics Claim becomes the accepted neutral-core semantic contract above.
+- No implementation authority follows.
+- Any post-NG-8 stage, including NG-9, requires explicit Owner authorization.
+
+Supersedes: None
+
+Unchanged:
+- NG-0 through NG-7 terminal decisions remain unchanged.
+- `DECISION-20260930-002` remains the Owner authorization / Scope Lock that permitted NG-8.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- Build-97 released product behavior is unchanged.
+- No next-generation implementation exists.
+
+Open:
+- Implementation-open only: persisted vs derived/event/version representation; exact rule/claim placement and storage; representation-authority linkage mechanics; basis-set representation; adjustment/supersession mechanics; claim-to-Receivable cardinality; API/client/UI; downstream finance/ledger integration; evidence-triggered treatment of representation-level retainers not tied to a Commercial Arrangement.
+- Post-NG-8 stage selection remains unauthorized.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending

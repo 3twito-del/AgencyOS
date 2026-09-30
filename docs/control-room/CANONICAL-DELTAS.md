@@ -1503,3 +1503,95 @@ Forbidden implications: This delta does **not**:
 - treat Claude as an authority.
 
 Publication receipt: f22a9040e0ed61f685421f296958b82ec958f9cf on origin/operational-regression-gate; remote readback verified 2026-09-30T07:51:52Z
+
+## DELTA-20260930-003
+
+Status: ACCEPTED
+
+Detected: 2026-09-30T14:59:44Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `1d3be012dfffb69c77856af03716bdc46ba5ea7e` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, inspected as predecessor evidence only (NG-8A).
+- The bounded NG-8 research chain NG-8A and NG-8B under the Scope Lock `DECISION-20260930-002`, adjudicated by the Control Room and recorded as `DECISION-20260930-004`.
+
+Prior claim: NG-8 is AUTHORIZED / OPEN IN RESEARCH under `DECISION-20260930-002`; terminal commission-claim architecture is unresolved.
+
+Candidate/new claim: NG-8 is CLOSED under `DECISION-20260930-004`: a Representation-Economics Claim is a distinct historical, arrangement-scoped, claimant-specific agency-side economic claim under a representation-authority lineage; rule/terms are distinct from claim; a claim may exist before quantification; source/authority provenance is historical and may be composite; claim-side determination reuses NG-7 Amount Determination semantics; source-defined earned/payable/collected facts are distinct with no universal lifecycle and no universal governing date; one claim may depend on one or more represented-party Amount Determinations only where they form one source-defined basis under one independently meaningful commission treatment; the claim is distinct from Receivable, Invoice, Payment/Allocation and accounting; C0 rejected, C1 rejected, C2 accepted with refinement, C3 rejected; implementation remains unselected.
+
+Claimed transition: NG-8 AUTHORIZED / OPEN IN RESEARCH → NG-8 CLOSED.
+
+Scope: Canonical publication of the Control Room's terminal NG-8 architecture adjudication only. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `1d3be012dfffb69c77856af03716bdc46ba5ea7e` (`Publish DELTA-20260930-002`), with `DECISION-20260930-002` and `DECISION-20260930-003` ACTIVE and `DELTA-20260930-002` PUBLISHED;
+  - `CURRENT-STATE.md` there records NG-8 as AUTHORIZED under `DECISION-20260930-002` and NG-9 as unauthorized.
+- Build-97 predecessor evidence (NG-8A, product commit `b3f41bf`): `src/AgencyOS.Domain/Finance/Commission.cs`; `src/AgencyOS.Finance.Rules/Commission.fs`, `Rules.fs`, `Money.fs`; `src/AgencyOS.Application/Finance/CommissionCommands.cs`, `FinanceCommands.cs`, `PaymentCommands.cs`, `LedgerPosting.cs`; the finance persistence configuration, migration, queries and API contracts.
+- External domain evidence (NG-8B, exactly two verticals): WGA Franchise Agreement and Rider W, SAG Rule 16(g) and current SAG-AFTRA guidance, DGA–ATA Rider D and California Labor Code §§1700–1700.47 for Film/TV; the AFM Booking Agent Agreement, AFM Bylaws, AFM Entertainment Booking Agreement, New York General Business Law Article 11 and the UK Conduct of Employment Agencies and Employment Businesses Regulations 2003 / Employment Agencies Act 1973 for live music / artist booking.
+- Control Room semantic adjudication: the Adjudication field below, recorded as `DECISION-20260930-004`.
+
+Conflicts: None that survive adjudication. The complete NG-8 correction chain is preserved:
+- effective dating does not itself guarantee historically correct governing-rule selection;
+- Build-97 rule selection is client-scoped despite recorded RepresentationId;
+- adjustments are not fully integrated into downstream commission/revenue truth;
+- SpecificTerm lacks executed source-term resolution;
+- GrossCompensation executes against one obligation, not aggregate gross;
+- the per-allocation cap is not cumulative entitlement protection;
+- allocation reversal was not proved to reverse related commission revenue;
+- a claim may exist before the represented-party amount is finally quantified;
+- claimant/beneficiary does not imply the represented party is always the payer;
+- payment date is not a universal governing date;
+- one commission rule per client is not a neutral invariant;
+- the NG-8B proposition that "one claim tied to exactly one Amount Determination" was empirically falsified was too strong; one claim may depend on one or more represented-party Amount Determinations only where they form one source-defined basis under one independently meaningful commission treatment;
+- C0 rejection establishes independent claim semantics, not a mandatory persisted claim entity/table.
+
+Authority required:
+- `CONTROL_ROOM`, for the terminal NG-8 semantic adjudication;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required to close NG-8. The Owner's existing authorization `DECISION-20260930-002` permitted the bounded research/design stage, and no post-NG-8 stage is authorized by this closure.
+
+Adjudication: The Control Room independently reviewed the NG-8A Build-97 predecessor baseline and the NG-8B two-vertical falsification evidence, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual semantic architecture recorded as `DECISION-20260930-004`: C0 rejected; C1 rejected; C2 accepted with refinement; C3 rejected; no Owner-reserved ambiguity remains; no NG-8B2 is required. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260930-004` is added as the durable NG-8 architecture decision.
+- `CURRENT-STATE.md` records NG-8 Agency Commission & Representation-Economics Claim Architecture as CLOSED under `DECISION-20260930-004`.
+- The open question on the exact commission model/placement/cardinality is narrowed to its implementation-open mechanics.
+- The next bounded action becomes obtaining explicit Owner authorization before beginning any post-NG-8 stage, including NG-9.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that NG-8 is open in research with unresolved commission-claim architecture. It supersedes no prior Decision ID.
+
+Unchanged:
+- NG-0 through NG-7 terminal decisions remain unchanged.
+- `DECISION-20260930-002` remains the Owner authorization / Scope Lock that permitted NG-8.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- Build 97 released product identity and all implementation behavior.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-9 remains unauthorized and not begun.
+
+Open / unresolved questions:
+- The implementation-open items listed as Open in `DECISION-20260930-004` remain open.
+- None of these blocks NG-8 closure.
+
+Forbidden implications: This delta does **not**:
+- permit implementation;
+- choose a persistence, event or version mechanism;
+- approve schema/API/domain expansion;
+- approve migrations;
+- create a universal MonetaryClaim or EconomicEntitlement;
+- impose a universal commission lifecycle;
+- impose a universal governing date;
+- grant NG-9 or later-stage authority;
+- reopen NG-1 through NG-7;
+- make Claude an architecture authority.
+
+Publication receipt: Pending
