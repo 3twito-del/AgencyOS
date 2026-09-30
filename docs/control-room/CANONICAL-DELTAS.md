@@ -1261,7 +1261,17 @@ Authority required:
 
 Adjudication: The Control Room establishes the exact NG-7 title, bound question, scope, closed distinctions, falsification models E0–E3, two-vertical research boundary, substages NG-7A–D and exit criteria recorded in `DECISION-20260929-010`, within the Owner research/design authorization of `DECISION-20260929-009`. The Scope Lock pre-selects no hypothesis. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260929-011
+  Semantic basis: 55af69ff5fea0e2a3e26c45eade16cf3c6936a62
+  CURRENT-STATE.next.md blob SHA-256: f1e17f9d2c7158e1000e04de3745d26ee961ee79cf9efe49358e094f14195f6d
+  PUBLICATION-PAYLOAD.json blob SHA-256: 7d33185d5ec6049be635cb948d642288f1abac0cd1b26e48389301c545058213
+  Authorized: 2026-09-30T02:51:02Z
+  Reference: Adjudication of DELTA-20260929-011
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260929-010` becomes the durable NG-7 Scope Lock.
