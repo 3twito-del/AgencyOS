@@ -1824,7 +1824,17 @@ Authority required:
 
 Adjudication: The Owner explicitly approved the Control Room's complete NG-10 stage definition — title, bounded question, in-scope and out-of-scope items, closed distinctions, hypotheses P0–P3 with none preselected, the two-vertical research boundary, substages NG-10A–D, exit criteria, Owner-decision rule, prompt budget and authority boundary — for research/design only. The Control Room records that approval without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20260930-006
+  Semantic basis: acf628c4b6297e5157fe762c24e7c7cfbaa2ad0f
+  CURRENT-STATE.next.md blob SHA-256: 70650ad3456e9a7ece1f651d41a4749a1d49101fda7c63d36f703cde6138e1fc
+  PUBLICATION-PAYLOAD.json blob SHA-256: 9c22f631a2f5e1e2d8f144baddbda29e304d39f5a4a0deb88772fc43dc483efd
+  Authorized: 2026-09-30T22:17:22Z
+  Reference: Adjudication of DELTA-20260930-006
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260930-007` becomes the durable Owner authorization and exact Scope Lock for NG-10.
