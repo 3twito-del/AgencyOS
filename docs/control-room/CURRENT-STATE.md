@@ -68,6 +68,7 @@ The closure register is not duplicated here.
 | NG-7 Amount Determination & Economic Truth Architecture | CLOSED | `DECISION-20260930-001` |
 | NG-8 Agency Commission & Representation-Economics Claim Architecture | CLOSED | `DECISION-20260930-004` |
 | NG-9 Receivable Crystallization & Collectibility Architecture | CLOSED | `DECISION-20260930-006` |
+| NG-10 Payment, Cash Application & Funds Provenance Architecture | AUTHORIZED | `DECISION-20260930-007` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
@@ -80,6 +81,8 @@ NG-7 is CLOSED under `DECISION-20260930-001` after terminal Control Room archite
 NG-8 is CLOSED under `DECISION-20260930-004` after terminal Control Room architecture adjudication: a Representation-Economics Claim is a distinct historical, arrangement-scoped, claimant-specific agency-side economic claim; rule/terms are distinct from claim; a claim may exist before quantification; source/authority provenance is historical and may be composite; claim-side determination reuses NG-7 Amount Determination semantics; source-defined earned/payable/collected facts are distinct and no universal lifecycle is selected; one claim may depend on one or more represented-party Amount Determinations only where they form one source-defined basis under one independently meaningful commission treatment; the claim is distinct from Receivable, Invoice, Payment/Allocation and accounting. C0 rejected, C1 rejected, C2 accepted with refinement, C3 rejected; implementation remains unselected. `DECISION-20260930-002` remains the Owner authorization and Scope Lock that permitted it. No implementation, product code, schema/API/domain expansion, migrations or NG-9 authorization follows.
 
 NG-9 is CLOSED under `DECISION-20260930-006` after terminal Control Room architecture adjudication: a Receivable is a distinct historical, Commercial-Arrangement-scoped collectible position for one independently meaningful source-defined crystallization/due position; upstream Amount Determination and Representation-Economics Claim remain distinct; no universal crystallization trigger exists; one upstream economic source may produce zero or more Receivables, and one Receivable may depend on one or more upstream facts only where they genuinely form one source-defined collectible position; partial/installment/periodic crystallization is distinct from partial Payment; Invoice is distinct and not universally required, but may be a source-defined condition; obligor, creditor/beneficiary and observed payer/source of cash remain distinct; the due rule and its provenance are distinct from the resolved date; historical correction, cancellation, settlement and assumption truth is not silently rewritten; Payment may precede Receivable; Payment/Allocation and accounting remain downstream and distinct. R0 rejected, R1 rejected, R2 accepted with refinement, R3 rejected; implementation remains unselected. `DECISION-20260930-005` remains the Owner authorization and Scope Lock that permitted it. No implementation, product code, schema/API/domain expansion, migrations or NG-10 authorization follows.
+
+NG-10 — AUTHORIZED for research/design only under `DECISION-20260930-007`, which also locks its exact scope. Substantive NG-10 research has not yet begun. No implementation, product code, schema/API/domain expansion or migrations follow, and NG-11 remains unauthorized.
 
 ## Closed architecture decisions
 
@@ -138,6 +141,7 @@ not duplicated here.
   - `DECISION-20260929-009`: Owner authorization to begin NG-7 / the next post-NG-6 stage for research/design only; its exact title and Scope Lock are not decided; no implementation/schema/API/domain expansion, migrations or later-stage authorization.
   - `DECISION-20260930-002`: NG-8 authorization and exact Scope Lock — Agency Commission & Representation-Economics Claim Architecture, research/design only; no implementation/schema/API/domain expansion, migrations or NG-9 authority.
   - `DECISION-20260930-005`: Owner authorization and exact Scope Lock for NG-9 Receivable Crystallization & Collectibility Architecture, research/design only; no implementation/schema/API/domain expansion, migrations or NG-10 authority.
+  - `DECISION-20260930-007`: Owner authorization and exact Scope Lock for NG-10 Payment, Cash Application & Funds Provenance Architecture, research/design only; no implementation/schema/API/domain expansion, migrations or NG-11 authority.
 - Control Room governance:
   - `DECISION-20260930-003`: Recursive Control-Room Correspondence & Transition Contract.
 - Operational closure: the Owner decisions in force (D1–D5, Decision C and the others) are in closure state section 6, and the residual acceptance (C12, C14) in section 5. They are not migrated here.
@@ -173,6 +177,7 @@ not duplicated here.
 - NG-9 is a conceptual semantic architecture decision, derived from exact Build-97 predecessor inspection plus
   exactly Film/TV representation and live music / artist booking; the primary evidence was bounded and includes
   historical/time-specific sources used for falsification; exact implementation remains unselected.
+- NG-10 is authorized but no substantive NG-10 research has yet been canonically accepted.
 
 ## Forbidden work
 
@@ -191,14 +196,15 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**Obtain explicit Owner authorization before beginning any post-NG-9 stage, including NG-10.**
+**NG-10A — inspect the exact Build-97 predecessor source baseline for Payment, cash Application/Allocation, payer/source-of-funds, amount/date/currency, unapplied cash, reversal/history, Receivable effects and relevant ledger attribution, without external vertical research or architecture conclusion.**
 
-Until such Owner authorization is PUBLISHED:
-- do not begin NG-10 research/design;
-- do not implement NG-4 through NG-9 architecture;
+Until NG-10A begins under the published authorization:
+- research/design only;
+- no implementation of NG-4 through NG-10 architecture;
 - no product/schema/API/domain expansion;
-- no migrations.
+- no migrations;
+- no NG-11.
 
 ## Latest published delta
 
-`DELTA-20260930-005`: PUBLISHED — NG-9 Receivable Crystallization & Collectibility Architecture CLOSED under `DECISION-20260930-006`: historical, Commercial-Arrangement-scoped collectible positions distinct from upstream economic truth and claims, with no universal crystallization trigger or invoice gate, zero-or-more Receivables per source, source-defined grouping only, distinct obligor/creditor/payer roles, due-rule provenance, and Payment/Allocation and accounting kept downstream; R0, R1 and R3 rejected, R2 accepted with refinement; no implementation, schema/API/domain, migration or NG-10 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260930-006`: PUBLISHED — NG-10 Payment, Cash Application & Funds Provenance Architecture OWNER-AUTHORIZED and scope-locked for research/design only under `DECISION-20260930-007`; no substantive research, architecture conclusion, implementation, schema/API/domain, migration or NG-11 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.

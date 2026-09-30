@@ -1789,11 +1789,11 @@ Publication receipt: 936127e918617a2573086abb825e5464db4e3271 on origin/operatio
 
 ## DELTA-20260930-006
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-30T21:28:02Z
 
-Published: Pending
+Published: 2026-09-30T22:31:23Z
 
 Sources:
 - Explicit Owner decision recorded as `DECISION-20260930-007`.
@@ -1876,4 +1876,4 @@ Forbidden implications: This delta does **not**:
 - reopen NG-1 through NG-9;
 - treat Claude as an authority.
 
-Publication receipt: Pending
+Publication receipt: cff6a8e4b0f07e9d0e90372fb6e7014eeeed5104 on origin/operational-regression-gate; remote readback verified 2026-09-30T22:31:23Z
