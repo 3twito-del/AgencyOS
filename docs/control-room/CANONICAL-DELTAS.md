@@ -1223,3 +1223,81 @@ Forbidden implications: This delta does **not**:
 - make Claude a semantic authority.
 
 Publication receipt: 85e6598d2c83019f7a81fd6f65b0304d7b3af97f on origin/operational-regression-gate; remote readback verified 2026-09-30T02:34:09Z
+
+## DELTA-20260929-011
+
+Status: ACCEPTED
+
+Detected: 2026-09-30T02:42:53Z
+
+Published: Pending
+
+Sources:
+- The Control Room Scope Lock recorded as `DECISION-20260929-010`.
+- The published Owner authorization `DECISION-20260929-009`.
+- Canonical branch state `0428ab3a22bb1cab88da7d21ff89d6b826fc7673` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+
+Prior claim: NG-7 is AUTHORIZED for research/design only under `DECISION-20260929-009`; its exact title and bounded Scope Lock remain to be established by the Control Room before substantive research.
+
+Candidate/new claim: NG-7 is now exactly scope-locked as "Amount Determination & Economic Truth Architecture" under `DECISION-20260929-010`, within the already-published Owner research/design authorization in `DECISION-20260929-009`.
+
+Claimed transition: NG-7 AUTHORIZED / NOT SCOPE-LOCKED → NG-7 AUTHORIZED FOR RESEARCH/DESIGN ONLY / SCOPE LOCKED.
+
+Scope: Governance Scope Lock publication only. This transition performs no NG-7 research and makes no architecture conclusion. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable canonical repository state: HEAD `0428ab3a22bb1cab88da7d21ff89d6b826fc7673` (`Publish DELTA-20260929-010`); `CURRENT-STATE.md` there records NG-7 as AUTHORIZED under `DECISION-20260929-009`, assigns definition of the exact NG-7 title and Scope Lock to the Control Room, and lists the amount-determination record, the future commission model and ledger integration as open Commercial questions.
+- Published governance: `DECISION-20260928-004`, `DECISION-20260929-002`, `DECISION-20260929-005` and `DECISION-20260929-008`, as recorded in the evidence of `DECISION-20260929-010`.
+- Control Room Scope Lock: recorded as `DECISION-20260929-010`; no substantive NG-7 research was performed in creating it.
+- No product-code, schema, API, domain or migration change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `CONTROL_ROOM`, for the Scope Lock;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required, because `DECISION-20260929-009` already authorizes NG-7 research/design and the active `CURRENT-STATE.md` explicitly assigns Scope Lock definition to the Control Room.
+
+Adjudication: The Control Room establishes the exact NG-7 title, bound question, scope, closed distinctions, falsification models E0–E3, two-vertical research boundary, substages NG-7A–D and exit criteria recorded in `DECISION-20260929-010`, within the Owner research/design authorization of `DECISION-20260929-009`. The Scope Lock pre-selects no hypothesis. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-010` becomes the durable NG-7 Scope Lock.
+- `CURRENT-STATE.md` records NG-7 as NG-7 Amount Determination & Economic Truth Architecture, still AUTHORIZED under `DECISION-20260929-009`, with `DECISION-20260929-010` as its governing Scope Lock.
+- The exact next bounded action becomes NG-7A — the Build-97 predecessor source baseline for amount determination and adjacent economic/finance semantics.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that NG-7's exact title and bounded Scope Lock remain to be established. It supersedes no Decision ID.
+
+Unchanged:
+- NG-6 remains CLOSED under `DECISION-20260929-008`.
+- All NG-1 through NG-6 architecture decisions remain in force.
+- `DECISION-20260929-009` remains the Owner authorization for NG-7 research/design.
+- Build 97 remains the released product identity.
+- Operational Closure remains COMPLETE and terminal.
+- Self-Update V1 remains COMPLETE.
+- No product/schema/API/domain behavior changes.
+- No migrations.
+- NG-8 remains unauthorized.
+
+Open / unresolved questions:
+- The evidence and final adjudication of E0–E3.
+- Every exit criterion listed in `DECISION-20260929-010`.
+- All questions explicitly excluded by `DECISION-20260929-010`.
+
+Forbidden implications: This delta does **not**:
+- claim that substantive NG-7 research has begun;
+- decide E0–E3;
+- choose an Amount Determination persistence model;
+- decide commission architecture;
+- decide receivable/invoice/payment/ledger architecture;
+- permit implementation;
+- approve schema/API/domain expansion;
+- approve migrations;
+- grant NG-8 or later-stage authority;
+- reopen NG-1 through NG-6;
+- make Claude a semantic authority.
+
+Publication receipt: Pending

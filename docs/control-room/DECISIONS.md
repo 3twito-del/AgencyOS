@@ -1335,3 +1335,187 @@ Open:
 Recorded by: Claude (AgencyOS executor), on explicit Owner instruction normalized by the Control Room. Claude is recorder/executor only, not authority.
 
 Publication receipt: f0c0a5c215fc94cf47b1a6966f1f5ed6c8c71311 on origin/operational-regression-gate; remote readback verified 2026-09-30T02:34:09Z
+
+## DECISION-20260929-010
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: CONTROL_ROOM
+
+Question: What exact bounded title, research/design question, falsification boundary, substages and exit criteria govern NG-7 under the Owner authorization in DECISION-20260929-009?
+
+Decision: NG-7 is scope-locked as:
+
+**NG-7 — Amount Determination & Economic Truth Architecture**
+
+**BOUND QUESTION**
+
+What is the minimum neutral-core semantic contract for Amount Determination as the bridge from commercial/legal truth to economic truth: what an Amount Determination canonically represents; whether economic truth may exist before and independently of receivable, invoice and payment facts; how fixed, rate/formula-based, percentage, unit-based, contingent, periodic and later-adjusted compensation is represented; what historical/source anchoring prevents later agreement, instrument or realized-value changes from silently rewriting earlier economic truth; how currency and units remain truthful; how multiple economic components relate to one Commercial Arrangement or Legal Instrument; and where the semantic boundary lies between Amount Determination, agency commission/fee entitlement, receivable, invoice, payment/allocation and accounting projection—without selecting persistence or creating a universal EconomicEntitlement.
+
+**IN SCOPE**
+
+1. The canonical semantic meaning of Amount Determination.
+2. The boundary between upstream commercial/legal truth and economic truth.
+3. Whether and how economic truth exists before receivable, invoice or payment facts.
+4. Fixed, rate-based, formula-based, percentage-based, unit-based, contingent, periodic and initially unquantified amounts.
+5. The distinction among:
+   - source terms;
+   - a determination method/basis;
+   - a determined or determinable economic amount;
+   - later realized inputs or values;
+   without pre-selecting a persistence shape.
+6. Historical anchoring:
+   - later renegotiation must not silently rewrite earlier economic truth;
+   - later Legal Instruments must not silently repoint earlier determinations;
+   - later realized values/recalculations/adjustments must preserve prior historical meaning.
+7. Source/provenance relationship from Amount Determination to the relevant Commercial Arrangement, Agreement Snapshot and/or Legal Instrument where applicable, including pressure-testing whether one determination can depend on more than one source fact.
+8. Multiple economic components associated with one Arrangement or Instrument.
+9. Money/currency and unit truth, including preserving original currency and relevant quantity/rate units.
+10. Unknown, unquantified, contingent, formula-dependent and later-resolved economic truth only to the extent required to avoid false absence or false certainty.
+11. Agency commission/fee entitlement only as a boundary test against Amount Determination.
+12. Receivable, invoice, payment, allocation, cash application and accounting projection only as downstream boundary tests.
+13. Vertical vocabulary/typed-term pressure only as needed to keep the neutral core from absorbing Film/TV- or music-specific concepts.
+14. Historical corrections/adjustments only at the semantic level.
+
+**OUT OF SCOPE**
+
+- persistence design;
+- database tables;
+- foreign keys;
+- EF mapping;
+- schema;
+- API payloads;
+- interfaces/classes/module layout;
+- event-sourcing choice;
+- exact calculation-engine implementation;
+- exact commission formula/model/placement;
+- commission implementation;
+- receivable lifecycle;
+- invoicing or accounts-receivable implementation;
+- payment processing;
+- payment allocation implementation;
+- cash application;
+- ledger/accounting implementation;
+- tax, withholding or jurisdictional compliance;
+- FX conversion/accounting policy;
+- forecasting, valuation or profitability architecture;
+- royalty-accounting implementation;
+- rights-grant implementation;
+- universal rights ontology;
+- legal-enforceability/legal-effect engine;
+- product implementation;
+- migrations;
+- NG-8.
+
+**CLOSED DISTINCTIONS THAT MUST NOT BE REOPENED WITHOUT CONTRADICTORY EVIDENCE**
+
+- Proposal/Offer ≠ Commercial Arrangement.
+- Agreement Snapshot ≠ Legal Instrument.
+- Legal Instrument ≠ Rights Grant.
+- Legal/operational obligation ≠ receivable.
+- Invoice is optional and ≠ receivable.
+- Payment ≠ allocation/application.
+- Ledger/accounting does not replace upstream commercial/legal truth.
+- Amount Determination is a strong neutral-core capability when an obligation begins contingent, formula-based or unquantified.
+- Agency commission/fee entitlement is a representation-economics capability.
+- A generic universal EconomicEntitlement super-concept is not justified by current evidence.
+- Money preserves currency truth.
+- Deal/term vocabulary may remain vertical-specific.
+- `DECISION-20260929-005` Mandate lineage remains in force.
+- `DECISION-20260929-008` L2/S2 Arrangement–Instrument/Snapshot architecture remains in force.
+- No generic Entity/Party/Transaction abstraction is authorized.
+
+**FALSIFICATION MODELS**
+
+- E0 — COLLAPSE: No independent Amount Determination semantics are required; monetary truth can live only as fields on the Commercial Arrangement or Legal Instrument.
+- E1 — CURRENT SCALAR: An Arrangement needs at most one mutable current monetary total; historical/componentized economic truth is unnecessary.
+- E2 — HISTORICAL COMPONENTIZED DETERMINATION: Amount Determination is distinct economic truth, historically anchored to its source basis; one Arrangement may have multiple economic components; a determination may exist before receivable/invoice; and it can truthfully represent contingent, formula-based or initially unquantified economics without fabricating a current scalar.
+- E3 — UNIVERSAL ENTITLEMENT: A generic neutral-core EconomicEntitlement abstraction should unify compensation, agency commission/fee claims, receivables and other monetary claims.
+
+These are hypotheses to test. The Scope Lock does NOT pre-select a winner.
+
+**RESEARCH BOUNDARY**
+
+Research exactly two verticals:
+- A. Film/TV representation.
+- B. Live music / artist booking.
+
+No third vertical during NG-7 unless the Control Room explicitly reopens the Scope Lock based on a concrete falsification failure. Use primary/authoritative sources where reasonably available.
+
+The vertical research should deliberately pressure-test:
+- fixed compensation/guarantees;
+- episodic, weekly, per-service or unit-based compensation;
+- rates and formulas;
+- percentages;
+- bonuses/options/escalators where relevant;
+- contingent or not-yet-quantifiable compensation;
+- later actual-value inputs;
+- multiple economic components;
+- deposits/payment timing only as a boundary from economic truth to payment truth.
+
+Do not turn the research into a comprehensive survey of compensation law, guild rules, taxation or royalty accounting.
+
+**SUBSTAGES**
+
+- NG-7A — Build-97 predecessor baseline: source inspection only. Establish what Build 97 currently treats as monetary/economic truth, amount determination, compensation, commission, receivable/invoice/payment and accounting-related facts. Distinguish precedent from invariant. No architecture conclusion.
+- NG-7B — Two-vertical falsification: test E0–E3 using exactly the two authorized verticals and the pressure cases above. Separate empirical findings from architectural inference.
+- NG-7C — Control Room terminal adjudication: the Control Room decides the minimum neutral-core semantic contract, correction chain, hypothesis disposition and whether any genuine Owner-reserved ambiguity remains.
+- NG-7D — Canonical publication/closure: publish the accepted architecture only after Control Room adjudication. No implementation authority follows.
+
+**EXIT CRITERIA**
+
+NG-7 may close only when the evidence is sufficient to decide, at semantic architecture level:
+1. what Amount Determination canonically means;
+2. whether it can exist before receivable/invoice/payment;
+3. the minimum source/provenance relationship to commercial/legal truth;
+4. whether one Arrangement may carry several economic components and the minimum justified cardinality;
+5. how contingent/formula-based/unquantified economics are represented without false certainty;
+6. the historical rule for renegotiation, amendment, recalculation and later actual values;
+7. currency/unit truth;
+8. the boundary from Amount Determination to agency commission/fee entitlement;
+9. the boundary from Amount Determination to receivable, invoice, payment/allocation and accounting projection;
+10. the disposition of E0–E3.
+
+Closure does NOT require choosing persistence, schema, API, implementation, calculation engine, commission model, receivable lifecycle or ledger integration.
+
+If the evidence leaves a genuine product/strategy choice that belongs to the Owner rather than an evidentiary architecture adjudication, stop as OWNER DECISION REQUIRED.
+
+Scope: Conceptual NG-7 research/design governance only. No implementation authority.
+
+Evidence / provenance:
+- `DECISION-20260928-004`: hybrid commercial decomposition; amount determination identified as a strong core capability where an obligation starts contingent, formula-based or unquantified; agency commission/fee entitlement identified as a representation-economics capability; a generic universal EconomicEntitlement not justified; the exact amount-determination record left open.
+- `DECISION-20260929-002`: the neutral core owns shared commercial/legal/economic boundaries, money/currency truth and the neutral amount-determination capability; exact amount-kind enums/storage were not made invariant.
+- `DECISION-20260929-005`: historical Mandate-to-commercial lineage.
+- `DECISION-20260929-008`: L2/S2 Arrangement–Legal Instrument/Agreement Snapshot architecture and historical anchoring; amount-determination persistence, commission, receivables/invoices/payments/allocations and ledger explicitly deferred.
+- `DECISION-20260929-009`: Owner authorization for NG-7 research/design only.
+- `docs/control-room/CURRENT-STATE.md` at `0428ab3a22bb1cab88da7d21ff89d6b826fc7673`: the exact amount-determination record remains open; the commission model and ledger integration remain separate open questions.
+- The Control Room's present Scope Lock adjudication.
+- Claude is recorder/executor only, not architecture authority.
+
+Consequences:
+- Once this Scope Lock is fully PUBLISHED, NG-7A may begin.
+- NG-7 remains research/design only.
+- No implementation authority follows.
+- No schema/API/domain expansion follows.
+- No migrations follow.
+- NG-8 remains unauthorized.
+
+Supersedes: None
+
+Unchanged:
+- All prior published architecture decisions remain in force except where a future evidence-backed correction explicitly supersedes one.
+- No product behavior changes.
+
+Open:
+- All questions explicitly excluded above.
+- Exact implementation.
+- Commission model/placement.
+- Receivable/invoice/payment/allocation architecture beyond boundary tests.
+- Ledger/accounting integration.
+- NG-8.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
