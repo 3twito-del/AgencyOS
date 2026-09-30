@@ -64,13 +64,13 @@ The closure register is not duplicated here.
 | NG-3 Commercial Chain Decomposition | CLOSED | `DECISION-20260928-004` |
 | NG-4 Vertical Extension Architecture | CLOSED | `DECISION-20260929-002` |
 | NG-5 Mandate–Commercial Lineage Architecture | CLOSED | `DECISION-20260929-005` |
-| NG-6 Commercial Arrangement–Legal Instrument Composition Architecture | AUTHORIZED | `DECISION-20260929-006` |
+| NG-6 Commercial Arrangement–Legal Instrument Composition Architecture | CLOSED | `DECISION-20260929-008` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
 NG-5 is CLOSED under `DECISION-20260929-005` after terminal Control Room architecture adjudication: each Commercial Arrangement has conceptual direct lineage to zero or one Representation Mandate, anchored to the specific historical mandate relevant to that fact's authority provenance; pre-arrangement facts may carry optional fact-local lineage; a several-mandate, role-typed relation is not justified now and is retained only as an explicit reconsideration trigger. `DECISION-20260929-003` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-6 authorization follows.
 
-Owner authorization for NG-6 research/design is `DECISION-20260929-006`; its exact Scope Lock is `DECISION-20260929-007`. The authorization is research/design only, and substantive work begins with NG-6A only after publication. No implementation, product code, schema/API/domain expansion or migrations follow, and NG-7 remains unauthorized.
+NG-6 is CLOSED under `DECISION-20260929-008` after terminal Control Room architecture adjudication: a Commercial Arrangement may have zero or more Legal Instruments; each Legal Instrument is arrangement-scoped to one Commercial Arrangement (L2), with one instrument covering several Arrangements retained only as an explicit evidence-triggered reconsideration case; Agreement Snapshot carries historical agreed-state semantics (S2) without a selected persistence or derivation mechanism; a known Snapshot↔Instrument correspondence stays historically anchored; no universal precedence between commercial and legal truth is defined. `DECISION-20260929-006` remains the Owner authorization that permitted its research/design, and `DECISION-20260929-007` the Scope Lock that governed it. No implementation, product code, schema/API/domain expansion, migrations or NG-7 authorization follows.
 
 ## Closed architecture decisions
 
@@ -80,6 +80,7 @@ Owner authorization for NG-6 research/design is `DECISION-20260929-006`; its exa
 - Hybrid commercial decomposition: `DECISION-20260928-004`.
 - Vertical Extension Architecture: `DECISION-20260929-002`.
 - Mandate–Commercial Lineage Architecture: `DECISION-20260929-005`.
+- Commercial Arrangement–Legal Instrument Composition Architecture: `DECISION-20260929-008`.
 
 The decision text is in [`DECISIONS.md`](DECISIONS.md) and is not restated here.
 Operational-closure-specific decisions remain governed by the specialised closure record and are
@@ -101,9 +102,9 @@ not duplicated here.
 - exact storage and retention mechanics.
 
 **Commercial**
-- the agreement snapshot;
+- the exact Agreement Snapshot persistence/derivation mechanism and Snapshot↔Instrument anchoring representation;
 - the amount-determination record;
-- multi-arrangement instruments;
+- one Legal Instrument covering several Arrangements, reconsidered only on the `DECISION-20260929-008` evidence trigger;
 - the future commission model;
 - ledger integration.
 
@@ -111,10 +112,6 @@ not duplicated here.
 - exact persistence, schema, API, interface and module mechanics remain deferred;
 - any new C3 kind referenced by a shared/core role requires explicit reviewed bridge expansion;
 - Work/IP promotion to core remains evidence-triggered and is not decided merely by cross-vertical use.
-
-**NG-6**
-- the Commercial Arrangement / Agreement Snapshot / Legal Instrument contract, including the agreement snapshot and
-  multi-arrangement instruments listed under Commercial, is the subject of NG-6 and remains open.
 
 ## Owner decisions
 
@@ -137,8 +134,8 @@ not duplicated here.
   implementation mechanics remain unselected.
 - NG-5 is a conceptual architecture decision; no next-generation implementation exists, and exact
   implementation mechanics remain unselected.
-- NG-6 is authorized for research/design but no substantive NG-6 research has yet been completed
-  or canonically accepted.
+- NG-6 is a conceptual architecture decision; no next-generation implementation exists, and exact
+  implementation mechanics remain unselected.
 
 ## Forbidden work
 
@@ -157,15 +154,13 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**Begin NG-6A — Canonical & Build-97 Legal-Composition Baseline under `DECISION-20260929-006` and `DECISION-20260929-007`.**
+**Obtain explicit Owner authorization before beginning any post-NG-6 stage, including NG-7.**
 
-Until NG-6 reaches a later separately authorized/accepted state:
-- research/design only;
-- no implementation;
-- no product/schema/API/domain expansion;
-- no migrations;
-- no NG-7.
+Until such authorization is PUBLISHED:
+- do not begin NG-7 research/design;
+- do not implement the NG-4, NG-5 or NG-6 architecture;
+- do not expand product/schema/API/domain boundaries.
 
 ## Latest published delta
 
-`DELTA-20260929-008`: PUBLISHED — Owner authorization for NG-6 Commercial Arrangement–Legal Instrument Composition Architecture research/design only under `DECISION-20260929-006`, scope-locked by `DECISION-20260929-007`; no implementation, schema/API/domain, migration or NG-7 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260929-009`: PUBLISHED — NG-6 Commercial Arrangement–Legal Instrument Composition Architecture CLOSED under `DECISION-20260929-008`: L2 accepted (zero or more Legal Instruments per Arrangement; each instrument arrangement-scoped to one Arrangement), several-Arrangement instruments retained only on an evidence trigger, and S2 historical Agreement Snapshot semantics with persistence unselected; no implementation, schema/API/domain, migration or NG-7 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.

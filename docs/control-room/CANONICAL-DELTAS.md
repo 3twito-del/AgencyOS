@@ -1031,11 +1031,11 @@ Publication receipt: 76d00b056831e62905575cef112203bb7cc58756 on origin/operatio
 
 ## DELTA-20260929-009
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-30T00:58:16Z
 
-Published: Pending
+Published: 2026-09-30T01:25:36Z
 
 Sources:
 - Canonical branch state `19cd428dd526963bf6308d18c31e076a10c24dae` on `operational-regression-gate`.
@@ -1136,4 +1136,4 @@ Forbidden implications: This delta does **not**:
 - reintroduce mandate multiplicity;
 - make Claude an architecture authority.
 
-Publication receipt: Pending
+Publication receipt: 914676e14de9c8ec5602032a711ccc186af070e9 on origin/operational-regression-gate; remote readback verified 2026-09-30T01:25:36Z
