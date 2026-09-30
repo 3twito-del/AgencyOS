@@ -1226,11 +1226,11 @@ Publication receipt: 85e6598d2c83019f7a81fd6f65b0304d7b3af97f on origin/operatio
 
 ## DELTA-20260929-011
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-30T02:42:53Z
 
-Published: Pending
+Published: 2026-09-30T02:53:30Z
 
 Sources:
 - The Control Room Scope Lock recorded as `DECISION-20260929-010`.
@@ -1310,4 +1310,4 @@ Forbidden implications: This delta does **not**:
 - reopen NG-1 through NG-6;
 - make Claude a semantic authority.
 
-Publication receipt: Pending
+Publication receipt: 2eaa873744c397254033faf6dd941590227254ae on origin/operational-regression-gate; remote readback verified 2026-09-30T02:53:30Z

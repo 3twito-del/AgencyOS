@@ -65,7 +65,7 @@ The closure register is not duplicated here.
 | NG-4 Vertical Extension Architecture | CLOSED | `DECISION-20260929-002` |
 | NG-5 Mandate–Commercial Lineage Architecture | CLOSED | `DECISION-20260929-005` |
 | NG-6 Commercial Arrangement–Legal Instrument Composition Architecture | CLOSED | `DECISION-20260929-008` |
-| NG-7 | AUTHORIZED | `DECISION-20260929-009` |
+| NG-7 Amount Determination & Economic Truth Architecture | AUTHORIZED | `DECISION-20260929-009` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
@@ -73,7 +73,7 @@ NG-5 is CLOSED under `DECISION-20260929-005` after terminal Control Room archite
 
 NG-6 is CLOSED under `DECISION-20260929-008` after terminal Control Room architecture adjudication: a Commercial Arrangement may have zero or more Legal Instruments; each Legal Instrument is arrangement-scoped to one Commercial Arrangement (L2), with one instrument covering several Arrangements retained only as an explicit evidence-triggered reconsideration case; Agreement Snapshot carries historical agreed-state semantics (S2) without a selected persistence or derivation mechanism; a known Snapshot↔Instrument correspondence stays historically anchored; no universal precedence between commercial and legal truth is defined. `DECISION-20260929-006` remains the Owner authorization that permitted its research/design, and `DECISION-20260929-007` the Scope Lock that governed it. No implementation, product code, schema/API/domain expansion, migrations or NG-7 authorization follows.
 
-NG-7 — AUTHORIZED for research/design only under `DECISION-20260929-009`; exact title and bounded Scope Lock remain to be established by Control Room before substantive research. No implementation, product code, schema/API/domain expansion or migrations follow, and NG-8 remains unauthorized.
+NG-7 — AUTHORIZED for research/design only under `DECISION-20260929-009`, and scope-locked as Amount Determination & Economic Truth Architecture by `DECISION-20260929-010`, its governing Scope Lock. Substantive NG-7 research has not yet begun; NG-7A is the exact next bounded action. No implementation, product code, schema/API/domain expansion or migrations follow, and NG-8 remains unauthorized.
 
 ## Closed architecture decisions
 
@@ -116,6 +116,11 @@ not duplicated here.
 - any new C3 kind referenced by a shared/core role requires explicit reviewed bridge expansion;
 - Work/IP promotion to core remains evidence-triggered and is not decided merely by cross-vertical use.
 
+**NG-7**
+- the amount-determination record listed under Commercial, together with the Amount Determination boundary to
+  commission/fee entitlement, receivable, invoice, payment/allocation and accounting projection, is the subject of
+  NG-7 and remains open.
+
 ## Owner decisions
 
 - Next-generation:
@@ -140,8 +145,8 @@ not duplicated here.
   implementation mechanics remain unselected.
 - NG-6 is a conceptual architecture decision; no next-generation implementation exists, and exact
   implementation mechanics remain unselected.
-- NG-7 is authorized for research/design only; its exact title and Scope Lock are not yet established,
-  and no substantive NG-7 research has been performed or canonically accepted.
+- NG-7 is authorized for research/design only and scope-locked by `DECISION-20260929-010`; no
+  substantive NG-7 research has been performed or canonically accepted.
 
 ## Forbidden work
 
@@ -160,15 +165,15 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**Control Room defines and canonically establishes the exact NG-7 title, bounded question, Scope Lock, falsification boundary, substages and exit criteria before substantive NG-7 research begins.**
+**NG-7A — inspect the exact Build-97 predecessor source baseline for amount determination and adjacent economic/finance semantics, without cross-vertical research or architecture conclusion.**
 
-Until NG-7 reaches a later separately authorized/accepted state:
-- research/design only, and no substantive NG-7 research before its Scope Lock is PUBLISHED;
-- no NG-7 implementation, and no implementation of the NG-4, NG-5 or NG-6 architecture;
+Until NG-7A begins under the published Scope Lock:
+- research/design only;
+- no implementation;
 - no product/schema/API/domain expansion;
 - no migrations;
 - no NG-8.
 
 ## Latest published delta
 
-`DELTA-20260929-010`: PUBLISHED — Owner authorization for NG-7 / the next post-NG-6 stage, research/design only, under `DECISION-20260929-009`; exact title and Scope Lock remain to be established by Control Room; no implementation, schema/API/domain, migration or NG-8 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260929-011`: PUBLISHED — NG-7 scope-locked as Amount Determination & Economic Truth Architecture under `DECISION-20260929-010`, within the Owner research/design authorization `DECISION-20260929-009`; no substantive research, architecture conclusion, implementation, schema/API/domain, migration or NG-8 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
