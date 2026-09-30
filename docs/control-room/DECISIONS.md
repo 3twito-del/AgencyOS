@@ -2290,3 +2290,191 @@ Open:
 Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
 
 Publication receipt: e5561e87ec6452eb48b0607d0dadbacf616d8c6f on origin/operational-regression-gate; remote readback verified 2026-09-30T17:31:14Z
+
+## DECISION-20260930-006
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: CONTROL_ROOM
+
+Question: What is the minimum neutral-core semantic architecture for Receivable as a downstream crystallized/collectible fact: what makes one exist; how it relates to upstream Amount Determinations and Representation-Economics Claims; what source↔Receivable cardinalities are justified; how partial/installment/periodic crystallization, due/payability provenance and historical changes are preserved; how debtor/creditor/payer roles differ; and where Receivable ends relative to Invoice, Payment, Allocation/Application and accounting — under the exact NG-9 Scope Lock of DECISION-20260930-005?
+
+Decision: NG-9 — Receivable Crystallization & Collectibility Architecture is terminally adjudicated as follows.
+
+**A. RECEIVABLE**
+
+A Receivable is a historically anchored, Commercial-Arrangement-scoped collectible position for one independently meaningful source-defined crystallization/due position. It preserves:
+- the upstream economic/source provenance explaining why the position exists;
+- the creditor/beneficiary;
+- the obligor/debtor;
+- the crystallized amount and currency;
+- source-defined crystallization conditions;
+- the source-defined due/payability rule and resolved date when known;
+- historical facts that later adjust, transfer, reduce, satisfy, supersede or extinguish the position.
+
+Receivable does not itself assert universal legal enforceability. This is semantic architecture only; it does not require a dedicated persisted table/entity or select persistence mechanics.
+
+**B. UPSTREAM ECONOMIC TRUTH IS DISTINCT**
+
+Amount Determination is not Receivable. Representation-Economics Claim is not Receivable. An upstream method, contingent economic entitlement, future installment or representation-economics claim may exist before any Receivable. Receivable arises only when source-defined facts are sufficient to identify one specific collectible position. A merely known method whose required realization facts remain unknown is not silently converted into a zero-valued Receivable.
+
+**C. NO UNIVERSAL CRYSTALLIZATION TRIGGER**
+
+There is no universal event that creates every Receivable. Source-defined crystallization facts may include: delivery; service/performance; completion; scheduled installment; statement/accounting cycle; settlement; receipt; cancellation consequence; invoice or another required document; another source-defined event. The neutral core does not impose contract execution, Invoice, Payment or accounting posting as universal creation triggers.
+
+**D. INVOICE BOUNDARY**
+
+Receivable is distinct from Invoice. An Invoice is not universally required for Receivable existence; a Receivable may exist without any Invoice. However, a source may make an Invoice, statement or other document a condition of crystallization; a condition of payability; a timing trigger; or merely an administrative/billing artifact. Where such a relation is known, its provenance must remain explicit. No universal Invoice gate is selected.
+
+**E. SOURCE TO RECEIVABLE CARDINALITY**
+
+One upstream economic source may produce zero or more Receivables over time. A Commercial Arrangement, economic component, Amount Determination or Representation-Economics Claim may yield multiple distinct collectible positions where source-defined installments, periods, milestones, performances, statements, settlements or similar events create independently meaningful crystallizations. Build-97's one-MonetaryObligation/one-Receivable lifecycle behavior is not a neutral invariant.
+
+**F. RECEIVABLE TO SOURCE CARDINALITY**
+
+A single Receivable may depend on one or more upstream economic facts only where those facts genuinely form one source-defined collectible position. Presentation together on an Invoice, statement or debtor balance does not by itself merge their semantic identity. Where obligor, creditor/beneficiary, currency, crystallization condition, due/payability rule or independently meaningful treatment differ, the positions remain distinct. Known source/component contribution must not be erased by untyped aggregation.
+
+**G. COMMERCIAL ARRANGEMENT SCOPE**
+
+In the present neutral-core contract, each Receivable is scoped to exactly one Commercial Arrangement. The bounded evidence did not justify one indivisible collectible position spanning several independently valid Commercial Arrangements. Reconsider only on concrete evidence of one indivisible real collectible position that genuinely spans two or more independently valid Commercial Arrangements.
+
+**H. PARTIAL / INSTALLMENT / PERIODIC CRYSTALLIZATION**
+
+Partial crystallization is semantically distinct from partial payment. When only part of upstream economic truth crystallizes into a collectible position while the remainder remains future, contingent or uncrystallized, the crystallized portion must remain separately identifiable. Installment and periodic source-defined due positions may therefore create multiple Receivables over time. By contrast, a partial Payment or Allocation against an already-existing Receivable does not itself create a new Receivable.
+
+**I. AMOUNT TRUTH**
+
+The Receivable must preserve its crystallized amount and the upstream provenance of that amount. If a Receivable represents only a portion of a larger upstream economic amount, that portion and its source relation must remain truthful. An unlabelled amount override that disconnects Receivable truth from upstream economic truth is not a neutral-core invariant. Where several upstream economic facts form one Receivable, known contribution/provenance remains identifiable.
+
+**J. DUE / PAYABILITY TRUTH**
+
+The source-defined due/payability rule is distinct from a resolved calendar date. A Receivable may carry a rule/trigger whose exact date is unresolved until another fact occurs. Unknown due date remains unknown. When a due/payability fact changes through amendment, extension, waiver, correction, rescheduling or another source-defined event, prior truth is not silently overwritten.
+
+**K. OBLIGOR / CREDITOR / PAYER / RECIPIENT**
+
+The neutral core distinguishes: obligor/debtor; creditor/beneficiary; observed payer/source of cash; recipient/conduit when source evidence makes that distinction material. These roles are not universally identical. Payment by a payroll house, agency, guild, manager, client account or other conduit does not by itself change who owed the Receivable.
+
+**L. OBLIGOR CHANGE / ASSUMPTION**
+
+Source-defined assumption, transfer or release may change which party bears the obligation. Preserve: prior obligor truth; assumption/transfer source; subsequent obligor; release or continuing-liability semantics where known. No silent debtor overwrite is allowed. Whether implementation represents this as one Receivable identity with obligor history or as a successor Receivable relation remains unselected.
+
+**M. PAYMENT MAY PRECEDE RECEIVABLE**
+
+Cash movement may occur before a later collectible position crystallizes. Deposit, advance, prepayment, escrow or trust semantics are source-defined and must not be collapsed into one universal category. The existence of Payment/cash does not prove a Receivable existed at that moment. Later Allocation/Application may associate previously received cash with a Receivable once the relevant collectible position exists. No trust-account implementation is selected.
+
+**N. HISTORICAL CHANGE**
+
+Receivable is not merely a mutable current balance. Source-defined cancellation, correction, credit, reduction, settlement, dispute, assumption, supersession or extinguishment must preserve historical truth. As applicable, preserve: the earlier collectible position; the later event/source; resulting amount or status truth; the relation between old and new facts. Correction is not original truth. Credit/reduction is not Payment. Cancellation does not universally mean the earlier position never existed. Dispute does not universally mean the amount is zero. No universal Receivable lifecycle enum is selected.
+
+**O. ACCOUNTING WRITE-OFF**
+
+An accounting or operational write-off is downstream policy/action and does not, by itself, prove that the source-defined Receivable never existed or was legally extinguished. Receivable truth is distinct from accounting recognition and collection policy. Build-97's ledger posting when a Receivable is raised is not promoted to a neutral-core invariant.
+
+**P. DOCUMENT TYPES**
+
+Invoice, residual statement, payroll statement, settlement sheet, ticket audit, remittance advice and booking confirmation are not universally the same semantic artifact. A source-defined document may determine an amount; trigger payability; establish timing; communicate an already-existing Receivable; or serve as evidence after the fact. No universal BillingDocument abstraction is selected.
+
+**Q. PAYMENT / ALLOCATION BOUNDARY**
+
+Payment is cash movement. Allocation/Application is the association/application of cash to one or more supported downstream positions. Receivable is distinct from both. A Receivable may be satisfied by several Payments. A Payment may be associated with several Receivables where supported. The debtor's aggregate balance is a projection across Receivables and applications, not a replacement for Receivable identity. Exact implementation mechanics remain unselected.
+
+**R. CURRENCY**
+
+Receivable preserves the currency and monetary provenance of the collectible position. Payment currency may be a distinct fact. Where conversion occurs, known conversion provenance must remain available. No FX engine or accounting conversion policy is selected.
+
+**S. RECONSIDERATION TRIGGERS**
+
+The current neutral core does not add a multi-Arrangement Receivable or a simultaneous multi-obligor Receivable. Reconsider only on concrete evidence of:
+1. one indivisible real collectible position spanning two or more independently valid Commercial Arrangements; or
+2. one indivisible collectible position with genuinely simultaneous co-obligors that cannot be represented truthfully by the current single-obligor contract.
+
+**T. HYPOTHESIS DISPOSITIONS**
+
+- R0 — SOURCE-SINGULAR CURRENT: REJECTED. One upstream source may generate several independently triggered collectible positions, and one mutable current amount/due state cannot preserve the necessary history.
+- R1 — INVOICE-GATED: REJECTED. Invoice is not a universal prerequisite. Some sources may nevertheless make Invoice or another document a source-defined crystallization/payability condition.
+- R2 — HISTORICAL CRYSTALLIZATION: ACCEPTED WITH REFINEMENT. Accepted form: a Receivable is a historically anchored, Commercial-Arrangement-scoped collectible position for one independently meaningful source-defined crystallization/due position. It preserves upstream economic provenance, creditor/beneficiary, obligor, amount and currency, source-defined crystallization and due/payability semantics, and later historical transformations. One upstream economic source may produce zero or more Receivables over time. One Receivable may depend on one or more upstream economic facts only where they genuinely form one source-defined collectible position. Invoice may be absent or participate as a source-defined condition. Payment may precede Receivable, and cash application remains distinct.
+- R3 — DEBTOR-ACCOUNT AGGREGATE: REJECTED. A debtor/account running balance cannot preserve source identity, crystallization/due provenance, installment/periodic positions, disputes, assumptions, cancellation consequences or source-defined grouping. Shared balance arithmetic is a projection, not the neutral-core identity.
+
+**U. BUILD-97 PREDECESSOR DISPOSITION**
+
+Build-97 remains useful precedent for: first-class Receivable identity; explicit upstream MonetaryObligation linkage; immutable OriginalAmount; separate Payment and Allocation facts; persisted allocation/reversal and adjustment history; Receivable distinct from Invoice; closure reasons; currency discipline; downstream ledger attribution.
+
+Its limitations are not neutral-core invariants, including: one source effectively yielding only one Receivable through the Raised lifecycle; unconstrained/unlabelled amount override; stranded remainder after partial override; due-date overwrite without provenance; Invoice/Receivable Contract and debtor consistency gaps; repeated Invoice-line overbilling exposure; Payment payer not checked against Receivable debtor; cancelled Receivable leaving the source obligation Raised; Build-97 ledger recognition timing. This decision does not authorize repair of those predecessor limitations.
+
+**V. EVIDENCE BOUNDARY**
+
+- NG-9A: exact Build-97 source inspection at `b3f41bfd68e81ab42da899671f58e01f0988d3d2`.
+- NG-9B: exactly two verticals — Film/TV representation; live music / artist booking.
+- Load-bearing primary evidence independently checked by the Control Room includes: the 2023 WGA Theatrical and Television Basic Agreement; the Musicians' Union Standard Live Engagement Contract L2 (2025 form); AFM Form T2C Travelling Engagement Contract; the UK Conduct of Employment Agencies and Employment Businesses Regulations 2003, regulation 25; the University of Memphis Performance Agreement.
+- Historical/time-bounded sources are used as falsification evidence only and are not generalized as current universal industry rules.
+- No third vertical was required. No NG-9B2 was required.
+
+**W. CORRECTION CHAIN**
+
+Inherited chains are preserved: NG-6 under `DECISION-20260929-008`; NG-7 under `DECISION-20260930-001`; NG-8 §S under `DECISION-20260930-004`.
+
+NG-9A:
+1. one-obligation/one-Receivable is application/domain lifecycle behavior, not persistence uniqueness;
+2. the Receivable amount can override the source amount without structured provenance, and a partial override can strand the remainder;
+3. Invoice lacks source Receivable Contract/Debtor consistency and global duplicate-billing protection;
+4. due-date provenance is not historically preserved;
+5. Build-97 does not enforce observed Payment payer = contractual Receivable debtor;
+6. Build-97 gives mixed, not uniformly supporting, predecessor pressure on R0.
+
+NG-9B:
+7. installments may be separately triggered source-defined due positions, not merely partial cash payments;
+8. the obligor may change by source-defined assumption;
+9. cash may precede entitlement/collectibility;
+10. Invoice may condition payability/timing in particular sources even though it is not a universal prerequisite;
+11. source rules may group several facts into one due position or defer payability until an accumulation threshold.
+
+NG-9C:
+12. rejecting universal invoice-gating does not make Invoice semantically irrelevant; a source may make it a crystallization/payability condition;
+13. one source having several events does not mean every event creates a Receivable; identity follows the independently meaningful source-defined collectible position;
+14. evidence of obligor assumption proves historical obligor provenance is required, but does not decide same-identity versus successor-Receivable implementation;
+15. cash preceding entitlement does not make every advance an unapplied Payment; deposit/prepayment/trust classification remains source-defined.
+
+**X. TERMINAL STATUS**
+
+NG-9 is CLOSED upon successful canonical publication of this decision. No Owner-reserved ambiguity remains within the NG-9 Scope Lock. No NG-9B2 is required.
+
+Scope: Conceptual semantic architecture only. This decision does NOT authorize implementation; persistence selection; schema; API; domain-code expansion; migrations; AR workflow implementation; Invoice implementation; Payment/Allocation implementation; ledger implementation; trust-account implementation; FX implementation; or NG-10 research/design.
+
+Evidence / provenance:
+- `DECISION-20260930-005` as the Owner-approved NG-9 authorization and exact Scope Lock.
+- `DECISION-20260930-003` as the recursive correspondence contract.
+- `DECISION-20260930-004` as the NG-8 Representation-Economics Claim boundary.
+- `DECISION-20260930-001` as the NG-7 Amount Determination boundary.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`; NG-9A exact source inspection.
+- NG-9B bounded Film/TV + live-music evidence.
+- Control Room independent primary-source verification and terminal NG-9C adjudication on 2026-09-30.
+- Claude reports are evidence inputs only. Claude is not architecture authority.
+
+Consequences:
+- Upon publication, NG-9 becomes CLOSED.
+- R0 rejected; R1 rejected; R2 accepted with refinement; R3 rejected.
+- Receivable Crystallization & Collectibility Architecture becomes terminal under the semantic contract above.
+- No implementation authority follows.
+- Any post-NG-9 stage, including NG-10, requires explicit Owner authorization.
+
+Supersedes: None
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-8 remain unchanged.
+- `DECISION-20260930-005` remains the Owner authorization/Scope Lock that permitted NG-9.
+- `DECISION-20260930-003` remains the recursive correspondence contract.
+- Build-97 released product behavior remains unchanged.
+- No next-generation implementation exists.
+
+Open:
+- Implementation-open only: persisted entity versus event/version/derived representation; exact source-contribution representation; same-identity versus successor representation for obligor assumption; Invoice linking mechanics; Payment/Allocation mechanics; trust/prepayment storage; dispute/correction mechanics; API/client/UI; downstream ledger integration.
+- Evidence-triggered reconsideration only: multi-Arrangement Receivable; simultaneous multi-obligor Receivable.
+- Post-NG-9 stage selection remains unauthorized.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending

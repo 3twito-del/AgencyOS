@@ -1691,3 +1691,88 @@ Forbidden implications: This delta does **not**:
 - treat Claude as an authority.
 
 Publication receipt: bd63f440c008dcce389605a4d61cef58791b84bd on origin/operational-regression-gate; remote readback verified 2026-09-30T17:31:14Z
+
+## DELTA-20260930-005
+
+Status: ACCEPTED
+
+Detected: 2026-09-30T20:15:18Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `d3b16a0f9a8014d4e5ca92e9546232d550341eae` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, inspected as predecessor evidence only (NG-9A).
+- The bounded NG-9 research chain NG-9A and NG-9B under the Scope Lock `DECISION-20260930-005`, adjudicated by the Control Room and recorded as `DECISION-20260930-006`.
+
+Prior claim: NG-9 is AUTHORIZED / OPEN IN RESEARCH under `DECISION-20260930-005`; terminal Receivable architecture and R0–R3 dispositions are unresolved.
+
+Candidate/new claim: NG-9 is CLOSED under `DECISION-20260930-006`: a Receivable is a distinct historical, Commercial-Arrangement-scoped collectible position for one independently meaningful source-defined crystallization/due position; upstream Amount Determination and Representation-Economics Claim remain distinct; there is no universal crystallization trigger; one upstream economic source may produce zero or more Receivables, and one Receivable may depend on one or more upstream facts only where they genuinely form one source-defined collectible position; partial/installment/periodic crystallization is distinct from partial Payment; Invoice is distinct and not universally required but may be a source-defined condition; obligor, creditor/beneficiary and observed payer/source of cash remain distinct; due rule/provenance is distinct from resolved date; historical change is not silently rewritten; Payment may precede Receivable; Payment/Allocation and accounting remain downstream and distinct; R0 rejected, R1 rejected, R2 accepted with refinement, R3 rejected; implementation remains unselected.
+
+Claimed transition: NG-9 AUTHORIZED / OPEN IN RESEARCH → NG-9 CLOSED.
+
+Scope: Canonical publication of the Control Room's terminal NG-9 architecture adjudication only. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `d3b16a0f9a8014d4e5ca92e9546232d550341eae` (`Publish DELTA-20260930-004`), with `DECISION-20260930-005` and `DECISION-20260930-003` ACTIVE and `DELTA-20260930-004` PUBLISHED;
+  - `CURRENT-STATE.md` there records NG-9 as AUTHORIZED under `DECISION-20260930-005` and NG-10 as unauthorized.
+- Build-97 predecessor evidence (NG-9A, product commit `b3f41bf`): `src/AgencyOS.Domain/Finance/Receivable.cs`, `MonetaryObligation.cs`, `Invoice.cs`, `Payment.cs`, `Commission.cs`; `src/AgencyOS.Finance.Rules/Allocation.fs`; `src/AgencyOS.Application/Finance/FinanceCommands.cs`, `PaymentCommands.cs`, `LedgerPosting.cs`; the finance persistence configuration, migration and API contracts.
+- External domain evidence (NG-9B, exactly two verticals), including the Control-Room-checked load-bearing sources: the 2023 WGA Theatrical and Television Basic Agreement; the Musicians' Union Standard Live Engagement Contract L2 (2025 form); AFM Form T2C Travelling Engagement Contract; the UK Conduct of Employment Agencies and Employment Businesses Regulations 2003, regulation 25; the University of Memphis Performance Agreement.
+- Control Room semantic adjudication: the Adjudication field below, recorded as `DECISION-20260930-006`.
+
+Conflicts: None that survive adjudication. The complete material correction chain is preserved in `DECISION-20260930-006` §W:
+- NG-9A: one-obligation/one-Receivable is lifecycle behavior, not persistence uniqueness; amount override lacks structured provenance and a partial override can strand the remainder; Invoice lacks Contract/Debtor consistency and duplicate-billing protection; due-date provenance is not preserved; observed payer is not checked against the contractual debtor; predecessor pressure on R0 is mixed;
+- NG-9B: installments may be separately triggered due positions; the obligor may change by assumption; cash may precede entitlement; Invoice may condition payability/timing in particular sources; source rules may group facts or defer payability until an accumulation threshold;
+- NG-9C: rejecting universal invoice-gating does not make Invoice irrelevant; not every source event creates a Receivable; obligor assumption requires historical obligor provenance without deciding same-identity versus successor representation; cash preceding entitlement does not make every advance an unapplied Payment.
+
+Authority required:
+- `CONTROL_ROOM`, for the terminal NG-9 semantic adjudication;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required to close NG-9. The Owner's existing authorization `DECISION-20260930-005` permitted the bounded research/design stage, and no post-NG-9 stage is authorized by this closure.
+
+Adjudication: The Control Room independently reviewed the NG-9A Build-97 predecessor baseline and the NG-9B two-vertical falsification evidence, independently verified the load-bearing primary sources, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual semantic architecture recorded as `DECISION-20260930-006`: R0 rejected; R1 rejected; R2 accepted with refinement; R3 rejected; no Owner-reserved ambiguity remains; no NG-9B2 is required. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260930-006` is added as the durable NG-9 architecture decision.
+- `CURRENT-STATE.md` records NG-9 Receivable Crystallization & Collectibility Architecture as CLOSED under `DECISION-20260930-006`.
+- The open question on the exact claim-to-Receivable mechanics is narrowed to its implementation-open mechanics.
+- The next bounded action becomes obtaining explicit Owner authorization before beginning any post-NG-9 stage, including NG-10.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that NG-9 is open in research with unresolved Receivable architecture. It supersedes no prior Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-8 remain unchanged.
+- `DECISION-20260930-005` remains the Owner authorization/Scope Lock that permitted NG-9.
+- `DECISION-20260930-003` remains the recursive correspondence contract.
+- Build 97 released product identity and all implementation behavior.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-10 remains unauthorized and not begun.
+
+Open / unresolved questions:
+- The implementation-open items and evidence-triggered reconsideration cases listed as Open in `DECISION-20260930-006` remain open.
+- None of these blocks NG-9 closure.
+
+Forbidden implications: This delta does **not**:
+- permit implementation;
+- choose a persistence, event or version mechanism;
+- approve schema/API/domain expansion;
+- approve migrations;
+- impose a universal invoice gate;
+- impose a universal crystallization trigger;
+- create a generic MonetaryClaim or EconomicEntitlement;
+- impose a universal Receivable lifecycle;
+- grant NG-10 or later-stage authority;
+- reopen NG-1 through NG-8;
+- make Claude an architecture authority.
+
+Publication receipt: Pending
