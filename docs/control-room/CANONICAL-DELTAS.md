@@ -1173,7 +1173,17 @@ Authority required:
 
 Adjudication: The Owner replied “מאשר.” to the Control Room's exact bounded authorization question whether to begin NG-7 / the next post-NG-6 stage for research and design only, without implementation or product/schema/API/domain expansion, or to stop at NG-6 CLOSED. The Control Room normalizes that reply narrowly as research/design authorization only. It does not decide the NG-7 title, bound question, Scope Lock, hypotheses, substages, exit criteria or any conclusion; the Control Room must establish the Scope Lock before substantive NG-7 research. The authorization becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20260929-010
+  Semantic basis: f0c0a5c215fc94cf47b1a6966f1f5ed6c8c71311
+  CURRENT-STATE.next.md blob SHA-256: 33c49e803bca0ab2a356efc9b92b42f47a8424a2a75991d70149a19dbe2dca34
+  PUBLICATION-PAYLOAD.json blob SHA-256: fad9b08a30ca758463b30d9df4402a739cccb62bbb5e205fdda7adc48cd7edae
+  Authorized: 2026-09-30T02:32:20Z
+  Reference: Adjudication of DELTA-20260929-010
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260929-009` becomes the durable Owner authorization for NG-7 research/design.
