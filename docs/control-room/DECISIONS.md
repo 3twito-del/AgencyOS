@@ -2478,3 +2478,200 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
 
 Publication receipt: a7af74f1b81df15d8598d5d7dfa3449bca4e7b90 on origin/operational-regression-gate; remote readback verified 2026-09-30T21:03:41Z
+
+## DECISION-20260930-007
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: OWNER
+
+Question: Approve NG-10 — Payment, Cash Application & Funds Provenance Architecture exactly under the complete bounded Control Room stage definition below, for research/design only, with no implementation, product/schema/API/domain expansion, migrations or NG-11 authority?
+
+Decision: The Owner approves **NG-10 — Payment, Cash Application & Funds Provenance Architecture** exactly under the following bounded stage contract.
+
+**TITLE**
+
+NG-10 — Payment, Cash Application & Funds Provenance Architecture
+
+**BOUNDED QUESTION**
+
+What is the minimum neutral-core semantic contract for incoming cash/payment facts and for Application/Allocation: what makes a Payment true; how payer/source-of-funds, recipient/conduit and beneficial ownership/control are preserved where they differ; whether cash may exist unapplied or before a Receivable; what minimum Payment↔Receivable cardinalities are justified; what an Application historically asserts; and how reversal, refund, chargeback, overpayment, prepayment/deposit/escrow, currency and conversion provenance remain truthful — without selecting payment rails, bank reconciliation or ledger/accounting policy?
+
+**IN SCOPE**
+
+1. Payment as an observed cash-movement fact.
+2. The distinction among: upstream economic truth; Representation-Economics Claim; Receivable; Invoice; Payment; Application/Allocation; downstream Ledger/accounting projection.
+3. What facts make a Payment true.
+4. Received date/time semantics.
+5. Settlement/value-date semantics where source evidence materially distinguishes them.
+6. Payment amount and currency.
+7. Payer identity.
+8. Source-of-funds identity where distinct from payer.
+9. Recipient/conduit identity where materially distinct.
+10. Beneficial ownership/control/held-for semantics only where necessary to remain truthful about deposits, prepayments, escrow or trust-held money.
+11. Unapplied cash.
+12. Payment existing before a Receivable.
+13. Payment existing after a Receivable.
+14. Application/Allocation as a distinct historical association/application fact.
+15. Payment → zero, one or many Applications.
+16. Receivable ← zero, one or many Applications.
+17. Partial Application.
+18. Application provenance: which Payment; which Receivable or supported downstream position; amount; currency; date/event; source/reason where applicable.
+19. Reversal/unapplication.
+20. Refund/repayment only insofar as it changes cash/application truth.
+21. Chargeback/reversal/correction only insofar as source evidence requires semantic distinction.
+22. Overpayment.
+23. Cash received before entitlement/collectibility.
+24. Deposit/prepayment/escrow/client-account/trust-held semantics only to test the neutral boundary; no implementation.
+25. Payer differing from Receivable obligor.
+26. Recipient differing from beneficiary/creditor.
+27. Payment currency differing from Receivable currency.
+28. Known conversion provenance where conversion exists.
+29. Invoice and Receivable as upstream boundaries.
+30. Ledger/accounting as downstream boundary.
+31. Film/TV and live-music vertical semantics only as falsification pressure against false neutrality.
+
+**OUT OF SCOPE**
+
+Do NOT solve or select: ACH/card/wire/payment-rail architecture; processor integrations; merchant acquiring; payment authorization; checkout; bank-feed implementation; bank reconciliation; bank-account model; trust/client-account implementation; safeguarding-compliance engine; fraud detection; KYC/AML; treasury; cash forecasting; dunning/collections workflow; Invoice generation/rendering/numbering/delivery; accounts payable; payroll; tax/withholding; FX engine; exchange-rate sourcing; ledger posting implementation; accounting revenue recognition; bank accounting; generic Transaction; generic MoneyMovement implementation; generic MonetaryClaim; universal EconomicEntitlement; persistence/database/schema/FKs; API/classes/interfaces/modules; migrations; product code; NG-11.
+
+**CLOSED DISTINCTIONS — DO NOT REOPEN WITHOUT CONTRADICTORY EVIDENCE**
+
+- Amount Determination ≠ Receivable.
+- Representation-Economics Claim ≠ Receivable.
+- Receivable ≠ Invoice.
+- Receivable ≠ Payment.
+- Payment ≠ Allocation/Application.
+- Payment is cash movement.
+- Allocation/Application is association/application of cash to a supported downstream position.
+- cash existence does not prove Receivable existence.
+- Payment may precede Receivable.
+- partial crystallization ≠ partial Payment/Application.
+- obligor/debtor ≠ universally payer/source of funds.
+- creditor/beneficiary ≠ universally cash recipient.
+- Invoice is not a universal Receivable prerequisite.
+- historical truth must not be silently rewritten.
+- money preserves currency.
+- known conversion provenance remains meaningful.
+- Ledger/accounting is downstream projection.
+- no universal MonetaryClaim.
+- no universal EconomicEntitlement.
+- no generic Entity / Party / Transaction abstraction.
+- no mega lifecycle merely because financial facts have statuses.
+
+**HYPOTHESES**
+
+No hypothesis is preselected.
+
+- P0 — DIRECT-SETTLEMENT: Every materially relevant Payment can be treated as settlement of one Receivable, and the application relation is safely derivable rather than an independently meaningful historical fact.
+- P1 — EXPLICIT-APPLICATION: Payment is an independent cash fact. Application/Allocation is a distinct historical association/application fact. Payment may be unapplied. One Payment may be applied to zero, one or several Receivables. One Receivable may receive applications from zero, one or several Payments. Application/reversal history is semantically meaningful and must not be collapsed into current balances alone.
+- P2 — HELD-FUNDS EXTENSION: P1 is insufficient by itself. Where money is received before beneficial entitlement/collectibility — such as a refundable deposit, escrow, trust/client-account holding or similar source-defined fact — neutral core requires an additional semantic distinction for held/restricted/control status rather than simply calling all cash received a beneficiary Payment. This hypothesis does NOT preselect a new persisted entity or trust-account module.
+- P3 — GENERIC-MONEY-MOVEMENT: Payment, refund, transfer, application, reversal and similar cash facts should collapse into one universal MoneyMovement/Transaction primitive.
+
+No implementation class is implied by any hypothesis.
+
+**AUTHORIZED RESEARCH BOUNDARY**
+
+Exactly two verticals:
+- A. Film/TV representation — used only as relevant to Payment/Application falsification: employer/payroll-house/paymaster payment; compensation and residual remittances; guild/agent conduits; payment routing; multi-position remittances/checks; prepaid amounts; erroneous-payment recovery; payer versus obligor; recipient versus beneficiary; application/identification of payments to specific obligations where source evidence supports it.
+- B. Live music / artist booking — used only as relevant to Payment/Application falsification: deposits; advances/prepayments; escrow/client-account holding; balance settlement; booking-agent deductions/remittance; cancellation refund; promoter/purchaser versus payer; box-office settlement; percentage settlement; cash before performance; allocation/application of deposits or balances where source evidence supports it.
+
+Do NOT add a third vertical merely for confidence or breadth. If these two leave one concrete ambiguity that genuinely blocks terminal adjudication, return that exact ambiguity to the Control Room.
+
+**SUBSTAGES**
+
+- NG-10A — Build-97 Payment / Allocation Predecessor Baseline: exact Build-97 source inspection only. Inspect Payment; PaymentAllocation / Allocation/Application; Receivable only where needed as upstream/downstream boundary; PaymentAdjustment where relevant; reversal paths; payer identity; amount/currency/date facts; unapplied-balance derivation; persistence constraints; command/query truth; relevant ledger attribution; API/client projections only where they materially preserve or erase semantics. Establish what Payment canonically means in Build-97; whether Payment can exist unapplied; Payment↔Receivable cardinality; Application identity/history; reversal semantics; payer/obligor validation or lack thereof; amount/currency constraints; correction/refund/chargeback semantics where present; persisted versus derived facts; projection loss. No external research. No terminal architecture conclusion. No P0–P3 winner.
+- NG-10B — Two-Vertical Falsification: use exactly Film/TV representation and live music / artist booking. Test P0–P3. Separate empirical source fact, source interpretation and architecture pressure. Do not make terminal architecture decisions.
+- NG-10B2 — OPTIONAL ONLY IF REQUIRED: at most one focused evidence prompt, allowed only if NG-10B leaves one genuine blocking ambiguity that prevents Control Room adjudication. No third vertical. Not automatic.
+- NG-10C — CONTROL ROOM TERMINAL ADJUDICATION: the Control Room decides Payment semantic meaning; payer/source-of-funds/recipient/beneficiary distinctions; relevant date semantics; Payment↔Receivable cardinality; whether Application/Allocation has independent historical identity; unapplied cash; prepayment/deposit/escrow boundary; reversal/unapplication; refund/repayment/chargeback boundary; overpayment; currency/conversion provenance; Invoice/Receivable boundary; Ledger/accounting boundary; P0–P3 dispositions; whether any genuine Owner-reserved ambiguity remains. Claude is never the terminal architecture authority.
+- NG-10D — CANONICAL PUBLICATION / CLOSURE: publish accepted terminal architecture only after Control Room adjudication. No implementation authority follows.
+
+**EXIT CRITERIA**
+
+NG-10 is READY TO CLOSE only when evidence is sufficient to state semantically:
+1. what a Payment is;
+2. what facts make a Payment true;
+3. which payment timestamps or dates are semantically distinct where evidence requires them;
+4. whether Payment can exist unapplied;
+5. whether Payment can precede Receivable;
+6. minimum Payment-to-Application cardinality;
+7. minimum Receivable-to-Application cardinality;
+8. whether Application/Allocation requires independent historical identity;
+9. what an Application asserts;
+10. how partial Application differs from partial Receivable crystallization;
+11. payer/source-of-funds identity;
+12. obligor/debtor versus payer distinction;
+13. recipient/conduit versus creditor/beneficiary distinction;
+14. deposit/prepayment semantics;
+15. escrow/trust/held-funds boundary;
+16. reversal/unapplication semantics;
+17. refund/repayment semantics;
+18. chargeback/correction semantics where applicable;
+19. overpayment semantics;
+20. historical treatment without silent rewrite;
+21. Payment currency versus Receivable currency;
+22. known conversion provenance;
+23. boundary to Invoice;
+24. boundary to Receivable;
+25. boundary to Ledger/accounting;
+26. P0–P3 dispositions;
+27. confirmation that payment rails, bank reconciliation, persistence/schema/API/workflows and accounting policy remain unselected;
+28. no unexplained conflict with NG-1 through NG-9 remains.
+
+NG-10 becomes CLOSED only after terminal Control Room adjudication is canonically PUBLISHED. Green tests, Claude confidence or a research report cannot close NG-10.
+
+**OWNER-DECISION RULE**
+
+Do not send routine semantic or implementation-shape questions to the Owner merely because several mechanics remain possible. Owner decision is required only if bounded evidence leaves a genuine surviving product/strategy choice inside Owner-reserved authority. A contradiction with an earlier closed decision is a correction-chain event, not automatically an Owner preference question.
+
+**PROMPT BUDGET**
+
+Initial NG-10 substantive research budget: approximately 2–4 Claude prompts. Expected: NG-10A: 1; NG-10B: 1; NG-10B2: at most 1 if genuinely required. NG-10C is Control Room adjudication. Publication and seal prompts do not count as substantive research prompts.
+
+**AUTHORITY BOUNDARY**
+
+This authorization is for conceptual research/design only. It does NOT authorize: implementation; persistence; product code; schema/API/domain expansion; migrations; payment-processing implementation; bank reconciliation; trust/client-account implementation; ledger implementation; accounting policy; NG-11.
+
+Scope: Research/design and conceptual semantic architecture only. NO authority for implementation, product code, schema/API/domain expansion, migrations or NG-11.
+
+Evidence / provenance:
+- Explicit Owner approval in the active Control Room conversation on 2026-09-30.
+- `DECISION-20260930-006` / `DELTA-20260930-005` as the terminal NG-9 basis.
+- `DECISION-20260930-003` as the active Recursive Control-Room Correspondence & Transition Contract.
+- The complete Control Room NG-10 stage definition, approved by the Owner.
+- Continuity/governance provenance, not stage authority: the Owner instructed that when the appropriate future transition point is reached and all required work is ready, the Control Room should direct a move to a new conversation using the recursive handoff rules; this instruction does not authorize an immediate transition and grants no repository/product/stage authority.
+- Claude is recorder/executor only, not decision authority.
+
+Consequences:
+- Once this Owner decision is PUBLISHED, NG-10 is AUTHORIZED and SCOPE-LOCKED for research/design only.
+- NG-10A becomes the exact next bounded substantive action.
+- P0–P3 remain unresolved.
+- No implementation authority follows.
+- NG-11 remains unauthorized.
+
+Supersedes: The active current-state claim that no post-NG-9 stage is authorized. It supersedes no prior Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-9 remain closed/approved exactly under their existing terminal decisions.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- Build-97 released product behavior remains unchanged.
+- No next-generation implementation exists.
+- No product/schema/API/domain/migration authority follows.
+- No new-conversation handoff happens merely because this authorization is published.
+
+Open:
+- NG-10A evidence.
+- NG-10B evidence.
+- The terminal P0–P3 dispositions.
+- The terminal NG-10 semantic architecture.
+- All implementation mechanics.
+- The later appropriate recursive conversation-transition point.
+- NG-11 and all later stages.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
