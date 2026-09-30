@@ -1314,11 +1314,11 @@ Publication receipt: 2eaa873744c397254033faf6dd941590227254ae on origin/operatio
 
 ## DELTA-20260930-001
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-09-30T06:38:52Z
 
-Published: Pending
+Published: 2026-09-30T06:47:43Z
 
 Sources:
 - Canonical branch state `6f82cf5490aaaf29396160c2229f6d3a538d5624` on `operational-regression-gate`.
@@ -1411,4 +1411,4 @@ Forbidden implications: This delta does **not**:
 - reopen NG-1 through NG-6;
 - make Claude an architecture authority.
 
-Publication receipt: Pending
+Publication receipt: fc5850383c4cde689a14bb847746b6fd5f0d482a on origin/operational-regression-gate; remote readback verified 2026-09-30T06:47:43Z
