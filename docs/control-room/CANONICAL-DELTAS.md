@@ -1452,7 +1452,17 @@ Authority required:
 
 Adjudication: The Owner explicitly approved the Control Room's complete NG-8 stage definition for research/design only, and explicitly adopted the Recursive Control-Room Correspondence & Transition Contract, clarifying that recursion covers the configuration of the message itself — prompts, correction/refutation reporting, prompt budget, current state, branch/HEAD, Decision/Delta IDs, stage/substage/state, proved facts, open items, forbidden work, exact next action and Owner Action — and that each handoff must instruct the next to reproduce the same configuration. The Control Room normalizes both approvals as recorded, without widening either. The correspondence contract governs continuity only and grants no stage or product authority. Both become canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20260930-002
+  Semantic basis: ace4f9890488516da49be163d482f65fab7c21fb
+  CURRENT-STATE.next.md blob SHA-256: 7f91adf71b50866c5bdd112e301a314a2586cb8dc9c2bc1dd0c79f4f4fba7569
+  PUBLICATION-PAYLOAD.json blob SHA-256: fad1dbeb1ebaca67d9c1f307993b08d9a9593849936bc49fa008c0f6a52a1715
+  Authorized: 2026-09-30T07:48:38Z
+  Reference: Adjudication of DELTA-20260930-002
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260930-002` becomes the durable Owner authorization and exact Scope Lock for NG-8.
