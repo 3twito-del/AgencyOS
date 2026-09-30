@@ -1311,3 +1311,94 @@ Forbidden implications: This delta does **not**:
 - make Claude a semantic authority.
 
 Publication receipt: 2eaa873744c397254033faf6dd941590227254ae on origin/operational-regression-gate; remote readback verified 2026-09-30T02:53:30Z
+
+## DELTA-20260930-001
+
+Status: ACCEPTED
+
+Detected: 2026-09-30T06:38:52Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `6f82cf5490aaaf29396160c2229f6d3a538d5624` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, inspected as predecessor evidence only (NG-7A).
+- The bounded NG-7 research chain NG-7A and NG-7B under the Scope Lock `DECISION-20260929-010`, adjudicated by the Control Room and recorded as `DECISION-20260930-001`.
+
+Prior claim: NG-7 Amount Determination & Economic Truth Architecture is AUTHORIZED for research/design only under `DECISION-20260929-009` and scope-locked by `DECISION-20260929-010`; no substantive NG-7 research has been canonically accepted; the amount-determination record is an open question.
+
+Candidate/new claim: NG-7 has reached a terminal conceptual semantic architecture conclusion under `DECISION-20260930-001`: an Amount Determination is a distinct arrangement-scoped economic fact for one independently meaningful economic component, with zero or more per Arrangement; governing method/basis and historical realization are semantically distinct; methods may exist before all inputs, before receivable/invoice/payment and before a final Legal Instrument; known provenance stays historically anchored across commercial, legal, external-schedule and realized-input facts; money preserves currency, units and percentage basis; commission reuses determination semantics but remains a distinct representation-economics claim; Receivable, Invoice, Payment/Allocation and accounting projection remain downstream and distinct; E0 rejected, E1 rejected, E2 accepted with refinement, E3 rejected as claim unification; implementation remains unselected.
+
+Claimed transition: NG-7 AUTHORIZED / SCOPE-LOCKED / RESEARCH COMPLETE → NG-7 AMOUNT DETERMINATION & ECONOMIC TRUTH ARCHITECTURE CLOSED.
+
+Scope: Canonical publication of the Control Room's terminal NG-7 architecture adjudication only. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `6f82cf5490aaaf29396160c2229f6d3a538d5624` (`Publish DELTA-20260929-011`), with `DECISION-20260929-009` and `DECISION-20260929-010` ACTIVE and `DELTA-20260929-011` PUBLISHED;
+  - `CURRENT-STATE.md` there records NG-7 as AUTHORIZED and scope-locked, with no substantive NG-7 research canonically accepted, and lists the amount-determination record as open.
+- Build-97 predecessor evidence (NG-7A, product commit `b3f41bf`): `src/AgencyOS.Domain/Finance/MonetaryObligation.cs`, `Receivable.cs`, `Commission.cs`, `Payment.cs`, `Invoice.cs`, `Ledger.cs`; `src/AgencyOS.Domain/Deals/Money.cs`; the finance application handlers, persistence migration and API/client projections.
+- External domain evidence (NG-7B, exactly two verticals): WGA, DGA and SAG-AFTRA primary/authoritative material for Film/TV; AFM, Musicians' Union and bounded primary booking/engagement forms for live music / artist booking.
+- Control Room semantic adjudication: the Adjudication field below, recorded as `DECISION-20260930-001`.
+
+Conflicts: None that survive adjudication. The NG-7 correction chain is preserved:
+- Build 97 does not lack an amount-determination predecessor; MonetaryObligation is strong and explicit;
+- Build 97 is not scalar-only; Fixed/Formula/Contingent/Unknown and multiple obligations already exist;
+- E2 required refinement because determination method and later realization are semantically distinct;
+- Amount Determination provenance is not limited to commercial/legal records; external governing schedules and later realized inputs may participate;
+- commission shares Amount Determination calculation semantics but remains a distinct representation-economics claim;
+- greater-of/crediting/offset relations are real but not sufficiently proved as a universal neutral-core taxonomy.
+
+Authority required:
+- `CONTROL_ROOM`, for the terminal NG-7 semantic adjudication;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required to close NG-7. The Owner's existing authorization `DECISION-20260929-009` permitted the bounded research/design stage, and no post-NG-7 stage is authorized by this closure.
+
+Adjudication: The Control Room independently reviewed the NG-7A Build-97 predecessor baseline and the NG-7B two-vertical falsification evidence, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual semantic architecture recorded as `DECISION-20260930-001`: E0 rejected; E1 rejected; E2 accepted with the method-versus-realization refinement; E3 rejected as a claim-unification architecture; no Owner-reserved ambiguity remains. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260930-001` is added as the durable NG-7 architecture decision.
+- `CURRENT-STATE.md` records NG-7 Amount Determination & Economic Truth Architecture as CLOSED under `DECISION-20260930-001`.
+- The open question "the amount-determination record" and the NG-7 open-subject note are replaced by the residual implementation questions `DECISION-20260930-001` leaves open.
+- The next bounded action becomes obtaining explicit Owner authorization before beginning any post-NG-7 stage, including NG-8.
+- No implementation authority follows.
+
+Supersedes: The current-state claims that NG-7 research is not canonically accepted and that the amount-determination record is wholly open. It supersedes no prior Decision ID.
+
+Unchanged:
+- Build 97 released product identity and all implementation behavior.
+- Operational Closure remains terminal.
+- Self-Update V1 remains terminal.
+- NG-1 through NG-6 remain CLOSED under their existing decisions.
+- `DECISION-20260929-009` remains the Owner authorization that allowed NG-7 research/design.
+- `DECISION-20260929-010` remains the Scope Lock that governed NG-7.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-8 remains unauthorized and not begun.
+
+Open / unresolved questions:
+- The deferred items listed as Open in `DECISION-20260930-001` remain open.
+- None of these blocks NG-7 closure.
+
+Forbidden implications: This delta does **not**:
+- permit implementation;
+- approve schema/API/domain expansion;
+- approve migrations;
+- grant NG-8 or later-stage authority;
+- choose a persistence, version-storage or event mechanism;
+- approve a generic expression language or calculation DSL;
+- approve a universal component-relation taxonomy;
+- create a universal EconomicEntitlement;
+- decide the commission model or placement;
+- decide downstream finance cardinalities;
+- claim legal enforceability or collectibility for pre-instrument economics;
+- promote Build-97 MonetaryObligation limitations to neutral-core invariants;
+- reopen NG-1 through NG-6;
+- make Claude an architecture authority.
+
+Publication receipt: Pending

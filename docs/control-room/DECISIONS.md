@@ -1519,3 +1519,134 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
 
 Publication receipt: 55af69ff5fea0e2a3e26c45eade16cf3c6936a62 on origin/operational-regression-gate; remote readback verified 2026-09-30T02:53:30Z
+
+## DECISION-20260930-001
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: CONTROL_ROOM
+
+Question: Has NG-7 — Amount Determination & Economic Truth Architecture reached a terminal semantic architecture conclusion under DECISION-20260929-010, and if so what minimum neutral-core contract governs economic components, determination methods and realizations, source/history anchoring, currency/unit truth, commission boundaries and downstream receivable/payment/accounting boundaries?
+
+Decision: NG-7 — Amount Determination & Economic Truth Architecture is terminally accepted as a conceptual semantic architecture stage:
+
+1. **Amount Determination.** An Amount Determination is the neutral-core economic fact for one independently meaningful economic component of a Commercial Arrangement. It preserves:
+   - what economic component is being determined;
+   - the determination method/basis;
+   - source/provenance;
+   - currency and unit meaning;
+   - its historical realizations where applicable.
+
+   It does not itself assert legal enforceability. It is distinct from Commercial Arrangement; Agreement Snapshot; Legal Instrument; Rights Grant; agency commission/fee claim; Receivable; Invoice; Payment; Payment Allocation/Application; and Ledger/accounting projection.
+2. **Arrangement cardinality.** A Commercial Arrangement may have zero or more Amount Determinations. Each Amount Determination is semantically scoped to exactly one Commercial Arrangement in the present neutral-core contract. Additional source facts do not change that Arrangement scope. No multi-Arrangement Amount Determination is justified by the bounded evidence.
+3. **Method versus realization.** The neutral core must preserve the semantic distinction between:
+   - A. the agreed or otherwise governing determination method/basis; and
+   - B. one or more later historical realizations/evaluations of that method when required.
+
+   A method may be meaningful before every numerical input is known. The same method may produce repeated realizations over time, such as periodic residual calculations or show settlements. A later realization must not silently rewrite the earlier agreed method, earlier realized inputs or earlier realized results. Whether method and realization are persisted as separate records, derived, evented, versioned or represented by another implementation mechanism remains unselected.
+4. **Minimum shapes.** The bounded two-vertical evidence justifies neutral semantic support for at least:
+   - fixed amount;
+   - quantity × unit rate;
+   - percentage × identified/defined basis;
+   - contingent amount or method;
+   - initially unquantified determination;
+   - method awaiting one or more later realized inputs;
+   - repeated realizations from one governing method.
+
+   This decision does NOT authorize a generic expression language, a calculation DSL or a universal formula syntax. Greater-of, crediting, offsets, floors, caps and similar component relations are economically meaningful where evidenced, but the evidence does not justify a universal neutral-core relation taxonomy now. The neutral core must preserve component identity sufficiently for vertical semantics to express such relations without collapsing the components into a single scalar.
+5. **Source / provenance.** Every Amount Determination must retain enough semantic provenance to answer why its method or realized result is true. Its source basis may include, as applicable:
+   - the Commercial Arrangement;
+   - a historical Agreement Snapshot;
+   - a Legal Instrument or amendment;
+   - an option/exercise or other later commercial/legal event;
+   - an external governing schedule or collective agreement;
+   - a later realized operating fact such as quantity, receipts, ticket audit, revenue statement or similar input.
+
+   One determination may depend on more than one source fact. Known provenance stays historically anchored; it is not dynamically repointed to a later agreement, instrument, schedule or input. Unknown or unresolved provenance remains unknown/unresolved. This does not establish a universal precedence rule between commercial, legal and external-source truth.
+6. **Pre-instrument economic truth.** Economic determination semantics may exist before a final Legal Instrument exists. A commercially agreed rate, guarantee, percentage, method or other economic component may therefore be canonically representable at Arrangement / historical agreement state before long-form execution. Recording that economic truth does not itself claim legal enforceability, collectibility, receivable status or billing status. Build-97's requirement that MonetaryObligation begin only after an executed Contract is a predecessor implementation limitation, not a neutral-core invariant.
+7. **History.** Renegotiation, amendment, option exercise, escalation, later realized inputs, recalculation, correction and settlement must not silently rewrite earlier economic truth. The architecture must preserve, where applicable:
+   - the prior governing method;
+   - previously known values;
+   - later realized input;
+   - resulting realization;
+   - correction, adjustment or supersession relationship.
+
+   This is a semantic requirement only. No storage/version/event mechanism is selected.
+8. **Money / currency / unit truth.** A monetary value preserves its currency. Quantity/rate determinations preserve the relevant unit. Percentage determinations are incomplete without an identified/defined basis. Where a source/basis value is in one currency and a resulting determination is in another, the original basis value/currency and the resulting value/currency must remain distinguishable, together with the applicable provenance for the conversion. No FX calculation engine or accounting policy is selected. Unknown currency/unit meaning must not be replaced with a guessed default.
+9. **Commission / agency-fee boundary.** Agency commission/fee is a distinct representation-economics claim. It is not merely another represented-party compensation component and must not be collapsed into the represented party's Amount Determination. However, commission/fee calculation reuses the same neutral Amount Determination semantics: fixed amount; percentage × defined basis; contingencies; realized inputs where applicable. Its distinct semantics arise from:
+   - source/authority in the representation relationship or commission rule;
+   - agency beneficiary;
+   - its own earning/timing/lifecycle conditions;
+   - its dependency on represented-party economic truth.
+
+   The exact commission model, placement, cardinality and implementation remain open. No separate universal commission calculation language is justified.
+10. **Receivable / invoice / payment / accounting boundary.** An Amount Determination may exist before any Receivable, Invoice or Payment.
+    - Receivable is a downstream collectible/crystallized claim.
+    - Invoice is an optional billing artifact and is not the economic determination.
+    - Payment is cash movement.
+    - Allocation/Application records the application of cash to a claim.
+    - Ledger/accounting is a downstream projection and does not replace upstream commercial/legal/economic truth.
+
+    A deposit or other Payment may occur before a final realization is known; the existence of cash does not prove that the final economic amount has been determined. This decision does not select cardinalities or implementation mechanics for these downstream facts.
+11. **Component relations.** Several economically meaningful components may coexist in one Commercial Arrangement. The neutral core therefore rejects a single-current-total model. Crediting, offset, greater-of and similar relations may affect the economic result, but no universal relation enum/ontology is approved. Under the existing Vertical Extension Architecture, vertical semantics may express evidence-earned relations over neutral component identities without duplicating or replacing neutral economic truth.
+12. **Hypothesis disposition:**
+    - E0 — COLLAPSE: REJECTED. Economic truth cannot truthfully live only as fields on Arrangement or Legal Instrument.
+    - E1 — CURRENT SCALAR: REJECTED. One mutable current monetary total cannot preserve multiple simultaneous, contingent, unresolved or historically changing components.
+    - E2 — HISTORICAL COMPONENTIZED DETERMINATION: ACCEPTED WITH REFINEMENT. The accepted form explicitly distinguishes governing determination method from one or more historical realizations and allows source basis to include commercial, legal, external-schedule and later-realized facts.
+    - E3 — UNIVERSAL ENTITLEMENT: REJECTED as a claim-unification architecture. Compensation/economic determination, agency commission/fee claim, Receivable and Payment remain semantically distinct. Their shared calculation shapes are handled by the Amount Determination capability rather than by a universal EconomicEntitlement super-concept.
+13. **Build-97 predecessor disposition.** Build-97 MonetaryObligation is accepted as a strong predecessor, not the neutral-core invariant.
+    - Its useful precedents include: Fixed / Formula / Contingent / Unknown; refusal to fabricate zero for unknown economics; separate downstream Receivable / Invoice / Payment / Allocation; currency truth; separate commission entitlement.
+    - Its limitations are not promoted: post-execution-only economic truth; quantity × rate as the only formula shape; no percentage-basis determination; Quantify overwriting prior determination shape; weak source-term identity; single-obligation commission basis; API/client projection losses; implementation-specific ledger behavior.
+
+Scope: Conceptual/semantic NG-7 architecture only. This decision does NOT select or authorize persistence; tables; schema; foreign keys; EF mappings; API payloads; classes/interfaces/modules; event sourcing; a version-storage mechanism; a calculation engine; a generic formula DSL; the exact component-relation representation; the exact commission model or placement; commission implementation; receivable/invoice/payment/allocation cardinalities or implementation; ledger/accounting integration; tax/withholding; an FX engine/policy; royalty-accounting implementation; a legal enforceability engine; product code; migrations; or NG-8.
+
+Evidence / provenance:
+- A. Canonical foundations: `DECISION-20260928-004`; `DECISION-20260929-002`; `DECISION-20260929-005`; `DECISION-20260929-008`; `DECISION-20260929-009`; `DECISION-20260929-010`.
+- B. NG-7A Build-97 source inspection at product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, including the verified predecessor findings around MonetaryObligation; Receivable; CommissionRule / CommissionEntitlement; Payment / Allocation; Ledger; Money; and the finance API/client projections.
+- C. NG-7B bounded two-vertical evidence:
+  - Film/TV: WGA, DGA and SAG-AFTRA primary/authoritative material plus bounded supporting evidence;
+  - Live music / artist booking: AFM, Musicians' Union and bounded primary booking/engagement forms;
+  - exactly two verticals were researched, and no third vertical was needed.
+- D. Control Room terminal adjudication: E0 rejected; E1 rejected; E2 accepted with the method-versus-realization refinement; E3 rejected as claim unification; no Owner-reserved ambiguity remains.
+- Correction chain preserved from NG-7:
+  1. Build 97 does not lack an amount-determination predecessor; MonetaryObligation is strong and explicit.
+  2. Build 97 is not scalar-only; Fixed/Formula/Contingent/Unknown and multiple obligations already exist.
+  3. E2 required refinement because determination method and later realization are semantically distinct.
+  4. Amount Determination provenance is not limited to commercial/legal records; external governing schedules and later realized inputs may participate.
+  5. Commission shares Amount Determination calculation semantics but remains a distinct representation-economics claim.
+  6. Greater-of/crediting/offset relations are real but not sufficiently proved as a universal neutral-core taxonomy.
+- Claude reports are evidence inputs only. Claude is not the architecture authority.
+
+Consequences:
+- NG-7 is CLOSED once this decision and delta reach canonical PUBLISHED state.
+- The minimum neutral-core Amount Determination & Economic Truth contract above governs future design.
+- No implementation authority follows.
+- No schema/API/domain expansion follows.
+- No migrations follow.
+- NG-8 remains unauthorized.
+- Beginning any post-NG-7 stage, including NG-8, requires explicit Owner authorization.
+
+Supersedes: None
+
+Unchanged:
+- `DECISION-20260929-009` remains the Owner authorization that permitted NG-7 research/design.
+- `DECISION-20260929-010` remains the published Scope Lock that governed NG-7.
+- NG-1 through NG-6 remain closed under their existing decisions.
+- Build-97 released product behavior is unchanged.
+- Previously open implementation questions remain open unless explicitly resolved by this semantic decision.
+
+Open:
+- The persistence/derivation/version mechanism for determination methods and realizations.
+- The exact component-relation representation.
+- The exact commission model/placement/cardinality.
+- The exact Receivable/Invoice/Payment/Allocation cardinalities.
+- Ledger/accounting integration.
+- FX mechanics.
+- Implementation.
+- NG-8 and later stages.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
