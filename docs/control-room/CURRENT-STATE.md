@@ -65,12 +65,15 @@ The closure register is not duplicated here.
 | NG-4 Vertical Extension Architecture | CLOSED | `DECISION-20260929-002` |
 | NG-5 Mandate–Commercial Lineage Architecture | CLOSED | `DECISION-20260929-005` |
 | NG-6 Commercial Arrangement–Legal Instrument Composition Architecture | CLOSED | `DECISION-20260929-008` |
+| NG-7 | AUTHORIZED | `DECISION-20260929-009` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
 NG-5 is CLOSED under `DECISION-20260929-005` after terminal Control Room architecture adjudication: each Commercial Arrangement has conceptual direct lineage to zero or one Representation Mandate, anchored to the specific historical mandate relevant to that fact's authority provenance; pre-arrangement facts may carry optional fact-local lineage; a several-mandate, role-typed relation is not justified now and is retained only as an explicit reconsideration trigger. `DECISION-20260929-003` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-6 authorization follows.
 
 NG-6 is CLOSED under `DECISION-20260929-008` after terminal Control Room architecture adjudication: a Commercial Arrangement may have zero or more Legal Instruments; each Legal Instrument is arrangement-scoped to one Commercial Arrangement (L2), with one instrument covering several Arrangements retained only as an explicit evidence-triggered reconsideration case; Agreement Snapshot carries historical agreed-state semantics (S2) without a selected persistence or derivation mechanism; a known Snapshot↔Instrument correspondence stays historically anchored; no universal precedence between commercial and legal truth is defined. `DECISION-20260929-006` remains the Owner authorization that permitted its research/design, and `DECISION-20260929-007` the Scope Lock that governed it. No implementation, product code, schema/API/domain expansion, migrations or NG-7 authorization follows.
+
+NG-7 — AUTHORIZED for research/design only under `DECISION-20260929-009`; exact title and bounded Scope Lock remain to be established by Control Room before substantive research. No implementation, product code, schema/API/domain expansion or migrations follow, and NG-8 remains unauthorized.
 
 ## Closed architecture decisions
 
@@ -120,6 +123,7 @@ not duplicated here.
   - `DECISION-20260929-001`: Owner authorization to begin NG-4 — Vertical Extension Architecture for research/design only; it does not authorize product code, schema/API/domain expansion, NG-5 or implementation.
   - `DECISION-20260929-003`: Owner authorization to begin NG-5 research/design only; no implementation/schema/API/domain expansion or later-stage authorization.
   - `DECISION-20260929-006`: Owner authorization to begin NG-6 — Commercial Arrangement–Legal Instrument Composition Architecture for research/design only; no implementation/schema/API/domain expansion, migrations or later-stage authorization.
+  - `DECISION-20260929-009`: Owner authorization to begin NG-7 / the next post-NG-6 stage for research/design only; its exact title and Scope Lock are not decided; no implementation/schema/API/domain expansion, migrations or later-stage authorization.
 - Operational closure: the Owner decisions in force (D1–D5, Decision C and the others) are in closure state section 6, and the residual acceptance (C12, C14) in section 5. They are not migrated here.
 
 ## Evidence limitations
@@ -136,6 +140,8 @@ not duplicated here.
   implementation mechanics remain unselected.
 - NG-6 is a conceptual architecture decision; no next-generation implementation exists, and exact
   implementation mechanics remain unselected.
+- NG-7 is authorized for research/design only; its exact title and Scope Lock are not yet established,
+  and no substantive NG-7 research has been performed or canonically accepted.
 
 ## Forbidden work
 
@@ -154,13 +160,15 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**Obtain explicit Owner authorization before beginning any post-NG-6 stage, including NG-7.**
+**Control Room defines and canonically establishes the exact NG-7 title, bounded question, Scope Lock, falsification boundary, substages and exit criteria before substantive NG-7 research begins.**
 
-Until such authorization is PUBLISHED:
-- do not begin NG-7 research/design;
-- do not implement the NG-4, NG-5 or NG-6 architecture;
-- do not expand product/schema/API/domain boundaries.
+Until NG-7 reaches a later separately authorized/accepted state:
+- research/design only, and no substantive NG-7 research before its Scope Lock is PUBLISHED;
+- no NG-7 implementation, and no implementation of the NG-4, NG-5 or NG-6 architecture;
+- no product/schema/API/domain expansion;
+- no migrations;
+- no NG-8.
 
 ## Latest published delta
 
-`DELTA-20260929-009`: PUBLISHED — NG-6 Commercial Arrangement–Legal Instrument Composition Architecture CLOSED under `DECISION-20260929-008`: L2 accepted (zero or more Legal Instruments per Arrangement; each instrument arrangement-scoped to one Arrangement), several-Arrangement instruments retained only on an evidence trigger, and S2 historical Agreement Snapshot semantics with persistence unselected; no implementation, schema/API/domain, migration or NG-7 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260929-010`: PUBLISHED — Owner authorization for NG-7 / the next post-NG-6 stage, research/design only, under `DECISION-20260929-009`; exact title and Scope Lock remain to be established by Control Room; no implementation, schema/API/domain, migration or NG-8 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
