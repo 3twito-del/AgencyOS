@@ -1605,3 +1605,79 @@ Forbidden implications: This delta does **not**:
 - make Claude an architecture authority.
 
 Publication receipt: 02a2e862d9df88fe77d3db5016cfb0678896db60 on origin/operational-regression-gate; remote readback verified 2026-09-30T15:51:47Z
+
+## DELTA-20260930-004
+
+Status: ACCEPTED
+
+Detected: 2026-09-30T17:02:29Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner decision recorded as `DECISION-20260930-005`.
+- Canonical branch state `80e300436a554bf23c5a970dfdcc2a3d54463639` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+
+Prior claim: NG-8 is CLOSED under `DECISION-20260930-004`. No post-NG-8 stage, including NG-9, is authorized.
+
+Candidate/new claim: NG-9 — Receivable Crystallization & Collectibility Architecture is OWNER-AUTHORIZED and SCOPE-LOCKED for research/design only under `DECISION-20260930-005`.
+
+Claimed transition: NO POST-NG-8 STAGE AUTHORIZED → NG-9 OWNER-AUTHORIZED / SCOPE-LOCKED FOR RESEARCH/DESIGN ONLY.
+
+Scope: Governance authorization and Scope Lock publication only. This transition performs no NG-9 research and makes no architecture conclusion. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable canonical repository state: HEAD `80e300436a554bf23c5a970dfdcc2a3d54463639` (`Publish DELTA-20260930-003`); `CURRENT-STATE.md` there records NG-8 as CLOSED under `DECISION-20260930-004` and requires explicit Owner authorization before any post-NG-8 stage, including NG-9; no NG-9 authorization exists.
+- Explicit Owner decision: recorded, with the complete Control Room NG-9 stage definition the Owner approved, as `DECISION-20260930-005`.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- No product-code, schema, API, domain or migration change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `OWNER`, for the NG-9 authorization and its exact Scope Lock;
+- `CONTROL_ROOM`, for faithful normalization and publication planning;
+- machine-verifiable fact, for repository and publication facts.
+
+Adjudication: The Owner explicitly approved the Control Room's complete NG-9 stage definition — title, bounded question, in-scope and out-of-scope items, closed distinctions, hypotheses R0–R3 with none preselected, the two-vertical research boundary, substages NG-9A–D, exit criteria, Owner-decision rule, prompt budget and authority boundary — for research/design only. The Control Room records that approval without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260930-005` becomes the durable Owner authorization and exact Scope Lock for NG-9.
+- `CURRENT-STATE.md` records NG-9 Receivable Crystallization & Collectibility Architecture as AUTHORIZED under `DECISION-20260930-005`, with substantive research not yet begun.
+- The exact next bounded action becomes NG-9A — the Build-97 Receivable predecessor baseline.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that no post-NG-8 stage, including NG-9, is authorized. It supersedes no Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-8 remain closed/approved exactly under their existing terminal decisions.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- Build 97 remains the released product identity.
+- No product/schema/API/domain behavior changes.
+- No migrations.
+- NG-10 remains unauthorized.
+
+Open / unresolved questions:
+- NG-9A and NG-9B evidence.
+- The terminal R0–R3 disposition and NG-9 semantic architecture.
+- All implementation mechanics.
+- NG-10 and all later stages.
+
+Forbidden implications: This delta does **not**:
+- claim that NG-9A research has begun;
+- select an R0–R3 winner;
+- decide the Receivable architecture;
+- permit implementation;
+- choose a persistence mechanism;
+- approve schema/API/domain expansion;
+- approve migrations;
+- grant NG-10 or later-stage authority;
+- reopen NG-1 through NG-8;
+- treat Claude as an authority.
+
+Publication receipt: Pending

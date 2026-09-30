@@ -2119,3 +2119,174 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
 
 Publication receipt: 3672ed2fd127c36c855708cc0964739685d30c6d on origin/operational-regression-gate; remote readback verified 2026-09-30T15:51:47Z
+
+## DECISION-20260930-005
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: OWNER
+
+Question: Approve NG-9 — Receivable Crystallization & Collectibility Architecture exactly under the complete bounded Control Room stage definition below, for research/design only, with no implementation, product/schema/API/domain expansion, migrations or NG-10 authority?
+
+Decision: The Owner approves **NG-9 — Receivable Crystallization & Collectibility Architecture** exactly under the following bounded stage contract.
+
+**TITLE**
+
+NG-9 — Receivable Crystallization & Collectibility Architecture
+
+**BOUNDED QUESTION**
+
+What is the minimum neutral-core semantic contract for Receivable as a downstream crystallized/collectible fact: when economic truth or a Representation-Economics Claim becomes a Receivable; what a Receivable canonically asserts; how its source/provenance is preserved; what minimum cardinality is justified between upstream source facts and Receivable; how installments, partial or periodic crystallization, due dates, adjustments, credits, corrections, cancellation and settlement remain historically truthful; how Receivable relates to Invoice; and where its boundary lies relative to Payment, Allocation/Application and Ledger — without selecting persistence or implementing accounts receivable.
+
+**IN SCOPE**
+
+1. The semantic meaning of Receivable as a downstream crystallized/collectible fact.
+2. The distinction among: upstream economic truth; Representation-Economics Claim; Receivable; Invoice; Payment; Allocation/Application; Ledger/accounting projection.
+3. What source-defined fact or facts make an upstream economic position crystallized/collectible enough to constitute a Receivable.
+4. Receivable source/provenance, including linkage where applicable to: Amount Determination; Representation-Economics Claim; Commercial Arrangement; Agreement Snapshot; Legal Instrument; external governing schedule/rule; later source-defined operating or crystallization event.
+5. Source-to-Receivable cardinality.
+6. Receivable-to-source cardinality.
+7. Partial crystallization.
+8. Installment-based crystallization.
+9. Periodic or repeated Receivables arising from one governing upstream economic method or claim.
+10. Whether several upstream economic components may legitimately form one Receivable only where one source-defined collectible position genuinely groups them.
+11. Debtor/obligor identity.
+12. Beneficiary/creditor identity.
+13. Payer/source-of-funds identity.
+14. Due-date semantics and provenance.
+15. Collectibility semantics without asserting universal legal enforceability.
+16. Receivable existing without an Invoice.
+17. Invoice relationship where a billing artifact exists.
+18. Adjustment, correction, credit, cancellation, settlement or dispute only insofar as they change Receivable truth.
+19. Historical preservation: prior Receivable truth; later correction or adjustment; supersession or cancellation; no silent rewriting.
+20. Currency and amount provenance inherited from NG-7 and NG-8.
+21. Boundary to Payment and Allocation/Application.
+22. Boundary to Ledger/accounting projection.
+23. Film/TV and live-music vertical semantics only as falsification pressure against false neutrality.
+
+**OUT OF SCOPE**
+
+Do NOT solve or select: persistence/database/schema/FKs; EF mappings; API/classes/interfaces/modules; Receivable table/entity shape; invoice generation; invoice rendering; invoice numbering; invoice delivery; payment rails; payment processing implementation; bank reconciliation; allocation algorithm implementation; dunning workflow; collection workflow; trust-account implementation; ledger posting implementation; revenue-recognition policy; accounting write-off policy; bad-debt accounting; tax/withholding; FX engine; payroll; accounts-payable architecture; royalty-accounting implementation; legal-enforceability engine; a generic MonetaryClaim; a universal EconomicEntitlement; product code; migrations; NG-10.
+
+**CLOSED DISTINCTIONS — DO NOT REOPEN WITHOUT CONTRADICTORY EVIDENCE**
+
+- Commercial Arrangement ≠ Legal Instrument.
+- Amount Determination ≠ Receivable.
+- Representation-Economics Claim ≠ Receivable.
+- Receivable ≠ Invoice.
+- Payment ≠ Allocation/Application.
+- Payment is cash movement.
+- Allocation/Application is the application/association of cash to a downstream supported finance fact.
+- Ledger/accounting is downstream projection.
+- Historical truth must not be silently rewritten.
+- Money preserves currency.
+- beneficiary/claimant ≠ payer ≠ source of funds.
+- No universal MonetaryClaim.
+- No universal EconomicEntitlement.
+- No generic Entity / Party / Transaction abstraction.
+- No universal lifecycle merely because several downstream facts have statuses.
+
+**HYPOTHESES**
+
+No hypothesis is preselected.
+
+- R0 — SOURCE-SINGULAR CURRENT: Receivable is semantically distinct, but each upstream economic source yields at most one mutable current Receivable, and one current amount/due state is sufficient.
+- R1 — INVOICE-GATED: Receivable is distinct from Invoice, but cannot crystallize before an Invoice or equivalent billing artifact exists.
+- R2 — HISTORICAL CRYSTALLIZATION: Receivable is a distinct historically anchored collectible fact. It may arise without an Invoice. One upstream source may crystallize into several Receivables over time. Partial, installment and periodic crystallization may be semantically meaningful. One Receivable may aggregate several upstream facts only where one source-defined collectible position actually groups them. Earlier Receivable truth is not silently overwritten by later adjustment/correction/cancellation/settlement.
+- R3 — DEBTOR-ACCOUNT AGGREGATE: The neutral-core primitive is essentially the debtor/account running balance. Individual historically source-anchored Receivable identity is unnecessary.
+
+**AUTHORIZED RESEARCH BOUNDARY**
+
+Exactly two verticals:
+- A. Film/TV representation — used only as relevant to Receivable falsification: compensation installments; residual/reuse or other periodic amounts where primary evidence supports them; due/payment mechanics; invoice or loan-out billing scenarios where authoritative evidence supports them; payer/debtor distinctions; representation-economics claim only as an upstream boundary test.
+- B. Live music / artist booking — used only as relevant to Receivable falsification: deposits; balances; performance/completion timing; settlement; cancellation/refund consequences; purchaser/promoter obligations; invoice/billing mechanics where authoritative evidence supports them; agency commission only as an upstream boundary test.
+
+Do NOT add a third vertical merely for confidence or breadth. If these two leave one concrete ambiguity that genuinely blocks terminal adjudication, return that exact ambiguity to the Control Room.
+
+**SUBSTAGES**
+
+- NG-9A — Build-97 Receivable Predecessor Baseline: exact Build-97 source inspection only. Inspect Receivable; Invoice; MonetaryObligation; CommissionEntitlement only where needed for source boundary; Payment; Allocation/Application; relevant ledger path; persistence/query truth; API/client projection only where semantically relevant. Establish what Receivable canonically means in Build-97; source linkage; amount/currency; due-date semantics; amount overrides; status/outstanding derivation; adjustment/correction/cancellation behavior; invoice relation; payment/allocation relation; history; cardinalities visible in source; persisted versus derived facts. No external research. No terminal architecture conclusion. No R0–R3 winner.
+- NG-9B — Two-Vertical Falsification: use exactly Film/TV representation and live music / artist booking. Test R0–R3. Separate empirical source fact, source interpretation and architecture pressure. Do not make terminal architecture decisions.
+- NG-9B2 — OPTIONAL ONLY IF REQUIRED: at most one focused evidence prompt, allowed only if NG-9B leaves one genuine blocking ambiguity that prevents Control Room adjudication. No third vertical. Not automatic.
+- NG-9C — CONTROL ROOM TERMINAL ADJUDICATION: the Control Room decides Receivable semantic meaning; crystallization/collectibility semantics; source/provenance; source↔Receivable cardinality; partial/installment/periodic truth; debtor/beneficiary/payer distinctions; due-date semantics; Invoice boundary; correction/adjustment/cancellation/settlement history; Payment/Allocation boundary; accounting boundary; R0–R3 dispositions; whether any genuine Owner-reserved ambiguity remains. Claude is never the terminal architecture authority.
+- NG-9D — CANONICAL PUBLICATION / CLOSURE: publish the accepted terminal architecture only after Control Room adjudication. No implementation authority follows.
+
+**EXIT CRITERIA**
+
+NG-9 is READY TO CLOSE only when evidence is sufficient to state semantically:
+1. what a Receivable is;
+2. what makes it exist/crystallize;
+3. whether an Invoice is required;
+4. minimum source-to-Receivable cardinality;
+5. minimum Receivable-to-source cardinality;
+6. how partial crystallization is represented semantically;
+7. how installment and periodic Receivables remain truthful;
+8. whether several upstream economic facts may form one Receivable and under what bounded semantic condition;
+9. debtor/obligor identity;
+10. beneficiary/creditor identity;
+11. payer/source-of-funds identity;
+12. due-date semantics and historical provenance;
+13. collectible versus merely economically determined truth;
+14. historical treatment of adjustment/correction/credit/cancellation/settlement/dispute without silent rewrite;
+15. currency/amount provenance;
+16. boundary to Invoice;
+17. boundary to Payment;
+18. boundary to Allocation/Application;
+19. boundary to Ledger/accounting;
+20. R0–R3 dispositions;
+21. confirmation that persistence/schema/API/workflow mechanics remain unselected;
+22. no unexplained conflict with NG-1 through NG-8 remains.
+
+NG-9 becomes CLOSED only after terminal Control Room adjudication is canonically PUBLISHED. Green tests, Claude confidence or a research report cannot close NG-9.
+
+**OWNER-DECISION RULE**
+
+Do not send routine architecture questions to the Owner merely because several implementation shapes remain possible. Owner decision is required only if bounded evidence leaves a genuine surviving product/strategy choice within Owner-reserved authority. A contradiction with an earlier closed decision is a correction-chain event, not automatically an Owner preference question.
+
+**PROMPT BUDGET**
+
+Initial NG-9 substantive research budget: approximately 2–4 Claude prompts. Expected: NG-9A: 1; NG-9B: 1; NG-9B2: at most 1 if genuinely required. NG-9C is Control Room adjudication. Publication and seal prompts do not count as substantive research prompts.
+
+**AUTHORITY BOUNDARY**
+
+This authorization is for conceptual research/design only. It does NOT authorize: implementation; persistence; product code; schema/API/domain expansion; migrations; accounts-receivable implementation; invoice implementation; payment/allocation implementation; ledger implementation; NG-10.
+
+Scope: Research/design and conceptual semantic architecture only. NO authority for implementation, product code, schema/API/domain expansion, migrations or NG-10.
+
+Evidence / provenance:
+- Explicit Owner approval in the Control Room conversation on 2026-09-30.
+- `DECISION-20260930-004` / `DELTA-20260930-003` as the terminal NG-8 basis.
+- `DECISION-20260930-003` as the active Recursive Control-Room Correspondence & Transition Contract.
+- The complete Control Room NG-9 stage definition, approved by the Owner.
+- Claude is recorder/executor only, not decision authority.
+
+Consequences:
+- Once this Owner decision is PUBLISHED, NG-9 is AUTHORIZED and SCOPE-LOCKED for research/design only.
+- NG-9A becomes the exact next bounded substantive action.
+- No implementation authority follows.
+- NG-10 remains unauthorized.
+
+Supersedes: The active current-state claim that no post-NG-8 stage is authorized. It supersedes no prior Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-8 remain closed/approved exactly under their existing terminal decisions.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- Build-97 released product behavior remains unchanged.
+- No next-generation implementation exists.
+- No product/schema/API/domain/migration authority follows.
+
+Open:
+- NG-9A evidence.
+- NG-9B evidence.
+- The terminal R0–R3 disposition.
+- The terminal NG-9 semantic architecture.
+- All implementation mechanics.
+- NG-10 and all later stages.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
