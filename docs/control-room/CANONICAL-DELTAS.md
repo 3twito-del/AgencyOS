@@ -1082,7 +1082,17 @@ Authority required:
 
 Adjudication: The Control Room independently reviewed the NG-6A predecessor baseline and the NG-6B two-vertical falsification evidence, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual architecture recorded as `DECISION-20260929-008`: L0 and L1 rejected; L2 accepted as the current minimum neutral-core contract; L3 not justified now and retained only as an evidence-triggered reconsideration case; S0 and S1 rejected; S2 accepted at the semantic level with persistence/derivation unselected. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260929-009
+  Semantic basis: f3635faf6b7e5a747b12f89e2c4696853d1d2629
+  CURRENT-STATE.next.md blob SHA-256: 20fcf730fa06cf267fba502a6bee6f93ea4e82305639b1953f4aa8d2a32cb5f3
+  PUBLICATION-PAYLOAD.json blob SHA-256: 1775bca54a17ab9f6408ca58e2d08b1a66254dc7de567ccfa13e3d256cbc93b2
+  Authorized: 2026-09-30T01:18:51Z
+  Reference: Adjudication of DELTA-20260929-009
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260929-008` is added as the durable NG-6 architecture decision.
