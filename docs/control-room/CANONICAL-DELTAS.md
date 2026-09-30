@@ -1357,7 +1357,17 @@ Authority required:
 
 Adjudication: The Control Room independently reviewed the NG-7A Build-97 predecessor baseline and the NG-7B two-vertical falsification evidence, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual semantic architecture recorded as `DECISION-20260930-001`: E0 rejected; E1 rejected; E2 accepted with the method-versus-realization refinement; E3 rejected as a claim-unification architecture; no Owner-reserved ambiguity remains. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260930-001
+  Semantic basis: 812325fafda011f3345380a329773d7b9a1be45b
+  CURRENT-STATE.next.md blob SHA-256: a515fd7123eb004668ea51edb0cecde98bda1dfd4088763e250db95479feff97
+  PUBLICATION-PAYLOAD.json blob SHA-256: 8d5acbf71999b0105fd8b9884602a75560c8e311323b45ed45d12533afc077a5
+  Authorized: 2026-09-30T06:44:07Z
+  Reference: Adjudication of DELTA-20260930-001
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260930-001` is added as the durable NG-7 architecture decision.
