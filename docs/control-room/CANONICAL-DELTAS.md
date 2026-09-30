@@ -1028,3 +1028,102 @@ Forbidden implications: This delta does **not**:
 - make Claude a semantic authority.
 
 Publication receipt: 76d00b056831e62905575cef112203bb7cc58756 on origin/operational-regression-gate; remote readback verified 2026-09-29T22:33:04Z
+
+## DELTA-20260929-009
+
+Status: ACCEPTED
+
+Detected: 2026-09-30T00:58:16Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `19cd428dd526963bf6308d18c31e076a10c24dae` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, inspected as predecessor evidence only.
+- The bounded NG-6 research chain NG-6A and NG-6B under the Scope Lock `DECISION-20260929-007`, adjudicated by the Control Room and recorded as `DECISION-20260929-008`.
+
+Prior claim: NG-6 — Commercial Arrangement–Legal Instrument Composition Architecture is AUTHORIZED for research/design only under `DECISION-20260929-006`, scope-locked by `DECISION-20260929-007`; the Commercial Arrangement / Agreement Snapshot / Legal Instrument contract, including the agreement snapshot and multi-arrangement instruments, is open as the subject of NG-6.
+
+Candidate/new claim: NG-6 has reached a terminal conceptual architecture conclusion under `DECISION-20260929-008`: a Commercial Arrangement may have zero or more Legal Instruments; each Legal Instrument is arrangement-scoped to one Commercial Arrangement in the present neutral core (L2), with L3 retained only as an evidence-triggered reconsideration case; Agreement Snapshot has historical semantics (S2) without a selected persistence or derivation mechanism; a known Snapshot↔Instrument correspondence stays anchored historically; and no universal precedence rule between commercial and legal truth is defined.
+
+Claimed transition: NG-6 AUTHORIZED / RESEARCH-DESIGN OPEN → NG-6 COMMERCIAL ARRANGEMENT–LEGAL INSTRUMENT COMPOSITION ARCHITECTURE CLOSED.
+
+Scope: Canonical publication of the Control Room's terminal NG-6 architecture adjudication only. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `19cd428dd526963bf6308d18c31e076a10c24dae` (`Publish DELTA-20260929-008`), with `DECISION-20260929-006` and `DECISION-20260929-007` ACTIVE and `DELTA-20260929-008` PUBLISHED;
+  - `CURRENT-STATE.md` there records NG-6 as AUTHORIZED and lists the Commercial Arrangement / Agreement Snapshot / Legal Instrument contract as the open NG-6 subject.
+- Build-97 predecessor evidence (NG-6A, product commit `b3f41bf`):
+  - Deal→Contract 0..n and Contract→Deal exactly one, as predecessor topology only (`src/AgencyOS.Domain/Legal/Contract.cs`; `src/AgencyOS.Infrastructure/Persistence/Configurations/M8Configurations.cs`);
+  - the accepted immutable Offer as a partial historical commercial-snapshot analogue (`src/AgencyOS.Domain/Deals/Offer.cs`);
+  - ContractVersion as drafting history, and typed ContractRelationship kinds as instrument precedents (`src/AgencyOS.Domain/Legal/ContractVersion.cs`; `src/AgencyOS.Domain/Legal/Notice.cs`);
+  - RightsGrant as a distinct fact (`src/AgencyOS.Domain/Legal/RightsGrant.cs`).
+- External domain evidence (NG-6B, exactly two verticals):
+  - 2023 WGA–AMPTP MBA Articles 13.A.3 and 14.B (https://www.wga.org/uploadedfiles/contracts/mba23.pdf);
+  - SAG-AFTRA agreement evidence on definite engagement by an accepted verbal call with the written contract following later;
+  - Musicians' Union live engagement standard contracts guidance (https://musiciansunion.org.uk/legal-money/contracts-and-agreements/standard-contracts/live-engagement-standard-contracts);
+  - AFM LS-1 Q&A (https://members.afm.org/uploads/file/officers%20edge/OEWinter02.pdf);
+  - AFM/CFM T2C travelling engagement contract (https://cfmusicians.afm.org/uploads/file/Travelling%20Eng%20Contract%20-%20T2C.pdf);
+  - CFM/AFM multi-musician "severally" forms and MU multi-engagement forms, as L3 pressure tests.
+- Control Room semantic adjudication: the Adjudication field below, recorded as `DECISION-20260929-008`.
+
+Conflicts: None that survive adjudication. The correction chain is preserved:
+- Claude's NG-6B report classified S0 as empirically falsified too broadly; the evidence proves independent canonical commercial-agreement truth but does not select persisted versus derived technical representation, so S2 is accepted at the semantic/historical level only;
+- the NG-6A corrections stand: Build-97 agreed-but-unpapered state does not by itself prove permanent zero-instrument Arrangements; one-Deal-per-Contract is predecessor precedent; Build-97 had no independent Agreement Snapshot fact;
+- the multi-musician and multi-engagement instruments did not prove an indivisible one-instrument/multiple-Arrangement case, so they do not justify L3;
+- no contradiction with NG-1 through NG-5 was found.
+
+Authority required:
+- `CONTROL_ROOM`, for the semantic architecture adjudication and stage completion;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required. `DECISION-20260929-006` remains the Owner authorization provenance that allowed NG-6 research/design.
+
+Adjudication: The Control Room independently reviewed the NG-6A predecessor baseline and the NG-6B two-vertical falsification evidence, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual architecture recorded as `DECISION-20260929-008`: L0 and L1 rejected; L2 accepted as the current minimum neutral-core contract; L3 not justified now and retained only as an evidence-triggered reconsideration case; S0 and S1 rejected; S2 accepted at the semantic level with persistence/derivation unselected. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-008` is added as the durable NG-6 architecture decision.
+- `CURRENT-STATE.md` records NG-6 Commercial Arrangement–Legal Instrument Composition Architecture as CLOSED under `DECISION-20260929-008`.
+- The open Commercial questions "the agreement snapshot" and "multi-arrangement instruments" and the NG-6 open-subject note are replaced by the questions `DECISION-20260929-008` leaves open.
+- The next bounded action becomes obtaining explicit Owner authorization before beginning any post-NG-6 stage, including NG-7.
+- No implementation authority follows.
+
+Supersedes: The current-state claims that NG-6 is AUTHORIZED with research/design open and that the Commercial Arrangement / Agreement Snapshot / Legal Instrument contract is an open NG-6 subject. It supersedes no prior Decision ID.
+
+Unchanged:
+- Build 97 released product identity and all implementation behavior.
+- Operational Closure remains terminal.
+- Self-Update V1 remains terminal.
+- NG-1 through NG-5 remain CLOSED; `DECISION-20260928-001` to `-004`, `DECISION-20260929-002` and `DECISION-20260929-005` remain in force.
+- `DECISION-20260929-006` remains the Owner authorization that allowed NG-6 research/design.
+- `DECISION-20260929-007` remains the Scope Lock that governed NG-6.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-7 remains unauthorized and not begun.
+
+Open / unresolved questions:
+- The deferred items listed as Open in `DECISION-20260929-008` remain open.
+- None of these blocks NG-6 closure.
+
+Forbidden implications: This delta does **not**:
+- authorize product implementation;
+- authorize schema/API/domain expansion;
+- authorize migrations;
+- authorize NG-7;
+- select a database table, FK, EF mapping, persistence strategy or API shape;
+- choose between persisted and derived Agreement Snapshots;
+- declare L3 impossible;
+- approve a raw Arrangement↔Legal Instrument many-to-many model;
+- make Proposal/Offer the Agreement Snapshot;
+- adopt Build-97 Deal, Contract or ContractVersion as canonical architecture;
+- introduce a universal legal-effect engine;
+- define a universal precedence of commercial over legal truth or the reverse;
+- reintroduce mandate multiplicity;
+- make Claude an architecture authority.
+
+Publication receipt: Pending

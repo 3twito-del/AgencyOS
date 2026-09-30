@@ -1121,3 +1121,152 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
 
 Publication receipt: 575ad86afea73d962c51a0348bfe774dd0f643e4 on origin/operational-regression-gate; remote readback verified 2026-09-29T22:33:04Z
+
+## DECISION-20260929-008
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: CONTROL_ROOM
+
+Question: What is the minimum neutral-core semantic contract among Commercial Arrangement(s), Agreement Snapshot(s), and Legal Instrument(s), including whether a Commercial Arrangement may exist before or without a governing Legal Instrument; the allowed Arrangement↔Legal Instrument cardinality in both directions, including amendment, replacement and supplemental instruments and one instrument covering more than one Arrangement; the temporal/historical anchoring required so later instruments do not silently rewrite earlier commercial or legal truth; and what Agreement Snapshot canonically represents without collapsing it into proposal/offer, Legal Instrument, rights-grant, economic-obligation or payment truth?
+
+Decision: NG-6 — Commercial Arrangement–Legal Instrument Composition Architecture is terminally accepted as a conceptual architecture stage:
+
+1. **Semantic boundaries.**
+   - Commercial Arrangement is the durable commercial bargain/relationship: the commercial truth about what the parties have agreed to do, provide or receive. It is distinct from negotiation, Proposal/Offer and Legal Instrument.
+   - Agreement Snapshot is the Arrangement-scoped historical semantic state answering: "What commercial terms were agreed for this Commercial Arrangement at this historical agreement point?"
+   - An Agreement Snapshot represents the agreed commercial outcome, not the proposal that preceded it. A Proposal/Offer may be evidence or provenance for an agreement, but Proposal/Offer is not the Agreement Snapshot and is not the Commercial Arrangement.
+   - Legal Instrument is distinct legal/instrument truth: an instrument that records, governs, memorializes, amends, restates, replaces, supplements or otherwise legally expresses relevant terms. Its content, execution/effectiveness and history are not identical to commercial-agreement truth.
+   - Agreement Snapshot is distinct from Legal Instrument. Legal Instrument is distinct from Rights Grant.
+   - Rights, options, legal/operational obligations and economic facts remain separate downstream facts even when an instrument is their source or evidence.
+2. **Commercial Arrangement without Legal Instrument.** The neutral core permits a real Commercial Arrangement to exist with zero governing Legal Instruments. This permits:
+   - a Commercial Arrangement before paper exists;
+   - an agreed-but-unpapered Arrangement;
+   - an Arrangement for which no governing Legal Instrument is ever established in AgencyOS.
+
+   This is a recordability/domain-truth rule, not a legal-enforceability finding. A vertical may impose stricter paper requirements, but the neutral core must not fabricate a Legal Instrument or reject true commercial agreement merely because no paper exists. Therefore the neutral-core Commercial Arrangement → Legal Instrument cardinality is **ZERO OR MORE**.
+3. **Multiple Legal Instruments for one Commercial Arrangement.** One Commercial Arrangement may relate historically to multiple Legal Instruments. Examples of semantic roles include:
+   - initial short-form/deal memorandum;
+   - long-form instrument;
+   - separately material rider or supplemental instrument;
+   - amendment;
+   - restatement;
+   - replacement/superseding instrument;
+   - other independently material later instrument.
+
+   A drafting revision of the same instrument is not by itself a new Legal Instrument. An amendment/restatement/replacement/supplement that has independent legal-instrument identity is not merely a later drafting version of the original instrument. Therefore L1 — optional one-to-one — is rejected.
+4. **Legal Instrument → Commercial Arrangement cardinality.** The current minimum neutral core selects L2, not L3. Each Legal Instrument is arrangement-scoped to ONE Commercial Arrangement in the present neutral core.
+   - Evidence did not prove a case in the two authorized verticals where one real-world Legal Instrument remains semantically indivisible as one instrument; valid commercial decomposition independently requires two or more Commercial Arrangements; and forcing either the Arrangements to merge or the Legal Instrument to split would make the recorded truth false rather than merely inconvenient.
+   - A document containing multiple performers, dates, performances, services, roles, obligations, rights or economic facts does not by itself establish several Commercial Arrangements.
+   - Before any future Instrument→multiple-Arrangement capability is admitted, valid semantic decomposition must be attempted.
+   - L3 is NOT declared impossible. It is not justified in the present neutral core.
+   - Explicit reconsideration trigger: reopen Legal Instrument → Commercial Arrangement multiplicity only if concrete future evidence proves that one real-world Legal Instrument remains indivisible as one legal instrument while valid semantic decomposition independently proves two or more Commercial Arrangements, and limiting that Legal Instrument to one Arrangement would make canonical commercial/legal truth false rather than merely inconvenient.
+   - No unexplained raw Arrangement↔Legal Instrument many-to-many relation is approved.
+5. **Agreement Snapshot — historical semantics.** The neutral-core semantic contract is S2.
+   - Agreement Snapshot has canonical historical meaning: later commercial agreement, renegotiation or paper must not silently rewrite what was commercially agreed at an earlier point.
+   - A Commercial Arrangement may therefore have multiple historical agreed states over time.
+   - This is a semantic architecture decision only. It does NOT decide whether Agreement Snapshots are persisted records; derived deterministically from immutable facts/events; stored as versions; represented by event sourcing; or assigned a particular identifier.
+   - A derived technical representation remains possible as long as it preserves the canonical historical answer.
+   - S0 is rejected only insofar as it would make Agreement Snapshot a merely presentational concept with no canonical historical commercial meaning. NG-6 does not reject derivation as an implementation technique.
+6. **Snapshot ↔ Legal Instrument historical anchoring.**
+   - When it is known that a Legal Instrument memorialized, papered or implemented a particular historical agreed commercial state, that relationship must remain anchored to that historical Agreement Snapshot. It must not be dynamically re-derived from the Arrangement's later/current agreement state.
+   - A later renegotiation must not repoint an earlier Legal Instrument to later agreed terms.
+   - If AgencyOS does not know which historical agreed state an instrument corresponded to, it must preserve that fact as unknown/unresolved rather than infer the current state.
+   - Exact persistence/linkage mechanics remain deferred.
+7. **Commercial truth versus legal truth.** The neutral core defines no universal precedence rule saying either that Agreement Snapshot always controls Legal Instrument truth, or that Legal Instrument always controls prior commercial-agreement truth. Vertical rules, governing agreements and individual instruments may establish different precedence. AgencyOS must preserve the distinct commercial and legal facts and their historical relationship rather than collapse them or invent a universal winner.
+8. **Legal-Instrument history.** A later amendment, restatement, replacement, rider, supplemental instrument or other later Legal Instrument does not erase the earlier Legal Instrument. The architecture must preserve enough historical semantics to explain:
+   - which Legal Instrument existed at a historical point;
+   - which later instrument related to or changed an earlier instrument;
+   - which earlier facts remain historical facts after the later instrument.
+
+   Typed relationships such as amendment, supersession, restatement or supplementation do not constitute a universal legal-effect engine. NG-6 does not decide clause-level effect, retroactivity, enforceability or jurisdictional interpretation.
+9. **Closed prior architecture remains in force.** Preserved:
+   - proposal/offer ≠ Commercial Arrangement;
+   - Agreement Snapshot ≠ Legal Instrument;
+   - Legal Instrument ≠ Rights Grant;
+   - legal/operational obligation ≠ receivable;
+   - payment ≠ allocation/application;
+   - ledger/accounting ≠ upstream commercial/legal truth;
+   - subject identity ≠ representation authority;
+   - representation authority ≠ economic entitlement;
+   - one real-world document ≠ automatically one Commercial Arrangement;
+   - several represented people ≠ automatically one multi-principal Arrangement;
+   - one instrument containing several facts ≠ automatically generic many-to-many.
+
+   `DECISION-20260929-005` remains controlling: each Commercial Arrangement has zero-or-one conceptual direct lineage to a historical Representation Mandate; one Representation Mandate may lineage many Commercial Arrangements; legal-instrument composition does not reintroduce raw mandate multiplicity.
+10. **Hypothesis disposition:**
+    - L0 — COLLAPSE: REJECTED.
+    - L1 — OPTIONAL ONE-TO-ONE: REJECTED.
+    - L2 — ONE-ARRANGEMENT / MULTI-INSTRUMENT HISTORY: ACCEPTED as the current minimum neutral-core contract.
+    - L3 — COMPOSITION / one Legal Instrument may cover several Commercial Arrangements: NOT JUSTIFIED in the present neutral core; the explicit evidence-triggered reconsideration rule in 4 is retained.
+    - S0 — purely derived/presentation with no canonical historical agreement semantics: REJECTED.
+    - S1 — canonical agreed commercial truth but only one current semantic state required: REJECTED as insufficient for historical truth.
+    - S2 — historical Agreement Snapshot semantics: ACCEPTED at the semantic level; persistence/derivation remains unselected.
+
+Scope: Conceptual NG-6 architecture only. This decision does NOT select or authorize persistence; database tables; foreign keys; EF mapping; schema; API payloads; interfaces/classes/module layout; document storage; e-signature/signature workflow; clause extraction/document AI; approval workflow; templates; a legal-enforceability engine; a universal rights ontology; rights-grant implementation; amount-determination persistence; commission implementation; receivables/invoices/payments/allocations; ledger/accounting; mandate mechanics beyond `DECISION-20260929-005`; Company ↔ External Organization implementation; Group persistence; product code; migrations; or NG-7.
+
+Evidence / provenance:
+- Canonical:
+  - `DECISION-20260928-004`: hybrid commercial decomposition; Arrangement distinct from Proposal/Offer; Agreement Snapshot distinct from Legal Instrument; one-instrument/several-arrangements and the exact Snapshot representation left open.
+  - `DECISION-20260929-005`: mandate/commercial lineage and historical provenance.
+  - `DECISION-20260929-006`: Owner authorization for NG-6 research/design only.
+  - `DECISION-20260929-007`: the exact NG-6 Scope Lock.
+  - `DELTA-20260929-008`: the published NG-6 authorization transition.
+- Build-97 predecessor, product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2` (NG-6A):
+  - a Deal could precede and exist without Contract rows in the predecessor;
+  - Deal→Contract was 0..n; Contract→Deal was exactly one direct predecessor relation;
+  - the accepted Offer was a historical commercial-snapshot analogue but not the canonical future Agreement Snapshot;
+  - ContractVersion represented drafting history, not amendment/restatement architecture;
+  - amendment, side letter and similar kinds were distinct Contract/instrument precedents;
+  - RightsGrant remained distinct;
+  - these are predecessor precedents, not canonical neutral-core invariants.
+- NG-6B bounded two-vertical evidence, Film/TV:
+  - 2023 WGA–AMPTP MBA Article 13.A.3: a written document memorializing an agreement already reached; the cover sheet does not alter the prior agreement and the writer's agreement prevails (https://www.wga.org/uploadedfiles/contracts/mba23.pdf);
+  - WGA MBA Article 14.B: writing plus additional capacities may be covered by one contract or by separate contracts;
+  - SAG-AFTRA historical agreement evidence that a performer may be definitely engaged through an accepted verbal call and that the written contract can follow later;
+  - DGA and other Film/TV material was supporting evidence only; the decision does not depend on an unverified current-version proposition.
+- NG-6B bounded two-vertical evidence, live music / booking:
+  - Musicians' Union standard live-contract guidance: signed-contract practice plus a letter/email confirmation fallback (https://musiciansunion.org.uk/legal-money/contracts-and-agreements/standard-contracts/live-engagement-standard-contracts);
+  - AFM/EPF LS-1 Q&A: a single engagement may require another agreement for additional terms; multiple dates can still constitute a defined single engagement under specified conditions (https://members.afm.org/uploads/file/officers%20edge/OEWinter02.pdf);
+  - AFM/CFM T2C: an integration clause superseding prior oral/written representations and requiring a written signed amendment (https://cfmusicians.afm.org/uploads/file/Travelling%20Eng%20Contract%20-%20T2C.pdf);
+  - CFM/AFM multi-musician "severally" forms and MU multi-engagement forms were pressure tests for L3 but did not prove an indivisible one-instrument/multiple-Arrangement case.
+- Explicit Control Room correction to the Claude NG-6B report: Claude classified S0 as empirically falsified too broadly. The evidence proves independent canonical commercial-agreement truth, but does not select persisted versus derived technical representation. The final S2 decision is semantic/historical only.
+- Claude research reports were evidence inputs only. The decision is the Control Room's.
+
+Consequences:
+- NG-6 architecture research/design is terminally adjudicated.
+- After this decision and its corresponding delta are fully PUBLISHED and remotely verified, NG-6 becomes CLOSED.
+- No implementation authority follows.
+- NG-7 remains unauthorized.
+- Exact persistence/schema/API/interface/storage mechanics remain deferred.
+- L3 may be reconsidered only on the explicit evidence trigger in Decision item 4.
+
+Supersedes: None
+
+Unchanged:
+- `DECISION-20260928-001` to `-004`, `DECISION-20260929-002` and `DECISION-20260929-005`.
+- `DECISION-20260929-006` as the Owner authorization that allowed NG-6 research/design.
+- `DECISION-20260929-007` as the NG-6 Scope Lock that governed the research.
+- Build 97 and all implementation behavior.
+- No product implementation.
+- No schema, API or domain expansion.
+- No migrations.
+- NG-7 remains unauthorized.
+
+Open:
+- The exact persistence/derivation mechanism for Agreement Snapshot.
+- The exact technical representation of Snapshot↔Instrument historical anchoring.
+- Persistence/schema/API/interface/storage mechanics.
+- Legal-effect computation.
+- Clause extraction.
+- Rights implementation.
+- Amount determination.
+- Finance/ledger.
+- L3 reconsideration, only if its concrete trigger is met.
+- All other questions excluded by `DECISION-20260929-007`.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is the recorder/executor only, not the authority.
+
+Publication receipt: Pending
