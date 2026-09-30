@@ -1270,3 +1270,68 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is the recorder/executor only, not the authority.
 
 Publication receipt: f3635faf6b7e5a747b12f89e2c4696853d1d2629 on origin/operational-regression-gate; remote readback verified 2026-09-30T01:25:36Z
+
+## DECISION-20260929-009
+
+Status: ACTIVE
+
+Date: 2026-09-29
+
+Authority: OWNER
+
+Question: Should AgencyOS begin NG-7 / the next post-NG-6 stage now for research and design only, excluding implementation and product/schema/API/domain expansion, or remain at NG-6 CLOSED?
+
+Decision: The Owner explicitly approves beginning **NG-7 / the next post-NG-6 stage for research and design only**.
+
+Owner response: “מאשר.”
+
+This authorization is intentionally narrow. It does not define or pre-approve the exact NG-7 architecture topic, title, bound question, Scope Lock, hypotheses, substages, exit criteria or conclusion. Before substantive NG-7 research begins, the Control Room must establish the exact bounded NG-7 Scope Lock. No implementation authority follows.
+
+Scope:
+- Authorizes NG-7 research/design after this authorization is fully PUBLISHED and after the Control Room establishes the bounded NG-7 Scope Lock.
+- Allows the subsequent Control Room work needed to define that Scope Lock.
+- Does not authorize product code.
+- Does not authorize implementation.
+- Does not authorize schema, API or domain expansion.
+- Does not authorize migrations.
+- Does not authorize NG-8 or any later stage.
+- Does not pre-approve any NG-7 architecture conclusion.
+
+Evidence / provenance:
+- Explicit Owner reply “מאשר.” on 2026-09-29.
+- It answered the Control Room's binary authorization question: “האם לאשר התחלה של NG-7 / השלב הבא אחרי NG-6 למחקר ותכנון בלבד, ללא implementation וללא product/schema/API/domain expansion, או לעצור במצב NG-6 CLOSED?”
+- `docs/control-room/CURRENT-STATE.md` at `c8bd3fc38e6e0e840691b33157e9f46a433fae5f` records NG-6 as CLOSED under `DECISION-20260929-008`, and its exact next bounded action requires explicit Owner authorization before any post-NG-6 stage, including NG-7.
+- Claude is recorder/executor only, not decision authority.
+
+Consequences:
+- Once this decision and its accompanying delta are fully PUBLISHED, NG-7 is authorized for research/design only.
+- The immediate next bounded work is Control Room definition of the exact NG-7 Scope Lock.
+- Substantive NG-7 research must not begin before that Scope Lock is established.
+- No implementation authority follows.
+
+Supersedes: None
+
+Unchanged:
+- NG-6 remains CLOSED under `DECISION-20260929-008`.
+- All NG-1 through NG-6 architecture decisions remain in force.
+- Build 97 remains the released product identity.
+- Operational Closure remains COMPLETE and terminal.
+- Self-Update V1 remains COMPLETE.
+- No next-generation architecture is implemented.
+- No product/schema/API/domain behavior changes.
+- Existing deferred/open questions remain open unless a later bounded NG-7 decision addresses them.
+- NG-8 remains unauthorized.
+
+Open:
+- The exact NG-7 title.
+- The exact NG-7 bound question.
+- The exact NG-7 Scope Lock.
+- Hypotheses and the falsification boundary.
+- Substages and exit criteria.
+- Any genuine Owner-reserved ambiguity discovered later.
+- Implementation.
+- NG-8 and later stages.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction normalized by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending

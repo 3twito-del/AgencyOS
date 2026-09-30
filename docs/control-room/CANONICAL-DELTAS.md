@@ -1137,3 +1137,79 @@ Forbidden implications: This delta does **not**:
 - make Claude an architecture authority.
 
 Publication receipt: 914676e14de9c8ec5602032a711ccc186af070e9 on origin/operational-regression-gate; remote readback verified 2026-09-30T01:25:36Z
+
+## DELTA-20260929-010
+
+Status: ACCEPTED
+
+Detected: 2026-09-30T02:25:06Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner authorization recorded as `DECISION-20260929-009`.
+- Canonical branch state `c8bd3fc38e6e0e840691b33157e9f46a433fae5f` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+
+Prior claim: NG-6 is CLOSED under `DECISION-20260929-008`. No post-NG-6 stage, including NG-7, is authorized; explicit Owner authorization is required before one begins.
+
+Candidate/new claim: NG-7 / the next post-NG-6 stage becomes AUTHORIZED for research/design only under `DECISION-20260929-009`.
+
+Claimed transition: NG-7 UNAUTHORIZED / NOT BEGUN → NG-7 AUTHORIZED FOR RESEARCH/DESIGN ONLY.
+
+Scope: Governance authorization publication only. It records no NG-7 title, bound question or Scope Lock, performs no NG-7 research and makes no architecture conclusion. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable canonical repository state: HEAD `c8bd3fc38e6e0e840691b33157e9f46a433fae5f` (`Publish DELTA-20260929-009`); `CURRENT-STATE.md` there records NG-6 as CLOSED under `DECISION-20260929-008` and requires explicit Owner authorization before any post-NG-6 stage, including NG-7.
+- Explicit Owner decision: recorded, with the Owner's exact response and the exact question it answered, as `DECISION-20260929-009`.
+- No product-code, schema, API, domain or migration change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `OWNER`, for the decision to begin NG-7 research/design;
+- `CONTROL_ROOM`, for faithful narrow normalization and publication planning;
+- machine-verifiable fact, for repository and publication facts.
+
+Adjudication: The Owner replied “מאשר.” to the Control Room's exact bounded authorization question whether to begin NG-7 / the next post-NG-6 stage for research and design only, without implementation or product/schema/API/domain expansion, or to stop at NG-6 CLOSED. The Control Room normalizes that reply narrowly as research/design authorization only. It does not decide the NG-7 title, bound question, Scope Lock, hypotheses, substages, exit criteria or any conclusion; the Control Room must establish the Scope Lock before substantive NG-7 research. The authorization becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260929-009` becomes the durable Owner authorization for NG-7 research/design.
+- `CURRENT-STATE.md` records NG-7 as AUTHORIZED for research/design only under `DECISION-20260929-009`, with its exact title and bounded Scope Lock still to be established by the Control Room.
+- The exact next bounded action becomes Control Room definition and canonical establishment of the NG-7 title, bounded question, Scope Lock, falsification boundary, substages and exit criteria.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that no post-NG-6 stage, including NG-7, is authorized. It supersedes no Decision ID.
+
+Unchanged:
+- NG-6 remains CLOSED under `DECISION-20260929-008`.
+- All NG-1 through NG-6 architecture decisions remain in force.
+- Build 97 remains the released product identity.
+- Operational Closure remains COMPLETE and terminal.
+- Self-Update V1 remains COMPLETE.
+- No next-generation architecture is implemented.
+- No product/schema/API/domain behavior changes.
+- No migrations.
+- NG-8 remains unauthorized.
+
+Open / unresolved questions:
+- The exact NG-7 title, bound question and Scope Lock.
+- Hypotheses, falsification boundary, substages and exit criteria.
+- Any genuine Owner-reserved ambiguity discovered later.
+
+Forbidden implications: This delta does **not**:
+- establish an NG-7 title;
+- establish the NG-7 Scope Lock;
+- select an NG-7 architecture;
+- claim that NG-7 research has occurred;
+- start substantive NG-7 research;
+- reopen NG-1 through NG-6;
+- implement any next-generation architecture;
+- approve schema/API/domain expansion;
+- approve migrations;
+- grant NG-8 or later-stage authority;
+- make Claude a semantic authority.
+
+Publication receipt: Pending
