@@ -1650,3 +1650,288 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
 
 Publication receipt: 812325fafda011f3345380a329773d7b9a1be45b on origin/operational-regression-gate; remote readback verified 2026-09-30T06:47:43Z
+
+## DECISION-20260930-002
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: OWNER
+
+Question: Approve NG-8 — Agency Commission & Representation-Economics Claim Architecture for research/design only, under the complete bounded stage definition proposed by the Control Room, with no implementation, product/schema/API/domain expansion, migrations or NG-9 authority?
+
+Decision: The Owner approves **NG-8 — Agency Commission & Representation-Economics Claim Architecture** exactly under the following bounded stage contract.
+
+**TITLE**
+
+NG-8 — Agency Commission & Representation-Economics Claim Architecture
+
+**BOUNDED QUESTION**
+
+What is the minimum neutral-core semantic architecture for agency commission / representation-economics claims: what fact makes the agency economically entitled to compensation; how that claim derives authority from a Representation Mandate or other representation authority while depending on one or more represented-party Amount Determinations; when the claim exists, accrues, becomes earned, becomes determinable, is reduced, adjusted, waived, superseded or extinguished; whether one represented-party economic component may generate zero, one or several agency claims and vice versa; how effective-dated rules, contract/deal-specific overrides, caps/floors/exclusions and collected-versus-earned distinctions remain historically truthful; and where the boundary lies between the commission/fee claim itself, its Amount Determination semantics, Receivable, Invoice, Payment, allocation/cash application and accounting revenue recognition — without selecting persistence or implementing finance.
+
+**IN SCOPE**
+
+1. Semantic meaning of agency commission / representation-economics claim.
+2. Source / authority:
+   - Representation Mandate;
+   - representation agreement/rule where evidence justifies;
+   - arrangement-specific override where applicable.
+3. Relation to represented-party Amount Determination.
+4. Distinction among:
+   - rule/method;
+   - claim/entitlement;
+   - calculated/determinable amount;
+   - earned state;
+   - collected state.
+5. Fixed fee, percentage × basis, contingent commission, floors, caps and exclusions where evidenced.
+6. Effective dating and historical rule changes.
+7. Governing-date semantics.
+8. General rule versus arrangement/contract-specific rule.
+9. Semantic cardinality:
+   - one rule to many claims;
+   - one represented-party component to zero, one or several agency claims;
+   - one agency claim depending on one or several represented-party economic components.
+10. Recalculation, supersession, adjustment, waiver/release and correction.
+11. Commission on options, bonuses, residuals and settlements only to test neutral semantics.
+12. Earned versus collectible versus collected.
+13. Agency-beneficiary truth.
+14. Boundary to Receivable / Invoice / Payment / Allocation.
+15. Boundary to revenue/accounting recognition.
+16. Currency/basis provenance inherited from NG-7.
+17. Vertical-specific rules only as pressure against false neutrality.
+
+**OUT OF SCOPE**
+
+- persistence/database/schema/FKs;
+- API/classes/modules;
+- commission calculation-engine implementation;
+- generic expression DSL;
+- receivable lifecycle design;
+- invoicing implementation;
+- payment processing;
+- cash-application implementation;
+- ledger-posting implementation;
+- revenue-recognition accounting-policy implementation;
+- tax/withholding;
+- FX engine;
+- payroll;
+- royalty-accounting implementation;
+- legal-enforceability engine;
+- broad talent-manager/licensing-law compliance survey except where required to falsify a semantic claim;
+- product code;
+- migrations;
+- NG-9.
+
+**CLOSED DISTINCTIONS — DO NOT REOPEN WITHOUT CONTRADICTORY EVIDENCE**
+
+- Representation Mandate ≠ Commercial Arrangement.
+- Commercial Arrangement ≠ Legal Instrument.
+- Amount Determination ≠ agency commission/fee claim.
+- agency commission/fee claim ≠ Receivable.
+- Receivable ≠ Invoice.
+- Payment ≠ allocation/application.
+- ledger/accounting ≠ upstream economic truth.
+- commission calculation may reuse Amount Determination semantics.
+- no universal EconomicEntitlement.
+- no separate universal commission calculation language is currently justified.
+- money preserves currency.
+- historical truth must not be silently rewritten.
+- no generic Entity/Party/Transaction abstraction.
+
+**FALSIFICATION HYPOTHESES**
+
+- C0 — DERIVED ONLY: No independent commission claim semantics are required. The agency's current amount can always be computed directly from a representation rule plus represented-party Amount Determination.
+- C1 — ONE CURRENT ENTITLEMENT: An independent claim is needed, but one mutable current entitlement per client/representation or Arrangement is sufficient.
+- C2 — HISTORICAL REPRESENTATION-ECONOMICS CLAIM: A separate historically anchored representation-economics claim is required. Rule and claim are distinct. The claim is anchored to representation authority/rule and to its represented-party economic basis. It may be unearned, unquantified, earned, adjusted or superseded without collapsing into Receivable or Payment.
+- C3 — GENERIC MONETARY CLAIM: Commission proves the need for a neutral-core generic MonetaryClaim/EconomicClaim that unifies commission, represented-party compensation claims, receivables and potentially other monetary claims.
+
+The Scope Lock pre-selects NONE of C0–C3.
+
+**AUTHORIZED RESEARCH BOUNDARY**
+
+Exactly two verticals:
+- A. Film/TV representation.
+- B. Live music / artist booking.
+
+No third vertical unless concrete evidence from the two authorized verticals leaves a genuine ambiguity that blocks terminal adjudication and the Control Room explicitly reopens the boundary.
+
+**NG-8A — BUILD-97 PREDECESSOR BASELINE**
+
+Source inspection only, at the exact Build-97 predecessor `b3f41bfd68e81ab42da899671f58e01f0988d3d2`. Focus on: CommissionRule; CommissionEntitlement; Representation relation; Client relation; Contract relation; MonetaryObligation; Receivable; Payment/collection; ledger/revenue path; effective dating; governing date; recalculation/supersession; adjustments; fixed versus percentage/rate basis; contract-specific override; persisted versus derived facts; API/client/UI only where semantically relevant.
+
+NG-8A establishes precedent only. No external vertical research. No architecture conclusion. No C0–C3 winner.
+
+**NG-8B — TWO-VERTICAL FALSIFICATION**
+
+Use exactly the two authorized verticals. Test C0–C3. Separate empirical source fact, source interpretation and architecture pressure. Do not make the terminal architecture decision.
+
+**NG-8C — CONTROL ROOM TERMINAL ADJUDICATION**
+
+The Control Room decides: semantic meaning; authority/source; cardinality; rule versus claim; earned/determined/collected distinctions; history; commission ↔ Amount Determination relation; downstream boundaries; C0–C3 dispositions; whether any genuine Owner-reserved ambiguity remains. Claude is never the terminal architecture authority.
+
+**NG-8D — CANONICAL PUBLICATION / CLOSURE**
+
+Publish the accepted architecture only after Control Room adjudication. No implementation authority follows.
+
+**EXIT CRITERIA**
+
+NG-8 may close only when evidence is sufficient to decide semantically:
+1. what a commission/representation-economics claim is;
+2. the source of its authority;
+3. whether rule and claim are distinct facts;
+4. when the claim exists;
+5. the distinction among determinable, earned, collectible and collected;
+6. minimum justified cardinality to Representation / Arrangement / Amount Determination;
+7. whether a claim may depend on several Amount Determinations;
+8. historical treatment of rule changes, overrides and effective dates;
+9. historical treatment of recalculation, adjustment and supersession without silent rewrite;
+10. fixed/rate/contingent/cap/floor/exclusion semantics without a generic DSL;
+11. currency/basis provenance;
+12. boundary to Receivable;
+13. boundary to Payment/collection;
+14. boundary to ledger/revenue recognition;
+15. disposition of C0–C3.
+
+NG-8 closure does NOT require: persistence choice; schema; API; implementation; calculation engine; AR/payment implementation; ledger implementation.
+
+Scope: Research/design and conceptual semantic architecture only. NO authority for implementation; product code; schema/API/domain expansion; migrations; or NG-9.
+
+Evidence / provenance:
+- Explicit Owner approval in the Control Room conversation on 2026-09-30.
+- `DECISION-20260930-001` / `DELTA-20260930-001` as the terminal NG-7 basis.
+- The Control Room's complete NG-8 stage definition, approved by the Owner.
+- Claude is recorder/executor only, not decision authority.
+
+Consequences:
+- Once this decision is PUBLISHED, NG-8 is AUTHORIZED and SCOPE-LOCKED for research/design only.
+- NG-8A becomes the exact next bounded substantive action.
+- No implementation authority follows.
+- NG-9 remains unauthorized.
+
+Supersedes: None
+
+Unchanged:
+- NG-0 through NG-7 remain closed/approved exactly as currently published.
+- Build-97 released product behavior is unchanged.
+- All unresolved implementation questions remain unresolved unless NG-8 semantically adjudicates their boundary.
+- No implementation follows.
+
+Open:
+- The terminal NG-8 architecture result.
+- Implementation.
+- NG-9 and later stages.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
+
+## DECISION-20260930-003
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: OWNER
+
+Question: Adopt the Recursive Control-Room Correspondence & Transition Contract so that not only workflow continuity but the complete configuration of substantive Control Room messages, Claude prompts and future conversation handoffs recursively reproduces itself until the Owner explicitly changes the policy?
+
+Decision: The Owner adopts the **Recursive Control-Room Correspondence & Transition Contract**. The recursion applies BOTH to workflow continuity AND to the structural configuration and required details of the message itself.
+
+**A. REQUIRED CONTROL ROOM MESSAGE CONFIGURATION**
+
+Every substantive Control Room stage/status message must preserve this configuration unless the Owner explicitly requests another presentation for that specific message:
+1. "מצב נוכחי";
+2. actual branch/HEAD whenever repository state matters;
+3. governing Decision/Delta IDs;
+4. current NG stage and substage;
+5. stage state using exactly one of: OPEN IN RESEARCH; BLOCKED; OWNER DECISION REQUIRED; READY TO CLOSE; CLOSED;
+6. "מה הוכח";
+7. "מה תוקן / הופרך" — if no correction exists, state exactly: "אין תיקון חדש.";
+8. "מה עדיין פתוח";
+9. "מה אסור כרגע";
+10. "תקציב פרומפטים";
+11. "הפעולה הבאה המדויקת";
+12. exactly one Owner-action line in one of these forms:
+    - "OWNER ACTION: none — Control Room analysis is next."
+    - "OWNER ACTION: send the Claude prompt below."
+    - "OWNER DECISION REQUIRED: <exact question>."
+    - "OWNER ACTION: open the next conversation and paste the handoff below."
+
+When Claude execution/research/publication is truly next, include exactly one exact copy-paste Claude prompt. When Claude is not next, do not manufacture a Claude prompt.
+
+**B. REQUIRED CLAUDE-PROMPT CONFIGURATION**
+
+Every substantive Claude prompt must preserve, where applicable: repository; canonical branch; expected HEAD/baseline; governing Decision/Delta IDs; exact stage/substage; exact scope; explicit out-of-scope; closed distinctions that must not be reopened; falsification hypotheses where applicable; evidence hierarchy; correction discipline; authority boundaries; allowed and forbidden repository actions; required evidence/report structure; explicit stop conditions; exact next handback to the Control Room; the current prompt-budget context where material; and this Recursive Control-Room Correspondence & Transition Contract.
+
+A Claude report never creates authority merely by containing these fields.
+
+**C. CORRECTION CHAIN IS RECURSIVE**
+
+Future messages and handoffs must preserve material correction chains. They must not collapse the original claim, the contradicting evidence, the correction and the current governing conclusion. A new conversation must not make a corrected claim appear to have always been the original claim.
+
+**D. PROMPT BUDGET IS RECURSIVE**
+
+Every substantive stage status must state the remaining or estimated substantive Claude prompt budget. The handoff to a new conversation must carry that budget. A new conversation continues the existing budget context rather than silently resetting it.
+
+**E. PROVED / OPEN / FORBIDDEN IS RECURSIVE**
+
+Every transition must separately preserve: what is proved; what was corrected/refuted; what remains open; what is currently forbidden. Absence from a handoff must not be interpreted as closure.
+
+**F. EXACT NEXT ACTION IS RECURSIVE**
+
+Every substantive status/handoff must identify exactly one bounded next action. A conversation transition is continuity only. It does not authorize the next stage or action by itself.
+
+**G. CROSS-CONVERSATION HANDOFF**
+
+When the Control Room determines that a new conversation is appropriate, it must first complete the currently required adjudication/publication boundary. Then it produces a handoff that includes, at minimum: current canonical branch/HEAD; release/product baseline where relevant; governing Decision/Delta IDs; terminal closed stages; current stage/substage; stage state; complete proved findings needed for continuation; complete material correction chain; unresolved questions; forbidden work; prompt budget; exact next action; exact Owner Action; any exact Claude prompt already authorized but not yet executed, if applicable; and the Recursive Control-Room Correspondence & Transition Contract itself.
+
+**H. STRUCTURAL SELF-REPLICATION**
+
+The handoff must not merely say "continue using the same policy." It must carry enough explicit content to reproduce the same required configuration in the next conversation. The next conversation must in turn apply this contract to its own future handoff. Therefore the transition rule is recursively self-replicating. In particular, future handoffs must continue to preserve: prompts; what was corrected/refuted; prompt budget; every other mandatory message field above; and the instruction that the subsequent handoff must again preserve the same configuration.
+
+**I. STAGE DEFINITION BEFORE TRANSITION**
+
+When a new stage requires definition:
+1. the Control Room defines the stage completely in the active conversation;
+2. the package includes: title; bounded question; in-scope; out-of-scope; closed distinctions; hypotheses; research boundary; substages; exit criteria; authority boundaries;
+3. the Owner approves the complete package in that active conversation;
+4. only then may an execution/research prompt be issued;
+5. do not move to a new conversation merely to define the stage.
+
+**J. AUTHORITY**
+
+This communication/transition contract preserves continuity; does not itself authorize architecture, research, implementation or publication; does not make Claude a decision authority; does not override Owner-reserved decisions; and does not permit a future stage to start without its required authorization.
+
+**K. DURATION**
+
+This contract governs future Control Room stage work and conversation transitions until the Owner explicitly modifies or revokes it. A later explicit Owner instruction may modify it. Absent such modification, it continues recursively without requiring the Owner to re-approve the correspondence policy at every transition.
+
+Scope: Control Room governance, correspondence structure, Claude-prompt continuity and conversation-transition continuity only. It does NOT authorize product work; authorize an NG stage; change domain architecture; change repository/product implementation authority; or make a chat transcript alone canonical product truth.
+
+Evidence / provenance:
+- Explicit Owner approval on 2026-09-30.
+- The Owner's explicit clarification that recursion covers the detailed message configuration itself, including prompts, correction/refutation reporting, prompt budget and every other required detail.
+- The Control Room normalization above.
+- Claude is recorder/executor only, not decision authority.
+
+Consequences:
+- Future Control Room messages, prompts and cross-conversation handoffs must preserve this recursive configuration.
+- Material omissions in a future handoff are continuity defects and must be corrected before relying on the handoff for bounded continuation.
+- The policy itself must be carried forward recursively.
+
+Supersedes: None
+
+Unchanged:
+- The canonical/domain authority hierarchy.
+- Owner final decision authority.
+- Claude's executor-only role.
+- Existing published architecture decisions.
+- Product state.
+
+Open: None within this correspondence-policy scope.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending

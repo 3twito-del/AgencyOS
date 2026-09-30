@@ -1412,3 +1412,84 @@ Forbidden implications: This delta does **not**:
 - make Claude an architecture authority.
 
 Publication receipt: fc5850383c4cde689a14bb847746b6fd5f0d482a on origin/operational-regression-gate; remote readback verified 2026-09-30T06:47:43Z
+
+## DELTA-20260930-002
+
+Status: ACCEPTED
+
+Detected: 2026-09-30T07:27:43Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner decisions recorded as `DECISION-20260930-002` and `DECISION-20260930-003`.
+- Canonical branch state `440e494fc2492de3d95c5c15bc1f445a9d52c4f1` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+
+Prior claim: NG-7 is CLOSED under `DECISION-20260930-001`. No post-NG-7 stage, including NG-8, is authorized; explicit Owner authorization is required before one begins. Control Room conversation transitions are governed by project instructions and ad hoc continuity practice, with no canonical correspondence contract.
+
+Candidate/new claim:
+1. NG-8 — Agency Commission & Representation-Economics Claim Architecture is explicitly OWNER-AUTHORIZED and SCOPE-LOCKED for research/design only under `DECISION-20260930-002`.
+2. Control Room correspondence, Claude prompts and cross-conversation handoffs are explicitly OWNER-GOVERNED by the Recursive Control-Room Correspondence & Transition Contract under `DECISION-20260930-003`, whose recursion covers the message configuration itself.
+
+Claimed transition:
+1. Post-NG-7 work UNAUTHORIZED → NG-8 OWNER-AUTHORIZED AND SCOPE-LOCKED FOR RESEARCH/DESIGN ONLY.
+2. Control Room conversation transition UNDER PROJECT INSTRUCTIONS AND AD HOC PRACTICE → OWNER-GOVERNED RECURSIVE CORRESPONDENCE / MESSAGE / HANDOFF CONTRACT.
+
+Scope: Governance authorization and correspondence-policy publication only. This transition performs no NG-8 research and makes no architecture conclusion. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable canonical repository state: HEAD `440e494fc2492de3d95c5c15bc1f445a9d52c4f1` (`Publish DELTA-20260930-001`); `CURRENT-STATE.md` there records NG-7 as CLOSED under `DECISION-20260930-001` and requires explicit Owner authorization before any post-NG-7 stage, including NG-8; no NG-8 authorization exists.
+- Explicit Owner decisions: recorded as `DECISION-20260930-002` (the complete NG-8 stage definition) and `DECISION-20260930-003` (the recursive correspondence contract, including the Owner's clarification that recursion covers the message configuration itself).
+- No product-code, schema, API, domain or migration change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `OWNER`, for the NG-8 authorization with its exact Scope Lock and for the correspondence contract;
+- `CONTROL_ROOM`, for faithful normalization and publication planning;
+- machine-verifiable fact, for repository and publication facts.
+
+Adjudication: The Owner explicitly approved the Control Room's complete NG-8 stage definition for research/design only, and explicitly adopted the Recursive Control-Room Correspondence & Transition Contract, clarifying that recursion covers the configuration of the message itself — prompts, correction/refutation reporting, prompt budget, current state, branch/HEAD, Decision/Delta IDs, stage/substage/state, proved facts, open items, forbidden work, exact next action and Owner Action — and that each handoff must instruct the next to reproduce the same configuration. The Control Room normalizes both approvals as recorded, without widening either. The correspondence contract governs continuity only and grants no stage or product authority. Both become canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260930-002` becomes the durable Owner authorization and exact Scope Lock for NG-8.
+- `DECISION-20260930-003` becomes the durable Owner correspondence/transition contract.
+- `CURRENT-STATE.md` records NG-8 Agency Commission & Representation-Economics Claim Architecture as AUTHORIZED under `DECISION-20260930-002`, with substantive research not yet begun.
+- `CURRENT-STATE.md` records the correspondence/transition policy concisely by reference to `DECISION-20260930-003`.
+- The exact next bounded action becomes NG-8A — the Build-97 predecessor baseline for commission and representation-economics claim semantics.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that no post-NG-7 stage, including NG-8, is authorized. It supersedes no Decision ID.
+
+Unchanged:
+- NG-0 through NG-7 remain closed/approved exactly as currently published.
+- `DECISION-20260930-001` remains the governing NG-7 architecture decision.
+- Build 97 remains the released product identity.
+- Operational Closure remains COMPLETE and terminal.
+- Self-Update V1 remains COMPLETE.
+- The canonical/domain authority hierarchy, Owner final decision authority and Claude's executor-only role.
+- No product/schema/API/domain behavior changes.
+- No migrations.
+- NG-9 remains unauthorized.
+
+Open / unresolved questions:
+- The terminal NG-8 architecture result.
+- Every exit criterion listed in `DECISION-20260930-002`.
+- Implementation, NG-9 and later stages.
+
+Forbidden implications: This delta does **not**:
+- claim that NG-8A research has begun;
+- decide the NG-8 architecture;
+- select a C0–C3 winner;
+- permit implementation;
+- approve schema/API/domain expansion;
+- approve migrations;
+- grant NG-9 or later-stage authority;
+- let the correspondence contract grant stage or product authority;
+- reopen NG-1 through NG-7;
+- treat Claude as an authority.
+
+Publication receipt: Pending
