@@ -3611,3 +3611,122 @@ Open:
 Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
 
 Publication receipt: 6effd8e2895d9ac694dd1f35b3d64447349a04a8 on origin/operational-regression-gate; remote readback verified 2026-10-01T12:00:11Z
+
+## DECISION-20261001-002
+
+Status: ACTIVE
+
+Date: 2026-10-01
+
+Authority: CONTROL_ROOM
+
+Question: Terminal adjudication of NG-S1 — Whole-System Architecture Synthesis & Coherence Gate under `DECISION-20261001-001`: do the CLOSED NG-1 through NG-11 decisions compose into one architecture without unresolved cross-stage contradiction, duplicate semantic responsibility or genuine blocking missing semantic truth, and which of the exit states COHERENT, COHERENT WITH TARGETED GAPS or NOT YET COHERENT applies?
+
+Decision: NG-S1 — Whole-System Architecture Synthesis & Coherence Gate is terminally adjudicated as follows.
+
+**A. TERMINAL ARCHITECTURE STATUS**
+
+COHERENT. Under `DECISION-20261001-001`: no unresolved cross-stage contradiction, duplicate semantic responsibility, or genuine blocking missing semantic truth remains across the CLOSED NG-1 through NG-11 architecture. Open implementation questions remain permitted and remain open.
+
+This adjudication does NOT change any NG-1 through NG-11 terminal semantic decision; adds no domain concept; and gives no authority for implementation, product code, schema/API/domain/client/UI expansion, persistence selection, migrations, Ledger implementation, NG-12 or any other post-NG-S1 stage.
+
+**B. ADJUDICATED CONCLUSIONS**
+
+1. The integrated architecture is a non-linear, historically anchored semantic graph, not a mandatory lifecycle pipeline.
+2. Cross-stage cardinalities are compatible once the NG-S1A over-inferences are removed. Specifically:
+   - Mandate → represented-subject numeric cardinality was NOT established merely by singular wording.
+   - Represented-subject → Mandates numeric cardinality remains unselected.
+   - Commercial Arrangement → Agreement Snapshot permits multiple historical agreed states, but no universal 1..* lower bound was established.
+   - The Claim → represented-party Amount Determination lower bound must not be invented from the conditional "one or more" wording; a Claim may exist before quantification.
+   - "No multi-Arrangement claim" does not establish an unstated same-Arrangement cardinality on every Claim-basis Amount Determination edge.
+   These are corrections to the NG-S1A research interpretation, NOT changes to any prior canonical Decision.
+3. Receivable and Distribution Obligation remain semantically distinct. Receivable is an Arrangement-scoped collectible position. Distribution Obligation is a source-defined transfer/distribution/remittance/return position with distinct source, creation/due, hold, deduction and discharge semantics. The NG-11 D1 rejection and D2 acceptance survive composition. NG-10 Application and the NG-11 Cash Discharge Link remain distinct. A direction-neutral Payment can serve outbound discharge through its semantic role/context; no PaymentDirection field is required by the architecture.
+4. Commission retention does not create duplicate canonical authority. One source event may have distinct consequences on: the Representation-Economics Claim condition/state; a Receivable where one exists; Funds Holding / Control entitlement; Distribution Obligation amount/discharge. These are distinct semantic axes, not competing writers of one fact. NG-11 correction 19 is preserved: a source-defined net obligation does not require a fabricated non-cash discharge fact.
+5. NG-11 "counterclaim/fee/debt lineage" does not by itself require a new universal or neutral-core Debt primitive. It requires source-defined historical lineage/provenance where known. Existing source/provenance or existing facts may carry that lineage where applicable. No generic Debt, MonetaryClaim, Payable, Setoff or Settlement abstraction is added.
+6. A Commercial Arrangement with zero Mandate lineage remains legitimate under NG-5. Zero/unknown representation-authority provenance does not mean that a represented party or other role must be fabricated at Arrangement level. Existing downstream facts retain their own source-defined roles/provenance. No new universal Arrangement-participant or Party abstraction is introduced.
+7. Non-tenant / multiple claimant truth is already semantically expressible by NG-8: each Representation-Economics Claim has one claimant/representation-authority lineage, and distinct claimants/lineages produce distinct claims where justified. NG-S1A finding S1A-F06 is therefore adjudicated NO ISSUE for NG-S1. Delegated/sub-agency topology remains a pre-existing deferred semantic question; it is not a blocking cross-stage gap and this closure does not resolve it.
+8. Claim source-defined payable/due conditions and Receivable due/payability truth remain distinct: Claim-side payability concerns the representation-economics entitlement condition; Receivable-side due truth concerns a particular crystallized collectible position. Coincident dates/conditions do not create dual authority.
+9. No other NG-S1A candidate contradiction, overlap or genuine semantic gap survived NG-S1B falsification. The NO ISSUE results include the terminal distinctions among: Agreement Snapshot vs Amount Determination; Amount Determination realization vs Receivable; Payment vs Application; Payment reversal vs refund/recovery; Holding/Control vs Distribution Obligation; Application vs Cash Discharge Link; source-defined non-cash satisfaction vs cash; Arrangement-scoped economic facts vs source-defined client-level Distribution Obligations.
+10. The complete material correction chain already carried by `DECISION-20261001-001`, including inherited corrections 1–19, remains unchanged and binding.
+11. Vertical neutrality remains intact. No third vertical or new vertical survey was required.
+12. The implementability existence test passes only at the abstract existence level: at least one plausible history-preserving typed-fact / typed-association implementation family can preserve all terminal contracts simultaneously. This selects NO schema, persistence model, API, class model or storage technology.
+13. The operator-comprehensibility existence test passes: the semantic architecture can support future truthful operator presentation without requiring ontology leakage, provided distinct semantic roles, provenance, history, currency and unknown-vs-absence distinctions are preserved. This is NOT UI design and grants no UI authority.
+14. No Owner-reserved ambiguity remains inside the authorized NG-S1 Scope Lock. No additional substantive NG-S1 research prompt is presently required.
+15. Remaining open matters are: implementation mechanics already intentionally open in the terminal NG decisions; pre-existing deferred semantic questions that were not required to close NG-S1, including delegated/sub-agency topology and other items already listed in CURRENT-STATE; evidence-triggered reconsideration cases already recorded by terminal Decisions; selection/authorization of any post-NG-S1 stage, which remains an Owner decision.
+
+**C. EXIT-CRITERIA ADJUDICATION (`DECISION-20261001-001`)**
+
+1. One coherent concept graph for NG-1 through NG-11 — PASS.
+2. Mutually compatible cross-stage cardinalities — PASS, with the inference corrections in B.2.
+3. Roles/identities distinguishable without prohibited generic collapse — PASS.
+4. Compatible temporal/history semantics — PASS.
+5. Source-of-truth responsibility avoids dual authority — PASS.
+6. Apparent duplicates are justified as distinct; no real overlap remains — PASS.
+7. Candidate missing links are classified; none remains a genuine blocking semantic gap — PASS.
+8. History, provenance, unknown states and money/currency survive end-to-end — PASS.
+9. The vertical-neutral core remains neutral — PASS.
+10. At least one plausible implementation architecture exists — PASS at existence-only level, without implementation design.
+11. Future operator truth is semantically possible without ontology leakage or falsehood — PASS at semantic-existence level, without UI design.
+12. The remaining path is bounded — PASS.
+
+**D. SURVIVING FINDINGS BY CLASS**
+
+- CLOSED-DECISION CONTRADICTION: none.
+- SEMANTIC OVERLAP / DUPLICATION: none.
+- GENUINE MISSING SEMANTIC TRUTH: none.
+- IMPLEMENTATION-ONLY QUESTION: typed references for non-subject role holders (S1A-F15) and the standing implementation-open questions of the terminal NG decisions remain open.
+
+**E. CORRECTION CHAIN (S1A → S1B → CONTROL ROOM)**
+
+- S1A over-inferred the cardinalities listed in B.2; corrected as recorded there.
+- S1A-F02 (Receivable vs Distribution Obligation) was classified as overlap by S1A; adjudicated NO ISSUE (B.3).
+- S1A-F03 (commission retention) was classified as overlap by S1A; adjudicated NO ISSUE (B.4).
+- S1A-F04 (non-Arrangement debts) was classified as a missing semantic truth by S1A; adjudicated NO ISSUE (B.5).
+- S1A-F05 (represented party of an Arrangement without Mandate) was classified as a missing semantic truth by S1A; adjudicated NO ISSUE (B.6).
+- S1A-F06 (non-tenant / multiple claimants) was classified as a missing semantic truth by S1A and as implementation-only by S1B; adjudicated NO ISSUE for NG-S1, with delegated/sub-agency topology remaining a pre-existing deferred question (B.7).
+- S1A-F07 (Claim payability vs Receivable due) was classified as overlap by S1A; adjudicated NO ISSUE (B.8).
+- The material correction chain 1–19 carried by `DECISION-20261001-001` is unchanged.
+
+**F. PROMPT HISTORY**
+
+NG-S1 substantive research completed: NG-S1A (Integrated Canonical Model) and NG-S1B (Adversarial Coherence Falsification). NG-S1C: this terminal Control Room adjudication. Current estimated additional substantive prompts required to close NG-S1: 0. This historical result does not recreate any fixed prompt cap; prompt governance remains adaptive under `DECISION-20261001-001`.
+
+Scope: Conceptual architecture synthesis/coherence adjudication only. This decision does NOT authorize implementation; product code; schema/API/domain/client/UI expansion; persistence selection; migrations; Ledger implementation; NG-12; or any other post-NG-S1 stage. COHERENT is not an implementation approval.
+
+Evidence / provenance:
+- `DECISION-20261001-001` as the Owner authorization and exact Scope Lock that permitted NG-S1 and assigns NG-S1C terminal adjudication to the Control Room.
+- `DECISION-20260930-011` / `DELTA-20260930-010` as the superseded original NG-S1 authorization and its publication.
+- The CLOSED NG-1 through NG-11 terminal decisions: `DECISION-20260928-001` to `-004`; `DECISION-20260929-002`; `DECISION-20260929-005`; `DECISION-20260929-008`; `DECISION-20260930-001`; `DECISION-20260930-004`; `DECISION-20260930-006`; `DECISION-20260930-008`; `DECISION-20260930-010`.
+- `DECISION-20260930-003` as the recursive correspondence contract.
+- NG-S1A integrated canonical model and NG-S1B adversarial falsification, both read-only over canonical state at `2864f44295167187fda1b10fde2eb20007bbc957`.
+- Control Room terminal NG-S1C adjudication on 2026-10-01.
+- Claude reports are evidence inputs only. Claude is not architecture authority.
+
+Consequences:
+- Upon publication NG-S1 becomes CLOSED with architecture status COHERENT.
+- NG-1 through NG-11 terminal decisions are unchanged.
+- Implementation and explicitly deferred/reconsideration questions remain open.
+- No implementation or later-stage authority follows.
+- Explicit Owner stage selection/authorization is required before any post-NG-S1 research/design or implementation stage begins.
+
+Supersedes: None
+
+Unchanged:
+- `DECISION-20261001-001` remains ACTIVE as the Owner authorization and exact Scope Lock that permitted NG-S1.
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-11 terminal decisions remain unchanged.
+- All material correction chains remain intact.
+- `DECISION-20260930-003` remains the recursive correspondence contract.
+- Build-97 released product behavior remains unchanged.
+- No next-generation implementation exists.
+
+Open:
+- Implementation-open only: the implementation mechanics already intentionally open in the terminal NG decisions, including typed references for non-subject role holders.
+- Pre-existing deferred semantic questions not required to close NG-S1, including delegated/sub-agency topology and the other items listed in CURRENT-STATE.
+- Evidence-triggered reconsideration cases already recorded by terminal Decisions.
+- Selection/authorization of any post-NG-S1 stage, which remains an Owner decision.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
