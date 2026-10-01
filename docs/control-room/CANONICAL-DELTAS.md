@@ -2386,7 +2386,17 @@ Authority required:
 
 Adjudication: The Control Room independently reviewed the NG-S1A integrated canonical model and the NG-S1B adversarial falsification, applied the corrections recorded under Conflicts, adjudicated all twelve exit criteria of `DECISION-20261001-001` as PASS, and ACCEPTS the terminal architecture status COHERENT recorded as `DECISION-20261001-002`: no surviving closed-decision contradiction, semantic overlap or genuine missing semantic truth; no Owner-reserved ambiguity remains; no additional substantive NG-S1 research prompt is presently required. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20261001-002
+  Semantic basis: 167e40f455073adf383c572dc4b9846ff7e82e0b
+  CURRENT-STATE.next.md blob SHA-256: 0744b3c48eab9615acfae152b30ff0c0af298a7d6177630b9ff7b8d6e95edb77
+  PUBLICATION-PAYLOAD.json blob SHA-256: b91f4794112c0f20d96daa4c24a4458a8be30d686afcf83fc024a2645cc31dbd
+  Authorized: 2026-10-01T12:39:54Z
+  Reference: Adjudication of DELTA-20261001-002
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20261001-002` is added as the durable NG-S1 terminal coherence adjudication.
