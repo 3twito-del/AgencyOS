@@ -3428,4 +3428,4 @@ Open:
 
 Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
 
-Publication receipt: Pending
+Publication receipt: 57348f57ad677927078b54ab46c95cba86da397e on origin/operational-regression-gate; remote readback verified 2026-10-01T06:06:23Z

@@ -70,6 +70,7 @@ The closure register is not duplicated here.
 | NG-9 Receivable Crystallization & Collectibility Architecture | CLOSED | `DECISION-20260930-006` |
 | NG-10 Payment, Cash Application & Funds Provenance Architecture | CLOSED | `DECISION-20260930-008` |
 | NG-11 Distribution Obligation, Setoff & Outbound Settlement Architecture | CLOSED | `DECISION-20260930-010` |
+| NG-S1 Whole-System Architecture Synthesis & Coherence Gate | AUTHORIZED | `DECISION-20260930-011` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
@@ -86,6 +87,8 @@ NG-9 is CLOSED under `DECISION-20260930-006` after terminal Control Room archite
 NG-10 is CLOSED under `DECISION-20260930-008` after terminal Control Room architecture adjudication: a Payment is a distinct historical observed/reported cash-movement fact; Receivable and Payment remain distinct; Application is an independent historical association of a defined portion of one Payment to one Receivable, with zero or more Applications per Payment and per Receivable; partial Application is distinct from partial Receivable crystallization; current balances do not replace Application history; Application reversal does not reverse cash; refund/recovery involving cash movement is later historical cash truth; unapplied amount does not establish beneficial ownership or unrestricted availability; source-defined Funds Holding / Control semantics are required where beneficial entitlement or control differs from physical receipt, and no universal trust-account entity follows; payer, source-of-funds, recipient/conduit and beneficiary roles remain distinct where known; payment dates are source-specific where more than movement and recorded dates matter; deductions/withholdings are not universally cash Applications; Payment and Receivable currencies remain distinct and conversion provenance is preserved where applicable; Ledger/accounting remains downstream. P0 rejected, P1 accepted with refinement, P2 accepted with refinement, P3 rejected; implementation remains unselected. `DECISION-20260930-007` remains the Owner authorization and Scope Lock that permitted it. No implementation, product code, schema/API/domain expansion, migrations or NG-11 authorization follows.
 
 NG-11 is CLOSED under `DECISION-20260930-010` after terminal Control Room architecture adjudication: a source-defined Distribution Obligation is a distinct historical obligation/position to transfer, distribute, remit or return defined value to an entitled party, distinct from Funds Holding / Control, Payment, Receivable, Application and Ledger/accounting; outgoing cash reuses terminal NG-10 Payment, and Payment alone does not prove discharge; cash discharge requires a distinct obligation-specific historical Cash Discharge Link (one outgoing Payment, one Distribution Obligation, a defined portion), which is not NG-10 Application; source-defined non-cash reduction/satisfaction is preserved without fabricated Payment, and a source-defined net obligation needs no fabricated discharge fact; no universal Payable, Settlement, Setoff, Transaction or MoneyMovement; Ledger remains downstream. D0 rejected, D1 rejected, D2 accepted with refinement, D3 rejected; implementation remains unselected. `DECISION-20260930-009` remains the Owner authorization and Scope Lock that permitted it. No implementation, product code, schema/API/domain expansion, migrations or NG-12 authorization follows.
+
+NG-S1 — AUTHORIZED for research/design only under `DECISION-20260930-011`, which also locks its exact scope. NG-S1 is a whole-system synthesis/falsification gate over the closed NG-1 through NG-11 architecture; it is not NG-12 and adds no new domain capability. Substantive NG-S1 research has not yet begun; its substantive budget is 2 prompts (NG-S1A, NG-S1B), 0 consumed. Its terminal architecture status will be exactly one of COHERENT, COHERENT WITH TARGETED GAPS or NOT YET COHERENT. No implementation, product code, schema/API/domain/client/UI expansion, persistence selection or migrations follow, and NG-12 remains unauthorized.
 
 ## Closed architecture decisions
 
@@ -150,6 +153,7 @@ not duplicated here.
   - `DECISION-20260930-005`: Owner authorization and exact Scope Lock for NG-9 Receivable Crystallization & Collectibility Architecture, research/design only; no implementation/schema/API/domain expansion, migrations or NG-10 authority.
   - `DECISION-20260930-007`: Owner authorization and exact Scope Lock for NG-10 Payment, Cash Application & Funds Provenance Architecture, research/design only; no implementation/schema/API/domain expansion, migrations or NG-11 authority.
   - `DECISION-20260930-009`: Owner authorization and exact Scope Lock for NG-11 Distribution Obligation, Setoff & Outbound Settlement Architecture, research/design only; no implementation/schema/API/domain expansion, migrations or NG-12 authority.
+  - `DECISION-20260930-011`: Owner authorization and exact Scope Lock for NG-S1 Whole-System Architecture Synthesis & Coherence Gate, research/design only; no implementation/schema/API/domain/client/UI expansion, persistence selection, migrations or NG-12 authority.
 - Control Room governance:
   - `DECISION-20260930-003`: Recursive Control-Room Correspondence & Transition Contract.
 - Operational closure: the Owner decisions in force (D1–D5, Decision C and the others) are in closure state section 6, and the residual acceptance (C12, C14) in section 5. They are not migrated here.
@@ -191,6 +195,7 @@ not duplicated here.
 - NG-11 is a conceptual semantic architecture decision, derived from exact Build-97 predecessor inspection plus
   exactly Film/TV representation and live music / artist booking; the bounded primary evidence includes UK SI 2003/3319
   regulation 25 / Schedule 2 with a recorded temporal-currentness limitation; exact implementation remains unselected.
+- NG-S1 is authorized but no NG-S1 synthesis research has yet been canonically accepted.
 
 ## Forbidden work
 
@@ -209,14 +214,15 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**Obtain explicit Owner authorization before beginning any post-NG-11 stage, including NG-12.**
+**NG-S1A — Integrated Canonical Model: build the integrated concept model from the closed NG-1 through NG-11 decisions and identify candidate contradictions, overlaps, gaps and implementation-only questions, without inventing new semantics.**
 
-Until such Owner authorization is PUBLISHED:
-- do not begin NG-12 research/design;
-- do not implement NG-4 through NG-11 architecture;
-- no product/schema/API/domain expansion;
-- no migrations.
+Until NG-S1A begins under the published authorization:
+- research/design only;
+- no implementation of NG-4 through NG-11 architecture;
+- no product/schema/API/domain/client/UI expansion;
+- no persistence selection or migrations;
+- no NG-12.
 
 ## Latest published delta
 
-`DELTA-20260930-009`: PUBLISHED — NG-11 Distribution Obligation, Setoff & Outbound Settlement Architecture CLOSED under `DECISION-20260930-010`: a source-defined Distribution Obligation distinct from Funds Holding / Control and Payment, outgoing cash as ordinary Payment with obligation-specific Cash Discharge Links, source-defined non-cash reduction/satisfaction without fabricated Payment, and Ledger kept downstream; D0, D1 and D3 rejected, D2 accepted with refinement; no implementation, schema/API/domain, migration or NG-12 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20260930-010`: PUBLISHED — NG-S1 Whole-System Architecture Synthesis & Coherence Gate OWNER-AUTHORIZED and scope-locked for research/design only under `DECISION-20260930-011`; no synthesis research, coherence conclusion, implementation, schema/API/domain, migration or NG-12 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
