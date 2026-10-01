@@ -2351,11 +2351,11 @@ Publication receipt: f46012eb9abac2a635fe163530c0b51074dbfab4 on origin/operatio
 
 ## DELTA-20261001-002
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-10-01T12:34:06Z
 
-Published: Pending
+Published: 2026-10-01T12:42:24Z
 
 Sources:
 - Canonical branch state `2864f44295167187fda1b10fde2eb20007bbc957` on `operational-regression-gate`.
@@ -2436,4 +2436,4 @@ Forbidden implications: This delta does **not**:
 - approve migrations;
 - make Claude an architecture authority.
 
-Publication receipt: Pending
+Publication receipt: 8d3dc3d6eaeba931957285cba86f8a0272786c6b on origin/operational-regression-gate; remote readback verified 2026-10-01T12:42:24Z

@@ -70,7 +70,7 @@ The closure register is not duplicated here.
 | NG-9 Receivable Crystallization & Collectibility Architecture | CLOSED | `DECISION-20260930-006` |
 | NG-10 Payment, Cash Application & Funds Provenance Architecture | CLOSED | `DECISION-20260930-008` |
 | NG-11 Distribution Obligation, Setoff & Outbound Settlement Architecture | CLOSED | `DECISION-20260930-010` |
-| NG-S1 Whole-System Architecture Synthesis & Coherence Gate | AUTHORIZED | `DECISION-20261001-001` |
+| NG-S1 Whole-System Architecture Synthesis & Coherence Gate | CLOSED | `DECISION-20261001-002` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
@@ -88,7 +88,7 @@ NG-10 is CLOSED under `DECISION-20260930-008` after terminal Control Room archit
 
 NG-11 is CLOSED under `DECISION-20260930-010` after terminal Control Room architecture adjudication: a source-defined Distribution Obligation is a distinct historical obligation/position to transfer, distribute, remit or return defined value to an entitled party, distinct from Funds Holding / Control, Payment, Receivable, Application and Ledger/accounting; outgoing cash reuses terminal NG-10 Payment, and Payment alone does not prove discharge; cash discharge requires a distinct obligation-specific historical Cash Discharge Link (one outgoing Payment, one Distribution Obligation, a defined portion), which is not NG-10 Application; source-defined non-cash reduction/satisfaction is preserved without fabricated Payment, and a source-defined net obligation needs no fabricated discharge fact; no universal Payable, Settlement, Setoff, Transaction or MoneyMovement; Ledger remains downstream. D0 rejected, D1 rejected, D2 accepted with refinement, D3 rejected; implementation remains unselected. `DECISION-20260930-009` remains the Owner authorization and Scope Lock that permitted it. No implementation, product code, schema/API/domain expansion, migrations or NG-12 authorization follows.
 
-NG-S1 — AUTHORIZED for research/design only under `DECISION-20261001-001`, which locks its exact scope and supersedes `DECISION-20260930-011`, replacing only its fixed prompt-count mechanism. NG-S1 is a whole-system synthesis/falsification gate over the closed NG-1 through NG-11 architecture; it is not NG-12 and adds no new domain capability. Substantive NG-S1 research has not yet begun. Current estimated likely remaining substantive prompts: approximately 2; forecast only, not a cap, quota, authorization boundary, or stopping rule; revise when evidence changes the path. Its terminal architecture status will be exactly one of COHERENT, COHERENT WITH TARGETED GAPS or NOT YET COHERENT. No implementation, product code, schema/API/domain/client/UI expansion, persistence selection or migrations follow, and NG-12 remains unauthorized.
+NG-S1 is CLOSED under `DECISION-20261001-002` after terminal Control Room adjudication, with architecture status COHERENT: the CLOSED NG-1 through NG-11 architecture composes without unresolved cross-stage contradiction, duplicate semantic responsibility or genuine blocking missing semantic truth. NG-1 through NG-11 terminal decisions are unchanged and no domain concept is added. Implementation questions and explicitly deferred/reconsideration questions remain open. NG-S1 substantive research completed with NG-S1A and NG-S1B, and NG-S1C was the terminal Control Room adjudication; the estimated additional substantive prompts required to close NG-S1 is 0, a historical result that recreates no fixed prompt cap. `DECISION-20261001-001` remains the Owner authorization and Scope Lock that permitted it. No implementation, product code, schema/API/domain/client/UI expansion, persistence selection, migrations, NG-12 or other later-stage authority follows.
 
 ## Closed architecture decisions
 
@@ -104,6 +104,7 @@ NG-S1 — AUTHORIZED for research/design only under `DECISION-20261001-001`, whi
 - Receivable Crystallization & Collectibility Architecture: `DECISION-20260930-006`.
 - Payment, Cash Application & Funds Provenance Architecture: `DECISION-20260930-008`.
 - Distribution Obligation, Setoff & Outbound Settlement Architecture: `DECISION-20260930-010`.
+- Whole-System Architecture Synthesis & Coherence Gate, status COHERENT: `DECISION-20261001-002`.
 
 The decision text is in [`DECISIONS.md`](DECISIONS.md) and is not restated here.
 Operational-closure-specific decisions remain governed by the specialised closure record and are
@@ -195,7 +196,8 @@ not duplicated here.
 - NG-11 is a conceptual semantic architecture decision, derived from exact Build-97 predecessor inspection plus
   exactly Film/TV representation and live music / artist booking; the bounded primary evidence includes UK SI 2003/3319
   regulation 25 / Schedule 2 with a recorded temporal-currentness limitation; exact implementation remains unselected.
-- NG-S1 is authorized but no NG-S1 synthesis research has yet been canonically accepted.
+- NG-S1 synthesis/falsification is terminally adjudicated COHERENT; this is conceptual architecture evidence,
+  not implementation or operator validation.
 
 ## Forbidden work
 
@@ -214,15 +216,14 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**NG-S1A — Integrated Canonical Model: build the integrated concept model from the closed NG-1 through NG-11 decisions and identify candidate contradictions, overlaps, gaps and implementation-only questions, without inventing new semantics.**
+**Explicit Owner stage selection/authorization is required before any post-NG-S1 research/design or implementation stage begins. NG-12 remains unauthorized. Do not infer or invent the next stage from NG-S1 closure.**
 
-Until NG-S1A begins under the published authorization:
-- research/design only;
+Until such Owner authorization is PUBLISHED:
+- no post-NG-S1 research/design;
 - no implementation of NG-4 through NG-11 architecture;
 - no product/schema/API/domain/client/UI expansion;
-- no persistence selection or migrations;
-- no NG-12.
+- no persistence selection or migrations.
 
 ## Latest published delta
 
-`DELTA-20261001-001`: PUBLISHED — NG-S1 prompt-count governance corrected under `DECISION-20261001-001`, which supersedes `DECISION-20260930-011`: the fixed two-prompt budget is replaced by an adaptive forecast (approximately 2 remaining substantive prompts; never a cap, quota, authorization boundary or stopping rule); NG-S1 scope, prohibitions, exit states and the NG-12 boundary are unchanged; no implementation, schema/API/domain, migration or NG-12 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20261001-002`: PUBLISHED — NG-S1 Whole-System Architecture Synthesis & Coherence Gate CLOSED under `DECISION-20261001-002` with architecture status COHERENT: NG-1 through NG-11 compose without unresolved closed-decision contradiction, duplicate semantic responsibility or genuine blocking missing semantic truth; implementation and explicitly deferred questions remain open; no implementation, schema/API/domain, migration, NG-12 or other post-NG-S1 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
