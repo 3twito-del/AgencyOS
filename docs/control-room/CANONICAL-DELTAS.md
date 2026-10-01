@@ -2255,3 +2255,86 @@ Forbidden implications: This delta does **not**:
 - treat Claude as an authority.
 
 Publication receipt: f43d7fb261da87de7e3bb836d6c03b9fcd804478 on origin/operational-regression-gate; remote readback verified 2026-10-01T06:06:23Z
+
+## DELTA-20261001-001
+
+Status: ACCEPTED
+
+Detected: 2026-10-01T11:50:37Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner governance correction recorded as `DECISION-20261001-001`.
+- Canonical branch state `ab47d048e4816e19a04db3792e63a338d5596475` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+
+Prior claim: NG-S1 has an exactly-two-substantive-prompt budget under `DECISION-20260930-011` (consumed/remaining expressed as a fixed 0/2).
+
+Candidate/new claim: NG-S1 prompt count is adaptive under `DECISION-20261001-001`: the current estimate of likely remaining substantive prompts is approximately 2, but it is only a forecast and never a cap, quota, authorization boundary or stopping rule. `DECISION-20261001-001` is the governing Owner authorization and exact Scope Lock for NG-S1 and supersedes `DECISION-20260930-011`; NG-S1 remains AUTHORIZED for research/design only, with substantive research not yet begun.
+
+Claimed transition: NG-S1 AUTHORIZED WITH FIXED TWO-PROMPT BUDGET (`DECISION-20260930-011`) → NG-S1 AUTHORIZED WITH ADAPTIVE PROMPT FORECAST (`DECISION-20261001-001`).
+
+Scope: Prompt-count/governance mechanics only. No NG-S1 purpose, stage scope, prohibition, exit state or NG-12 boundary changes. Product code changed: NO. Implementation, schema, API, domain, client or UI changed: NO.
+
+Evidence:
+- Machine-verifiable canonical repository state: HEAD `ab47d048e4816e19a04db3792e63a338d5596475` (`Publish DELTA-20260930-010`); `DECISION-20260930-011` is ACTIVE / OWNER and published; `CURRENT-STATE.md` there records NG-S1 as AUTHORIZED under `DECISION-20260930-011` with a fixed 2-prompt budget, 0 consumed.
+- Trigger: explicit Owner governance correction replacing the fixed-prompt-count governance, recorded as `DECISION-20261001-001`.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- No product-code, schema, API, domain, client, UI or migration change is part of this transition.
+
+Conflicts: None. The correction chain is preserved: `DECISION-20260930-011` stays in the ledger unchanged except its `Status:` line, which becomes `SUPERSEDED by DECISION-20261001-001` at the seal; `DECISION-20261001-001` names it in `Supersedes:` and restates its complete authorization and Scope Lock, replacing only the fixed prompt-count mechanism.
+
+Authority required:
+- `OWNER`, for the governance correction and the supersession of the `OWNER` decision `DECISION-20260930-011`;
+- `CONTROL_ROOM`, for faithful normalization and publication planning;
+- machine-verifiable fact, for repository and publication facts.
+
+Adjudication: The Owner explicitly replaced the fixed-prompt-count governance of `DECISION-20260930-011` with the adaptive forecast rule recorded in `DECISION-20261001-001`, leaving every other part of the NG-S1 authorization and Scope Lock unchanged. The Control Room records that correction without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20261001-001` becomes the governing Owner authorization and exact Scope Lock for NG-S1.
+- `DECISION-20260930-011` becomes `SUPERSEDED by DECISION-20261001-001`; its content is preserved historically.
+- `CURRENT-STATE.md` cites `DECISION-20261001-001` for NG-S1 and replaces the fixed prompt-budget formulation with the adaptive forecast wording.
+- NG-S1A — Integrated Canonical Model remains the exact next bounded substantive action.
+
+Supersedes: The current-state claim that NG-S1 has a fixed two-prompt budget; `DECISION-20260930-011`, superseded by `DECISION-20261001-001`.
+
+Unchanged:
+- NG-S1 purpose, stage scope, prohibitions, exit states COHERENT / COHERENT WITH TARGETED GAPS / NOT YET COHERENT, and the NG-12 boundary.
+- NG-S1 remains AUTHORIZED, research/design only; substantive research has not begun.
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-11 terminal statuses remain unchanged.
+- Build 97 remains the released product identity.
+- All existing correction chains remain intact.
+- All implementation-open questions remain implementation-open.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- No product/schema/API/domain/client/UI behavior changes.
+- No migrations.
+- NG-12 remains unauthorized.
+
+Open / unresolved questions:
+- NG-S1A and NG-S1B evidence.
+- The terminal NG-S1 architecture status.
+- Revisions of the remaining-prompt estimate as evidence changes the path.
+- All implementation mechanics.
+- NG-12 and all later stages.
+
+Forbidden implications: This delta does **not**:
+- permit implementation;
+- authorize new capability;
+- widen the research scope;
+- grant NG-12 or later-stage authority;
+- approve schema/API/domain expansion;
+- approve client/UI expansion;
+- choose a persistence mechanism;
+- approve migrations;
+- claim that NG-S1A research has begun;
+- determine a terminal coherence status;
+- reopen NG-1 through NG-11;
+- treat Claude as an authority.
+
+Publication receipt: Pending
