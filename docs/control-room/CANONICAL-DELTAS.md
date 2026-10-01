@@ -2440,11 +2440,11 @@ Publication receipt: 8d3dc3d6eaeba931957285cba86f8a0272786c6b on origin/operatio
 
 ## DELTA-20261001-003
 
-Status: ACCEPTED
+Status: PUBLISHED
 
 Detected: 2026-10-01T14:18:21Z
 
-Published: Pending
+Published: 2026-10-01T15:39:28Z
 
 Sources:
 - Explicit Owner decision recorded as `DECISION-20261001-003`.
@@ -2525,4 +2525,4 @@ Forbidden implications: This delta does **not**:
 - claim that NG-U1A research has begun;
 - make Claude an architecture authority.
 
-Publication receipt: Pending
+Publication receipt: b104d56663fd11299381613a5d26c3847d49a527 on origin/operational-regression-gate; remote readback verified 2026-10-01T15:39:28Z

@@ -71,6 +71,7 @@ The closure register is not duplicated here.
 | NG-10 Payment, Cash Application & Funds Provenance Architecture | CLOSED | `DECISION-20260930-008` |
 | NG-11 Distribution Obligation, Setoff & Outbound Settlement Architecture | CLOSED | `DECISION-20260930-010` |
 | NG-S1 Whole-System Architecture Synthesis & Coherence Gate | CLOSED | `DECISION-20261001-002` |
+| NG-U1 Trusted Windows Product Update & Recovery Architecture | AUTHORIZED | `DECISION-20261001-003` |
 
 NG-4 is CLOSED under `DECISION-20260929-002` after terminal Control Room architecture adjudication. `DECISION-20260929-001` remains the Owner authorization that permitted its research/design. No implementation, product code, schema/API/domain expansion or NG-5 authorization follows.
 
@@ -89,6 +90,8 @@ NG-10 is CLOSED under `DECISION-20260930-008` after terminal Control Room archit
 NG-11 is CLOSED under `DECISION-20260930-010` after terminal Control Room architecture adjudication: a source-defined Distribution Obligation is a distinct historical obligation/position to transfer, distribute, remit or return defined value to an entitled party, distinct from Funds Holding / Control, Payment, Receivable, Application and Ledger/accounting; outgoing cash reuses terminal NG-10 Payment, and Payment alone does not prove discharge; cash discharge requires a distinct obligation-specific historical Cash Discharge Link (one outgoing Payment, one Distribution Obligation, a defined portion), which is not NG-10 Application; source-defined non-cash reduction/satisfaction is preserved without fabricated Payment, and a source-defined net obligation needs no fabricated discharge fact; no universal Payable, Settlement, Setoff, Transaction or MoneyMovement; Ledger remains downstream. D0 rejected, D1 rejected, D2 accepted with refinement, D3 rejected; implementation remains unselected. `DECISION-20260930-009` remains the Owner authorization and Scope Lock that permitted it. No implementation, product code, schema/API/domain expansion, migrations or NG-12 authorization follows.
 
 NG-S1 is CLOSED under `DECISION-20261001-002` after terminal Control Room adjudication, with architecture status COHERENT: the CLOSED NG-1 through NG-11 architecture composes without unresolved cross-stage contradiction, duplicate semantic responsibility or genuine blocking missing semantic truth. NG-1 through NG-11 terminal decisions are unchanged and no domain concept is added. Implementation questions and explicitly deferred/reconsideration questions remain open. NG-S1 substantive research completed with NG-S1A and NG-S1B, and NG-S1C was the terminal Control Room adjudication; the estimated additional substantive prompts required to close NG-S1 is 0, a historical result that recreates no fixed prompt cap. `DECISION-20261001-001` remains the Owner authorization and Scope Lock that permitted it. No implementation, product code, schema/API/domain/client/UI expansion, persistence selection, migrations, NG-12 or other later-stage authority follows.
+
+NG-U1 — AUTHORIZED for research/design only under `DECISION-20261001-003`, which also locks its exact scope. NG-U1 is a product-update and recovery architecture stage distinct from Self-Update V1, which remains the closed canonical-state detector/publisher mechanism. Substantive NG-U1 research has not yet begun. Current estimated likely remaining substantive prompts: approximately 2–4; forecast only, not a cap, quota, authorization boundary, or stopping rule; revise when evidence changes the path. This authorization does not change the released Build 97 product. No implementation, product code, schema/API/domain/client/UI change, migrations, release-pipeline redesign, installer/updater adoption or technology selection follow, and NG-12 remains unauthorized.
 
 ## Closed architecture decisions
 
@@ -155,6 +158,7 @@ not duplicated here.
   - `DECISION-20260930-007`: Owner authorization and exact Scope Lock for NG-10 Payment, Cash Application & Funds Provenance Architecture, research/design only; no implementation/schema/API/domain expansion, migrations or NG-11 authority.
   - `DECISION-20260930-009`: Owner authorization and exact Scope Lock for NG-11 Distribution Obligation, Setoff & Outbound Settlement Architecture, research/design only; no implementation/schema/API/domain expansion, migrations or NG-12 authority.
   - `DECISION-20261001-001`: governing Owner authorization and exact Scope Lock for NG-S1 Whole-System Architecture Synthesis & Coherence Gate, research/design only, with an adaptive prompt forecast that is never a cap; supersedes `DECISION-20260930-011`; no implementation/schema/API/domain/client/UI expansion, persistence selection, migrations or NG-12 authority.
+  - `DECISION-20261001-003`: Owner authorization and exact Scope Lock for NG-U1 Trusted Windows Product Update & Recovery Architecture, research/design only; no implementation, product/schema/API/domain/client/UI change, migrations, installer/updater adoption, technology selection or NG-12 authority.
 - Control Room governance:
   - `DECISION-20260930-003`: Recursive Control-Room Correspondence & Transition Contract.
 - Operational closure: the Owner decisions in force (D1–D5, Decision C and the others) are in closure state section 6, and the residual acceptance (C12, C14) in section 5. They are not migrated here.
@@ -198,6 +202,7 @@ not duplicated here.
   regulation 25 / Schedule 2 with a recorded temporal-currentness limitation; exact implementation remains unselected.
 - NG-S1 synthesis/falsification is terminally adjudicated COHERENT; this is conceptual architecture evidence,
   not implementation or operator validation.
+- NG-U1 is authorized but no NG-U1 research has yet been canonically accepted.
 
 ## Forbidden work
 
@@ -216,14 +221,16 @@ not duplicated here.
 
 ## Exact next bounded action
 
-**Explicit Owner stage selection/authorization is required before any post-NG-S1 research/design or implementation stage begins. NG-12 remains unauthorized. Do not infer or invent the next stage from NG-S1 closure.**
+**NG-U1A — Current Update/Release Path Truth: establish the authoritative current release, packaging, installation, distribution and existing-update-mechanism truth before any product-update architecture or technology is selected.**
 
-Until such Owner authorization is PUBLISHED:
-- no post-NG-S1 research/design;
-- no implementation of NG-4 through NG-11 architecture;
+Until NG-U1A begins under the published authorization:
+- research/design only;
+- no implementation, product code or release-pipeline change;
+- no installer/updater adoption or technology selection;
 - no product/schema/API/domain/client/UI expansion;
-- no persistence selection or migrations.
+- no migrations;
+- no NG-12.
 
 ## Latest published delta
 
-`DELTA-20261001-002`: PUBLISHED — NG-S1 Whole-System Architecture Synthesis & Coherence Gate CLOSED under `DECISION-20261001-002` with architecture status COHERENT: NG-1 through NG-11 compose without unresolved closed-decision contradiction, duplicate semantic responsibility or genuine blocking missing semantic truth; implementation and explicitly deferred questions remain open; no implementation, schema/API/domain, migration, NG-12 or other post-NG-S1 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
+`DELTA-20261001-003`: PUBLISHED — NG-U1 Trusted Windows Product Update & Recovery Architecture OWNER-AUTHORIZED and scope-locked for research/design only under `DECISION-20261001-003`; no research, architecture or technology conclusion, implementation, schema/API/domain, migration or NG-12 authority follows. See `CANONICAL-DELTAS.md` for the publication receipt.
