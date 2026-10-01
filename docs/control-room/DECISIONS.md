@@ -3730,3 +3730,86 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
 
 Publication receipt: 167e40f455073adf383c572dc4b9846ff7e82e0b on origin/operational-regression-gate; remote readback verified 2026-10-01T12:42:24Z
+
+## DECISION-20261001-003
+
+Status: ACTIVE
+
+Date: 2026-10-01
+
+Authority: OWNER
+
+Question: Whether to authorize NG-U1 — Trusted Windows Product Update & Recovery Architecture for bounded research/design under the Control Room's proposed Scope Lock.
+
+Decision: The Owner authorizes **NG-U1 — Trusted Windows Product Update & Recovery Architecture** for research/design only under the exact Scope Lock below. The Owner's words: "מאשר לפתוח NG-U1 — Trusted Windows Product Update & Recovery Architecture, research/design only, לפי ה-Scope Lock שהצעת."
+
+**PURPOSE**
+
+The stage exists to establish an architecture in which there is no known unexplained gap between a trustworthy AgencyOS release and a normal Windows operator receiving the correct authentic compatible version, safely updating it without data loss or mixed-version ambiguity, understanding the update state, and recovering safely when completion is impossible.
+
+**SCOPE LOCK**
+
+- Current-path truth: establish exactly how Build 97 and the current post-Build-97 repository produce, identify, package, distribute, install and expose AgencyOS to a Windows operator, including whether any partial product updater already exists. Do not infer absence from incomplete search.
+- Trust chain: determine the required authoritative release source, version/build identity, artifact authenticity/integrity/provenance requirements, tamper rejection, and protection against unauthorized downgrade or replay. SBOM/signing/hash mechanisms are research subjects only where evidence requires them; no implementation technology is selected by this authorization.
+- Compatibility and preflight: define the truths that an update mechanism must establish before mutation, including where applicable Windows/runtime/CPU architecture, API-contract compatibility, schema/data compatibility, disk, permissions, running processes and other blockers. Unknown/error/blocking states must remain explicit.
+- Atomicity and interruption safety: the architecture must not permit an update to be reported as successful while leaving an unexplained mixed-version installation. Network loss, process crash, power loss, locked files, restart boundaries and partial mutation must lead to a deterministically recognizable safe continuation or recovery state.
+- Data and schema safety: migration failure cannot be collapsed into update success. Rollback is permitted only where executable, schema and data are genuinely rollback-safe; otherwise the architecture must preserve forward-recovery truth. An older executable must not silently resume against an incompatible newer schema.
+- Recovery: define a known-good recovery model, idempotent retry/resume expectations, failed-launch or failed-health-check recovery, and an operator recovery path where automation cannot safely complete.
+- Windows operator truth: a normal Windows operator must be able to discover whether an update exists, what version is involved, where it came from, what state it is in, whether action is required, and what happened after failure, without Git/API/developer knowledge. The architecture must preserve meaningful distinctions such as checking, unknown/error, up-to-date, available, downloading, verifying, installing, restart-required, failed and recovering where those states genuinely apply.
+- Accessibility: any update/recovery interaction required of a normal Windows operator must be discoverable and accessible. API-only, test-only or log-only proof does not establish Windows operator capability.
+- Post-update proof: "Success" must require evidence of the version actually running plus the applicable artifact identity, compatibility/schema expectations and a bounded health check. Update attempts and outcomes must leave durable evidence sufficient to distinguish success, failure and unresolved state.
+- Privilege and security: define explicit privilege/elevation boundaries, least-privilege expectations, trusted execution boundaries and prevention of execution from untrusted or insufficiently verified update material. No silent authority escalation.
+- Lifecycle: research supported upgrade paths, too-old-to-upgrade states, repair/reinstall/uninstall interaction and any version-transition constraints required to avoid ambiguous unsupported paths.
+- Adversarial validation: the terminal architecture must be falsified against at least clean upgrade, corrupt/tampered artifact, interrupted transfer/install, disk exhaustion, denied elevation, locked files, crash/power interruption, migration failure, failed health check and restart-required paths, followed where applicable by isolated blind Windows-operator validation.
+
+**SCOPE BOUNDARIES**
+
+This authorization is research/design only. It does NOT authorize: implementation; product-code changes; schema/API/domain/client/UI changes; migrations; release-pipeline redesign; installer/updater adoption; MSIX, MSI, Velopack, Squirrel or any other technology selection; signing infrastructure procurement; automatic-update rollout; new business capability; NG-12; reopening NG-S1; reopening Self-Update V1; or any unrelated architecture stage.
+
+Self-Update V1 remains the closed canonical-state detector/publisher mechanism. NG-U1 is a distinct product-update/recovery architecture stage and must not redefine Self-Update V1. NG-S1 remains CLOSED and COHERENT under `DECISION-20261001-002`. Implementation authority remains absent.
+
+**RESEARCH GOVERNANCE**
+
+Prompt count is adaptive. No fixed maximum number of research, review, adjudication or Claude prompts is encoded by this decision; any estimate of remaining substantive prompts is a forecast only, never a cap, quota, authorization boundary or stopping rule.
+
+**NEXT SUBSTAGE**
+
+After and only after this authorization is fully PUBLISHED and independently verified, the exact next bounded substantive action is NG-U1A — Current Update/Release Path Truth: establish the authoritative current release, packaging, installation, distribution and existing-update-mechanism truth before any product-update architecture or technology is selected.
+
+Scope: Research/design only. NO authority for implementation, product code, schema/API/domain/client/UI changes, migrations, release-pipeline redesign, installer/updater adoption, technology selection, signing procurement, automatic-update rollout, new business capability or NG-12.
+
+Evidence / provenance:
+- Explicit Owner authorization on 2026-10-01, transmitted by the Control Room: "מאשר לפתוח NG-U1 — Trusted Windows Product Update & Recovery Architecture, research/design only, לפי ה-Scope Lock שהצעת."
+- `DECISION-20261001-002` / `DELTA-20261001-002` as the terminal NG-S1 basis (CLOSED, COHERENT), after which explicit Owner stage selection was required.
+- `DECISION-20260930-003` as the active Recursive Control-Room Correspondence & Transition Contract.
+- Claude is recorder/executor only, not decision authority.
+
+Consequences:
+- Once this Owner decision is PUBLISHED, NG-U1 is AUTHORIZED and SCOPE-LOCKED for research/design only.
+- NG-U1A — Current Update/Release Path Truth becomes the exact next bounded substantive action.
+- No implementation authority follows.
+- NG-12 remains unauthorized.
+
+Supersedes: The active current-state claim that no post-NG-S1 stage is authorized. It supersedes no prior Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE and unchanged.
+- NG-1 through NG-11 remain CLOSED.
+- NG-S1 remains CLOSED and COHERENT under `DECISION-20261001-002`.
+- `DECISION-20261001-001` remains the Owner authorization that permitted NG-S1.
+- `DECISION-20260930-003` remains the recursive correspondence contract.
+- Build 97 release identity is not changed by this governance publication.
+- No product, schema, API, domain, client, UI or migration semantics change.
+
+Open:
+- Current update/release-path truth.
+- Whether a partial product updater already exists.
+- Product-update architecture choices.
+- Trust, atomicity, compatibility, recovery and operator-validation design.
+- Implementation technology and implementation authorization.
+- NG-12 and all other later stages.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending

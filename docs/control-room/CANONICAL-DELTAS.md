@@ -2437,3 +2437,82 @@ Forbidden implications: This delta does **not**:
 - make Claude an architecture authority.
 
 Publication receipt: 8d3dc3d6eaeba931957285cba86f8a0272786c6b on origin/operational-regression-gate; remote readback verified 2026-10-01T12:42:24Z
+
+## DELTA-20261001-003
+
+Status: ACCEPTED
+
+Detected: 2026-10-01T14:18:21Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner decision recorded as `DECISION-20261001-003`.
+- Canonical branch state `625ca57ed633217149793043e8abdfa3bf5d7010` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+
+Prior claim: NG-S1 is CLOSED/COHERENT; no NG-U1 stage is canonically authorized; no product-update implementation authority exists.
+
+Candidate/new claim: The Owner has authorized NG-U1 — Trusted Windows Product Update & Recovery Architecture for bounded research/design only under `DECISION-20261001-003` and its Scope Lock. NG-U1A — Current Update/Release Path Truth is the next substantive action only after full publication.
+
+Claimed transition: NO POST-NG-S1 STAGE AUTHORIZED → NG-U1 OWNER-AUTHORIZED / SCOPE-LOCKED FOR RESEARCH/DESIGN ONLY.
+
+Scope: Authorization and Scope Lock only. This transition performs no NG-U1 research and makes no architecture or technology conclusion. Product code changed: NO. Implementation, schema, API, domain, client or UI changed: NO.
+
+Evidence:
+- Trigger: explicit Owner authorization on 2026-10-01, recorded verbatim in `DECISION-20261001-003`.
+- Machine-verifiable canonical repository state: HEAD `625ca57ed633217149793043e8abdfa3bf5d7010` (`Publish DELTA-20261001-002`); `CURRENT-STATE.md` there records NG-S1 as CLOSED under `DECISION-20261001-002` with architecture status COHERENT and requires explicit Owner stage selection before any post-NG-S1 stage; no NG-U1 authorization exists.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- No product-code, schema, API, domain, client, UI or migration change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `OWNER`, for the NG-U1 authorization and its exact Scope Lock;
+- `CONTROL_ROOM`, for faithful normalization and publication planning;
+- machine-verifiable fact, for repository and publication facts.
+
+Adjudication: The Owner explicitly authorized NG-U1 for research/design only under the Control Room's proposed Scope Lock — purpose, current-path truth, trust chain, compatibility and preflight, atomicity and interruption safety, data and schema safety, recovery, Windows operator truth, accessibility, post-update proof, privilege and security, lifecycle, adversarial validation, scope boundaries, adaptive research governance and the NG-U1A next substage. The Control Room records that authorization without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20261001-003` becomes the durable Owner authorization and exact Scope Lock for NG-U1.
+- `CURRENT-STATE.md` records NG-U1 Trusted Windows Product Update & Recovery Architecture as AUTHORIZED under `DECISION-20261001-003`, with substantive research not yet begun.
+- The exact next bounded action becomes NG-U1A — Current Update/Release Path Truth.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that no post-NG-S1 stage is authorized. It supersedes no Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE and unchanged.
+- NG-1 through NG-11 remain CLOSED.
+- NG-S1 remains CLOSED/COHERENT.
+- Build 97 release identity is not changed by this governance publication.
+- No implementation authority is granted.
+- No product, schema, API, domain, client, UI or migration semantics change.
+- NG-12 remains unauthorized.
+
+Open / unresolved questions:
+- Current update/release-path truth.
+- Whether a partial product updater already exists.
+- Product-update architecture choices.
+- Trust, atomicity, compatibility, recovery and operator-validation design.
+- Implementation technology and implementation authorization.
+
+Forbidden implications: This delta does **not**:
+- permit implementation;
+- approve product-code changes;
+- approve schema/API/domain expansion;
+- approve client/UI expansion;
+- approve migrations;
+- adopt an installer or updater;
+- redesign the release pipeline;
+- select an update technology;
+- grant NG-12 or later-stage authority;
+- reopen NG-1 through NG-11, NG-S1 or Self-Update V1;
+- claim that NG-U1A research has begun;
+- make Claude an architecture authority.
+
+Publication receipt: Pending
