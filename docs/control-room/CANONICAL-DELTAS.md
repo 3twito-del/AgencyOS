@@ -2292,7 +2292,17 @@ Authority required:
 
 Adjudication: The Owner explicitly replaced the fixed-prompt-count governance of `DECISION-20260930-011` with the adaptive forecast rule recorded in `DECISION-20261001-001`, leaving every other part of the NG-S1 authorization and Scope Lock unchanged. The Control Room records that correction without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20261001-001
+  Semantic basis: 6effd8e2895d9ac694dd1f35b3d64447349a04a8
+  CURRENT-STATE.next.md blob SHA-256: de01f362e53a5a548768023d1132012a54afddf262900781445c14886c03c93d
+  PUBLICATION-PAYLOAD.json blob SHA-256: dc2a438070e6ed4af9ab7cfc946ec10c6804a7884fc09a17d41701376b37d0b5
+  Authorized: 2026-10-01T11:57:25Z
+  Reference: Adjudication of DELTA-20261001-001
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20261001-001` becomes the governing Owner authorization and exact Scope Lock for NG-S1.
