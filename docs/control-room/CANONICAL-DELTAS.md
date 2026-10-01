@@ -2012,7 +2012,17 @@ Authority required:
 
 Adjudication: The Owner explicitly approved the Control Room's complete NG-11 stage definition — bounded question, in-scope and out-of-scope items, closed distinctions, hypotheses D0–D3 with none accepted, the two-vertical research boundary, substages NG-11A–D, exit criteria, prompt budget and authority boundary — for research/design only. The Control Room records that approval without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20260930-008
+  Semantic basis: c1e2256fbf9820ac2e27b090d61c0b1d9dc8705e
+  CURRENT-STATE.next.md blob SHA-256: 89c160123705d7f36f83afce58afa1691df8cc15229f7a5007a7bd76a276e094
+  PUBLICATION-PAYLOAD.json blob SHA-256: 3687b388d20a6ddffae06f37d809091bea37a3e45c24e3a1944248fb3bf992a6
+  Authorized: 2026-10-01T01:04:28Z
+  Reference: Adjudication of DELTA-20260930-008
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260930-009` becomes the durable Owner authorization and exact Scope Lock for NG-11.
