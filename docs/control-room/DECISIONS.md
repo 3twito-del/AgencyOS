@@ -3081,3 +3081,189 @@ Open:
 Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
 
 Publication receipt: c1e2256fbf9820ac2e27b090d61c0b1d9dc8705e on origin/operational-regression-gate; remote readback verified 2026-10-01T01:08:06Z
+
+## DECISION-20260930-010
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: CONTROL_ROOM
+
+Question: Terminal adjudication of NG-11 — Distribution Obligation, Setoff & Outbound Settlement Architecture under `DECISION-20260930-009`: what domain truth, if any, is required to represent an obligation to distribute/transfer/return money to an entitled party, authorized retention or setoff, and satisfaction/discharge of that obligation through cash movement or without cash movement, before downstream Ledger/accounting projection?
+
+Decision: NG-11 — Distribution Obligation, Setoff & Outbound Settlement Architecture is terminally adjudicated as follows.
+
+**A. TERMINAL HYPOTHESIS DISPOSITIONS**
+
+- D0 — HOLDING-ONLY: REJECTED. Funds Holding / Control describes custody, control, beneficial-account status, restrictions, release/entitlement and return conditions. It does not by itself truthfully represent an independently continuing source-defined duty to distribute, remit, transfer or return value, including due, partial-satisfaction and non-cash-satisfaction truth.
+- D1 — SYMMETRIC PAYABLE: REJECTED. A distinct outward obligation/position is justified, but the bounded evidence does not support substantially mirroring Receivable. The outward position has materially different source, parties, creation/due triggers, holds, deduction authority and non-cash discharge behavior. No artificial inbound/outbound symmetry is created.
+- D2 — SOURCE-DEFINED DISTRIBUTION OBLIGATION: ACCEPTED WITH REFINEMENT. Accepted form: a source-defined Distribution Obligation is a distinct historical economic/legal/commercial obligation or position requiring an obligor/distributor to transfer, distribute, remit or return defined value to an entitled party. It is distinct from Payment, Receivable, Application, Funds Holding / Control and Ledger/accounting. Actual outgoing cash reuses terminal NG-10 Payment semantics. Payment by itself does not prove discharge of a Distribution Obligation; a distinct historical cash-discharge association is required where source truth says a defined portion of an outgoing Payment satisfies a defined Distribution Obligation. Non-cash retention, deduction, withdrawal, offset or setoff is preserved as source-defined obligation-reduction/satisfaction truth where the source actually makes it such a fact. No cash Payment may be fabricated for a non-cash event. No universal Setoff/Adjustment taxonomy is imposed. A non-cash discharge fact is not fabricated merely because gross and net differ: a source may define the Distribution Obligation itself as a net position, and the source-defined formation and reduction semantics are preserved.
+- D3 — GENERIC SETTLEMENT PRIMITIVE: REJECTED. Receipt, custody/control, beneficial entitlement, Distribution Obligation, cash Payment, cash-discharge association, non-cash reduction/satisfaction, refund/recovery and Ledger projection remain materially distinct. No universal Settlement, Transaction or MoneyMovement is justified.
+
+**B. DISTRIBUTION OBLIGATION DEFINITION**
+
+A Distribution Obligation is:
+- source-defined;
+- a distinct obligation/position, not merely an account balance;
+- one independently meaningful payable/distributable/return position under one coherent source-defined treatment;
+- historically anchored to its authority/provenance;
+- capable of existing separately from physical custody/control.
+
+It may require transfer/distribution/remittance/return to: a represented party; an original payer/hirer; another source-defined entitled party; a directed payee where the beneficiary/creditor remains distinct. Unknown remains unknown. No universal creation trigger exists.
+
+**C. HOLDING / CONTROL BOUNDARY**
+
+Funds Holding / Control and Distribution Obligation are separate semantic axes. Holding / Control preserves, where material: possession/custody; holder/controller; party for whose account/benefit money is held; ownership/beneficial entitlement; restrictions; release/entitlement conditions; return/refund conditions; historical transitions. Distribution Obligation preserves the duty to deliver/transfer/return value. Therefore:
+- Holding may exist before any Distribution Obligation to the represented party exists.
+- A refundable payer/hirer deposit may be held for the payer before the represented party becomes entitled.
+- A source-defined entitlement transition may occur without cash movement and may create/change a Distribution Obligation; no Payment is fabricated for that transition.
+- A Distribution Obligation may continue even where custody/control facts change.
+
+**D. EXISTENCE / DUE / RELEASE**
+
+No universal lifecycle is imposed. Keep distinct where source truth requires: obligation existence/authority; determinability of amount; release/payability; due status/date; satisfaction/discharge. A source may trigger these by receipt; clearance; completion; client request; entitlement conversion; expiry/resolution of a dispute/hold; or another historically anchored source-defined event. Due rule and provenance are distinct from a resolved due date.
+
+**E. AMOUNT / CURRENCY**
+
+Preserve amount/value where known; currency; unknown/conditional amount truth; source-defined gross/net basis where material; contribution lineage. Money preserves currency. No FX engine. If future cross-currency discharge is source-defined, preserve payment-side and obligation-side amount/currency plus conversion provenance when known, without selecting an exchange-rate policy.
+
+**F. SCOPE / CARDINALITY**
+
+One Distribution Obligation represents one independently meaningful source-defined position. It may depend on one or more Arrangement-, engagement-, receipt-, Application-, Holding/Control-, Claim- or other source-linked contributions only where the governing source genuinely treats those contributions as one payable/distributable position. Exactly one Arrangement is not forced when a source defines one client-level net position. Contribution lineage is preserved so aggregation never erases which underlying facts contributed. Differing obligor, beneficiary/creditor, currency, governing authority, due/release treatment, or independently meaningful distribution treatment normally requires separate obligations unless the source explicitly defines one combined position.
+
+**G. ROLES**
+
+Keep distinct where known: Distribution obligor / distributor; beneficiary / creditor / entitled party; holder / controller / custodian; original payer; source of funds; outbound payer; actual payee / directed recipient. None of these is universally equated with another.
+
+**H. CASH DISCHARGE**
+
+Outgoing cash is ordinary terminal-NG-10 Payment. Payment alone does NOT assert Distribution Obligation satisfaction. Where outgoing cash satisfies a Distribution Obligation, a distinct historical Cash Discharge Link (conceptual name only; no persistence choice) is preserved. Each Cash Discharge Link:
+- references exactly one outgoing Payment;
+- references exactly one Distribution Obligation;
+- states the defined portion/value satisfied;
+- preserves currency/value semantics;
+- preserves effective/source provenance where known.
+
+A Payment may have zero or more Cash Discharge Links. A Distribution Obligation may have zero or more Cash Discharge Links. Partial and multiple distributions are therefore representable, and many-to-many behavior can exist through link facts where source evidence requires it. The Cash Discharge Link is NOT NG-10 Application; the terminal Payment→Receivable Application semantic is neither broadened nor reopened.
+
+**I. NON-CASH REDUCTION / SATISFACTION**
+
+Where source authority says an obligation is reduced/satisfied without a cash movement, that is preserved as source-defined historical non-cash reduction/satisfaction truth. Examples evidenced in the bounded research include: commission retention/deduction; authorized fee/expense withdrawal; due-debt offset/setoff; source-defined internal entitlement/account transfer. Preserve where known: amount/currency; authority; effective fact/date; counterclaim/fee/debt lineage; beneficiary/obligor consequences; reason/provenance. No Payment is fabricated. No universal Setoff, DistributionAdjustment or Settlement taxonomy is created. A source that defines the payable obligation as net from inception does not require a fabricated discharge event merely to reconstruct gross-to-net arithmetic.
+
+**J. PARTIAL / HOLDS / DISPUTES**
+
+A source may make part currently payable, part held/restricted/disputed, and part already discharged. These are not collapsed into one balance/status. A hold may affect releasability/payability without erasing obligation existence.
+
+**K. CORRECTION / REVERSAL / HISTORY**
+
+Historical truth is not silently rewritten. Keep distinct: Payment reversal; Cash Discharge Link reversal/correction; non-cash reduction/satisfaction reversal/correction; Holding/Control transition; later refund/recovery cash movement. Reversing a discharge association does not itself reverse cash. Reversing/correcting a non-cash fact does not fabricate cash. Refund/recovery involving actual cash movement is later Payment truth.
+
+**L. LEDGER / ACCOUNTING BOUNDARY**
+
+Ledger/accounting/client-account records are downstream projection/evidence. An account named ClientFundsPayable, trust/client account, escrow account, payable or similar does not by itself establish: Distribution Obligation existence; beneficial ownership; custody/control; current payability; discharge; beneficiary; source-defined due truth. No Ledger architecture, chart of accounts or journal-entry design is selected by NG-11.
+
+**M. BUILD-97 PREDECESSOR DISPOSITION**
+
+Bounded predecessor findings, recorded without promotion to authority:
+- Build 97 has PaymentDirection.Outgoing but no separate distribution-obligation target or discharge semantics.
+- PaymentAllocation targets Receivable and is unsafe as an outbound-discharge model.
+- ClientFundsPayable is an accounting projection, not a trustworthy domain measure of currently distributable client money.
+- Build-97 commission retention is represented primarily through ledger posting rather than a source-defined distribution/setoff fact.
+- Query-side collected commission and historical commission postings can diverge.
+- PaymentMethod.Offset exists but carries no proved distinct non-cash setoff semantic and sits inside a Payment concept defined as money that actually moved.
+- Build-97 limitations are predecessor evidence only.
+
+**N. EXTERNAL EVIDENCE BOUNDARY**
+
+NG-11B researched exactly: 1. Film/TV representation; 2. Live music / artist booking. Primary-source load-bearing evidence independently verified by the Control Room includes:
+- Film/TV: California DLSE, Laws Relating to Talent Agencies, Rev. 1/25, Labor Code §1700.25 — receipt into trust account; distribution less commission within 30 days; due-and-owing offset; dispute hold; disposition records. WGA Rider W (2021), Sections 3–4 — commission payable on receipt; agent may deduct commission; promptly remit remainder; writer-owned funds; deductions for other authorized representatives, past commission, loans/advances; separate client/trust account. UK Conduct of Employment Agencies and Employment Businesses Regulations 2003, Regulation 25 / Schedule 2, used with the temporal caveat below.
+- Live music: AFM Booking Agent Agreement — purchaser deposits/advances held in separate escrow for Member(s) until completion; separate commission obligation; statement of receipts, disbursements and net amount owed. California §1700.25 applies within the talent-agency regime to entertainment artists including musicians. UK Regulation 25 / Schedule 2 includes actor/musician/singer and related occupations under Schedule 3.
+
+Sources not independently re-verified by the Control Room are not overstated as load-bearing. DGA/SAG timing details, AFM Bylaws conflicts and example performance contracts remain bounded supporting research evidence and are not necessary for the terminal disposition.
+
+UK temporal caveat: the Control Room directly verified the original/as-made 2003 Regulation 25 and Schedule 2 text and found a 2026 consequential amendment that changes regulations 13A and 29, not regulation 25. The Control Room did NOT independently prove the complete consolidated amendment history of every Regulation 25 clause through 2026. Every quoted 2003 clause is therefore not labelled as independently proven consolidated-current 2026 text; it is strong primary statutory evidence with this explicit temporal-currentness limitation.
+
+**O. MATERIAL CORRECTION CHAIN**
+
+Inherited chains are preserved: NG-6 under `DECISION-20260929-008`; NG-7 under `DECISION-20260930-001`; NG-8 §S under `DECISION-20260930-004`; NG-9 §W under `DECISION-20260930-006`; the full NG-10 chain under `DECISION-20260930-008` §W.
+
+NG-10 / inherited material corrections:
+1. Build-97 finance query truth is in src/AgencyOS.Infrastructure/Persistence/Queries/FinanceQueries.cs, not the initially suggested Application query path.
+2. Positive Build-97 Unapplied is direction-blind and does not prove available incoming cash.
+3. Payment reversal and Application reversal are distinct historical mechanisms.
+4. PaymentAdjustment is a Receivable-side deduction, not Payment correction.
+5. Application reversal is not proved to restore every downstream consequence, including commission consequences.
+6. Unapplied Payment arithmetic does not establish beneficial ownership, control, refundability or restriction.
+7. Receipt by a conduit and actual beneficiary receipt may be different events.
+8. Where ownership/control/release differs from possession, Payment alone is insufficient; Funds Holding / Control semantics are required.
+9. Refund/recovery of money that actually moved is later cash truth, not merely reversal.
+10. Payment date is not one universal timestamp; source-defined dates remain distinct where material.
+11. Application may be rule-governed and challengeable, not merely arithmetic.
+12. Held-funds semantics do not create a universal TrustAccount, Escrow or persisted HeldFunds entity.
+13. A holding/control entitlement transition may occur without another cash movement; do not fabricate Payment.
+
+NG-11A Control Room corrections:
+14. ClientFundsPayable is not reduced only by commission or manual journals; cancelling a Receivable reverses the ReceivableRaised recognition entry and therefore reverses its ClientFundsPayable credit.
+15. Build 97 contains PaymentMethod.Offset, but no distinct setoff semantics were proved for it; it is only a method value inside Payment and must not be promoted as a non-cash setoff fact.
+16. Neither Build-97 commission query projection nor ledger posting is universal domain truth. The query aggregates currently applied allocations; commission postings are incremental and can survive allocation reversal, so the two can diverge.
+
+NG-11C Control Room corrections:
+17. NG-11B's description of UK SI 2003/3319 simply as "current" was too strong. The explicit temporal-currentness limitation above is preserved.
+18. A currently-due Distribution Obligation is a position/obligation, not itself a "historical act". Creation, due/release transitions and discharge/correction facts are historical events/facts.
+19. A distinct non-cash discharge record is not required for every gross-to-net difference. A distinct historical reduction/satisfaction fact is preserved only when source semantics establish one; a source-defined net obligation may be net from formation.
+
+**P. RECONSIDERATION TRIGGERS**
+
+Reconsider this architecture only on concrete evidence such as:
+1. A source whose truth cannot be represented without contradiction by Distribution Obligation + NG-10 Payment + Cash Discharge Link + optional source-defined non-cash reduction/satisfaction + Holding/Control.
+2. A concrete source proving outgoing cash has material semantics that terminal NG-10 Payment cannot represent.
+3. A source-defined multilateral/bilateral netting arrangement whose atomic truth cannot be represented through bounded obligation-specific non-cash satisfaction facts without losing legally/commercially material relationships.
+4. A concrete source proving one indivisible distribution position must span otherwise independently distinct beneficiaries/obligors/currencies/treatments and cannot preserve truth through contribution lineage.
+5. A source proving Distribution Obligation is semantically identical to Funds Holding / Control across all material obligation, due and discharge dimensions, rather than merely correlated with it.
+
+Do not reopen on naming preference or implementation convenience.
+
+**Q. TERMINAL STATUS / AUTHORITY BOUNDARY**
+
+Upon successful canonical publication: NG-11 becomes CLOSED; D0 is REJECTED; D1 is REJECTED; D2 is ACCEPTED WITH REFINEMENT; D3 is REJECTED; no NG-11B2 is required; no Owner-reserved ambiguity remains inside the NG-11 Scope Lock; all implementation mechanics remain deliberately open; NG-12 remains unauthorized. Claude is recorder/executor only, never architecture authority.
+
+Scope: Conceptual semantic architecture only. This decision does NOT authorize product implementation; domain-code/schema/API/client/UI expansion; migrations; persistence selection; Ledger architecture; chart of accounts or journal-entry design; bank/payment-rail integration; generic corporate AP; universal Payable; universal Setoff; universal Settlement; universal TrustAccount; Transaction/MoneyMovement; FX engine; reopening NG-1 through NG-10; or NG-12.
+
+Evidence / provenance:
+- `DECISION-20260930-009` as the Owner-approved NG-11 authorization and exact Scope Lock.
+- `DELTA-20260930-008` as its publication.
+- `DECISION-20260930-003` as the recursive correspondence contract.
+- `DECISION-20260930-008` as the terminal NG-10 Payment / Application / Funds Holding / Control boundary.
+- Build-97 commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`.
+- NG-11A exact source inspection.
+- NG-11B bounded Film/TV + live-music evidence.
+- Control Room independent primary-source verification and terminal NG-11C adjudication on 2026-09-30.
+- Claude reports are evidence inputs only. Claude is not architecture authority.
+
+Consequences:
+- Upon publication NG-11 becomes CLOSED.
+- D0 is rejected; D1 is rejected; D2 is accepted with refinement; D3 is rejected.
+- Distribution Obligation, Setoff & Outbound Settlement Architecture becomes terminal under the semantic contract above.
+- No implementation authority follows.
+- NG-12 and every post-NG-11 stage require explicit Owner authorization.
+
+Supersedes: None
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-10 remain unchanged.
+- `DECISION-20260930-009` remains the Owner authorization/Scope Lock that permitted NG-11.
+- `DECISION-20260930-003` remains the recursive correspondence contract.
+- Build-97 released product behavior remains unchanged.
+- No next-generation implementation exists.
+
+Open:
+- Implementation-open only: persistence/placement of Distribution Obligations, Cash Discharge Links and non-cash reduction/satisfaction facts; contribution-lineage representation; due/release and hold representation; correction/reversal representation; cross-currency discharge representation; API/client/UI; downstream ledger/reconciliation integration.
+- Evidence-triggered reconsideration only: the cases listed in §P.
+- Post-NG-11 stage selection remains unauthorized.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending

@@ -2065,3 +2065,93 @@ Forbidden implications: This delta does **not**:
 - treat Claude as an authority.
 
 Publication receipt: b3deb88b076ec0636da47b4284c7859af3df71ed on origin/operational-regression-gate; remote readback verified 2026-10-01T01:08:06Z
+
+## DELTA-20260930-009
+
+Status: ACCEPTED
+
+Detected: 2026-10-01T02:15:13Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `056c8e40000dec56db8af74d5665f97e3f108d90` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, inspected as predecessor evidence only (NG-11A).
+- The bounded NG-11 research chain NG-11A and NG-11B under the Scope Lock `DECISION-20260930-009`, adjudicated by the Control Room and recorded as `DECISION-20260930-010`.
+
+Prior claim: NG-11 is OWNER-AUTHORIZED and SCOPE-LOCKED for research/design only under `DECISION-20260930-009`; D0–D3 unresolved.
+
+Candidate/new claim: NG-11 is CLOSED under terminal Control Room decision `DECISION-20260930-010` with D0 rejected, D1 rejected, D2 accepted with refinement, D3 rejected: a source-defined Distribution Obligation is distinct from Payment, Receivable, Application, Funds Holding / Control and Ledger/accounting; outgoing cash reuses terminal NG-10 Payment; cash discharge requires a distinct obligation-specific historical Cash Discharge Link; source-defined non-cash reduction/satisfaction is preserved without fabricated Payment; no universal Payable, Settlement, Setoff, Transaction or MoneyMovement; Ledger remains downstream; implementation remains unselected; no implementation or NG-12 authority follows.
+
+Claimed transition: NG-11 AUTHORIZED / OPEN IN RESEARCH → NG-11 CLOSED.
+
+Scope: Canonical publication of the Control Room's terminal NG-11 architecture adjudication only. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `056c8e40000dec56db8af74d5665f97e3f108d90` (`Publish DELTA-20260930-008`), with `DECISION-20260930-009` and `DECISION-20260930-003` ACTIVE and `DELTA-20260930-008` PUBLISHED;
+  - `CURRENT-STATE.md` there records NG-11 as AUTHORIZED under `DECISION-20260930-009` with D0–D3 unresolved and NG-12 unauthorized.
+- Build-97 predecessor evidence (NG-11A, product commit `b3f41bf`): `src/AgencyOS.Domain/Finance/Payment.cs`, `Commission.cs`, `Ledger.cs`; `src/AgencyOS.Finance.Rules/Commission.fs`; `src/AgencyOS.Application/Finance/PaymentCommands.cs`, `CommissionCommands.cs`, `LedgerPosting.cs`; `src/AgencyOS.Infrastructure/Persistence/Queries/FinanceQueries.cs`; `docs/adr/ADR-0023-finance-money-commission-and-the-ledger.md`.
+- External domain evidence (NG-11B, exactly two verticals), including the Control-Room-verified load-bearing sources: California Labor Code §1700.25 (DLSE compilation Rev. 1/25); WGA Rider W (2021) §§3–4; the AFM Booking Agent Agreement; UK SI 2003/3319 Regulation 25 / Schedule 2, subject to the recorded temporal-currentness caveat.
+- Control Room semantic adjudication: the Adjudication field below, recorded as `DECISION-20260930-010`.
+
+Conflicts: None that survive adjudication. The complete material correction chain 1–19 is preserved in `DECISION-20260930-010` §O:
+- NG-10 / inherited corrections 1–13 are preserved unchanged;
+- NG-11A: ClientFundsPayable is also reversed by Receivable cancellation; PaymentMethod.Offset carries no proved distinct setoff semantic; neither Build-97 commission query projection nor ledger posting is universal domain truth;
+- NG-11C: describing UK SI 2003/3319 simply as "current" was too strong, and its temporal-currentness limitation is recorded; a currently-due Distribution Obligation is a position, while creation, due/release transitions and discharge/correction are historical facts; a distinct non-cash discharge record is not required for every gross-to-net difference.
+
+Authority required:
+- `CONTROL_ROOM`, for the terminal NG-11 semantic adjudication;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required to close NG-11. The Owner's existing authorization `DECISION-20260930-009` permitted the bounded research/design stage, and no post-NG-11 stage is authorized by this closure.
+
+Adjudication: The Control Room independently reviewed the NG-11A Build-97 predecessor baseline and the NG-11B two-vertical falsification evidence, independently verified the load-bearing primary sources, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual semantic architecture recorded as `DECISION-20260930-010`: D0 rejected; D1 rejected; D2 accepted with refinement; D3 rejected; no Owner-reserved ambiguity remains; no NG-11B2 is required. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260930-010` is added as the durable NG-11 architecture decision.
+- `CURRENT-STATE.md` records NG-11 Distribution Obligation, Setoff & Outbound Settlement Architecture as CLOSED under `DECISION-20260930-010`.
+- NG-11 implementation-open mechanics are added to the open questions.
+- The next bounded action becomes obtaining explicit Owner authorization before beginning any post-NG-11 stage, including NG-12.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that NG-11 is open in research with unresolved Distribution Obligation architecture. It supersedes no prior Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-10 terminal state remains unchanged.
+- `DECISION-20260930-009` remains the Owner authorization/Scope Lock that permitted NG-11.
+- `DECISION-20260930-003` governance remains unchanged.
+- Build 97 released product identity and all implementation behavior.
+- All implementation-open questions from NG-6 through NG-11 remain implementation-open.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-12 remains unauthorized and not begun.
+
+Open / unresolved questions:
+- The implementation-open items and evidence-triggered reconsideration cases listed as Open in `DECISION-20260930-010` remain open.
+- None of these blocks NG-11 closure.
+
+Forbidden implications: This delta does **not**:
+- permit implementation;
+- choose a persistence mechanism;
+- approve schema/API/domain expansion;
+- approve migrations;
+- select a Ledger architecture;
+- design a chart of accounts or journal entries;
+- impose a universal Payable;
+- impose a universal Setoff taxonomy;
+- impose a universal Settlement;
+- impose a universal TrustAccount;
+- impose a universal Transaction or MoneyMovement;
+- select an FX engine;
+- grant NG-12 or later-stage authority;
+- reopen NG-1 through NG-10;
+- make Claude an architecture authority.
+
+Publication receipt: Pending
