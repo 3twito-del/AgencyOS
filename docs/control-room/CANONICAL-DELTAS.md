@@ -1877,3 +1877,91 @@ Forbidden implications: This delta does **not**:
 - treat Claude as an authority.
 
 Publication receipt: cff6a8e4b0f07e9d0e90372fb6e7014eeeed5104 on origin/operational-regression-gate; remote readback verified 2026-09-30T22:31:23Z
+
+## DELTA-20260930-007
+
+Status: ACCEPTED
+
+Detected: 2026-10-01T00:03:27Z
+
+Published: Pending
+
+Sources:
+- Canonical branch state `2c8ac0a05eb02653d7088d266ee6549ace81352f` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+- Build-97 product commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`, inspected as predecessor evidence only (NG-10A).
+- The bounded NG-10 research chain NG-10A and NG-10B under the Scope Lock `DECISION-20260930-007`, adjudicated by the Control Room and recorded as `DECISION-20260930-008`.
+
+Prior claim: NG-10 is AUTHORIZED / OPEN IN RESEARCH under `DECISION-20260930-007`; Payment/Application/Holding-Control architecture and P0–P3 dispositions are unresolved.
+
+Candidate/new claim: NG-10 is CLOSED under `DECISION-20260930-008`: a Payment is a distinct historical observed/reported cash-movement fact; Receivable and Payment remain distinct; Application is an independent historical one-Payment-to-one-Receivable association fact, with zero or more Applications per Payment and per Receivable; partial Application is distinct from partial Receivable crystallization; current balances do not replace Application history; Application reversal does not reverse cash; refund/recovery involving cash movement is later historical cash truth; unapplied amount does not establish beneficial ownership or unrestricted availability; source-defined Funds Holding / Control semantics are required where beneficial entitlement or control differs from physical receipt, without a universal trust-account entity; payer, source-of-funds, recipient/conduit and beneficiary roles remain distinct where known; payment dates are source-specific where material; deductions/withholdings are not universally cash Applications; Payment and Receivable currencies remain distinct with conversion provenance preserved where applicable; Ledger/accounting remains downstream; P0 rejected, P1 accepted with refinement, P2 accepted with refinement, P3 rejected; implementation remains unselected.
+
+Claimed transition: NG-10 AUTHORIZED / OPEN IN RESEARCH → NG-10 CLOSED.
+
+Scope: Canonical publication of the Control Room's terminal NG-10 architecture adjudication only. Product code changed: NO. Implementation, schema, API or domain changed: NO.
+
+Evidence:
+- Machine-verifiable repository facts:
+  - canonical HEAD `2c8ac0a05eb02653d7088d266ee6549ace81352f` (`Publish DELTA-20260930-006`), with `DECISION-20260930-007` and `DECISION-20260930-003` ACTIVE and `DELTA-20260930-006` PUBLISHED;
+  - `CURRENT-STATE.md` there records NG-10 as AUTHORIZED under `DECISION-20260930-007` and NG-11 as unauthorized.
+- Build-97 predecessor evidence (NG-10A, product commit `b3f41bf`): `src/AgencyOS.Domain/Finance/Payment.cs`, `Receivable.cs`, `Ledger.cs`; `src/AgencyOS.Finance.Rules/Allocation.fs`; `src/AgencyOS.Application/Finance/PaymentCommands.cs`, `FinanceCommands.cs`, `LedgerPosting.cs`; `src/AgencyOS.Infrastructure/Persistence/Configurations/M9Configurations.cs`, the finance migration and `Persistence/Queries/FinanceQueries.cs`; the finance API contracts and client projections.
+- External domain evidence (NG-10B, exactly two verticals), including the load-bearing sources: the 2023 WGA Theatrical and Television Basic Agreement; the UK Conduct of Employment Agencies and Employment Businesses Regulations 2003, regulation 25; the AFM Booking Agent Agreement; California Labor Code §1700.25; bounded guild/union payment and holding materials.
+- Control Room semantic adjudication: the Adjudication field below, recorded as `DECISION-20260930-008`.
+
+Conflicts: None that survive adjudication. The complete material correction chain is preserved in `DECISION-20260930-008` §W:
+- NG-10A: Build-97 finance query truth is in Infrastructure/Persistence/Queries/FinanceQueries.cs; positive Build-97 Unapplied is direction-blind; Payment reversal and Application reversal are distinct mechanisms; PaymentAdjustment is a Receivable-side deduction, not Payment correction; Application reversal is not proved to restore every downstream consequence, including commission-side consequences;
+- NG-10B / NG-10C: unapplied arithmetic does not establish beneficial ownership, control, refundability or restriction; conduit receipt and beneficiary receipt may be different events; where ownership/control/release differs from possession a Funds Holding / Control distinction is required; refund/recovery of money that actually moved is a later cash-movement fact; payment date is not one universal timestamp; Application may be rule-governed and challengeable; held-funds semantics create no universal TrustAccount, Escrow or persisted HeldFunds entity; a holding/control entitlement transition may occur without another cash movement and must not fabricate a Payment.
+
+Authority required:
+- `CONTROL_ROOM`, for the terminal NG-10 semantic adjudication;
+- machine-verifiable fact, for repository and publication facts;
+- no new Owner decision is required to close NG-10. The Owner's existing authorization `DECISION-20260930-007` permitted the bounded research/design stage, and no post-NG-10 stage is authorized by this closure.
+
+Adjudication: The Control Room independently reviewed the NG-10A Build-97 predecessor baseline and the NG-10B two-vertical falsification evidence, independently verified the load-bearing primary sources, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual semantic architecture recorded as `DECISION-20260930-008`: P0 rejected; P1 accepted with refinement; P2 accepted with refinement; P3 rejected; no Owner-reserved ambiguity remains; no NG-10B2 is required. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260930-008` is added as the durable NG-10 architecture decision.
+- `CURRENT-STATE.md` records NG-10 Payment, Cash Application & Funds Provenance Architecture as CLOSED under `DECISION-20260930-008`.
+- The open question on Invoice link and Payment/Allocation mechanics is narrowed to its implementation-open mechanics.
+- The next bounded action becomes obtaining explicit Owner authorization before beginning any post-NG-10 stage, including NG-11.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that NG-10 is open in research with unresolved Payment/Application/Holding-Control architecture. It supersedes no prior Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-9 remain unchanged.
+- `DECISION-20260930-007` remains the Owner authorization/Scope Lock that permitted NG-10.
+- `DECISION-20260930-003` remains the recursive correspondence contract.
+- Build 97 released product identity and all implementation behavior.
+- No product code change.
+- No schema, API or domain expansion.
+- No implementation.
+- No migrations.
+- NG-11 remains unauthorized and not begun.
+- The Owner's future conversation-transition instruction is not triggered by this publication.
+
+Open / unresolved questions:
+- The implementation-open items and the evidence-triggered reconsideration case listed as Open in `DECISION-20260930-008` remain open.
+- None of these blocks NG-10 closure.
+
+Forbidden implications: This delta does **not**:
+- permit implementation;
+- choose a persistence mechanism;
+- approve schema/API/domain expansion;
+- approve migrations;
+- select a payment-rail implementation;
+- select a bank-reconciliation design;
+- impose a universal trust account;
+- impose a universal Transaction or MoneyMovement;
+- impose a universal payment lifecycle;
+- select an FX engine;
+- grant NG-11 or later-stage authority;
+- trigger an immediate cross-conversation transition;
+- reopen NG-1 through NG-9;
+- make Claude an architecture authority.
+
+Publication receipt: Pending

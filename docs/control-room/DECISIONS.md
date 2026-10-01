@@ -2675,3 +2675,258 @@ Open:
 Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
 
 Publication receipt: acf628c4b6297e5157fe762c24e7c7cfbaa2ad0f on origin/operational-regression-gate; remote readback verified 2026-09-30T22:31:23Z
+
+## DECISION-20260930-008
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: CONTROL_ROOM
+
+Question: What is the minimum neutral-core semantic architecture for Payment, cash Application/Allocation and Funds Provenance: what a Payment asserts; how Payment relates to Receivable; whether Application has independent historical identity; how payer/source-of-funds/recipient/beneficiary differ; how unapplied, held, restricted or pre-entitlement money stays truthful; how reversal, refund/recovery, overpayment, deductions, dates and currency provenance are preserved; and where these facts end relative to Ledger/accounting — under the exact NG-10 Scope Lock of `DECISION-20260930-007`?
+
+Decision: NG-10 — Payment, Cash Application & Funds Provenance Architecture is terminally adjudicated as follows.
+
+**A. PAYMENT**
+
+A Payment is a historically anchored observed or reported cash-movement fact. It preserves:
+- the amount that moved;
+- the currency in which it moved;
+- the effective movement/receipt date when known;
+- the provenance/source by which the fact was recorded or observed;
+- payer identity when known;
+- source-of-funds identity when materially distinct and known;
+- recipient/conduit identity when materially distinct and known.
+
+Payment does not itself assert: Receivable existence; Application to a Receivable; final beneficial ownership; unrestricted availability; that payer equals Receivable obligor; that recipient equals creditor/beneficiary; accounting treatment.
+
+Payment may exist before a Receivable, after a Receivable or while its eventual target is unknown.
+
+**B. PAYMENT / RECEIVABLE BOUNDARY**
+
+Receivable is distinct from Payment. Payment creation does not by itself reduce or satisfy a Receivable. A source may define when a cash movement satisfies or is deemed to satisfy a Receivable-like position, including delivery to an authorized conduit. Such satisfaction/application truth remains distinct from later beneficiary receipt or distribution.
+
+**C. APPLICATION / ALLOCATION**
+
+Application is a distinct historically anchored fact stating that a defined portion of one Payment was associated/applied to one Receivable. One Application links:
+- exactly one Payment;
+- exactly one Receivable;
+- one applied amount;
+- one applied currency/value;
+- source/reason/effective application provenance where known.
+
+A Payment may have zero or more Applications. A Receivable may receive zero or more Applications. One Payment may therefore serve several Receivables, and one Receivable may be satisfied through several Payments. Where one remittance covers several positions, preserve distinct Applications rather than erase position identity.
+
+**D. APPLICATION IS NOT CURRENT BALANCE**
+
+Application history is not safely derivable from current Payment or Receivable balances alone. Original Application truth remains recoverable after correction or reversal. Balance is a projection across historical Applications, reversals and other supported facts.
+
+**E. PARTIAL APPLICATION**
+
+Partial Application is distinct from partial Receivable crystallization. A Payment may remain partly unapplied after an Application. A Receivable may remain partly outstanding after an Application. Neither remainder is silently discarded.
+
+**F. APPLICATION REVERSAL / CORRECTION**
+
+Application reversal changes the historical association of cash, not the fact that the underlying cash movement occurred. Preserve:
+- the original Application;
+- the reversal/correction event;
+- actor/source/reason where known;
+- subsequent reapplication where applicable.
+
+Correcting an Application does not inherently require another cash movement.
+
+**G. PAYMENT REVERSAL / REFUND / RECOVERY**
+
+Payment reversal and Application reversal are not the same event. Where an original cash movement genuinely occurred, a later refund, repayment or recovery involving money moving back is a later cash-movement fact historically related to the original truth. It does not erase the original Payment. A technical record correction where no original cash movement occurred is not semantically the same as refunding money that actually moved. No universal Refund/Chargeback/Recovery taxonomy or implementation is selected.
+
+**H. UNAPPLIED MONEY**
+
+A Payment may be wholly or partially unapplied. Unapplied arithmetic does not itself establish: beneficial ownership; unrestricted availability; who is entitled to the funds; refundability; trust or escrow status; agency ownership. Overpayment is not universally equivalent to ordinary unrestricted unapplied cash.
+
+**I. FUNDS HOLDING / CONTROL SEMANTICS**
+
+Where source-defined beneficial entitlement, ownership, control, restriction or return rights differ from physical receipt or possession of cash, neutral core must preserve a historically anchored Funds Holding / Control semantic state or relation. As applicable it preserves:
+- holder/controller;
+- party for whose account or benefit the money is held;
+- amount and currency;
+- source/authority;
+- restriction;
+- release/entitlement condition;
+- return/refund condition;
+- historical changes.
+
+This semantic requirement is evidence-triggered. It does NOT mean: every Payment requires a Holding record; every unapplied amount is held/restricted; every deposit is refundable; every escrow is a trust; a universal TrustAccount entity/table exists. No persistence mechanism or trust-account module is selected.
+
+**J. ENTITLEMENT CHANGE WITHOUT CASH MOVEMENT**
+
+A source-defined change from money held for one party/status to money beneficially attributable to another party may occur without a second cash movement. Such a holding/control transition must not fabricate a new Payment.
+
+**K. DEPOSIT / ADVANCE VARIATION**
+
+Refundable deposit, non-refundable advance, security deposit, escrow, client-account receipt and other prepayment forms do not share one universal semantic lifecycle. Preserve source-defined:
+- ownership/control;
+- refundability;
+- release condition;
+- future Application relation;
+- historical changes.
+
+No generic Deposit abstraction is required.
+
+**L. ROLES**
+
+Neutral core distinguishes when known:
+1. Receivable obligor/debtor;
+2. Payment payer;
+3. source of funds where materially distinct;
+4. physical/legal recipient;
+5. conduit/custodian/controller where materially distinct;
+6. creditor/beneficiary or party for whose account funds are held.
+
+These roles are not universally identical.
+
+**M. PAYMENT DATE SEMANTICS**
+
+Preserve the effective cash-movement/receipt date when known. Preserve recorded-at separately. Additional source-defined dates may remain distinct when material, including:
+- mailed/made-available date;
+- conduit-receipt date;
+- clearance date;
+- settlement/value date;
+- source-defined deemed-payment or satisfaction date.
+
+There is no universal requirement that every Payment carry all of these dates. Unknown dates remain unknown.
+
+**N. SOURCE-DEFINED DEEMED PAYMENT**
+
+A source may define that delivery of money to an authorized conduit constitutes payment to the beneficiary for obligation-satisfaction purposes. Preserve:
+- the source rule;
+- the conduit;
+- the effective satisfaction fact/date;
+- actual subsequent custody/distribution separately.
+
+Do not collapse deemed satisfaction into physical beneficiary receipt.
+
+**O. DEDUCTIONS / WITHHOLDINGS**
+
+A deduction, withholding, commission, tax, fee or settlement reduction is not automatically an Application of cash. Where money never reaches the receiving context because it was withheld or deducted, preserve that economic/settlement fact according to its source. Where a distinct cash movement to a third party occurs, preserve it as the appropriate cash fact. No universal PaymentAdjustment taxonomy is selected.
+
+**P. OVERPAYMENT**
+
+An excess Payment may remain unapplied, be returnable, become held/restricted, be recoverable, become credit against future positions or be subject to another source-defined treatment. Preserve the source-defined ownership/control/return truth. No universal overpayment lifecycle is selected.
+
+**Q. CURRENCY / CONVERSION**
+
+Payment preserves its original amount and currency. Receivable preserves its own amount/currency truth independently. Where a Payment is applied across currencies, preserve where known:
+- Payment-side amount/currency;
+- applied or Receivable-side amount/currency;
+- conversion rate/basis;
+- effective conversion date;
+- rate/source provenance;
+- conversion costs or cost-bearing party.
+
+No FX engine or exchange-rate policy is selected.
+
+**R. LEDGER / ACCOUNTING BOUNDARY**
+
+Ledger/accounting is downstream projection. Accounting account names do not establish: beneficial ownership; custody; held-funds status; Receivable truth; Payment truth; Application truth. Build-97 posting semantics are precedent only and are not promoted to universal neutral-core rules.
+
+**S. GENERIC-MONEY-MOVEMENT BOUNDARY**
+
+Shared monetary fields do not make Payment, Application, refund/recovery, holding/control transition, deduction/withholding or JournalEntry one semantic fact. No universal Transaction or MoneyMovement primitive is selected.
+
+**T. HYPOTHESIS DISPOSITIONS**
+
+- P0 — DIRECT-SETTLEMENT: REJECTED. Payment may be unapplied, one Payment may serve several collectible positions, one Receivable may receive several Payments, and Application has independent historical identity.
+- P1 — EXPLICIT-APPLICATION: ACCEPTED WITH REFINEMENT. Accepted form: Payment is an independent historical cash-movement fact. Application is an independent historical association of a defined portion of one Payment to one Receivable. Payment may have zero or more Applications and a Receivable zero or more Applications. Application/reversal history remains recoverable independently of current balances, and correcting an Application does not imply reversing cash.
+- P2 — HELD-FUNDS EXTENSION: ACCEPTED WITH REFINEMENT. Accepted form: where source-defined beneficial entitlement, ownership, control, restriction or return rights differ from physical receipt of cash, neutral core preserves a historically anchored Funds Holding / Control state or relation. It may coexist with Payment before Receivable or beneficiary entitlement and may change without a new cash movement. It does not mandate a universal trust-account entity, module or persistence representation.
+- P3 — GENERIC-MONEY-MOVEMENT: REJECTED. Payment, Application, refund/recovery, held/restricted funds semantics, deduction/withholding and accounting projection remain semantically distinct even when they share amount/date/currency primitives.
+
+**U. BUILD-97 PREDECESSOR DISPOSITION**
+
+Build-97 is useful precedent for: first-class Payment identity; Payment independent of Receivable and Invoice; explicit unapplied amount; first-class PaymentAllocation identity; many-to-many Payment↔Receivable relation through Applications; partial Application; historical Application reversal; distinction between Payment reversal and Application reversal; original Payment amount/currency/date preservation; separate PaymentAdjustment; Payment and Application ledger attribution.
+
+Its limitations are not neutral-core invariants, including: direction-blind Application; direction-blind unapplied projections; no source-of-funds distinction; no recipient/conduit/custody semantics for incoming money; no held/restricted/pre-entitlement semantics; counter-Payment reversal shape; absence of distinct refund/chargeback semantics; PaymentAdjustment naming/taxonomy; persistence gaps and cascade behavior; mutable Receivable running totals; unproved restoration of all downstream commission consequences after Application reversal; Build-97 ledger account naming.
+
+This decision does not authorize repair of those limitations.
+
+**V. EVIDENCE BOUNDARY**
+
+NG-10A: exact Build-97 source inspection at `b3f41bfd68e81ab42da899671f58e01f0988d3d2`.
+
+NG-10B: exactly two verticals:
+1. Film/TV representation.
+2. Live music / artist booking.
+
+Load-bearing evidence includes:
+- the 2023 WGA Theatrical and Television Basic Agreement, used as historical bounded falsification evidence;
+- the UK Conduct of Employment Agencies and Employment Businesses Regulations 2003, especially regulation 25;
+- the AFM Booking Agent Agreement;
+- California Labor Code §1700.25 and bounded guild/union payment/holding materials reported in NG-10B.
+
+Historical/time-bounded sources are not generalized as current universal industry rules. No third vertical was required. No NG-10B2 was required.
+
+**W. CORRECTION CHAIN**
+
+Inherited chains are preserved: NG-6 under `DECISION-20260929-008`; NG-7 under `DECISION-20260930-001`; NG-8 §S under `DECISION-20260930-004`; NG-9 §W under `DECISION-20260930-006`.
+
+NG-10A:
+1. Build-97 finance query truth is in Infrastructure/Persistence/Queries/FinanceQueries.cs, not the initially suggested Application path;
+2. positive Build-97 Unapplied is direction-blind and does not itself prove available incoming cash;
+3. Payment reversal and Application reversal are distinct historical mechanisms;
+4. PaymentAdjustment is a Receivable-side deduction, not Payment correction;
+5. Application reversal has not been proved to restore every downstream consequence, including commission-side consequences.
+
+NG-10B / NG-10C:
+6. unapplied Payment arithmetic does not establish beneficial ownership, control, refundability or restriction;
+7. receipt of Payment by a conduit and actual beneficiary receipt may be different events;
+8. where ownership/control/release differs from possession, ordinary Payment semantics alone are insufficient and a Funds Holding / Control distinction is required;
+9. refund/recovery of money that actually moved is a later cash-movement fact, not merely Payment/Application reversal;
+10. payment date is not one universal timestamp; source-defined dates remain distinct where material;
+11. Application may be rule-governed and challengeable, not merely arithmetic;
+12. accepting held-funds semantics does not create a universal TrustAccount, Escrow or persisted HeldFunds entity;
+13. a holding/control entitlement transition may occur without another cash movement and must not fabricate a Payment.
+
+**X. TERMINAL STATUS**
+
+NG-10 is CLOSED upon successful canonical publication of this decision. No Owner-reserved ambiguity remains within the NG-10 Scope Lock. No NG-10B2 is required.
+
+Scope: Conceptual semantic architecture only. This decision does NOT authorize implementation; persistence selection; schema; API; domain-code expansion; migrations; payment rails; bank reconciliation; trust/client-account implementation; ledger implementation; accounting policy; FX implementation; or NG-11 research/design.
+
+Evidence / provenance:
+- `DECISION-20260930-007` as the Owner-approved NG-10 authorization and exact Scope Lock.
+- `DELTA-20260930-006` as its publication.
+- `DECISION-20260930-003` as the recursive correspondence contract.
+- `DECISION-20260930-006` as the NG-9 Receivable boundary.
+- Build-97 commit `b3f41bfd68e81ab42da899671f58e01f0988d3d2`.
+- NG-10A exact source inspection.
+- NG-10B bounded Film/TV + live-music evidence.
+- Control Room independent primary-source verification and terminal NG-10C adjudication on 2026-09-30.
+- Claude reports are evidence inputs only. Claude is not architecture authority.
+
+Consequences:
+- Upon publication NG-10 becomes CLOSED.
+- P0 is rejected; P1 is accepted with refinement; P2 is accepted with refinement; P3 is rejected.
+- Payment, Cash Application & Funds Provenance Architecture becomes terminal under the semantic contract above.
+- No implementation authority follows.
+- NG-11 and every post-NG-10 stage require explicit Owner authorization.
+
+Supersedes: None
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-9 remain unchanged.
+- `DECISION-20260930-007` remains the Owner authorization/Scope Lock that permitted NG-10.
+- `DECISION-20260930-003` remains the recursive correspondence contract.
+- Build-97 released product behavior remains unchanged.
+- No next-generation implementation exists.
+- The Owner's future conversation-transition instruction remains active continuity/governance guidance but is not triggered by publication staging itself.
+
+Open:
+- Implementation-open only: persistence/placement of Payment, Application and holding/control semantics; exact provenance/role representation; Application effective-date representation; refund/recovery/chargeback implementation; cross-currency Application representation; trust/client-account implementation; API/client/UI; downstream ledger/reconciliation integration.
+- Evidence-triggered reconsideration only: a concrete source whose truth cannot be represented by Payment + explicit Application + optional source-defined Holding/Control semantics without contradiction.
+- Post-NG-10 stage selection remains unauthorized.
+
+Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
