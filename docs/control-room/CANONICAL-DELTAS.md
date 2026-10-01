@@ -1919,7 +1919,17 @@ Authority required:
 
 Adjudication: The Control Room independently reviewed the NG-10A Build-97 predecessor baseline and the NG-10B two-vertical falsification evidence, independently verified the load-bearing primary sources, applied the corrections recorded under Conflicts, and ACCEPTS the conceptual semantic architecture recorded as `DECISION-20260930-008`: P0 rejected; P1 accepted with refinement; P2 accepted with refinement; P3 rejected; no Owner-reserved ambiguity remains; no NG-10B2 is required. This becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: CONTROL_ROOM
+  Delta: DELTA-20260930-007
+  Semantic basis: b96e3de55ffd6895a8197c68e49ab9b8caac4050
+  CURRENT-STATE.next.md blob SHA-256: 3da661f5ab17f7e740d9946f4bd7992582a4b555f397d44361ce416b1530f608
+  PUBLICATION-PAYLOAD.json blob SHA-256: 4c642597890bd42004c30d8e42a92e10b2cd5891bfaeb3f2a70cb606feaea484
+  Authorized: 2026-10-01T00:09:01Z
+  Reference: Adjudication of DELTA-20260930-007
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260930-008` is added as the durable NG-10 architecture decision.
