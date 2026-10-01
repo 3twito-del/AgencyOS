@@ -2930,3 +2930,154 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
 
 Publication receipt: b96e3de55ffd6895a8197c68e49ab9b8caac4050 on origin/operational-regression-gate; remote readback verified 2026-10-01T00:15:50Z
+
+## DECISION-20260930-009
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: OWNER
+
+Question: Approve NG-11 — Distribution Obligation, Setoff & Outbound Settlement Architecture exactly under the complete bounded Control Room stage definition below, for research/design only, with no implementation, product/schema/API/domain expansion, migrations or NG-12 authority?
+
+Decision: The Owner approves **NG-11 — Distribution Obligation, Setoff & Outbound Settlement Architecture** exactly under the following bounded stage contract.
+
+**PROVENANCE OF THE STAGE DEFINITION**
+
+The stage was NOT inferred from the number "NG-11". The Control Room first fully defined and falsification-tested the bounded post-NG-10 package without relying on numbering; the Owner then explicitly approved that complete package. "NG-11" is only the next sequential identifier for that already-defined approved stage.
+
+**A. BOUNDED QUESTION**
+
+After Payment has been received/recorded, and Application and Funds Holding / Control are known to the degree the source permits: what domain truth, if any, is required to represent:
+- an obligation to distribute/transfer/return money to an entitled party;
+- authorized retention or setoff;
+- satisfaction/discharge of that obligation through cash movement or without cash movement;
+
+before downstream Ledger/accounting projection?
+
+**B. IN SCOPE**
+
+- source-defined obligation to transfer, distribute or return funds;
+- beneficiary/creditor, holder/controller, payee and source-of-funds as distinct roles where known;
+- amount, currency, due/release conditions and unknown states;
+- partial and multiple distributions;
+- relationship between Funds Holding / Control and an amount actually payable/distributable now;
+- actual outbound cash movement, including testing whether terminal NG-10 Payment semantics are sufficient for it;
+- whether a separate historical fact is needed to associate an outbound Payment with a distribution obligation;
+- commission retention, contractual setoff/netting, or other source-defined satisfaction without cash movement;
+- correction, reversal, reallocation and reapplication history where applicable;
+- cross-currency provenance where source evidence requires it, without creating an FX engine.
+
+**C. OUT OF SCOPE**
+
+Ledger architecture; chart of accounts; journal-entry design; accounting projection mechanics; revenue-recognition policy; GAAP/IFRS compliance; bank reconciliation; payment rails; banking integrations; tax engine; payroll; generic vendor accounts payable; general corporate expenses; universal TrustAccount; schema selection; persistence selection; API; client; Windows UI; migrations; implementation of any kind.
+
+**D. CLOSED DISTINCTIONS THAT NG-11 MUST NOT REOPEN**
+
+All NG-1 through NG-10 terminal distinctions remain closed unless a qualifying reconsideration trigger is actually established. For NG-11 especially preserve:
+- Amount Determination ≠ Receivable.
+- Representation-Economics Claim ≠ Receivable.
+- Receivable ≠ Payment.
+- Payment ≠ Application.
+- Payment ≠ Funds Holding / Control.
+- cash movement ≠ entitlement/control transition.
+- Application reversal ≠ Payment reversal.
+- refund/recovery involving real cash movement is later cash truth.
+- partial Application ≠ partial Receivable crystallization.
+- unapplied cash arithmetic does not establish ownership, entitlement, restriction, refundability or availability.
+- payer, source of funds, recipient/conduit/controller and beneficiary are not universally identical.
+- account names do not establish beneficial ownership, custody, held status, Receivable truth, Payment truth or Application truth.
+- Ledger/accounting is downstream projection.
+- historical truth is not silently rewritten.
+- money preserves currency.
+- unknown remains unknown.
+- no universal Transaction/MoneyMovement primitive.
+- no universal TrustAccount.
+- no FX engine.
+
+**E. COMPETING HYPOTHESES TO RESEARCH, NOT DECIDE NOW**
+
+- D0 — HOLDING-ONLY: NG-10 Payment + Application + Funds Holding / Control + existing upstream claims already suffice. No additional distribution-obligation semantic is justified.
+- D1 — SYMMETRIC PAYABLE: the outbound side should substantially mirror Receivable: a Payable-like collectible/payable position plus Payment/Application-style discharge.
+- D2 — SOURCE-DEFINED DISTRIBUTION OBLIGATION: a distinct source-defined distribution/payable obligation or position is required, while actual outgoing cash reuses Payment semantics; cash discharge and non-cash retention/setoff remain distinct historical facts; no artificial inbound/outbound symmetry is assumed.
+- D3 — GENERIC SETTLEMENT PRIMITIVE: inbound/outbound claims, cash movements and discharge should collapse into a broader Settlement/MoneyMovement abstraction.
+
+No hypothesis is accepted by this authorization. D2 may be the current strongest working hypothesis, but it is NOT a decision.
+
+**F. EVIDENCE / RESEARCH BOUNDARY**
+
+- NG-11A — predecessor inspection: one substantive Claude prompt only. Inspect exact Build-97 canonical source truth relevant to outgoing Payments; PaymentAllocation; ClientFundsPayable; commission retention/posting; distribution/remittance behavior if any; correction/reversal paths; any domain/persistence/query facts that could falsify D0–D3. Build 97 is predecessor evidence only and is never automatic next-generation authority. No external research in NG-11A. No terminal D0–D3 choice in NG-11A. No implementation.
+- NG-11B — bounded vertical falsification: one substantive Claude prompt only. Exactly two verticals: 1. Film/TV representation; 2. Live music / artist booking. Use strong primary-source evidence where practical, focused narrowly on held client funds; remittance/distribution duties; timing of distribution; agency commission retention/setoff; refunds/returns; whether cash discharge and non-cash setoff/retention need distinct historical representation; any source that falsifies D0–D3 or the proposed boundary. No third vertical unless separately authorized. No implementation. No terminal architecture decision by Claude.
+- NG-11B2: 0 prompts by default. It exists only if the Control Room later establishes a concrete evidentiary gap that cannot be adjudicated from A+B.
+- NG-11C: Control Room terminal adjudication. Not a substantive Claude research prompt.
+- NG-11D: canonical publication/staging/sealing work after adjudication. Not substantive research.
+
+**G. EXIT CRITERIA**
+
+NG-11 may close only when the Control Room can state, without contradiction across the bounded evidence:
+1. whether a distinct distribution/payable semantic is required at all;
+2. what makes such an obligation exist, versus merely a Holding/Control condition;
+3. whether outgoing cash is ordinary terminal-NG-10 Payment or requires a genuinely distinct concept;
+4. how cash discharge differs from non-cash retention/setoff;
+5. the necessary cardinalities and role distinctions;
+6. due/release/effective-date semantics;
+7. partial, reversal/correction and historical behavior;
+8. currency/conversion-provenance boundaries;
+9. exact reconsideration triggers;
+10. explicit separation from Ledger/accounting;
+11. which implementation questions remain deliberately open.
+
+If factual evidence leaves two materially different architectures that cannot be adjudicated without a product/architecture choice reserved to the Owner, the Control Room must surface OWNER DECISION REQUIRED rather than allowing Claude to choose.
+
+**H. SUBSTANTIVE PROMPT BUDGET**
+
+NG-11 substantive research budget: 2 total. NG-11A: 1. NG-11B: 1. NG-11B2: 0 by default. NG-11C: Control Room adjudication, not counted. NG-11D: publication mechanics, not counted. Current consumed NG-11 substantive prompts: 0.
+
+Previous budgets are not reset: NG-8: 2 consumed, 0 remaining. NG-9: 2 consumed, 0 remaining. NG-10: 2 consumed, 0 remaining. NG-10A and NG-10B remain historical consumed prompts exactly as recorded.
+
+**I. AUTHORITY BOUNDARY**
+
+This Owner decision authorizes ONLY bounded NG-11 research/design under the exact package above. It does NOT authorize: product implementation; schema/API/domain expansion; migrations; persistence decisions; Ledger design; payment-rail implementation; bank-reconciliation design; accounting/revenue-recognition architecture; universal Payable; universal Settlement; universal TrustAccount; universal Transaction/MoneyMovement; FX engine; reopening NG-1 through NG-10; NG-12 or any later stage.
+
+Claude is recorder/executor/researcher only and is NEVER decision authority.
+
+Scope: Research/design and conceptual semantic architecture only. NO authority for implementation, product code, schema/API/domain expansion, migrations or NG-12.
+
+Evidence / provenance:
+- Explicit Owner approval in the active Control Room conversation on 2026-09-30, after the Control Room fully defined and falsification-tested the complete package.
+- `DECISION-20260930-008` / `DELTA-20260930-007` as the terminal NG-10 basis.
+- `DECISION-20260930-003` as the active Recursive Control-Room Correspondence & Transition Contract.
+- Claude is recorder/executor only, not decision authority.
+
+Consequences:
+- Once this Owner decision is PUBLISHED, NG-11 is AUTHORIZED and SCOPE-LOCKED for research/design only.
+- NG-11A becomes the exact next bounded substantive action.
+- D0–D3 remain unresolved.
+- No implementation authority follows.
+- NG-12 remains unauthorized.
+
+Supersedes: The active current-state claim that no post-NG-10 stage is authorized. It supersedes no prior Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-10 remain closed/approved exactly under their existing terminal decisions.
+- The full material NG-10 correction chain in `DECISION-20260930-008` §W remains intact.
+- Existing implementation-open questions from NG-6 through NG-10 remain implementation-open and are not answered by this authorization.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- Build-97 released product behavior remains unchanged.
+- No next-generation implementation exists.
+- No product/schema/API/domain/migration authority follows.
+
+Open:
+- NG-11A evidence.
+- NG-11B evidence.
+- The terminal D0–D3 dispositions.
+- The terminal NG-11 semantic architecture.
+- All implementation mechanics.
+- NG-12 and all later stages.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
