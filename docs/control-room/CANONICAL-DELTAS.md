@@ -2474,7 +2474,17 @@ Authority required:
 
 Adjudication: The Owner explicitly authorized NG-U1 for research/design only under the Control Room's proposed Scope Lock — purpose, current-path truth, trust chain, compatibility and preflight, atomicity and interruption safety, data and schema safety, recovery, Windows operator truth, accessibility, post-update proof, privilege and security, lifecycle, adversarial validation, scope boundaries, adaptive research governance and the NG-U1A next substage. The Control Room records that authorization without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20261001-003
+  Semantic basis: 7fe386e03ac1a969a7ae089720b84963b19c0b30
+  CURRENT-STATE.next.md blob SHA-256: fd50a7923c2c7ea9d918d5fc4bbab56bde7ca66c55410f098a1224109c2f534b
+  PUBLICATION-PAYLOAD.json blob SHA-256: 3ee5250b0d70fe16af79aab29d54a1609804a23bb16b3af27579c74444ca9115
+  Authorized: 2026-10-01T14:28:54Z
+  Reference: Adjudication of DELTA-20261001-003
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20261001-003` becomes the durable Owner authorization and exact Scope Lock for NG-U1.
