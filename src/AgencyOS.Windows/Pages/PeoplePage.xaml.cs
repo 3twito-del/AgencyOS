@@ -132,6 +132,7 @@ public sealed partial class PeoplePage : Page, IPaletteCommandTarget
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
         ListEmpty.IsOpen = _list.IsEmpty;
+        ListNoMatches.IsOpen = _list.HasNoMatches;
     }
 
     // ---------------------------------------------------------------- detail

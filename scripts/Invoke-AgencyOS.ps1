@@ -23,7 +23,7 @@
 #>
 param(
     [Parameter(Position=0)]
-    [ValidateSet("doctor","build","test","test-unit","test-windows","test-reviewer","test-integration","verify","verify-fast","version","contract","formal","ci","nightly","release","release-gate")]
+    [ValidateSet("doctor","build","test","test-unit","test-windows","test-reviewer","test-canonical","test-integration","verify","verify-fast","version","contract","formal","ci","nightly","release","release-gate")]
     [string]$Target = "doctor",
 
     [ValidateSet("forge","lab","nightly","alpha","beta","rc","stable")]
@@ -242,8 +242,20 @@ function Invoke-TestReviewer {
     if ($LASTEXITCODE -ne 0) { throw "Reviewer tests failed." }
 }
 
-# Runs only the integration suite. Builds just this project's dependency graph,
-# which excludes the WinUI client, so it runs on a non-Windows agent too.
+# Runs the canonical-infrastructure gate: the tests of the read-only canonical state
+# detector and of the canonical publisher (docs/control-room/CANONICAL-DETECTOR.md,
+# CANONICAL-PUBLISHER.md). They build throwaway git repositories and bare remotes in a
+# temporary directory, and need no desktop, database or network. Engineering tooling:
+# no release publishes either tool.
+function Invoke-TestCanonical {
+    $project = Join-Path $root "tests/AgencyOS.Tests.Canonical/AgencyOS.Tests.Canonical.csproj"
+    $config = Get-Configuration "Debug"
+    Write-Section "Canonical Detector and Publisher Tests ($config)"
+
+    dotnet test $project --nologo -c $config @(Get-MetadataArgs)
+    if ($LASTEXITCODE -ne 0) { throw "Canonical detector and publisher tests failed." }
+}
+
 function Invoke-TestIntegration {
     $project = Join-Path $root "tests/AgencyOS.Tests.Integration/AgencyOS.Tests.Integration.csproj"
     $config = Get-Configuration "Debug"
@@ -941,6 +953,7 @@ try {
         "test-unit"        { Invoke-TestUnit }
         "test-windows"     { Invoke-TestWindows }
         "test-reviewer"    { Invoke-TestReviewer }
+        "test-canonical"   { Invoke-TestCanonical }
         "test-integration" { Invoke-TestIntegration }
         "contract"         { Invoke-Contract }
         "formal"           { Invoke-Formal }

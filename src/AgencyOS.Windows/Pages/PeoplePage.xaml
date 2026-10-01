@@ -41,6 +41,10 @@
                 <InfoBar x:Name="CommandError" Severity="Error" IsOpen="False" IsClosable="True" />
                 <InfoBar x:Name="ListEmpty" Severity="Informational" IsOpen="False" IsClosable="False"
                          Title="No people yet" Message="Create the first person to begin." />
+                <!-- A search that matched nobody is not an empty directory (BF-01). -->
+                <InfoBar x:Name="ListNoMatches" Severity="Informational" IsOpen="False" IsClosable="False"
+                         Title="No people match this search"
+                         Message="Nobody in the directory matches this search. Try a different name, email or title." />
             </StackPanel>
 
             <ListView

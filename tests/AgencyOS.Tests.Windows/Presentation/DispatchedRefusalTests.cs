@@ -3,6 +3,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Scans command dispatch in page code-behind for awaited calls that
+// handle a refusal. Pages cannot run here, so the shape of the code path is what is
+// asserted.
+
 /// <summary>
 /// That a refusal is never lost because nobody awaited the command.
 /// </summary>

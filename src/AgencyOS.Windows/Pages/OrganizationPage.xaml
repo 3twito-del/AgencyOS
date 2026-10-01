@@ -46,7 +46,7 @@
                       MinHeight="240">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,8" ColumnSpacing="16" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                        <Grid Padding="4,8" ColumnSpacing="16" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Member}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />

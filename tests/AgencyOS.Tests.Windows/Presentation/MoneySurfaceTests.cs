@@ -4,6 +4,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pins that money rows bind through the Money converter or state their
+// currency once. What a row announces is executed in ValueParityTests.
+
 /// <summary>
 /// That no money row shows a number without saying what it is denominated in.
 /// </summary>

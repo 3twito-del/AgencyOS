@@ -4,6 +4,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts that each residual act is a declared control with a handler
+// through the shipped method. The acts were proved live when they were restored.
+
 /// <summary>
 /// That the three residual Definition-of-Done rows can now be reached.
 /// </summary>

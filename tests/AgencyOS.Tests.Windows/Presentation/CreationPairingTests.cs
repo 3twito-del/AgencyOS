@@ -3,6 +3,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pairs each outcome control with a declared way to originate what it
+// acts on, in markup and code-behind. The pairing is a structural fact about what a
+// surface offers.
+
 /// <summary>
 /// That nothing in the product resolves an object nothing in the product creates.
 /// </summary>

@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pins that the Command Center renders WindowScope's sentence and its
+// captions. The sentence itself is executed in ScopeDisclosureTests.
+
 /// <summary>
 /// That the Command Center actually says which population each figure counts.
 /// </summary>

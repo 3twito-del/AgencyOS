@@ -4,6 +4,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Layout;
 
+// SOURCE-PROOF: Asserts the shell's adaptive layout as MainWindow's markup declares
+// it: visual states, triggers and footer styling.
+
 /// <summary>
 /// That the shell still behaves when the window is small.
 /// </summary>

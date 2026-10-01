@@ -4,6 +4,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts that each restored act is a declared, gated, named control
+// running the shipped dialog and method. The acts themselves were proved live when
+// they were restored.
+
 /// <summary>
 /// That the eight capabilities left API-only after wave 3 can now be reached.
 /// </summary>

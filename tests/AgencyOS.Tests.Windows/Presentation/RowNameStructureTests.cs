@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts that row templates and the palette declare their accessible
+// names. The declaration is the property asserted.
+
 /// <summary>
 /// That a list row is announced by its template, not by its record.
 /// </summary>

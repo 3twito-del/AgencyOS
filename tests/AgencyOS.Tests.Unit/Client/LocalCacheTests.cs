@@ -5,6 +5,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Unit.Client;
 
+// NOT-SOURCE-READ: Reads the cache database the store under test has just written,
+// to check that its contents are encrypted rather than readable.
+
 /// <summary>
 /// The encrypted local cache: isolation, schema versioning, offline reads and the
 /// durable write queue.

@@ -4,6 +4,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts that return-path rows are declared invokable, handled and
+// named. Which records they list is proved against PostgreSQL in
+// DiscoverabilityTests.
+
 /// <summary>
 /// That every repaired return path is actually reachable, and reachable by keyboard.
 /// </summary>

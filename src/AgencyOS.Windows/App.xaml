@@ -120,7 +120,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="PersonRowTemplate">
-                <Grid Padding="4,3" ColumnSpacing="8" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                <Grid Padding="4,3" ColumnSpacing="8" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Person}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -201,7 +201,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="TimelineEntryTemplate">
-                <Grid Padding="4,4" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                <Grid Padding="4,4" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=TimelineEntry}" AutomationProperties.HelpText="{Binding Detail}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -226,7 +226,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="RelationshipRowTemplate">
-                <StackPanel Padding="4,3" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                <StackPanel Padding="4,3" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Relationship}">
                     <TextBlock Text="{Binding Type, Converter={StaticResource DisplayLabel}}" />
                     <TextBlock
                         Style="{StaticResource CaptionTextBlockStyle}"

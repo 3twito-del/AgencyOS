@@ -196,7 +196,7 @@
                                 ItemClick="OnSearchItemClick">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnSpacing="12" Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <Grid ColumnSpacing="12" Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=SearchHit}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
@@ -276,7 +276,7 @@
                                 ItemClick="OnPaletteItemClick">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnSpacing="12" Padding="4,2" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                        <Grid ColumnSpacing="12" Padding="4,2" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=PaletteCommand}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />

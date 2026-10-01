@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Deterministic tests for the canonical state infrastructure: the read-only
+    detector and the publisher. Run by scripts/Invoke-AgencyOS.ps1 test-canonical.
+
+    Every detector scenario runs against a throwaway git repository built in a
+    temporary directory with fixed author, committer and dates. Every publisher
+    scenario runs against a throwaway bare "origin" and clones of it, so that each
+    push, fetch and remote readback is real. Nothing here pushes to, or changes,
+    the AgencyOS repository. The only reads of the repository itself are
+    declared SOURCE-PROOF: the published contract (for the payload shape) and the
+    published ledgers (for the parser).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../tools/AgencyOS.Canonical.Detector/AgencyOS.Canonical.Detector.csproj" />
+    <ProjectReference Include="../../tools/AgencyOS.Canonical.Publisher/AgencyOS.Canonical.Publisher.csproj" />
+  </ItemGroup>
+
+</Project>

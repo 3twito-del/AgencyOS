@@ -5,6 +5,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: The registry and its labels are executed. The launcher's
+// construction and the page's command cases are read from IntelligencePage's code-
+// behind, which cannot be constructed here.
+
 /// <summary>
 /// That an ordinary authoring capability can be found without knowing the palette.
 /// </summary>

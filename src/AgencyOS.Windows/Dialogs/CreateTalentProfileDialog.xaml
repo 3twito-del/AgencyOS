@@ -1,0 +1,31 @@
+<ContentDialog
+    x:Class="AgencyOS.Windows.Dialogs.CreateTalentProfileDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Create talent profile"
+    PrimaryButtonText="Create"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="12" MinWidth="400">
+        <!--
+            The person is fixed by the client just signed. There is no picker, so
+            the profile cannot be created for somebody else by mistake.
+        -->
+        <TextBlock x:Name="SubjectText" TextWrapping="Wrap" />
+
+        <ComboBox x:Name="CareerStageBox" Header="Career stage"
+                  AutomationProperties.Name="Career stage" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Unknown - not assessed yet" Tag="Unknown" IsSelected="True" />
+            <ComboBoxItem Content="Emerging" Tag="Emerging" />
+            <ComboBoxItem Content="Established" Tag="Established" />
+            <ComboBoxItem Content="Veteran" Tag="Veteran" />
+        </ComboBox>
+
+        <TextBlock
+            Text="A talent profile puts them in Talent and lets them be the subject of a talent pursuit. Their representation is not changed."
+            TextWrapping="Wrap"
+            Opacity="0.65"
+            Style="{StaticResource CaptionTextBlockStyle}" />
+    </StackPanel>
+</ContentDialog>

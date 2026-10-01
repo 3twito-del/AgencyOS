@@ -184,34 +184,124 @@ public sealed class OpportunityDetailViewModel : ViewModelBase
     }
 
     public Task LoadAsync(Guid opportunityId, CancellationToken cancellationToken = default) =>
-        RunAsync(async token =>
+        RunAsync(token => ReadAsync(opportunityId, token), cancellationToken);
+
+    private async Task ReadAsync(Guid opportunityId, CancellationToken token)
+    {
+        OpportunityDetailResponse detail = await _api
+            .GetOpportunityAsync(opportunityId, token)
+            .ConfigureAwait(true);
+
+        Opportunity = detail;
+
+        Replace(Subjects, detail.Subjects);
+        Replace(Targets, detail.Targets);
+        Replace(Submissions, detail.Submissions);
+        Replace(Pitches, detail.Pitches);
+        Replace(Tasks, detail.OpenTasks);
+
+        IReadOnlyList<OpportunityHistoryEntryResponse> history = await _api
+            .GetOpportunityHistoryAsync(opportunityId, token)
+            .ConfigureAwait(true);
+
+        Replace(History, history);
+
+        _loaded = true;
+        _unrefreshedActivation = false;
+
+        OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(HasStrategy));
+        OnPropertyChanged(nameof(OpenTargets));
+        OnPropertyChanged(nameof(Overdue));
+        OnPropertyChanged(nameof(Standing));
+        OnPropertyChanged(nameof(CanActivate));
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the loaded pursuit is a Draft the operator can activate.
+    /// </summary>
+    /// <remarks>
+    /// A pursuit is created as a Draft, and only an Active one accepts market
+    /// activity - moving a target, opening a negotiation. The fresh final-candidate
+    /// RC at <c>2d2b46a</c> stopped because nothing in the Windows client took that
+    /// step. This offers exactly Draft to Active and nothing else; any other
+    /// lifecycle change is not what the operator was blocked on.
+    /// </remarks>
+    public bool CanActivate => !_unrefreshedActivation && Opportunity is { Opportunity.Status: "Draft" };
+
+    /// <summary>
+    /// Set when the server accepted an activation this view could not then re-read;
+    /// cleared by the next complete read.
+    /// </summary>
+    /// <remarks>
+    /// The Draft still on screen is no longer what the server holds, so it must not
+    /// offer the operator the same activation again against a version that has moved.
+    /// </remarks>
+    private bool _unrefreshedActivation;
+
+    /// <summary>
+    /// Activates the loaded Draft pursuit, then re-reads what the server now holds.
+    /// </summary>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>
+    /// <see cref="OpportunityActivation.Activated"/> only when the server accepted the
+    /// command and the pursuit was then read back; <see cref="OpportunityActivation.AcceptedNotRefreshed"/>
+    /// when it was accepted and the read failed or was cancelled; <see cref="OpportunityActivation.NotSent"/>
+    /// when there was nothing to activate.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// The existing status command, with the version the operator was shown and a key
+    /// made before the one attempt; the server decides whether the change is legal.
+    /// A refusal - a version conflict included - is thrown to the caller unchanged,
+    /// and nothing here pretends the pursuit is Active: the loaded state stays as the
+    /// server last described it. There is no retry with a newer version.
+    /// </para>
+    /// <para>
+    /// The re-read runs through the same loading and error handling as
+    /// <see cref="LoadAsync(Guid, CancellationToken)"/>, which reports a failure rather
+    /// than throwing it. So whether it completed is taken from the read itself, not
+    /// from having returned: a read that failed after an accepted write is not a
+    /// confirmed activation, and is not a refusal either.
+    /// </para>
+    /// </remarks>
+    public async Task<OpportunityActivation> ActivateAsync(CancellationToken cancellationToken = default)
+    {
+        if (Opportunity is not { } detail || !CanActivate)
         {
-            OpportunityDetailResponse detail = await _api
-                .GetOpportunityAsync(opportunityId, token)
-                .ConfigureAwait(true);
+            return OpportunityActivation.NotSent;
+        }
 
-            Opportunity = detail;
+        OpportunitySummaryResponse pursuit = detail.Opportunity;
 
-            Replace(Subjects, detail.Subjects);
-            Replace(Targets, detail.Targets);
-            Replace(Submissions, detail.Submissions);
-            Replace(Pitches, detail.Pitches);
-            Replace(Tasks, detail.OpenTasks);
+        await _api
+            .ChangeOpportunityStatusAsync(
+                pursuit.Id,
+                new ChangeOpportunityStatusRequest("Active", pursuit.Version),
+                Guid.CreateVersion7().ToString("N", CultureInfo.InvariantCulture),
+                cancellationToken)
+            .ConfigureAwait(true);
 
-            IReadOnlyList<OpportunityHistoryEntryResponse> history = await _api
-                .GetOpportunityHistoryAsync(opportunityId, token)
-                .ConfigureAwait(true);
+        // Accepted from here on. Until a complete read says otherwise, the Draft on
+        // screen is stale and is not offered for activation again.
+        _unrefreshedActivation = true;
 
-            Replace(History, history);
+        bool refreshed = false;
 
-            _loaded = true;
+        await RunAsync(
+                async token =>
+                {
+                    await ReadAsync(pursuit.Id, token).ConfigureAwait(true);
 
-            OnPropertyChanged(nameof(IsEmpty));
-            OnPropertyChanged(nameof(HasStrategy));
-            OnPropertyChanged(nameof(OpenTargets));
-            OnPropertyChanged(nameof(Overdue));
-            OnPropertyChanged(nameof(Standing));
-        }, cancellationToken);
+                    refreshed = true;
+                },
+                cancellationToken)
+            .ConfigureAwait(true);
+
+        OnPropertyChanged(nameof(CanActivate));
+
+        return refreshed ? OpportunityActivation.Activated : OpportunityActivation.AcceptedNotRefreshed;
+    }
 
     private static void Replace<T>(ObservableCollection<T> target, IReadOnlyList<T> source)
     {
@@ -352,4 +442,23 @@ public sealed class OpportunityTargetViewModel : ViewModelBase
             OnPropertyChanged(nameof(AwaitingResponse));
             OnPropertyChanged(nameof(Standing));
         }, cancellationToken);
+}
+
+/// <summary>What became of an operator's request to activate a Draft pursuit.</summary>
+/// <remarks>
+/// A refusal is not one of these: it is thrown, carrying the server's own sentence.
+/// </remarks>
+public enum OpportunityActivation
+{
+    /// <summary>Nothing was sent: no Draft was loaded.</summary>
+    NotSent,
+
+    /// <summary>The server accepted the command and the pursuit was read back afterwards.</summary>
+    Activated,
+
+    /// <summary>
+    /// The server accepted the command, but the read that followed failed or was
+    /// cancelled, so what is on screen is not what the server now holds.
+    /// </summary>
+    AcceptedNotRefreshed,
 }

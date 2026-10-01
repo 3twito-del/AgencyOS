@@ -3,6 +3,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts that each restored chain head is a declared control with a
+// handler calling the shipped dialog and client method. What the chains then do was
+// proved live when they were restored.
+
 /// <summary>
 /// That the two core chains can be started from where an operator stands.
 /// </summary>

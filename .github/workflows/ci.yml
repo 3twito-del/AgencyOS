@@ -95,6 +95,15 @@ jobs:
           CI: 'true'
         run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 test-reviewer
 
+      # The read-only canonical state detector (docs/control-room/CANONICAL-DETECTOR.md).
+      # Its tests build throwaway git repositories and need no desktop, database or
+      # network. Engineering tooling: no release step publishes it.
+      - name: Canonical detector tests
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: pwsh -NoProfile -File scripts/Invoke-AgencyOS.ps1 test-canonical
+
       - name: API contract
         shell: pwsh
         env:

@@ -2,6 +2,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pins that target rows ask TargetLine through the shared converter.
+// The wording is executed in IdentityRoleTests.
+
 /// <summary>
 /// That every channel showing a target's contact reaches the same wording for it.
 /// </summary>

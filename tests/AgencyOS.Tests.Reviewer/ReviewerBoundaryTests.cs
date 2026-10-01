@@ -4,6 +4,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Reviewer;
 
+// SOURCE-PROOF: Project references, the reviewer's assembly list and .gitignore
+// entries are facts about the repository's files. The boundary asserted is a build-
+// structure rule, not runtime behaviour.
+
 /// <summary>
 /// The reviewer may read the product. The product may not read the reviewer.
 /// </summary>

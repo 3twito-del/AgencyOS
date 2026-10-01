@@ -3,6 +3,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Layout;
 
+// SOURCE-PROOF: Asserts overflow containers in markup and a bring-into-view call in
+// the shell's selection handler. The names say these are markup and source facts,
+// not observed scrolling.
+
 /// <summary>
 /// That a command on screen can be reached at the window sizes people use.
 /// </summary>

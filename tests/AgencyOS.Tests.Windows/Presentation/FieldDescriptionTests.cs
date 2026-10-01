@@ -4,6 +4,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Asserts markup associations between fields and the hints written
+// beneath them. An association is a declaration.
+
 /// <summary>
 /// That an explanation written under a field can be reached from that field.
 /// </summary>

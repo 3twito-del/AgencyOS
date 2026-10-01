@@ -103,6 +103,7 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
     {
         if (_list is null)
         {
+            ListError.Title = LoadFailureTitle;
             ListError.Message = AppServices.Settings.Describe();
             ListError.IsOpen = true;
             return;
@@ -122,6 +123,18 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
     /// <summary>The record another workspace asked this page to open on.</summary>
     private Guid? _reveal;
 
+    /// <summary>
+    /// Set while <see cref="Reveal"/> widens the filters, so the selection changes it
+    /// makes do not each start a load of their own.
+    /// </summary>
+    /// <remarks>
+    /// Setting the status and kind boxes raises their SelectionChanged. Each used to
+    /// start a load against a half-widened filter; that load could finish without the
+    /// pursuit, and <see cref="SelectRevealed"/> would then report it missing and drop
+    /// the request before the fully widened load arrived.
+    /// </remarks>
+    private bool _widening;
+
     /// <inheritdoc />
     /// <remarks>
     /// The filters are widened first, because an operator arriving from a project
@@ -131,12 +144,27 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
     public void Reveal(Guid record)
     {
         _reveal = record;
+        _widening = true;
 
-        Choose(StatusBox, string.Empty);
-        Choose(KindBox, string.Empty);
-        AwaitingBox.IsChecked = false;
-        SearchBox.Text = string.Empty;
+        try
+        {
+            // The "any" items by name. Finding them by an empty Tag did not select
+            // anything in the shipped client (the 2d83c8f release candidate stayed on
+            // Active and the new Draft stayed hidden), so nothing here depends on how
+            // an empty Tag reaches the runtime. They carry no Tag, which SelectedTag
+            // reads as no filter.
+            StatusBox.SelectedItem = AnyStatusItem;
+            KindBox.SelectedItem = AnyKindItem;
+            AwaitingBox.IsChecked = false;
+            SearchBox.Text = string.Empty;
+        }
+        finally
+        {
+            _widening = false;
+        }
 
+        // One load, against the filters in their final widened state; it alone
+        // settles the reveal.
         _ = LoadAsync();
     }
 
@@ -150,10 +178,21 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
 
         if (_list.Opportunities.FirstOrDefault(x => x.Id == wanted) is not { } row)
         {
-            ListError.Message =
-                "That pursuit is not in the rows loaded here. Search for it by name.";
-            ListError.IsOpen = true;
             _reveal = null;
+
+            // A load that failed is already on the bar under its own title; its rows
+            // say nothing about whether the pursuit exists.
+            if (_list.HasError)
+            {
+                return;
+            }
+
+            // The list did load, so this is not a load failure and must not be titled
+            // as one: only the pursuit asked for is missing from what came back.
+            ListError.Title = RevealFailureTitle;
+            ListError.Message =
+                "The pipeline loaded, but the pursuit asked for is not among its rows. Search for it by name.";
+            ListError.IsOpen = true;
 
             return;
         }
@@ -164,21 +203,23 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         OpportunityList.ScrollIntoView(row);
     }
 
-    private static void Choose(ComboBox box, string tag)
+    /// <summary>The list bar's title when the list itself could not be loaded.</summary>
+    private const string LoadFailureTitle = "Could not load the pipeline";
+
+    /// <summary>The list bar's title when the list loaded without the pursuit asked for.</summary>
+    private const string RevealFailureTitle = "Could not reveal the pursuit";
+
+    private void OnFilterChanged(object sender, RoutedEventArgs e)
     {
-        foreach (object item in box.Items)
+        // Raised by the parser as well, for the status box's starting selection, before
+        // the list exists; and by Reveal while it widens, which loads once afterwards.
+        if (_list is null || _widening)
         {
-            if (item is ComboBoxItem { Tag: string candidate }
-                && string.Equals(candidate, tag, StringComparison.Ordinal))
-            {
-                box.SelectedItem = item;
-
-                return;
-            }
+            return;
         }
-    }
 
-    private void OnFilterChanged(object sender, RoutedEventArgs e) => _ = LoadAsync();
+        _ = LoadAsync();
+    }
 
     private void OnSearchSubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args) =>
         _ = LoadAsync();
@@ -196,6 +237,8 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
     private void OnTargetSelected(object sender, SelectionChangedEventArgs e) => RenderDetail();
 
     private void OnNewClick(object sender, RoutedEventArgs e) => _ = CreateAsync();
+
+    private void OnActivateClick(object sender, RoutedEventArgs e) => _ = ActivateAsync();
 
     private void OnAddTargetClick(object sender, RoutedEventArgs e) => _ = AddTargetAsync();
 
@@ -251,10 +294,70 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
             return;
         }
 
-        await Guarded(() => api.CreateOpportunityAsync(dialog.ToRequest(), Guid.NewGuid().ToString("N")))
+        OpportunityDetailResponse? created = null;
+
+        await Guarded(async () =>
+                created = await api.CreateOpportunityAsync(dialog.ToRequest(), Guid.NewGuid().ToString("N"))
+                    .ConfigureAwait(true))
             .ConfigureAwait(true);
 
-        await LoadAsync().ConfigureAwait(true);
+        // The new pursuit is a Draft, and the list defaults to Active: reloading
+        // as it was would hide exactly what the operator just made. Reveal widens
+        // the filters and selects it, still a Draft, where Activate is offered.
+        if (created is { } made)
+        {
+            Reveal(made.Opportunity.Id);
+        }
+        else
+        {
+            await LoadAsync().ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Activates the selected Draft pursuit, and shows the same pursuit, now Active.
+    /// </summary>
+    /// <remarks>
+    /// The view model sends the existing status command and reloads what the server
+    /// holds; a refusal is shown as the domain's own sentence and changes nothing
+    /// here. Only when the server accepted it and the pursuit was then read back is it
+    /// revealed again and announced as active, so the row and its standing both say
+    /// Active rather than the Draft the operator last saw. When the command was
+    /// accepted but that read failed, the page says so and asks for a refresh: it
+    /// does not claim Active, does not call it a refusal, and sends nothing again.
+    /// </remarks>
+    private async Task ActivateAsync()
+    {
+        if (_detail?.Opportunity is not { } opportunity || !_detail.CanActivate)
+        {
+            return;
+        }
+
+        Guid id = opportunity.Opportunity.Id;
+        OpportunityActivation outcome = OpportunityActivation.NotSent;
+
+        await Guarded(async () => outcome = await _detail.ActivateAsync().ConfigureAwait(true))
+            .ConfigureAwait(true);
+
+        if (outcome == OpportunityActivation.AcceptedNotRefreshed)
+        {
+            DetailWarning(
+                "Activation accepted, not refreshed",
+                $"The server accepted the activation of {opportunity.Opportunity.Name}, but the pursuit could not be refreshed. Refresh before continuing.");
+
+            return;
+        }
+
+        if (outcome != OpportunityActivation.Activated)
+        {
+            return;
+        }
+
+        Reveal(id);
+
+        DetailNotice(
+            "Opportunity activated",
+            $"{opportunity.Opportunity.Name} is active. Targets can now be moved and negotiations opened.");
     }
 
     private async Task AddTargetAsync()
@@ -462,6 +565,15 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         DetailBar.IsOpen = true;
     }
 
+    /// <summary>Says something happened that the page could not then confirm.</summary>
+    private void DetailWarning(string title, string message)
+    {
+        DetailBar.Title = title;
+        DetailBar.Message = message;
+        DetailBar.Severity = InfoBarSeverity.Warning;
+        DetailBar.IsOpen = true;
+    }
+
     /// <summary>Runs a call and shows the server's own explanation if it refuses.</summary>
     /// <remarks>
     /// The message comes from the server. When a submission is refused because the
@@ -506,6 +618,9 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         // still empty and no longer known.
         ListEmpty.IsOpen = SummaryAuthority.Knows(_list) && _list.IsEmpty;
 
+        // Restated on every render, so a load failure never shows under the title a
+        // missed reveal left behind.
+        ListError.Title = LoadFailureTitle;
         ListError.IsOpen = _list.HasError;
         ListError.Message = _list.ErrorMessage ?? string.Empty;
 
@@ -530,6 +645,7 @@ public sealed partial class PipelinePage : Page, IPaletteCommandTarget, IRecordT
         SubmissionButton.IsEnabled = loaded && hasTarget;
         PitchButton.IsEnabled = loaded && hasTarget;
         StageButton.IsEnabled = loaded && hasTarget;
+        ActivateButton.Visibility = _detail.CanActivate ? Visibility.Visible : Visibility.Collapsed;
 
         if (_detail.Opportunity is not { } opportunity)
         {

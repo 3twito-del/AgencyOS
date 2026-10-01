@@ -3,6 +3,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Dialogs;
 
+// SOURCE-PROOF: Asserts that no dialog's markup declares a free-text field for a
+// canonical identifier. Which inputs a dialog declares is a markup fact.
+
 /// <summary>
 /// That an ordinary dialog never asks a person to type a canonical identifier.
 /// </summary>

@@ -4,6 +4,9 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pins that captions ask PartyLine, through the registered converter,
+// only for roles its vocabulary knows. The words are executed in IdentityRoleTests.
+
 /// <summary>
 /// That the seen channel asks the same vocabulary the spoken channel answers from.
 /// </summary>

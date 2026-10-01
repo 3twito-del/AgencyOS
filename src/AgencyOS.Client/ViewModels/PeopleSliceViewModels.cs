@@ -11,11 +11,27 @@ public sealed class PeopleListViewModel : ViewModelBase
     private string _searchText = string.Empty;
     private PersonSummaryResponse? _selected;
 
+    /// <summary>The search the rows on screen answer, set only by a load that succeeded.</summary>
+    private Answered? _answered;
+
     public PeopleListViewModel(IAgencyOsApi api) => _api = api;
 
     public ObservableCollection<PersonSummaryResponse> People { get; } = [];
 
-    public override bool IsEmpty => !IsLoading && !HasError && People.Count == 0;
+    /// <summary>Whether the directory itself holds nobody.</summary>
+    /// <remarks>
+    /// Only an unfiltered answer can say so. A search that matched nobody says
+    /// nothing about the people it did not ask for, and a list that has not been
+    /// answered yet - loading, failed or cancelled - says nothing at all. The blind
+    /// C10 operator was told "No people yet" for a search on a tenant of fifty
+    /// people, because this read the rows and never what they answered (BF-01).
+    /// </remarks>
+    public override bool IsEmpty => Absent && _answered is { Filtered: false };
+
+    /// <summary>Whether a search succeeded and matched nobody.</summary>
+    public bool HasNoMatches => Absent && _answered is { Filtered: true };
+
+    private bool Absent => !IsLoading && !HasError && People.Count == 0;
 
     public string SearchText
     {
@@ -29,11 +45,16 @@ public sealed class PeopleListViewModel : ViewModelBase
         set => Set(ref _selected, value);
     }
 
-    public Task LoadAsync(CancellationToken cancellationToken = default) =>
-        RunAsync(async token =>
+    public async Task LoadAsync(CancellationToken cancellationToken = default)
+    {
+        // The client sends no search for blank text, so blank is the whole directory.
+        string search = SearchText;
+        _answered = null;
+
+        await RunAsync(async token =>
         {
             IReadOnlyList<PersonSummaryResponse> people =
-                await _api.ListPeopleAsync(SearchText, token).ConfigureAwait(true);
+                await _api.ListPeopleAsync(search, token).ConfigureAwait(true);
 
             People.Clear();
 
@@ -41,7 +62,15 @@ public sealed class PeopleListViewModel : ViewModelBase
             {
                 People.Add(person);
             }
-        }, cancellationToken);
+
+            _answered = new Answered(!string.IsNullOrWhiteSpace(search));
+        }, cancellationToken).ConfigureAwait(true);
+
+        OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(HasNoMatches));
+    }
+
+    private sealed record Answered(bool Filtered);
 }
 
 /// <summary>One person: their record, their relationships, and their history.</summary>

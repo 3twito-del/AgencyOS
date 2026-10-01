@@ -3,6 +3,10 @@ using Xunit;
 
 namespace AgencyOS.Tests.Windows.Presentation;
 
+// SOURCE-PROOF: Pins that every task surface asks TaskLine through the shared
+// converters. Ownership and dates are executed in TaskLineTests and
+// TaskOwnershipTruthTests.
+
 /// <summary>
 /// That every surface listing tasks says the same things by the same means.
 /// </summary>

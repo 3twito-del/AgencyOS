@@ -104,6 +104,11 @@ public sealed partial class ProspectsPage : Page, IPaletteCommandTarget
 
         _viewModel.Selected = ProspectList.SelectedItem as ProspectResponse;
         Render();
+
+        if (_viewModel.Selected is { Stage: "Converted" })
+        {
+            _ = _viewModel.CheckTalentProfileAsync();
+        }
     }
 
     private void OnContactedClick(object sender, RoutedEventArgs e) => _ = AdvanceAsync("Contacted");
@@ -170,13 +175,56 @@ public sealed partial class ProspectsPage : Page, IPaletteCommandTarget
         }
     }
 
-    /// <summary>Reflects loading, error, empty and selection state explicitly.</summary>
+    private void OnCreateProfileClick(object sender, RoutedEventArgs e) => _ = CreateProfileAsync();
+
+    /// <summary>
+    /// Creates the signed client's talent profile, after the operator confirms it.
+    /// </summary>
+    private async Task CreateProfileAsync()
+    {
+        if (_viewModel?.Signed is not { } client || !_viewModel.CanCreateTalentProfile)
+        {
+            return;
+        }
+
+        CreateTalentProfileDialog dialog = new(client.DisplayName) { XamlRoot = XamlRoot };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        await _viewModel.CreateTalentProfileAsync(dialog.CareerStage).ConfigureAwait(true);
+
+        RenderProfile();
+    }
+
+    /// <summary>What the signed client's talent profile needs, said where they were signed.</summary>
+    private void RenderProfile()
+    {
+        if (_viewModel?.ProfileNotice is not { } notice)
+        {
+            ProfileBar.IsOpen = false;
+            return;
+        }
+
+        ProfileBar.Severity = notice.IsError ? InfoBarSeverity.Error
+            : notice.IsSuccess ? InfoBarSeverity.Success
+            : InfoBarSeverity.Informational;
+        ProfileBar.Title = notice.Title;
+        ProfileBar.Message = notice.Message;
+        ProfileBar.IsOpen = true;
+        CreateProfileButton.Visibility = _viewModel.CanCreateTalentProfile ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     private void Render()
     {
         if (_viewModel is null)
         {
             return;
         }
+
+        RenderProfile();
 
         ListBusy.Visibility = _viewModel.IsLoading ? Visibility.Visible : Visibility.Collapsed;
         ListError.IsOpen = _viewModel.HasError;

@@ -70,7 +70,7 @@
                 SelectionMode="Single">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,8" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                        <Grid Padding="4,8" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=PendingChange}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />

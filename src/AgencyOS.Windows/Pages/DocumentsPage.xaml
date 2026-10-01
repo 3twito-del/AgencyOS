@@ -96,7 +96,7 @@
                       SelectionChanged="OnDocumentSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                        <Grid Padding="4,6" ColumnSpacing="10" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Document}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -190,7 +190,7 @@
                                   SelectionChanged="OnVersionSelected">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                    <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=DocumentVersion}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="44" />
                                             <ColumnDefinition Width="*" />
@@ -236,7 +236,7 @@
                                   AutomationProperties.Name="Links" SelectionMode="Single">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                    <StackPanel Padding="4,6" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=Link}">
                                         <TextBlock Text="{Binding TargetLabel}" />
                                         <TextBlock Text="{Binding Target}" Opacity="0.6"
                                                    Style="{StaticResource CaptionTextBlockStyle}" />
@@ -279,7 +279,7 @@
                               AutomationProperties.Name="History" Padding="0,10,0,0">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}}">
+                                <Grid Padding="4,6" ColumnSpacing="12" AutomationProperties.Name="{Binding Converter={StaticResource RowLabel}, ConverterParameter=DocumentHistory}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="170" />
                                         <ColumnDefinition Width="*" />

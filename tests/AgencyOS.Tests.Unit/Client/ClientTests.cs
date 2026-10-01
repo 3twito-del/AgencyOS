@@ -477,13 +477,30 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         return Task.FromResult<IReadOnlyList<TalentSummaryResponse>>([.. matches]);
     }
 
-    public Task<TalentDetailResponse> GetTalentAsync(Guid personId, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Talent reads to hold in flight, by person, until the test completes the gate.
+    /// </summary>
+    /// <remarks>
+    /// Deterministic: a test sees the state while the read is outstanding, and decides
+    /// when and how it ends, with no timing involved. A gate completed with an
+    /// exception ends the read with that exception.
+    /// </remarks>
+    public Dictionary<Guid, TaskCompletionSource> TalentReadGates { get; } = [];
+
+    public async Task<TalentDetailResponse> GetTalentAsync(Guid personId, CancellationToken cancellationToken = default)
     {
+        if (TalentReadGates.TryGetValue(personId, out TaskCompletionSource? gate))
+        {
+            await gate.Task.ConfigureAwait(false);
+        }
+
         Throw();
 
-        TalentSummaryResponse summary = Talent.First(x => x.PersonId == personId);
+        // As the server does: a person with no talent profile is not found.
+        TalentSummaryResponse summary = Talent.FirstOrDefault(x => x.PersonId == personId)
+            ?? throw new AgencyOsApiException(System.Net.HttpStatusCode.NotFound, "Not found");
 
-        return Task.FromResult(new TalentDetailResponse(summary, null, null, null, null, DateTimeOffset.UtcNow));
+        return new TalentDetailResponse(summary, null, null, null, null, DateTimeOffset.UtcNow);
     }
 
     public Task<TalentDetailResponse> CreateTalentProfileAsync(
@@ -493,17 +510,31 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
     {
         Submit(idempotencyKey);
 
+        // As the server does: one talent profile per person.
+        if (Talent.Any(x => x.PersonId == request.PersonId))
+        {
+            throw new AgencyOsApiException(
+                System.Net.HttpStatusCode.Conflict,
+                "Already exists",
+                "This person already has a talent profile.");
+        }
+
+        // A profile reads the person's representation as the talent roster does: a
+        // person signed through a conversion is a client once they have a profile.
+        RepresentationResponse? representation = Conversions.Values
+            .FirstOrDefault(x => x.PersonId == request.PersonId);
+
         TalentSummaryResponse summary = new(
             Guid.NewGuid(),
             request.PersonId,
-            "Created",
+            representation?.DisplayName ?? "Created",
             request.CareerStage ?? "Unknown",
             request.Disciplines ?? [],
+            representation?.Status,
+            IsClient: representation is { Status: "Active" },
             null,
-            IsClient: false,
             null,
-            null,
-            [],
+            representation is null ? [] : [.. representation.Scopes.Select(x => x.Area)],
             DateTimeOffset.UtcNow,
             1);
 
@@ -1325,6 +1356,13 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
     {
         Throw();
 
+        if (NextOpportunityReadFailure is { } failure)
+        {
+            NextOpportunityReadFailure = null;
+
+            throw failure;
+        }
+
         OpportunitySummaryResponse summary = Opportunities.First(x => x.Id == opportunityId);
 
         return Task.FromResult(new OpportunityDetailResponse(
@@ -1363,15 +1401,35 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
             DateTimeOffset.UtcNow));
     }
 
+    /// <summary>
+    /// Fails the next pursuit detail read only - not a write - so a test can accept a
+    /// command and then lose the refresh that follows it.
+    /// </summary>
+    public Exception? NextOpportunityReadFailure { get; set; }
+
+    /// <summary>Every status change requested, in order, with its idempotency key.</summary>
+    public List<(Guid OpportunityId, ChangeOpportunityStatusRequest Request, string? Key)> OpportunityStatusChanges { get; } = [];
+
     public Task ChangeOpportunityStatusAsync(
         Guid opportunityId,
         ChangeOpportunityStatusRequest request,
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
+        OpportunityStatusChanges.Add((opportunityId, request, idempotencyKey));
+
         Submit(idempotencyKey);
 
         int index = Opportunities.FindIndex(x => x.Id == opportunityId);
+
+        // As the server does: the version the caller saw must still be current.
+        if (index >= 0 && Opportunities[index].Version != request.ExpectedVersion)
+        {
+            throw new AgencyOsApiException(
+                System.Net.HttpStatusCode.Conflict,
+                "Version conflict",
+                "Somebody else changed this opportunity. Reload it and try again.");
+        }
 
         if (index >= 0)
         {
@@ -1430,6 +1488,17 @@ internal sealed partial class FakeAgencyOsApi : IAgencyOsApi
         CancellationToken cancellationToken = default)
     {
         Submit(idempotencyKey);
+
+        // As the server does: market activity needs an Active pursuit.
+        Guid? owner = Targets.FirstOrDefault(x => x.Value.Any(t => t.Id == targetId)).Key;
+
+        if (Opportunities.FirstOrDefault(x => x.Id == owner) is { Status: "Draft" })
+        {
+            throw new AgencyOsApiException(
+                System.Net.HttpStatusCode.BadRequest,
+                "Invalid request",
+                "This opportunity is still a draft. Activate it before recording market activity.");
+        }
 
         foreach (List<OpportunityTargetResponse> targets in Targets.Values)
         {

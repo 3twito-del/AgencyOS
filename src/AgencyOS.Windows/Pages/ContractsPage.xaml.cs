@@ -409,10 +409,10 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget, IRecord
     /// Compares the selected draft against what was agreed.
     /// </summary>
     /// <remarks>
-    /// Offered only when the caller can actually see the terms. The server refuses
-    /// a reconciliation without <c>contracts.terms.read</c> and
-    /// <c>deals.economics.read</c>, and a button that always failed would be worse
-    /// than no button.
+    /// Offered where <see cref="ContractDetailViewModel.CanReconcile"/> says so. The
+    /// server refuses a reconciliation without <c>contracts.terms.read</c> and
+    /// <c>deals.economics.read</c>, and that refusal is shown under "Could not
+    /// reconcile" rather than as a comparison (BF-02).
     /// </remarks>
     private async Task ReconcileAsync()
     {
@@ -1159,10 +1159,11 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget, IRecord
         EffectiveDateButton.IsEnabled =
             loaded && _detail.Contract?.Contract.Status != "Abandoned";
 
-        // Offered only when the caller can see the terms. The server refuses a
-        // reconciliation without them, and a diff with the rows removed would say
-        // the draft matched when it did not.
-        ReconcileButton.IsEnabled = loaded && _detail.HasTerms && _detail.LatestVersion is not null;
+        // Offered when there is a draft and either its terms are visible or the
+        // contract says the draft differs. The server still decides who may read
+        // the comparison, and refuses it without the terms and the economics; a
+        // refusal is shown as one, never as an empty or matching comparison (BF-02).
+        ReconcileButton.IsEnabled = loaded && _detail.CanReconcile;
 
         // Both are read out of a version, so both need one. Whether the version
         // still accepts them is the server's answer, not this gate's.
@@ -1303,7 +1304,7 @@ public sealed partial class ContractsPage : Page, IPaletteCommandTarget, IRecord
         ReconcileError.Message = _reconciliation.ErrorMessage ?? string.Empty;
 
         ReconcileCaption.Text = _reconciliation.Reconciliation is null
-            ? "Reconcile a version to see what the draft did to what was agreed."
+            ? "Review differences to compare the draft with the agreed terms. This comparison does not change the contract."
             : _reconciliation.Summary;
     }
 
