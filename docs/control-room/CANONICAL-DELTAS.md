@@ -2202,7 +2202,17 @@ Authority required:
 
 Adjudication: The Owner explicitly approved the Control Room recommendation to open NG-S1 under its complete stage definition — purpose, scope items A–K, finding classification, two-prompt research structure, exit states COHERENT / COHERENT WITH TARGETED GAPS / NOT YET COHERENT, exit criteria, forbidden scope, external-research boundary, correction chain and authority boundary — for research/design only. The Control Room records that approval without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
 
-Seal authorizations: Pending
+Seal authorizations:
+- Record: SA-1
+  Scope: AUTHORIZE_SEAL_ONLY
+  Authority: OWNER
+  Delta: DELTA-20260930-010
+  Semantic basis: 57348f57ad677927078b54ab46c95cba86da397e
+  CURRENT-STATE.next.md blob SHA-256: 5d2056ce9b31d212543e96f15b4943c4acf7d2321a42e1214a605d5d971e0983
+  PUBLICATION-PAYLOAD.json blob SHA-256: 2bec7e959fe3c4688b34dd226e0de98a2932a50179e94cab43bae57dba14843e
+  Authorized: 2026-10-01T06:02:46Z
+  Reference: Adjudication of DELTA-20260930-010
+  Recorded by: Claude (AgencyOS executor)
 
 What changes if accepted:
 - `DECISION-20260930-011` becomes the durable Owner authorization and exact Scope Lock for NG-S1.
