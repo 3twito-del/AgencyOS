@@ -2165,3 +2165,83 @@ Forbidden implications: This delta does **not**:
 - make Claude an architecture authority.
 
 Publication receipt: 65bd27a2af37e2f1b1ba61f177a9a4b8fd413f84 on origin/operational-regression-gate; remote readback verified 2026-10-01T02:28:16Z
+
+## DELTA-20260930-010
+
+Status: ACCEPTED
+
+Detected: 2026-10-01T02:37:27Z
+
+Published: Pending
+
+Sources:
+- Explicit Owner decision recorded as `DECISION-20260930-011`.
+- Canonical branch state `3f89f50a927687187ecf4fc68eebb2068e4375c9` on `operational-regression-gate`.
+- `docs/control-room/CURRENT-STATE.md`, `DECISIONS.md` and `CANONICAL-DELTAS.md` at that SHA.
+
+Prior claim: NG-11 is CLOSED under `DECISION-20260930-010`; no post-NG-11 stage is authorized; explicit Owner authorization is required before any such stage.
+
+Candidate/new claim: NG-S1 — Whole-System Architecture Synthesis & Coherence Gate is OWNER-AUTHORIZED and SCOPE-LOCKED for research/design only under `DECISION-20260930-011`; NG-S1 is a synthesis/falsification stage, not NG-12; its substantive budget is 2 prompts with 0 consumed; NG-12 and implementation remain unauthorized.
+
+Claimed transition: NO POST-NG-11 STAGE AUTHORIZED → NG-S1 OWNER-AUTHORIZED / SCOPE-LOCKED FOR RESEARCH/DESIGN ONLY.
+
+Scope: Governance authorization and Scope Lock publication only. This transition performs no NG-S1 research and makes no coherence conclusion. Product code changed: NO. Implementation, schema, API, domain, client or UI changed: NO.
+
+Evidence:
+- Machine-verifiable canonical repository state: HEAD `3f89f50a927687187ecf4fc68eebb2068e4375c9` (`Publish DELTA-20260930-009`); `CURRENT-STATE.md` there records NG-11 as CLOSED under `DECISION-20260930-010` and requires explicit Owner authorization before any post-NG-11 stage; no post-NG-11 authorization exists.
+- Explicit Owner decision: recorded, with the complete Control Room NG-S1 stage definition the Owner approved, as `DECISION-20260930-011`.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- No product-code, schema, API, domain, client, UI or migration change is part of this transition.
+
+Conflicts: None.
+
+Authority required:
+- `OWNER`, for the NG-S1 authorization and its exact Scope Lock;
+- `CONTROL_ROOM`, for faithful normalization and publication planning;
+- machine-verifiable fact, for repository and publication facts.
+
+Adjudication: The Owner explicitly approved the Control Room recommendation to open NG-S1 under its complete stage definition — purpose, scope items A–K, finding classification, two-prompt research structure, exit states COHERENT / COHERENT WITH TARGETED GAPS / NOT YET COHERENT, exit criteria, forbidden scope, external-research boundary, correction chain and authority boundary — for research/design only. The Control Room records that approval without widening it. It becomes canonical current state only when this delta reaches PUBLISHED through successful Publisher P7 remote readback.
+
+Seal authorizations: Pending
+
+What changes if accepted:
+- `DECISION-20260930-011` becomes the durable Owner authorization and exact Scope Lock for NG-S1.
+- `CURRENT-STATE.md` records NG-S1 Whole-System Architecture Synthesis & Coherence Gate as AUTHORIZED under `DECISION-20260930-011`, with substantive research not yet begun.
+- The exact next bounded action becomes NG-S1A — Integrated Canonical Model.
+- No implementation authority follows.
+
+Supersedes: The current-state claim that no post-NG-11 stage is authorized. It supersedes no Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-11 terminal statuses remain unchanged.
+- Build 97 remains the released product identity.
+- All existing correction chains remain intact.
+- All implementation-open questions remain implementation-open.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- No product/schema/API/domain/client/UI behavior changes.
+- No migrations.
+- NG-12 remains unauthorized.
+
+Open / unresolved questions:
+- NG-S1A and NG-S1B evidence.
+- The terminal NG-S1 architecture status.
+- All implementation mechanics.
+- NG-12 and all later stages.
+
+Forbidden implications: This delta does **not**:
+- claim that NG-S1A research has begun;
+- determine a terminal coherence status;
+- permit implementation;
+- choose a persistence mechanism;
+- approve schema/API/domain expansion;
+- approve migrations;
+- design a Ledger implementation;
+- authorize new business capability;
+- impose a generic Party abstraction;
+- grant NG-12 or later-stage authority;
+- reopen NG-1 through NG-11;
+- treat Claude as an authority.
+
+Publication receipt: Pending

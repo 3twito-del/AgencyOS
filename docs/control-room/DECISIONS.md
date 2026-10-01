@@ -3267,3 +3267,165 @@ Open:
 Recorded by: Claude (AgencyOS executor), on Control Room instruction. Claude is recorder/executor only, not authority.
 
 Publication receipt: c9b1373173b879b1fbfd3a9b502455abbbe58803 on origin/operational-regression-gate; remote readback verified 2026-10-01T02:28:16Z
+
+## DECISION-20260930-011
+
+Status: ACTIVE
+
+Date: 2026-09-30
+
+Authority: OWNER
+
+Question: Authorization and exact Scope Lock for NG-S1 — Whole-System Architecture Synthesis & Coherence Gate, for research/design only, with no NG-12, implementation, schema/API/domain/client/UI expansion, persistence selection, migrations, Ledger implementation design or new business capability?
+
+Decision: The Owner approves the Control Room recommendation to open **NG-S1 — Whole-System Architecture Synthesis & Coherence Gate** exactly under the following bounded stage contract.
+
+**PURPOSE**
+
+NG-S1 exists because NG-1 through NG-11 now form a sufficiently substantial closed architecture that cross-stage coherence has become a first-order risk. The purpose is NOT to continue accumulating domain concepts. The purpose is: integrate and attempt to falsify the closed NG-1 through NG-11 architecture as one system; identify only contradictions, duplicate semantics, missing cross-stage truth, or genuinely blocking semantic gaps. Do not design implementation and do not invent new capability merely for completeness.
+
+NG-S1 is a bounded architecture synthesis/falsification gate. It is not NG-12. A successful NG-S1 does not automatically authorize implementation.
+
+**SCOPE**
+
+NG-S1 must construct and adversarially test one integrated canonical architecture from the already-closed NG-1 through NG-11 decisions, covering at least:
+
+- A. CANONICAL CONCEPT GRAPH: one graph of the closed semantic concepts, positions, facts and historical links across NG-1 through NG-11. For each node/edge preserve: governing Decision ID; semantic role; cardinality; authority/provenance; historical/temporal semantics; whether it is a fact, position, link, rule/method, source/provenance item or downstream projection. Do not choose persistence.
+- B. END-TO-END SPINE: attempt to represent and falsify the cross-stage lifecycle Represented Subject → Representation / Mandate → Commercial Arrangement → agreed/legal truth → Amount Determination → Representation-Economics Claim → Receivable → Payment / Application / Funds Holding-Control → Distribution Obligation / discharge. The arrow chain is a test hypothesis, not an assumed universal workflow. Identify optional paths; reverse-direction or side paths; source-defined transitions; places where no direct lineage is justified.
+- C. CARDINALITY COHERENCE: test whether cardinalities decided independently by NG stages compose without contradiction, including Mandate ↔ Arrangement lineage; Arrangement ↔ Legal Instrument; Arrangement ↔ Amount Determination; Amount Determination ↔ Claim; upstream facts ↔ Receivable; Payment ↔ Application ↔ Receivable; Holding/Control relationships; Distribution Obligation contributions; Payment ↔ Cash Discharge Link ↔ Distribution Obligation. Do not "fix" cardinalities for implementation convenience.
+- D. ROLE / IDENTITY COHERENCE: test the full role system without collapsing distinct roles, accounting at minimum for represented subject; client / represented party where source-defined; mandate principal/represented party; commercial counterparties; claimant; obligor/debtor; creditor/beneficiary; payer; source of funds; recipient; conduit; holder/controller/custodian; distribution obligor; outbound payer; actual payee/directed recipient. Determine whether the closed architecture can preserve these consistently without requiring a generic Party/Entity abstraction that prior decisions rejected.
+- E. TEMPORAL / HISTORY COHERENCE: test whether the system can preserve history without silent rewrite across mandate authority; Arrangement state; Agreement Snapshot; Legal Instrument correspondence; Amount Determination method vs realization; Claim existence/determinability/earned/payable facts; Receivable crystallization/due; Payment; Application; Funds Holding/Control; entitlement transitions; Distribution Obligation formation/due/release; cash and non-cash discharge; correction/reversal/refund/recovery. Look for contradictory clocks, lifecycle assumptions or events being forced into positions.
+- F. SOURCE-OF-TRUTH MAP: for every major concept identify the canonical semantic category: source-defined rule/authority; persisted-or-derivable historical fact; position; historical association/link; external source/provenance; downstream projection. Do NOT decide persisted vs derived where the canonical architecture intentionally left that open. The goal is to expose cases where two concepts appear to claim authority over the same truth.
+- G. OVERLAP / DUPLICATION ATTACK: aggressively test possible semantic overlap, including but not limited to Agreement Snapshot vs version/state mechanics; Amount Determination vs Claim-side determination; Receivable crystallization vs determination realization; Application vs Cash Discharge Link; Payment vs refund/recovery Payment; Holding/Control transition vs Distribution Obligation formation; non-cash Distribution satisfaction vs Claim/Receivable adjustment; Arrangement aggregation vs client-level economic positions. Do not merge concepts merely because fields might look similar.
+- H. MISSING-LINK ATTACK: identify any ordinary representation-agency truth that the CLOSED architecture itself implies must be tellable but cannot currently be represented without inventing a false fact; using Ledger/accounting as domain authority; silently rewriting history; collapsing known distinct roles; losing provenance; losing currency; inferring absence from incomplete truth. Only a genuine missing semantic truth counts. An implementation detail does NOT count.
+- I. VERTICAL-NEUTRALITY TEST: test whether the neutral core has accidentally absorbed Film/TV or live-music-specific semantics. Existing vertical evidence may be used only through its already-canonical accepted consequences unless a concrete contradiction requires source readback. Do not perform a new vertical survey. Do not add a third vertical.
+- J. IMPLEMENTABILITY EXISTENCE TEST: without selecting schema, persistence technology, API shapes or UI, ask whether at least one plausible implementation architecture could preserve all closed contracts simultaneously without contradiction or destructive denormalization. This is an existence/falsification question only. Do NOT design the implementation.
+- K. OPERATOR-COMPREHENSIBILITY TEST: test whether the semantic architecture can plausibly support future operator workflows without exposing ontology mechanics directly to the operator. This does NOT authorize UI design. Identify only semantic structures that would force unavoidable operator ambiguity or false presentation.
+
+**CLASSIFICATION OF FINDINGS**
+
+Every NG-S1 finding must be classified as exactly one of:
+1. "CLOSED-DECISION CONTRADICTION"
+2. "SEMANTIC OVERLAP / DUPLICATION"
+3. "GENUINE MISSING SEMANTIC TRUTH"
+4. "IMPLEMENTATION-ONLY QUESTION"
+5. "NO ISSUE"
+
+Do not elevate category 4 into categories 1–3. Do not create architecture work from naming preference, tidiness or implementation convenience.
+
+**RESEARCH STRUCTURE AND BUDGET**
+
+NG-S1 substantive Claude budget: exactly 2 prompts total.
+- NG-S1A — Integrated Canonical Model: build the integrated model from canonical closed decisions and identify candidate contradictions, overlaps, gaps and implementation-only questions. It must NOT resolve findings merely by inventing new semantics.
+- NG-S1B — Adversarial Coherence Falsification: attempt to falsify the integrated model from S1A; every candidate contradiction; every candidate semantic gap; every claim that a finding is implementation-only. Use canonical source inspection and already-governing accepted evidence. No broad new external research by default. If S1B reveals that one tightly scoped primary-source readback is essential to distinguish contradiction from implementation question, report that need to the Control Room instead of expanding research authority.
+- NG-S1C — terminal Control Room adjudication, not a substantive Claude research prompt.
+- Publication mechanics do not consume the substantive budget.
+
+At authorization publication time: consumed 0/2; remaining 2/2. No S1B2 by default.
+
+**EXIT STATES**
+
+NG-S1 terminal adjudication must end in exactly one architecture status:
+- "COHERENT": no unresolved cross-stage contradiction, duplicate semantic responsibility or genuine blocking missing semantic truth remains. Open implementation questions may remain.
+- "COHERENT WITH TARGETED GAPS": the architecture is globally coherent except for a closed, minimal set of genuine semantic gaps. The terminal adjudication must list those gaps exactly; only those gaps may become candidates for future semantic stages.
+- "NOT YET COHERENT": one or more existing CLOSED decisions materially conflict when composed as one system. The exact decisions/contracts in conflict must be named. Reopening requires the canonical reconsideration/correction process; no silent rewrite.
+
+There is no score, grade or percentage.
+
+**EXIT CRITERIA**
+
+NG-S1 may close only when the Control Room can answer all of the following:
+1. Is there one coherent concept graph for NG-1 through NG-11?
+2. Are all cross-stage cardinalities mutually compatible?
+3. Are roles/identities distinguishable without prohibited generic collapse?
+4. Are temporal/history semantics mutually compatible?
+5. Is source-of-truth responsibility unambiguous enough to avoid dual authority?
+6. Are apparent duplicate concepts either justified as distinct or identified as real overlap?
+7. Are all candidate missing links classified as semantic vs implementation-only?
+8. Does the architecture preserve historical truth, provenance, unknown states and money/currency end-to-end?
+9. Is the vertical-neutral core still genuinely neutral?
+10. Does at least one plausible implementation architecture appear possible without violating terminal contracts?
+11. Is future operator truth possible without ontology leakage or semantic falsehood?
+12. Is the remaining path bounded?
+
+If factual ambiguity leaves materially different architecture outcomes unresolved, the Control Room must determine whether an OWNER DECISION is genuinely required.
+
+**OUT OF SCOPE / FORBIDDEN**
+
+NG-S1 does NOT authorize: product code changes; implementation; schema design or schema expansion; API design or API expansion; UI design; migrations; persistence selection; database normalization decisions; Ledger/chart-of-accounts/journal implementation; payment rails or banking; generic corporate AP; new business capability; a new closure census; a Build-97 global census; a new generic Entity, Subject or Party abstraction; a generic Transaction/MoneyMovement; a universal rights ontology; a mega lifecycle; speculative plugin architecture; reopening a terminal decision without a concrete contradiction/reconsideration trigger; NG-12 research/design; any later stage.
+
+**EXTERNAL RESEARCH BOUNDARY**
+
+No new broad external research is authorized for NG-S1. The primary basis is the canonical NG-1 through NG-11 decisions; their published deltas; exact predecessor facts already accepted into those decisions; existing accepted correction chains. A narrow source readback needed to verify an already-relied-upon fact is allowed as verification, not as expansion. Do not add a third vertical or start a new vertical falsification exercise.
+
+**CORRECTION CHAIN**
+
+The complete existing correction history through NG-11 is preserved: NG-6 under `DECISION-20260929-008`; NG-7 under `DECISION-20260930-001`; NG-8 §S under `DECISION-20260930-004`; NG-9 §W under `DECISION-20260930-006`; NG-10 §W under `DECISION-20260930-008`; and the complete chain 1–19 under `DECISION-20260930-010` §O, reproduced verbatim:
+
+NG-10 / inherited material corrections:
+1. Build-97 finance query truth is in src/AgencyOS.Infrastructure/Persistence/Queries/FinanceQueries.cs, not the initially suggested Application query path.
+2. Positive Build-97 Unapplied is direction-blind and does not prove available incoming cash.
+3. Payment reversal and Application reversal are distinct historical mechanisms.
+4. PaymentAdjustment is a Receivable-side deduction, not Payment correction.
+5. Application reversal is not proved to restore every downstream consequence, including commission consequences.
+6. Unapplied Payment arithmetic does not establish beneficial ownership, control, refundability or restriction.
+7. Receipt by a conduit and actual beneficiary receipt may be different events.
+8. Where ownership/control/release differs from possession, Payment alone is insufficient; Funds Holding / Control semantics are required.
+9. Refund/recovery of money that actually moved is later cash truth, not merely reversal.
+10. Payment date is not one universal timestamp; source-defined dates remain distinct where material.
+11. Application may be rule-governed and challengeable, not merely arithmetic.
+12. Held-funds semantics do not create a universal TrustAccount, Escrow or persisted HeldFunds entity.
+13. A holding/control entitlement transition may occur without another cash movement; do not fabricate Payment.
+
+NG-11A Control Room corrections:
+14. ClientFundsPayable is not reduced only by commission or manual journals; cancelling a Receivable reverses the ReceivableRaised recognition entry and therefore reverses its ClientFundsPayable credit.
+15. Build 97 contains PaymentMethod.Offset, but no distinct setoff semantics were proved for it; it is only a method value inside Payment and must not be promoted as a non-cash setoff fact.
+16. Neither Build-97 commission query projection nor ledger posting is universal domain truth. The query aggregates currently applied allocations; commission postings are incremental and can survive allocation reversal, so the two can diverge.
+
+NG-11C Control Room corrections:
+17. NG-11B's description of UK SI 2003/3319 simply as "current" was too strong. The explicit temporal-currentness limitation above is preserved.
+18. A currently-due Distribution Obligation is a position/obligation, not itself a "historical act". Creation, due/release transitions and discharge/correction facts are historical events/facts.
+19. A distinct non-cash discharge record is not required for every gross-to-net difference. A distinct historical reduction/satisfaction fact is preserved only when source semantics establish one; a source-defined net obligation may be net from formation.
+
+**AUTHORITY BOUNDARY**
+
+This Owner decision authorizes NG-S1 research/design only. It grants no authority for: NG-12; implementation; schema/API/domain/client/UI expansion; migrations; persistence selection; product changes. Claude is recorder/research executor only. The Control Room remains adjudicator. The Owner retains final stage/implementation authorization.
+
+Scope: Research/design and conceptual architecture synthesis/falsification only. NO authority for implementation, product code, schema/API/domain/client/UI expansion, persistence selection, migrations, Ledger implementation design, new business capability or NG-12.
+
+Evidence / provenance:
+- Explicit Owner approval of the Control Room recommendation to open NG-S1, transmitted by the Control Room.
+- `DECISION-20260930-010` / `DELTA-20260930-009` as the terminal NG-11 basis.
+- `DECISION-20260930-003` as the active Recursive Control-Room Correspondence & Transition Contract.
+- Claude is recorder/executor only, not decision authority.
+
+Consequences:
+- Once this Owner decision is PUBLISHED, NG-S1 is AUTHORIZED and SCOPE-LOCKED for research/design only.
+- NG-S1A — Integrated Canonical Model becomes the exact next bounded substantive action.
+- No terminal NG-S1 architecture status is determined by this authorization.
+- No implementation authority follows.
+- NG-12 remains unauthorized.
+
+Supersedes: The active current-state claim that no post-NG-11 stage is authorized. It supersedes no prior Decision ID.
+
+Unchanged:
+- Operational Closure remains COMPLETE.
+- Self-Update V1 remains COMPLETE.
+- NG-0 through NG-11 remain closed/approved exactly under their existing terminal decisions.
+- All existing correction chains remain intact.
+- All implementation-open questions from NG-6 through NG-11 remain implementation-open.
+- `DECISION-20260930-003` remains the active recursive correspondence contract.
+- Build-97 released product behavior remains unchanged.
+- No next-generation implementation exists.
+- No product/schema/API/domain/client/UI/migration authority follows.
+
+Open:
+- NG-S1A evidence.
+- NG-S1B evidence.
+- The terminal NG-S1 architecture status.
+- All implementation mechanics.
+- NG-12 and all later stages.
+
+Recorded by: Claude (AgencyOS executor), on explicit Owner instruction transmitted by the Control Room. Claude is recorder/executor only, not authority.
+
+Publication receipt: Pending
